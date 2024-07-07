@@ -1,4 +1,5 @@
-﻿using Measurement.Models;
+﻿using Measurement;
+using Measurement.Models;
 
 namespace Calcusystem.Serialization.Dtos;
 
@@ -13,6 +14,7 @@ public class SingleVariable : ExpressionBase
     public required string Symbol { get; init; }
     public required Dimensionality Dimensionality { get; init; }
     public required double? KmsValue { get; init; }
+    public required double? RelativeError { get; init; }
 }
 
 public class SingleDerivedVariable : ExpressionBase
@@ -29,4 +31,5 @@ public class PairDerivedVariable : ExpressionBase
 public class ListDerivedVariable : ExpressionBase
 {
     public required List<string> InnerIds { get; init; }
+    public required ErrorPropagationMethod  ErrorPropagation { get; init; }
 }

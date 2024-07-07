@@ -11,13 +11,16 @@ public class Magnitude : PrecisionQuantity
     public Magnitude(double value, UnitOfMeasure unitOfMeasure, double relativeError = 0)
         : base(value, unitOfMeasure, relativeError)
     {
-        if (double.IsNegative(value)) throw new NegativeMagnitudeException("Magnitude cannot be negative");
     }
 
     public Magnitude(Quantity quantity, double relativeError = 0)
         : base(quantity, relativeError)
     {
-        if (quantity.IsNegative()) throw new NegativeMagnitudeException("Magnitude cannot be negative");
+    }
+
+    public override bool IsValid()
+    {
+        return IsNaN() is false && IsFinite() && IsNegative() is false;
     }
 
     public Magnitude ToPower(int exponent)
@@ -121,5 +124,18 @@ public class Magnitude : PrecisionQuantity
     public static Delta operator -(Magnitude x)
     {
         return new Delta(-x.Quantity);
+    }
+
+    internal static Magnitude? Deserialize(Dimensionality dimensionality, double? kmsValue, double? relativeError)
+    {
+        if (kmsValue.HasValue is false)
+        {
+            return null;
+        }
+
+        var quantity = new Quantity(kmsValue.Value, dimensionality);
+        return relativeError.HasValue
+            ? new Magnitude(quantity, relativeError.Value)
+            : new Magnitude(quantity);
     }
 }

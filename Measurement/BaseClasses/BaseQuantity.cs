@@ -2,7 +2,7 @@
 
 namespace Measurement.BaseClasses;
 
-public abstract class BaseQuantity
+public abstract class BaseQuantity // this is a bad name
 {
     protected internal readonly Quantity Quantity;
     protected abstract string ToStringSuffix { get; }
@@ -32,6 +32,11 @@ public abstract class BaseQuantity
     public override string ToString()
     {
         return $"{Quantity}{ToStringSuffix}";
+    }
+
+    public virtual bool IsValid()
+    {
+        return IsNaN() is false && IsFinite();
     }
 
     public bool IsNegative()

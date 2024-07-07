@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Measurement.Exceptions;
 using FluentAssertions;
@@ -59,6 +60,7 @@ public class DimensionalityTests
     }
 
     [Fact]
+    [SuppressMessage("ReSharper", "EqualExpressionComparison")]
     public void SameDimensionsAreEqual()
     {
         foreach (var d in HugeListOfDimensionalities)

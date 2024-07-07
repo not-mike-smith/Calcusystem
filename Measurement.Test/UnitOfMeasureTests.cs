@@ -54,7 +54,7 @@ public class UnitOfMeasureTests
     {
         Func<UnitOfMeasure> shouldThrow = () => new UnitOfMeasure(
             Dimensionality.Dimensionless,
-            null,
+            null!,
             1);
 
         shouldThrow.Should().Throw<ArgumentNullException>();

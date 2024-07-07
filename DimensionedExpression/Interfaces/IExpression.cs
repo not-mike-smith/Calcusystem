@@ -19,7 +19,7 @@ public interface ICalculatedExpression : IExpression
     ErrorPropagationMethod ErrorPropagation { get; set; }
 }
 
-public interface IDirectExpression : IExpression
+public interface IDirectExpression<T> : IExpression where T : PrecisionQuantity
 {
-    new PrecisionQuantity? Value { get; set; }
+    new T? Value { get; set; }
 }

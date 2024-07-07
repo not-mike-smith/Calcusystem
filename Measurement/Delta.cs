@@ -83,4 +83,17 @@ public class Delta : PrecisionQuantity
     {
         return new Delta(-x.Quantity);
     }
+
+    internal static Delta? Deserialize(Dimensionality dimensionality, double? kmsValue, double? relativeError)
+    {
+        if (kmsValue.HasValue is false)
+        {
+            return null;
+        }
+
+        var quantity = new Quantity(kmsValue.Value, dimensionality);
+        return relativeError.HasValue
+            ? new Delta(quantity, relativeError.Value)
+            : new Delta(quantity);
+    }
 }

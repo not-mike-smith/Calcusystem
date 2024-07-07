@@ -55,7 +55,7 @@ public class UnitFactoryTests
     [Fact]
     public void CreateByScalingOtherUnit_ThrowsOnNullUnit()
     {
-        Func<UnitOfMeasure> shouldThrow = () => UnitFactory.Create("2", 2, unitOfMeasure: null);
+        Func<UnitOfMeasure> shouldThrow = () => UnitFactory.Create("2", 2, unitOfMeasure: null!);
         shouldThrow.Should().Throw<ArgumentNullException>();
     }
 
@@ -79,7 +79,7 @@ public class UnitFactoryTests
     [Fact]
     public void CreateByConstituentUnitsWithSymbol_ThrowsOnNullSymbol()
     {
-        Func<UnitOfMeasure> shouldThrow = () => UnitFactory.Create(null, (Centimeter, 3));
+        Func<UnitOfMeasure> shouldThrow = () => UnitFactory.Create(null!, (Centimeter, 3));
         shouldThrow.Should().Throw<ArgumentNullException>();
     }
 

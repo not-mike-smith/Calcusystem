@@ -5,8 +5,8 @@ namespace DimensionedExpression.BaseModels;
 public abstract class BinaryOperatorBase : IBinaryOperator
 {
     public required string Id { get; init; }
-    public IExpression Lhs { get; set; }
-    public IExpression Rhs { get; set; }
+    public required IExpression Lhs { get; set; }
+    public required IExpression Rhs { get; set; }
     public abstract bool IsCommutative { get; }
     public abstract bool? IsSatisfied();
     public abstract string Symbol { get; }

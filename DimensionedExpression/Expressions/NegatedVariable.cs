@@ -7,8 +7,9 @@ namespace DimensionedExpression.Expressions;
 
 public class NegatedVariable : IdBase, IExpression
 {
-    public NegatedVariable(string id = Constants.CREATE_NEW) : base(id)
+    public NegatedVariable(IExpression negatedExpression, string id = Constants.CREATE_NEW) : base(id)
     {
+        _negatedExpression = negatedExpression;
     }
 
     private IExpression _negatedExpression;

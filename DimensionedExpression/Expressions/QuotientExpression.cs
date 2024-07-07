@@ -7,20 +7,10 @@ namespace DimensionedExpression.Expressions;
 
 public class QuotientExpression : CalculatedExpressionBase, ICalculatedExpression
 {
-    private IExpression _numerator;
-    private IExpression _denominator;
+    public required IExpression Numerator { get; set; }
 
-    public IExpression Numerator
-    {
-        get => _numerator;
-        set => _numerator = value;
-    }
+    public required IExpression Denominator { get; set; }
 
-    public IExpression Denominator
-    {
-        get => _denominator;
-        set => _denominator = value;
-    }
     public bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
 
