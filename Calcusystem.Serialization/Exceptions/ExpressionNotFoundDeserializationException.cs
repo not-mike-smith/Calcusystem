@@ -1,13 +1,15 @@
-﻿namespace Calcusystem.Serialization.Exceptions;
+﻿using Calcusystem.Serialization.Interfaces;
+
+namespace Calcusystem.Serialization.Exceptions;
 
 public class ExpressionNotFoundDeserializationException : Exception
 {
     public readonly string IdOfMissingExpression;
-    public readonly Dtos.ExpressionBase DtoLoadingMissingExpression;
+    public readonly ISerializedObject DtoLoadingMissingExpression;
 
     public ExpressionNotFoundDeserializationException(
         string idOfMissingExpression,
-        Dtos.ExpressionBase dtoLoadingMissingExpression,
+        ISerializedObject dtoLoadingMissingExpression,
         string? message = null,
         Exception? innerException = null) : base(message, innerException)
     {

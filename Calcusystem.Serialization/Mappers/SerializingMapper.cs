@@ -10,14 +10,26 @@ public class SerializingMapper
     {
         var value = new Dtos.ExpressionSystem
         {
+            Id = system.Id,
             Description = system.Description,
             Name = system.Name
         };
 
         value.DirectExpressions.AddRange(system.DirectExpressions.Select(MapDirectExpressionByPattern));
-        value.DerivedExpressions.AddRange(system.DerivedExpressions.Select(MapDerivedExpressionByPattern));
-        // TODO Constraints
-        // TODO Definitions
+        value.SingleDerivedVariables.AddRange(system.DerivedExpressions
+            .Select(MapSingleDerivedExpressionByPattern)
+            .Where(x => x != null)!);
+
+        value.ListDerivedVariables.AddRange(system.DerivedExpressions
+            .Select(MapListDerivedExpressionByPattern)
+            .Where(x => x != null)!);
+
+        value.PairDerivedVariables.AddRange(system.DerivedExpressions
+            .Select(MapPairDerivedExpressionByPattern)
+            .Where(x => x != null)!);
+
+        value.Constraints.AddRange(system.Constraints.Select(Map));
+        value.Definitions.AddRange(system.Definitions.Select(Map));
         return value;
     }
 
@@ -30,6 +42,30 @@ public class SerializingMapper
             _ => throw new NotImplementedException(
                 $"No mapping for direct expression of type {expression.GetType().Name}")
         };
+    }
+
+    private Dtos.SingleDerivedVariable? MapSingleDerivedExpressionByPattern(IExpression expression)
+    {
+        var x = MapDerivedExpressionByPattern(expression);
+        if (x is Dtos.SingleDerivedVariable variable) return variable;
+
+        return null;
+    }
+
+    private Dtos.ListDerivedVariable? MapListDerivedExpressionByPattern(IExpression expression)
+    {
+        var x = MapDerivedExpressionByPattern(expression);
+        if (x is Dtos.ListDerivedVariable variable) return variable;
+
+        return null;
+    }
+
+    private Dtos.PairDerivedVariable? MapPairDerivedExpressionByPattern(IExpression expression)
+    {
+        var x = MapDerivedExpressionByPattern(expression);
+        if (x is Dtos.PairDerivedVariable variable) return variable;
+
+        return null;
     }
 
     private Dtos.ExpressionBase MapDerivedExpressionByPattern(IExpression expression)
@@ -122,6 +158,19 @@ public class SerializingMapper
             Type = x.GetType().Name,
             InnerId1 = x.Numerator.Id,
             InnerId2 = x.Denominator.Id
+        };
+    }
+
+    public Dtos.BinaryOperator Map(IBinaryOperator x)
+    {
+        return new Dtos.BinaryOperator
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Description = x.Description,
+            Type = x.GetType().Name,
+            LhsId = x.Lhs.Id,
+            RhsId = x.Rhs.Id
         };
     }
 }

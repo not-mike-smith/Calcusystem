@@ -4,7 +4,7 @@ namespace Calcusystem.Serialization;
 
 public class DeserializationContext
 {
-    private readonly Dictionary<string, IExpression> _expressionsById = new Dictionary<string, IExpression>();
+    private readonly Dictionary<string, IExpression> _expressionsById = new();
 
     public IReadOnlyDictionary<string, IExpression> ExpressionsById => _expressionsById;
 

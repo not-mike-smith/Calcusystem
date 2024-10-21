@@ -5,10 +5,12 @@ namespace DimensionedExpression.BaseModels;
 public abstract class BinaryOperatorBase : IBinaryOperator
 {
     public required string Id { get; init; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
     public required IExpression Lhs { get; set; }
     public required IExpression Rhs { get; set; }
     public abstract bool IsCommutative { get; }
-    public abstract bool? IsSatisfied();
+    public abstract bool? IsSatisfied(); // TODO? move to extension?
     public abstract string Symbol { get; }
 
     public bool AreBothSidesFullyDescribed => Lhs.IsFullyDescribed && Rhs.IsFullyDescribed;

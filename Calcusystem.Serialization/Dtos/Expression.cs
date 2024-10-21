@@ -1,9 +1,10 @@
-﻿using Measurement;
+﻿using Calcusystem.Serialization.Interfaces;
+using Measurement;
 using Measurement.Models;
 
 namespace Calcusystem.Serialization.Dtos;
 
-public abstract class ExpressionBase
+public abstract class ExpressionBase : ISerializedObject
 {
     public required string Type { get; init; }
     public required string Id { get; init; }
