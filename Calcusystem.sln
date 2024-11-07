@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimensionedExpression", "Di
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Serialization", "Calcusystem.Serialization\Calcusystem.Serialization.csproj", "{8213B9E9-E0F0-4F6F-BEBD-4683EDD8ACD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Sandbox", "Calcusystem.Sandbox\Calcusystem.Sandbox.csproj", "{5F4A8749-0548-4F65-AC54-6416AE8AAAD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{8213B9E9-E0F0-4F6F-BEBD-4683EDD8ACD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8213B9E9-E0F0-4F6F-BEBD-4683EDD8ACD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8213B9E9-E0F0-4F6F-BEBD-4683EDD8ACD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F4A8749-0548-4F65-AC54-6416AE8AAAD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F4A8749-0548-4F65-AC54-6416AE8AAAD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F4A8749-0548-4F65-AC54-6416AE8AAAD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F4A8749-0548-4F65-AC54-6416AE8AAAD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
