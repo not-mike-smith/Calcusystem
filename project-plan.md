@@ -20,18 +20,49 @@ All projects target older framework versions (netcoreapp3.1 / net7.0) and need u
 
 ## Milestones
 
-### Milestone 1 — Clean Foundation *(current)*
+### Milestone 1 — Clean Foundation ✅ *complete*
 
 Goal: get the codebase into a clean, consistent state before building new features.
 
-- [ ] Upgrade all projects to .NET 10
-- [ ] Fix `IsSubnormal()` bug in `BaseQuantity` (calls `IsNormal()` instead)
-- [ ] Rename `BaseQuantity` to `PhysicalQuantity` (self-described as a bad name)
-- [ ] Fix `Magnitude.TryAdd(Magnitude)` missing error propagation
-- [ ] Fill out missing unit types: `Pressure`, `ElectricPotential`, `ElectricResistance`, `AngularMomentum`, `MomentOfInertia`
-- [ ] Fix `Gradian` bug in `Angle.cs`: `UnitFactory.Create("grad", 400, Revolution)` should be `1d/400` (as written, 1 gradian = 400 revolutions, which is ~2513 rad)
-- [ ] Add `readonly` to all static fields in `Angle.cs` (missing unlike every other unit class)
-- [ ] Add nominal gauge pressure units (`PsiG`, `BarG`, `KPaG`) to `Pressure` as `OffsetUnitOfMeasure` with a 101325 Pa offset, same pattern as `Celsius`. Add a comment that true gauge pressure (offset from actual ambient) is an expression relationship, not a unit.
+- [x] Upgrade all projects to .NET 10
+- [x] Fix `IsSubnormal()` bug in `BaseQuantity` (calls `IsNormal()` instead)
+- [x] Rename `BaseQuantity` to `PhysicalQuantity`
+- [x] Fix `Magnitude.TryAdd(Magnitude)` missing error propagation
+- [x] Fix `Gradian`, `ArcMinute`, `ArcSecond` bugs in `Angle.cs` (inverted scale factors); add missing `readonly`
+- [x] Fix `Rankine` and `Fahrenheit` conversion factors in `Temperature.cs` (were `1.8`/`1` instead of `5/9`)
+- [x] Add unit types: `Pressure` (with nominal gauge `OffsetUnitOfMeasure` variants), `ElectricPotential`, `ElectricResistance`, `MomentOfInertia`, `AngularMomentum`
+
+---
+
+### Milestone 1.5 — Unit Library Completion
+
+Goal: flesh out the unit library to cover the most common engineering domains before work begins on the expression layer.
+
+**Mechanical:**
+
+- [ ] `Torque` — N·m, lbf·ft, lbf·in (same dimensions as Energy; separate class for semantic clarity)
+- [ ] `Momentum` — kg·m/s, lbf·s (M·L·t⁻¹; impulse has the same dimensions, can live here)
+- [ ] `SurfaceTension` — N/m (M·t⁻²)
+- [ ] `SpecificEnergy` — J/kg, BTU/lb, kWh/kg (L²·t⁻²; relevant for fuels, batteries, explosives)
+
+**Fluid / Thermal:**
+
+- [ ] `DynamicViscosity` — Pa·s, cP (centipoise), poise (M·L⁻¹·t⁻¹)
+- [ ] `KinematicViscosity` — m²/s, cSt (centistoke), St (L²·t⁻¹)
+- [ ] `ThermalConductivity` — W/(m·K) (M·L·t⁻³·T⁻¹)
+- [ ] `SpecificHeatCapacity` — J/(kg·K) (L²·t⁻²·T⁻¹)
+- [ ] `HeatTransferCoefficient` — W/(m²·K) (M·t⁻³·T⁻¹)
+
+**Electrical:**
+
+- [ ] `ElectricCapacitance` — F, µF, nF, pF (A²·s⁴·M⁻¹·L⁻²)
+- [ ] `ElectricInductance` — H, mH, µH, nH (M·L²·A⁻²·t⁻²)
+- [ ] `ElectricConductance` — S (Siemens = 1/Ω) (A²·t³·M⁻¹·L⁻²)
+
+**Electromagnetic:**
+
+- [ ] `MagneticFluxDensity` — T (Tesla), G (Gauss) (M·t⁻²·I⁻¹)
+- [ ] `MagneticFlux` — Wb (Weber) (M·L²·t⁻²·I⁻¹)
 
 ---
 
@@ -54,6 +85,7 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 - [ ] Graph walk: for each expression, if all dependencies are set, compute its value and propagate uncertainty
 - [ ] Run all constraints (`Definitions` and `Constraints` lists) and report pass/fail with actual vs. expected values
 - [ ] Surface a clean result model (which expressions resolved, which constraints passed/failed, which variables are still missing)
+- [ ] Add conversion factor provenance to `UnitOfMeasure` — a structured `ConversionSource` record carrying the standard name (e.g. "NIST SP 811"), URL, and year for non-trivial factors like lb→kg or BTU→J. Include provenance in the serialization DTOs so exported calculations carry a full audit trail of where their conversion factors came from.
 
 ---
 
