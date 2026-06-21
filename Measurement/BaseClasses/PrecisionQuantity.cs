@@ -6,7 +6,7 @@ using Measurement.Models;
 
 namespace Measurement.BaseClasses;
 
-public abstract class PrecisionQuantity : BaseQuantity
+public abstract class PrecisionQuantity : PhysicalQuantity
 {
     private readonly double? _relativeError;
 

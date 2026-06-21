@@ -2,17 +2,17 @@
 
 namespace Measurement.BaseClasses;
 
-public abstract class BaseQuantity // this is a bad name
+public abstract class PhysicalQuantity // this is a bad name
 {
     protected internal readonly Quantity Quantity;
     protected abstract string ToStringSuffix { get; }
 
-    protected BaseQuantity(double value, UnitOfMeasure unitOfMeasure)
+    protected PhysicalQuantity(double value, UnitOfMeasure unitOfMeasure)
     {
         Quantity = new Quantity(value, unitOfMeasure);
     }
 
-    protected BaseQuantity(Quantity quantity)
+    protected PhysicalQuantity(Quantity quantity)
     {
         Quantity = quantity;
     }
@@ -76,6 +76,6 @@ public abstract class BaseQuantity // this is a bad name
 
     public bool IsSubnormal()
     {
-        return Quantity.IsNormal();
+        return Quantity.IsSubnormal();
     }
 }
