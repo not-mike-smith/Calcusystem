@@ -7,12 +7,18 @@ public class Metric
     public readonly string Prefix;
     public readonly double Factor;
 
+    /// <summary>
+    /// Creates a metric prefix with the given symbol prefix and multiplicative factor.
+    /// </summary>
     public Metric(string prefix, double factor)
     {
         Prefix = prefix;
         Factor = factor;
     }
 
+    /// <summary>
+    /// Applies this metric prefix to a unit, returning a new scaled unit with the prefix prepended to the symbol.
+    /// </summary>
     public UnitOfMeasure Create(UnitOfMeasure unitOfMeasure)
     {
         return UnitFactory.Create(this, unitOfMeasure);
