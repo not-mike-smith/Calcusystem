@@ -33,9 +33,11 @@ public class Magnitude : PrecisionQuantity
         return new Magnitude(Quantity.ToRoot(root), RelativeError / root);
     }
 
-    public Magnitude TryAdd(Magnitude other)
+    public Magnitude TryAdd(Magnitude other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
     {
-        return new Magnitude(Quantity.TryAdd(other.Quantity));
+        return new Magnitude(
+            Quantity.TryAdd(other.Quantity),
+            PropagateRelativeErrorThroughSum(method, this, other));
     }
 
     public Delta TryAdd(Delta other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)

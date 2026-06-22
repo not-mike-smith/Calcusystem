@@ -22,12 +22,12 @@ public class Temperature : ReflectiveUnitList<Temperature>
     public static readonly UnitOfMeasure DeltaCelsius = Celsius.DeltaUnit;
 
     public static readonly UnitOfMeasure Rankine = UnitFactory.Create("°R",
-        Dimensionality.Temperature, 1.8);
+        Dimensionality.Temperature, 5d / 9);
 
     public static readonly OffsetUnitOfMeasure Fahrenheit = UnitFactory.Create(
         "°F",
-        1,
-        Rankine,
+        5d / 9,
+        Kelvin,
         459.67);
 
     public static readonly UnitOfMeasure DeltaFahrenheit = Fahrenheit.DeltaUnit;

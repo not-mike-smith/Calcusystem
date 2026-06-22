@@ -26,5 +26,5 @@ public class Dimensionless : ReflectiveUnitList<Dimensionless>
 
     public static readonly Uom FeigenbaumConstant = UnitFactory.Create("δ", 4.66920160910299, One);
 
-    public static Uom FeigenbaumAlphaConstant = UnitFactory.Create("α", 2.50290787509589, One);
+    public static readonly Uom FeigenbaumAlphaConstant = UnitFactory.Create("α", 2.50290787509589, One);
 }

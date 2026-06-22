@@ -38,4 +38,10 @@ public class Force : ReflectiveUnitList<Force>
         32.174049,
         (Mass.Pound, 1),
         (Acceleration.FootPerSecondSquared, 1));
+
+    public static readonly UnitOfMeasure OunceForce = UnitFactory.Create(
+        "ozf",
+        32.174049,
+        (Mass.Ounce, 1),
+        (Acceleration.FootPerSecondSquared, 1));
 }

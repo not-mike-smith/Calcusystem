@@ -28,4 +28,8 @@ public class Mass : ReflectiveUnitList<Mass>
     public static readonly UnitOfMeasure Ton  = UnitFactory.Create("ton", 2000, Pound);
     public static readonly UnitOfMeasure Grain  = UnitFactory.Create("gr", 0.064799, Gram);
     public static readonly UnitOfMeasure TroyOunce  = UnitFactory.Create("oz t", 480, Grain);
+
+    // 1 slug = g_c × 1 lb, where g_c = 32.174049 ft/s² (standard gravity in English units)
+    // Defined via Pound rather than via Force to avoid a circular static-initialization dependency.
+    public static readonly UnitOfMeasure Slug = UnitFactory.Create("slug", 32.174049, Pound);
 }
