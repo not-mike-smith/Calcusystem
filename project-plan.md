@@ -78,7 +78,7 @@ Goal: close the gaps in `DimensionedExpression` so the expression system is full
 
 ---
 
-### Milestone 2.5 — Inequality Operators
+### Milestone 2.5 — Inequality Operators ✅ *complete*
 
 Goal: extend the `BinaryOperators` namespace with uncertainty-aware ordering operators and document the full operator taxonomy.
 
@@ -86,20 +86,20 @@ No `≤` / `≥` variants — floating point equality is essentially unreachable
 
 **`<` operators (non-commutative; Lhs = value under test, Rhs = bound):**
 
-- [ ] `DefinitelyLessThanOperator` — `Lhs.Upper < Rhs.Lower`: the entire Lhs interval is strictly below the entire Rhs interval; no overlap possible
-- [ ] `UpperBoundsLessThanOperator` — `Lhs.Upper < Rhs.Upper`: the ceiling of Lhs is below the ceiling of Rhs; intervals may overlap
-- [ ] `NominallyLessThanOperator` — `Lhs.KmsValue < Rhs.KmsValue`: point comparison only; uncertainty ignored
+- [x] `DefinitelyLessThanOperator` — `Lhs.Upper < Rhs.Lower`: the entire Lhs interval is strictly below the entire Rhs interval; no overlap possible
+- [x] `UpperBoundsLessThanOperator` — `Lhs.Upper < Rhs.Upper`: the ceiling of Lhs is below the ceiling of Rhs; intervals may overlap
+- [x] `NominallyLessThanOperator` — `Lhs.KmsValue < Rhs.KmsValue`: point comparison only; uncertainty ignored
 
 **`>` operators** (symmetric to `<`; lower bounds drive the checks):
 
-- [ ] `DefinitelyGreaterThanOperator` — `Lhs.Lower > Rhs.Upper`
-- [ ] `LowerBoundsGreaterThanOperator` — `Lhs.Lower > Rhs.Lower`
-- [ ] `NominallyGreaterThanOperator` — `Lhs.KmsValue > Rhs.KmsValue`
+- [x] `DefinitelyGreaterThanOperator` — `Lhs.Lower > Rhs.Upper`
+- [x] `LowerBoundsGreaterThanOperator` — `Lhs.Lower > Rhs.Lower`
+- [x] `NominallyGreaterThanOperator` — `Lhs.KmsValue > Rhs.KmsValue`
 
 **Documentation and tests:**
 
-- [ ] Add `DimensionedExpression/BinaryOperators/OPERATORS.md` — a taxonomy table covering all operators (equality, the six tolerance operators from M2, and the six inequality operators above), with a one-line geometric description and the exact interval condition for each
-- [ ] Unit tests in `DimensionedExpression.Test` covering all six operators (symmetric and asymmetric uncertainty, boundary conditions, null returns for unbound expressions)
+- [x] Add `DimensionedExpression/BinaryOperators/OPERATORS.md` — a taxonomy table covering all operators (equality, the six tolerance operators from M2, and the six inequality operators above), with a one-line geometric description and the exact interval condition for each
+- [x] Unit tests in `DimensionedExpression.Test` covering all six operators (symmetric and asymmetric uncertainty, boundary conditions, null returns for unbound expressions)
 
 ---
 
