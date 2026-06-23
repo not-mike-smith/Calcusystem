@@ -3,6 +3,12 @@ using Measurement.BaseClasses;
 
 namespace DimensionedExpression.BinaryOperators;
 
+/// <summary>
+/// Satisfied when each side's nominal value falls within the other side's tolerance band — i.e.
+/// Lhs ∈ [Rhs ± Rhs.error] AND Rhs ∈ [Lhs ± Lhs.error]. The check is symmetric.
+/// Symbol: ≃
+/// Use when two independently measured quantities are expected to agree within their own stated uncertainties.
+/// </summary>
 public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 {
     public override string Symbol => "≃";
@@ -19,7 +25,7 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     private bool IsWithinTolerance(PrecisionQuantity x, PrecisionQuantity y)
     {
-        return x.KmsValue >= y.KmsValue - y.KmsAbsoluteError &&
-               x.KmsValue <= y.KmsValue + y.KmsAbsoluteError;
+        return x.KmsValue >= y.KmsValue - y.KmsLowerAbsoluteError &&
+               x.KmsValue <= y.KmsValue + y.KmsUpperAbsoluteError;
     }
 }

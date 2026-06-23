@@ -11,11 +11,16 @@ public class Deserializer
 {
     private readonly Measurement.Factories.Deserializer _quantityDeserializer;
     private readonly DeserializationContext _context;
+    private readonly IEqualityEstimating _equalityEstimator;
 
-    public Deserializer(Measurement.Factories.Deserializer quantityDeserializer, DeserializationContext context)
+    public Deserializer(
+        Measurement.Factories.Deserializer quantityDeserializer,
+        DeserializationContext context,
+        IEqualityEstimating equalityEstimator)
     {
         _quantityDeserializer = quantityDeserializer;
         _context = context;
+        _equalityEstimator = equalityEstimator;
     }
 
     public ExpressionSystem Map(Dtos.ExpressionSystem x)
@@ -146,8 +151,8 @@ public class Deserializer
             nameof(MutuallyWithinToleranceOperator) => MapMutuallyWithToleranceOperator(x),
             nameof(WhollyWithinToleranceOperator) => MapWhollyWithinToleranceOperator(x),
             nameof(WithinBindingToleranceOperator) => MapWithinBindingToleranceOperator(x),
-            nameof(WithinToleranceAndNotOver) => MapWithinToleranceAndNotOver(x),
-            nameof(WithinToleranceAndNotUnder) => MapWithinToleranceAndNotUnder(x),
+            nameof(PointAndUpperBoundWithinToleranceOperator) => MapPointAndUpperBoundWithinToleranceOperator(x),
+            nameof(PointAndLowerBoundWithinToleranceOperator) => MapPointAndLowerBoundWithinToleranceOperator(x),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for BinaryOperator object with saved type, {x.Type}")
         };
@@ -257,7 +262,7 @@ public class Deserializer
 
     public EqualityOperator MapEqualityOperator(Dtos.BinaryOperator x)
     {
-        return new EqualityOperator
+        return new EqualityOperator(_equalityEstimator)
         {
             Id = x.Id,
             Name = x.Name,
@@ -303,9 +308,9 @@ public class Deserializer
         };
     }
 
-    public WithinToleranceAndNotOver MapWithinToleranceAndNotOver(Dtos.BinaryOperator x)
+    public PointAndUpperBoundWithinToleranceOperator MapPointAndUpperBoundWithinToleranceOperator(Dtos.BinaryOperator x)
     {
-        return new WithinToleranceAndNotOver
+        return new PointAndUpperBoundWithinToleranceOperator
         {
             Id = x.Id,
             Name = x.Name,
@@ -315,9 +320,9 @@ public class Deserializer
         };
     }
 
-    public WithinToleranceAndNotUnder MapWithinToleranceAndNotUnder(Dtos.BinaryOperator x)
+    public PointAndLowerBoundWithinToleranceOperator MapPointAndLowerBoundWithinToleranceOperator(Dtos.BinaryOperator x)
     {
-        return new WithinToleranceAndNotUnder
+        return new PointAndLowerBoundWithinToleranceOperator
         {
             Id = x.Id,
             Name = x.Name,

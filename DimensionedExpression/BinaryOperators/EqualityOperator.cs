@@ -1,13 +1,17 @@
 ﻿using DimensionedExpression.BaseModels;
+using DimensionedExpression.Interfaces;
 
 namespace DimensionedExpression.BinaryOperators;
 
-public class EqualityOperator : CommutativeOperatorBase
+public class EqualityOperator(IEqualityEstimating equalityEstimator) : CommutativeOperatorBase
 {
     public override string Symbol => "==";
 
     public override bool? IsSatisfied()
     {
-        throw new NotImplementedException("Use the IEqualityEstimating interface to do DI");
+        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
+            return null;
+
+        return equalityEstimator.AreEqual(Lhs.Value!, Rhs.Value!);
     }
 }

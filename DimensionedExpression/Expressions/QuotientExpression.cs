@@ -25,6 +25,6 @@ public class QuotientExpression : CalculatedExpressionBase, ICalculatedExpressio
 
     public int DegreesOfFreedom()
     {
-        throw new NotImplementedException();
+        return Numerator.DegreesOfFreedom() + Denominator.DegreesOfFreedom();
     }
 }
