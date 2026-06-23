@@ -5,7 +5,7 @@ using Measurement.Models;
 using Measurement.Units;
 using Xunit;
 
-namespace Measurement.Test.Expressions;
+namespace DimensionedExpression.Test.Expressions;
 
 public class DegreesOfFreedomTests
 {

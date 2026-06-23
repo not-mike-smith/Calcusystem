@@ -8,7 +8,7 @@ using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 
-namespace Measurement.Test.BinaryOperators;
+namespace DimensionedExpression.Test.BinaryOperators;
 
 public class ToleranceOperatorTests
 {
