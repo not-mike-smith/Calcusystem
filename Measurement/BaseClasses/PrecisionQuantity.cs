@@ -37,7 +37,9 @@ public abstract class PrecisionQuantity : PhysicalQuantity
     }
 
     public double KmsValue => Quantity.KmsValue;
-    public double KmsAbsoluteError => _uncertainty.AbsoluteError(KmsValue);
+    public double KmsUpperAbsoluteError => _uncertainty.UpperAbsoluteError(KmsValue);
+    public double KmsLowerAbsoluteError => _uncertainty.LowerAbsoluteError(KmsValue);
+    public double KmsAbsoluteError => Math.Max(KmsUpperAbsoluteError, KmsLowerAbsoluteError);
 
     public double AbsoluteErrorIn(UnitOfMeasure unit)
     {

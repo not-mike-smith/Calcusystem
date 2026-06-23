@@ -1,10 +1,10 @@
 namespace Measurement.Uncertainty;
 
 /// <summary>
-/// Symmetric relative uncertainty, equivalent to the current single-value model.
+/// Symmetric relative uncertainty, equivalent to the original single-value model.
 /// Propagates via RSS (uncorrelated) or direct sum (correlated) through arithmetic operations.
 /// </summary>
-public sealed class GaussianUncertainty : IUncertainty
+public sealed class GaussianUncertainty : ISymmetricUncertainty
 {
     private readonly double _relativeError;
 

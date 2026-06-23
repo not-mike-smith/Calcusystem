@@ -25,8 +25,8 @@ public class AnyToleranceOverlapOperator : CommutativeOperatorBase
             ? (Lhs.Value!, Rhs.Value!)
             : (Rhs.Value!, Lhs.Value!);
 
-        var smallerValuePlusError = smallerValue.KmsValue + smallerValue.KmsAbsoluteError;
-        var biggerValueMinusError = biggerValue.KmsValue - biggerValue.KmsAbsoluteError;
+        var smallerValuePlusError = smallerValue.KmsValue + smallerValue.KmsUpperAbsoluteError;
+        var biggerValueMinusError = biggerValue.KmsValue - biggerValue.KmsLowerAbsoluteError;
         return smallerValuePlusError >= biggerValueMinusError;
     }
 }

@@ -1,7 +1,7 @@
 namespace Measurement.Uncertainty;
 
 /// <summary>
-/// Asymmetric relative uncertainty with different bounds above and below the nominal value.
+/// Asymmetric relative uncertainty with independent bounds above and below the nominal value.
 /// For propagation through arithmetic operations, the larger of the two relative errors is used
 /// as a conservative estimate. Monte Carlo propagation (preserving asymmetry) is deferred to Milestone 4.
 /// </summary>
@@ -22,7 +22,7 @@ public sealed class AsymmetricUncertainty : IUncertainty
         LowerRelativeError = lowerRelativeError;
     }
 
+    public double UpperAbsoluteError(double nominalKmsValue) => UpperRelativeError * Math.Abs(nominalKmsValue);
+    public double LowerAbsoluteError(double nominalKmsValue) => LowerRelativeError * Math.Abs(nominalKmsValue);
     public double RelativeError(double nominalKmsValue) => Math.Max(UpperRelativeError, LowerRelativeError);
-
-    public double AbsoluteError(double nominalKmsValue) => RelativeError(nominalKmsValue) * Math.Abs(nominalKmsValue);
 }

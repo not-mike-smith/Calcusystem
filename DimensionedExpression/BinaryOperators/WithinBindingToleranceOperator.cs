@@ -1,4 +1,4 @@
-﻿using DimensionedExpression.BaseModels;
+using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
 
@@ -17,8 +17,8 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 
         var testValue = Lhs.Value!;
         var bindingValue = Rhs.Value!;
-        var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsAbsoluteError;
-        var bindingUpperBound = bindingValue.KmsValue + bindingValue.KmsAbsoluteError;
+        var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
+        var bindingUpperBound = bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
         return testValue.KmsValue >= bindingLowerBound && testValue.KmsValue <= bindingUpperBound;
     }
 
@@ -42,10 +42,10 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 
         var testValue = Lhs.Value!;
         var bindingValue = Rhs.Value!;
-        var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsAbsoluteError;
-        var bindingUpperBound = bindingValue.KmsValue + bindingValue.KmsAbsoluteError;
-        var isAboveLowerBound = testValue.KmsValue >= bindingLowerBound;
-        var upperBoundNotExceeded = testValue.KmsValue + testValue.KmsAbsoluteError <= bindingUpperBound;
+        var isAboveLowerBound = testValue.KmsValue >= bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
+        var upperBoundNotExceeded =
+            testValue.KmsValue + testValue.KmsUpperAbsoluteError <=
+            bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
         return isAboveLowerBound && upperBoundNotExceeded;
     }
 
@@ -69,10 +69,10 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
 
         var testValue = Lhs.Value!;
         var bindingValue = Rhs.Value!;
-        var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsAbsoluteError;
-        var bindingUpperBound = bindingValue.KmsValue + bindingValue.KmsAbsoluteError;
-        var isBelowUpperBound = testValue.KmsValue <= bindingUpperBound;
-        var lowerBoundNotViolated = testValue.KmsValue - testValue.KmsAbsoluteError >= bindingLowerBound;
+        var isBelowUpperBound = testValue.KmsValue <= bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
+        var lowerBoundNotViolated =
+            testValue.KmsValue - testValue.KmsLowerAbsoluteError >=
+            bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
         return isBelowUpperBound && lowerBoundNotViolated;
     }
 

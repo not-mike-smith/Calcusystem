@@ -25,7 +25,7 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     private bool IsWithinTolerance(PrecisionQuantity x, PrecisionQuantity y)
     {
-        return x.KmsValue >= y.KmsValue - y.KmsAbsoluteError &&
-               x.KmsValue <= y.KmsValue + y.KmsAbsoluteError;
+        return x.KmsValue >= y.KmsValue - y.KmsLowerAbsoluteError &&
+               x.KmsValue <= y.KmsValue + y.KmsUpperAbsoluteError;
     }
 }

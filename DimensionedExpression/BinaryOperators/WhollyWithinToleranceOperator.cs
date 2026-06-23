@@ -24,11 +24,11 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 
         var testValue = Lhs.Value!;
         var bindingValue = Rhs.Value!;
-        var lowerBoundWithinTolerance = testValue.KmsValue - testValue.KmsAbsoluteError >
-                                        bindingValue.KmsValue - bindingValue.KmsAbsoluteError;
+        var lowerBoundWithinTolerance = testValue.KmsValue - testValue.KmsLowerAbsoluteError >
+                                        bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
 
-        var upperBoundWithinTolerance = testValue.KmsValue + testValue.KmsAbsoluteError <
-                                        bindingValue.KmsValue + bindingValue.KmsAbsoluteError;
+        var upperBoundWithinTolerance = testValue.KmsValue + testValue.KmsUpperAbsoluteError <
+                                        bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
 
         return lowerBoundWithinTolerance && upperBoundWithinTolerance;
     }
