@@ -34,35 +34,35 @@ Goal: get the codebase into a clean, consistent state before building new featur
 
 ---
 
-### Milestone 1.5 — Unit Library Completion
+### Milestone 1.5 — Unit Library Completion ✅ *complete*
 
 Goal: flesh out the unit library to cover the most common engineering domains before work begins on the expression layer.
 
 **Mechanical:**
 
-- [ ] `Torque` — N·m, lbf·ft, lbf·in (same dimensions as Energy; separate class for semantic clarity)
-- [ ] `Momentum` — kg·m/s, lbf·s (M·L·t⁻¹; impulse has the same dimensions, can live here)
-- [ ] `SurfaceTension` — N/m (M·t⁻²)
-- [ ] `SpecificEnergy` — J/kg, BTU/lb, kWh/kg (L²·t⁻²; relevant for fuels, batteries, explosives)
+- [x] `Torque` — N·m, lbf·ft, lbf·in (same dimensions as Energy; separate class for semantic clarity)
+- [x] `Momentum` — kg·m/s, lbf·s (M·L·t⁻¹; impulse has the same dimensions, can live here)
+- [x] `SurfaceTension` — N/m (M·t⁻²)
+- [x] `SpecificEnergy` — J/kg, BTU/lb, kWh/kg (L²·t⁻²; relevant for fuels, batteries, explosives)
 
 **Fluid / Thermal:**
 
-- [ ] `DynamicViscosity` — Pa·s, cP (centipoise), poise (M·L⁻¹·t⁻¹)
-- [ ] `KinematicViscosity` — m²/s, cSt (centistoke), St (L²·t⁻¹)
-- [ ] `ThermalConductivity` — W/(m·K) (M·L·t⁻³·T⁻¹)
-- [ ] `SpecificHeatCapacity` — J/(kg·K) (L²·t⁻²·T⁻¹)
-- [ ] `HeatTransferCoefficient` — W/(m²·K) (M·t⁻³·T⁻¹)
+- [x] `DynamicViscosity` — Pa·s, cP (centipoise), poise (M·L⁻¹·t⁻¹)
+- [x] `KinematicViscosity` — m²/s, cSt (centistoke), St (L²·t⁻¹)
+- [x] `ThermalConductivity` — W/(m·K) (M·L·t⁻³·T⁻¹)
+- [x] `SpecificHeatCapacity` — J/(kg·K) (L²·t⁻²·T⁻¹)
+- [x] `HeatTransferCoefficient` — W/(m²·K) (M·t⁻³·T⁻¹)
 
 **Electrical:**
 
-- [ ] `ElectricCapacitance` — F, µF, nF, pF (A²·s⁴·M⁻¹·L⁻²)
-- [ ] `ElectricInductance` — H, mH, µH, nH (M·L²·A⁻²·t⁻²)
-- [ ] `ElectricConductance` — S (Siemens = 1/Ω) (A²·t³·M⁻¹·L⁻²)
+- [x] `ElectricCapacitance` — F, µF, nF, pF (A²·s⁴·M⁻¹·L⁻²)
+- [x] `ElectricInductance` — H, mH, µH, nH (M·L²·A⁻²·t⁻²)
+- [x] `ElectricConductance` — S (Siemens = 1/Ω) (A²·t³·M⁻¹·L⁻²)
 
 **Electromagnetic:**
 
-- [ ] `MagneticFluxDensity` — T (Tesla), G (Gauss) (M·t⁻²·I⁻¹)
-- [ ] `MagneticFlux` — Wb (Weber) (M·L²·t⁻²·I⁻¹)
+- [x] `MagneticFluxDensity` — T (Tesla), G (Gauss) (M·t⁻²·I⁻¹)
+- [x] `MagneticFlux` — Wb (Weber) (M·L²·t⁻²·I⁻¹)
 
 ---
 
@@ -78,6 +78,31 @@ Goal: close the gaps in `DimensionedExpression` so the expression system is full
 
 ---
 
+### Milestone 2.5 — Inequality Operators
+
+Goal: extend the `BinaryOperators` namespace with uncertainty-aware ordering operators and document the full operator taxonomy.
+
+No `≤` / `≥` variants — floating point equality is essentially unreachable in practice; callers who need "at most" can negate the other side.
+
+**`<` operators (non-commutative; Lhs = value under test, Rhs = bound):**
+
+- [ ] `DefinitelyLessThanOperator` — `Lhs.Upper < Rhs.Lower`: the entire Lhs interval is strictly below the entire Rhs interval; no overlap possible
+- [ ] `UpperBoundsLessThanOperator` — `Lhs.Upper < Rhs.Upper`: the ceiling of Lhs is below the ceiling of Rhs; intervals may overlap
+- [ ] `NominallyLessThanOperator` — `Lhs.KmsValue < Rhs.KmsValue`: point comparison only; uncertainty ignored
+
+**`>` operators** (symmetric to `<`; lower bounds drive the checks):
+
+- [ ] `DefinitelyGreaterThanOperator` — `Lhs.Lower > Rhs.Upper`
+- [ ] `LowerBoundsGreaterThanOperator` — `Lhs.Lower > Rhs.Lower`
+- [ ] `NominallyGreaterThanOperator` — `Lhs.KmsValue > Rhs.KmsValue`
+
+**Documentation and tests:**
+
+- [ ] Add `DimensionedExpression/BinaryOperators/OPERATORS.md` — a taxonomy table covering all operators (equality, the six tolerance operators from M2, and the six inequality operators above), with a one-line geometric description and the exact interval condition for each
+- [ ] Unit tests in `DimensionedExpression.Test` covering all six operators (symmetric and asymmetric uncertainty, boundary conditions, null returns for unbound expressions)
+
+---
+
 ### Milestone 3 — Evaluation Engine *(the payoff)*
 
 Goal: given a populated `ExpressionSystem`, compute everything that can be computed and report constraint satisfaction.
@@ -86,6 +111,8 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 - [ ] Run all constraints (`Definitions` and `Constraints` lists) and report pass/fail with actual vs. expected values
 - [ ] Surface a clean result model (which expressions resolved, which constraints passed/failed, which variables are still missing)
 - [ ] Add conversion factor provenance to `UnitOfMeasure` — a structured `ConversionSource` record carrying the standard name (e.g. "NIST SP 811"), URL, and year for non-trivial factors like lb→kg or BTU→J. Include provenance in the serialization DTOs so exported calculations carry a full audit trail of where their conversion factors came from.
+- [ ] Add `ExponentialExpression(argument: IExpression)` — unary expression computing `e^x`; requires argument to be dimensionless; result is dimensionless; uncertainty: `RelativeError(exp(x)) ≈ |x| · RelativeError(x)`
+- [ ] Add `NaturalLogExpression(argument: IExpression)` — unary expression computing `ln(x)`; requires argument to be dimensionless and positive; result is dimensionless; uncertainty: `AbsoluteError(ln(x)) ≈ RelativeError(x)`; primary motivation is Arrhenius equations (`k = A · exp(-Eₐ / (R·T))`)
 
 ---
 
@@ -99,6 +126,15 @@ Goal: given a system with some unknowns, determine if it is solvable and solve i
 - [ ] `DegreesOfFreedom()` (from Milestone 2) becomes the gate: DoF == 0 → evaluate; DoF == 1 → solve; DoF > 1 → report which variables are needed
 - [ ] Implement a basic solver for product/quotient/sum relationships (the linear and multiplicative cases are tractable without a CAS)
 - [ ] Leave the door open for a symbolic or numeric solver as a future plugin
+
+---
+
+### Milestone 5 — Wishlist *(scope not yet committed)*
+
+These features are worth designing for but intentionally deferred until M4 is solid.
+
+- [ ] **Complex number support** — A `ComplexExpression` type holding `Re : IExpression` and `Im : IExpression` children, supporting complex arithmetic (add, multiply, divide, conjugate). Exposes `.Magnitude()` → `sqrt(Re² + Im²)` and `.Phase()` → `atan2(Im, Re)` as regular `IExpression` nodes. Never promotes directly to `PhysicalQuantity`; callers must extract a real component. Primary motivation: AC circuit analysis with phasor impedance.
+- [ ] **Binary exponentiation** — `PowerExpression(base: IExpression, exponent: IExpression)`. Exponent must be dimensionless (and ideally a rational constant for dimensional analysis to remain tractable). Dimensionality of result = base dimensionality raised to the exponent. Uncertainty: standard power-rule propagation. Complements `ExponentialExpression` (`e^x`) from M3 for general `x^n` expressions.
 
 ---
 
