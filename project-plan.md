@@ -66,15 +66,15 @@ Goal: flesh out the unit library to cover the most common engineering domains be
 
 ---
 
-### Milestone 2 — Complete the Expression Layer
+### Milestone 2 — Complete the Expression Layer ✅ *complete*
 
 Goal: close the gaps in `DimensionedExpression` so the expression system is fully usable.
 
-- [ ] Implement `DegreesOfFreedom()` as a recursive graph walk counting unbound direct variables reachable from an expression (answers "how many inputs does this node still need?")
-- [ ] Decide what `EqualityOperator` means and implement `IsSatisfied()` — either collapse it into `MutuallyWithinToleranceOperator`, or wire a DI-injectable epsilon via `IEqualityEstimating`
-- [ ] Add a factory for `ExpressionSystem` (noted as TODO in code)
-- [ ] Document / rename the cryptic tolerance operator symbols (`=}`, `[=}`, `[≓}`, `[≒}`)
-- [ ] Extract uncertainty representation to an `IUncertainty` interface, replacing the raw `_relativeError: double?` field in `PrecisionQuantity`. Concrete implementations: `GaussianUncertainty` (current behavior), `AsymmetricUncertainty(upper, lower)`, `BoundedUncertainty(lower, upper)`. Monte Carlo propagation is deferred to Milestone 4.
+- [x] Implement `DegreesOfFreedom()` as a recursive graph walk — sums children's DoFs in `ProductExpression`, `SumExpression`, and `QuotientExpression`; already correct in `DirectExpressionBase`, `NegatedVariable`, and `ReciprocalExpression`
+- [x] Implement `EqualityOperator.IsSatisfied()` — wired `IEqualityEstimating` via primary constructor (DI); `Deserializer` updated to accept and forward the estimator
+- [x] Add `ExpressionSystem.Create(name, description)` static factory method with auto-generated ID
+- [x] Document and rename tolerance operators — `WithinToleranceAndNotOver` → `PointAndUpperBoundWithinToleranceOperator`, `WithinToleranceAndNotUnder` → `PointAndLowerBoundWithinToleranceOperator`; XML doc comments on all five operators
+- [x] Extract uncertainty to `IUncertainty` interface (`Measurement/Uncertainty/`). Concrete implementations: `GaussianUncertainty` (existing behavior), `AsymmetricUncertainty(upper, lower)` (asymmetric relative errors), `BoundedUncertainty(upper, lower)` (asymmetric absolute KMS errors). Added `ISymmetricUncertainty : IUncertainty` sub-interface with default upper/lower implementations; `GaussianUncertainty` implements it. `IUncertainty` exposes `UpperAbsoluteError`/`LowerAbsoluteError` separately; all five tolerance operators updated to use directional bounds. Monte Carlo propagation deferred to Milestone 4.
 
 ---
 
