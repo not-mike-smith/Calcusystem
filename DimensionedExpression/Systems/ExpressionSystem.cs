@@ -5,9 +5,18 @@ namespace DimensionedExpression.Systems;
 
 public class ExpressionSystem : IdBase
 {
-    public ExpressionSystem(string id) : base(id)
+    public ExpressionSystem(string id) : base(id) { }
+
+    /// <summary>
+    /// Creates a new <see cref="ExpressionSystem"/> with an auto-generated ID.
+    /// </summary>
+    public static ExpressionSystem Create(string name, string description = "")
     {
-        // TODO name creation in a factory?
+        return new ExpressionSystem(Constants.CREATE_NEW)
+        {
+            Name = name,
+            Description = description,
+        };
     }
 
     public string Name { get; set; } = "";

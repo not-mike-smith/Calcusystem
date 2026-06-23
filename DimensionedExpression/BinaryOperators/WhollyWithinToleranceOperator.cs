@@ -3,9 +3,17 @@ using DimensionedExpression.Interfaces;
 
 namespace DimensionedExpression.BinaryOperators;
 
+/// <summary>
+/// Satisfied when the entire Lhs uncertainty interval [Lhs ± Lhs.error] is strictly contained within
+/// the Rhs tolerance band [Rhs ± Rhs.error]. Both the lower and upper bounds of Lhs must lie inside
+/// the Rhs interval; the Lhs interval touching the Rhs boundary does not satisfy this operator.
+/// Symbol: [=}
+/// Use for worst-case bilateral conformance checks where no part of the measurement's uncertainty range
+/// may fall outside the specification.
+/// </summary>
 public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 {
-    public override string Symbol =>"[=}";
+    public override string Symbol => "[=}";
 
     public override bool? IsSatisfied()
     {

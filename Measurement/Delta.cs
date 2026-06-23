@@ -1,5 +1,6 @@
 ﻿using Measurement.BaseClasses;
 using Measurement.Models;
+using Measurement.Uncertainty;
 
 namespace Measurement;
 
@@ -13,6 +14,10 @@ public class Delta : PrecisionQuantity
 
     public Delta(Quantity quantity, double relativeError = 0)
         : base(quantity, relativeError)
+    { }
+
+    public Delta(Quantity quantity, IUncertainty uncertainty)
+        : base(quantity, uncertainty)
     { }
 
     public override double In(UnitOfMeasure unitOfMeasure)

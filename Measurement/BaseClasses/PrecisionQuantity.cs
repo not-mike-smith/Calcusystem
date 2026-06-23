@@ -1,37 +1,35 @@
-﻿using System;
+using System;
 using System.Linq;
 using Measurement.Exceptions;
 using Measurement.Extensions;
 using Measurement.Models;
+using Measurement.Uncertainty;
 
 namespace Measurement.BaseClasses;
 
 public abstract class PrecisionQuantity : PhysicalQuantity
 {
-    private readonly double? _relativeError;
+    private readonly IUncertainty _uncertainty;
 
     protected PrecisionQuantity(double value, UnitOfMeasure unitOfMeasure, double relativeError)
         : base(value, unitOfMeasure)
     {
-        if (double.IsNegative(relativeError) || double.IsInfinity(relativeError) || double.IsNaN(relativeError))
-        {
-            throw new ArgumentException("Relative Error cannot be negative, infinite, or NaN");
-        }
-
-        _relativeError = relativeError;
+        _uncertainty = new GaussianUncertainty(relativeError);
     }
 
     protected PrecisionQuantity(Quantity quantity, double relativeError) : base(quantity)
     {
-        if (double.IsNegative(relativeError) || double.IsInfinity(relativeError) || double.IsNaN(relativeError))
-        {
-            throw new ArgumentException("Relative Error cannot be negative, infinite, or NaN");
-        }
-
-        _relativeError = relativeError;
+        _uncertainty = new GaussianUncertainty(relativeError);
     }
 
-    public double RelativeError => _relativeError ?? 0;
+    protected PrecisionQuantity(Quantity quantity, IUncertainty uncertainty) : base(quantity)
+    {
+        _uncertainty = uncertainty;
+    }
+
+    public IUncertainty Uncertainty => _uncertainty;
+
+    public double RelativeError => _uncertainty.RelativeError(KmsValue);
 
     public double AbsoluteError(UnitOfMeasure unitOfMeasure)
     {
@@ -39,7 +37,7 @@ public abstract class PrecisionQuantity : PhysicalQuantity
     }
 
     public double KmsValue => Quantity.KmsValue;
-    public double KmsAbsoluteError => RelativeError * Math.Abs(Quantity.KmsValue);
+    public double KmsAbsoluteError => _uncertainty.AbsoluteError(KmsValue);
 
     public double AbsoluteErrorIn(UnitOfMeasure unit)
     {
@@ -116,15 +114,15 @@ public abstract class PrecisionQuantity : PhysicalQuantity
 
     public static PrecisionQuantity operator -(PrecisionQuantity quantity)
     {
-        return new Delta(-quantity.Quantity, quantity.RelativeError);
+        return new Delta(-quantity.Quantity, quantity.Uncertainty);
     }
 
     public PrecisionQuantity Reciprocal()
     {
         return this switch
         {
-            Delta => new Delta(Quantity.One / Quantity, RelativeError),
-            Magnitude => new Magnitude(Quantity.One / Quantity, RelativeError),
+            Delta => new Delta(Quantity.One / Quantity, Uncertainty),
+            Magnitude => new Magnitude(Quantity.One / Quantity, Uncertainty),
             _ => throw new InvalidOperationException()
         };
     }

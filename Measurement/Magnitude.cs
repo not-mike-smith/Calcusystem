@@ -1,6 +1,7 @@
 ﻿using Measurement.BaseClasses;
 using Measurement.Exceptions;
 using Measurement.Models;
+using Measurement.Uncertainty;
 
 namespace Measurement;
 
@@ -15,6 +16,11 @@ public class Magnitude : PrecisionQuantity
 
     public Magnitude(Quantity quantity, double relativeError = 0)
         : base(quantity, relativeError)
+    {
+    }
+
+    public Magnitude(Quantity quantity, IUncertainty uncertainty)
+        : base(quantity, uncertainty)
     {
     }
 

@@ -37,6 +37,6 @@ public class ProductExpression : CalculatedExpressionBase, ICalculatedExpression
 
     public int DegreesOfFreedom()
     {
-        throw new NotImplementedException();
+        return _factors.Sum(f => f.DegreesOfFreedom());
     }
 }

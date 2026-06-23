@@ -60,6 +60,6 @@ public class SumExpression : CalculatedExpressionBase, ICalculatedExpression
 
     public int DegreesOfFreedom()
     {
-        throw new NotImplementedException();
+        return _addends.Sum(a => a.DegreesOfFreedom());
     }
 }

@@ -2,6 +2,14 @@
 
 namespace DimensionedExpression.BinaryOperators;
 
+/// <summary>
+/// Satisfied when the Lhs and Rhs tolerance bands overlap at all — i.e. there exists at least one value
+/// that is consistent with both uncertainties. This is the weakest form of agreement: even a single
+/// shared point in the two intervals is sufficient.
+/// Symbol: ≈
+/// Use when checking whether two measurements are at least plausibly compatible, without requiring
+/// that one falls squarely within the other's band.
+/// </summary>
 public class AnyToleranceOverlapOperator : CommutativeOperatorBase
 {
     public override string Symbol => "≈";
