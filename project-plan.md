@@ -107,6 +107,18 @@ No `≤` / `≥` variants — floating point equality is essentially unreachable
 
 Goal: given a populated `ExpressionSystem`, compute everything that can be computed and report constraint satisfaction.
 
+**Expression type additions (prerequisite for evaluation and provenance reporting):**
+
+- [ ] Rename `ICalculatedExpression` / `CalculatedExpressionBase` → `IComputedExpression` / `ComputedExpressionBase` throughout — "calculated" is ambiguous; "computed" avoids collision with "derivative" once ODE relationships are added in M5
+- [ ] Introduce leaf variable subtypes, each implementing `IDirectExpression`. These capture *provenance semantics* — orthogonal to the existing `Magnitude`/`Delta` axis which captures *physical semantics*:
+  - `MeasuredVariable` — an instrument or sensor reading; uncertainty characterises instrument calibration and repeatability; may carry instrument metadata (calibration date, instrument ID)
+  - `ReferenceConstant` — a literature or tabulated value (thermodynamic property, material property, physical constant); uncertainty from the source's stated precision or treated as exact; carries provenance/citation (same idea as `ConversionSource` for unit factors)
+  - `DesignParameter` — an engineer-specified value, not measured or from literature; exact or carries a manufacturing/specification tolerance via `BoundedUncertainty`
+  - `ModelParameter` — an empirically fitted constant within a constitutive relationship (e.g. discharge coefficient `Cᵈ`, Nusselt correlation coefficients); uncertainty from the fitting process; distinct from `ReferenceConstant` because it is model-specific, not a physical property
+- [ ] Resolve the `Definitions` / `Constraints` / instances semantic model: `Definitions` are always-true relationships used to *compute* unknowns (conservation laws, constitutive equations); `Constraints` are tolerance checks run against computed or measured values (pass/fail); leaf variable subtypes above replace the informal notion of "instances"
+
+**Evaluation engine:**
+
 - [ ] Graph walk: for each expression, if all dependencies are set, compute its value and propagate uncertainty
 - [ ] Run all constraints (`Definitions` and `Constraints` lists) and report pass/fail with actual vs. expected values
 - [ ] Surface a clean result model (which expressions resolved, which constraints passed/failed, which variables are still missing)
@@ -137,6 +149,7 @@ These features are worth designing for but intentionally deferred until M4 is so
 - [ ] **Complex number support** — A `ComplexExpression` type holding `Re : IExpression` and `Im : IExpression` children, supporting complex arithmetic (add, multiply, divide, conjugate). Exposes `.Magnitude()` → `sqrt(Re² + Im²)` and `.Phase()` → `atan2(Im, Re)` as regular `IExpression` nodes. Never promotes directly to `PhysicalQuantity`; callers must extract a real component. Primary motivation: AC circuit analysis with phasor impedance.
 - [ ] **Integer nth root** — `NthRootExpression(argument: IExpression, n: int)`. Natural generalization of `SqrtExpression` (M3) to arbitrary integer roots. Constraint: all dimensional exponents of the argument must be divisible by `n`, so the result always has integer-exponent dimensions (each exponent divided by `n`); e.g. `∛(m³·s⁻³)` → `m·s⁻¹` is valid, `∛(m²)` is not. Argument value must be non-negative (or handle odd `n` separately for signed values). Uncertainty: `RelativeError(x^(1/n)) = (1/n) · RelativeError(x)`.
 - [ ] **Binary exponentiation** — `PowerExpression(base: IExpression, exponent: IExpression)`. Exponent must be dimensionless (and ideally a rational constant for dimensional analysis to remain tractable). Dimensionality of result = base dimensionality raised to the exponent; unlike `NthRootExpression`, integer-exponent results are not guaranteed and are the caller's responsibility. Uncertainty: standard power-rule propagation. Complements `ExponentialExpression` (`e^x`) from M3 for general `x^n` expressions.
+- [ ] **Data reconciliation** — A `ReconciledVariable` type that aggregates multiple independent `MeasuredVariable` nodes referring to the same physical quantity and finds the weighted least-squares estimate consistent with all `Definitions` (conservation laws). When redundant measurements disagree beyond their stated uncertainties, reconciliation surfaces the inconsistency rather than silently propagating a single measurement's error. Requires the algebraic solver (M4) to be in place as the constraint backbone.
 - [ ] **Dynamic (ODE) relationships** — A `DerivativeRelationship` type linking two variables through a time derivative (`rate = d(quantity)/dt`), enabling lumped-parameter transient models: filling tanks, thermal mass, RC circuits, spring-mass systems. Scope is deliberately restricted to *time as the sole independent variable* (excludes all PDEs, including Navier-Stokes), *initial value problems only* (conditions at `t = 0`; excludes BVPs requiring shooting methods or collocation), and *explicit first-order form* `y' = f(t, y)` (higher-order systems reduce to first-order via state-space substitution; implicit DAEs deferred). Integral relationships (`quantity = ∫rate dt`) are the inverse case handled by the same mechanism. Solving requires a numerical ODE integrator (RK4, Dormand-Prince, or similar) plugged in via the M4 solver abstraction layer.
 - [ ] **ODE system diagnostics** — A `SystemDiagnostics` report that runs before the ODE solver and surfaces structured findings so engineers can act on specific information rather than diagnosing solver failures at runtime:
   - *Stiffness*: compute the Jacobian `J = ∂f/∂y` (symbolic from the expression tree or numeric via finite differences); stiffness ratio = `max(|Re(λᵢ)|) / min(|Re(λᵢ)|)` over eigenvalues of `J`; ratio >> 1000 → recommend an implicit solver (BDF, Radau) instead of explicit RK4.
@@ -154,6 +167,8 @@ These features are worth designing for but intentionally deferred until M4 is so
 | Magnitude vs Delta | Two separate types | Enforces physical semantics: lengths can't be negative, temperature *changes* can |
 | Error propagation | RSS (uncorrelated) default, direct sum (correlated) available | Standard engineering uncertainty practice |
 | Solver abstraction | Interface-based, swappable | Different problem domains may call for symbolic, numeric, or constraint solvers |
+| Variable provenance taxonomy | Four leaf subtypes: `MeasuredVariable`, `ReferenceConstant`, `DesignParameter`, `ModelParameter` | Provenance axis is orthogonal to the `Magnitude`/`Delta` physical axis; affects uncertainty characterisation and result reporting without changing evaluation logic |
+| Definitions vs. Constraints | Definitions compute unknowns; Constraints check values | Conservation laws and constitutive equations belong in `Definitions`; tolerance checks belong in `Constraints` |
 | OffsetUnitOfMeasure | Inheritance from UnitOfMeasure | Acceptable for now; temperature is the only offset case and it works |
 
 ---
