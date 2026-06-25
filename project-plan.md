@@ -113,6 +113,7 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 - [ ] Add conversion factor provenance to `UnitOfMeasure` — a structured `ConversionSource` record carrying the standard name (e.g. "NIST SP 811"), URL, and year for non-trivial factors like lb→kg or BTU→J. Include provenance in the serialization DTOs so exported calculations carry a full audit trail of where their conversion factors came from.
 - [ ] Add `ExponentialExpression(argument: IExpression)` — unary expression computing `e^x`; requires argument to be dimensionless; result is dimensionless; uncertainty: `RelativeError(exp(x)) ≈ |x| · RelativeError(x)`
 - [ ] Add `NaturalLogExpression(argument: IExpression)` — unary expression computing `ln(x)`; requires argument to be dimensionless and positive; result is dimensionless; uncertainty: `AbsoluteError(ln(x)) ≈ RelativeError(x)`; primary motivation is Arrhenius equations (`k = A · exp(-Eₐ / (R·T))`)
+- [ ] Add `SqrtExpression(argument: IExpression)` — unary expression computing `√x`; requires all dimensional exponents of the argument to be even integers (so that the result has integer-exponent dimensions); result dimensionality has each exponent halved (e.g. `√(m²·s⁻²)` → `m·s⁻¹`); argument value must be non-negative; uncertainty: `RelativeError(√x) = ½ · RelativeError(x)`; pulled forward from M5 `PowerExpression` because it is needed for Torricelli-law expressions (`Q = Cᵈ·a·√(2gh)`) in the ODE tank-draining use case
 
 ---
 
