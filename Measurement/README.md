@@ -10,8 +10,8 @@ The foundation layer of Calcusystem. Provides physical quantities with units, di
 
 ```csharp
 var force = new Magnitude(1.0, Force.PoundForce);  // user supplies lbf
-force.In(Force.Newton);   // 4.448… — conversion happens at output only
-force.KmsValue;           // 4.448… — internal representation is always SI
+force.In(Force.OunceForce);  // 16.0   — conversion happens at output only
+force.KmsValue;              // 4.448… — internal representation is always SI
 ```
 
 ---
@@ -20,18 +20,16 @@ force.KmsValue;           // 4.448… — internal representation is always SI
 
 Listed from user-facing at the top to foundational primitive at the bottom.
 
-```
-Magnitude               — concrete; non-negative (length, mass, absolute temperature, pressure…)
-Delta                   — concrete; signed (temperature change, displacement, force component…)
-PrecisionQuantity       — abstract; adds IUncertainty; static propagation methods (Sum, Product, Quotient)
-PhysicalQuantity        — abstract; wraps Quantity; unit-aware In()/TryIn() and validity checks
-Quantity                — struct; raw KMS value + Dimensionality; internal currency; no uncertainty
-
-UnitOfMeasure           — symbol + Dimensionality + KMS conversion factor (constructed via UnitFactory)
-OffsetUnitOfMeasure     — extends UnitOfMeasure with a fixed zero-point offset; see note below
-
-Dimensionality          — struct; maps FundamentalDimension → integer exponent; supports algebra
-```
+| Name | Type | Extends | Description |
+| ---- | ---- | ------- | ----------- |
+| Magnitude | class | PrecisionQuantity | Non-negative physical quantity with uncertainty |
+| Delta | class | PrecisionQuantity | Signed physical quantity with uncertainty |
+| PrecisionQuantity | abstract | PhysicalQuantity | Quantity + IUncertainty; static propagation methods |
+| PhysicalQuantity | abstract | | wraps Quantity; unit-aware In()/TryIn() and validity checks |
+| Quantity | struct | | raw KMS value + Dimensionality; internal currency; no uncertainty |
+| OffsetUnitOfMeasure | class | UnitOfMeasure | extends UnitOfMeasure with a fixed zero-point offset; see note below |
+| UnitOfMeasure | class | | symbol + Dimensionality + KMS conversion factor (constructed via UnitFactory) |
+| Dimensionality | struct | | maps FundamentalDimension → integer exponent; supports algebra |
 
 **`OffsetUnitOfMeasure`** stores a fixed zero-point offset baked in at construction time — not a live ambient reading. It is used for two physical domains:
 
@@ -49,10 +47,10 @@ Dimensionality          — struct; maps FundamentalDimension → integer expone
 **`Dimensionality`** is a `readonly struct` holding a `Dictionary<FundamentalDimension, int>`. Zero-exponent entries are automatically stripped. The nine fundamental dimensions are: `Mass`, `Length`, `Time`, `Temperature`, `ElectricCurrent`, `AmountOfMatter`, `LuminousIntensity`, `Angle`, `Currency`. Algebra is supported directly:
 
 ```csharp
-var velocity = Dimensionality.Length / Dimensionality.Time;  // L·t⁻¹
-var energy   = Dimensionality.Mass * Dimensionality.Length * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
-var speed    = velocity * 2;    // L²·t⁻²  (exponent scaling)
-var root     = energy / 2;      // L·t⁻¹   (integer root; throws NondiscreteDimensionalityException if exponents aren't divisible)
+var velocity   = Dimensionality.Length / Dimensionality.Time;  // L·t⁻¹
+var energy     = Dimensionality.Mass * Dimensionality.Length * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
+var specEnergy = velocity * 2;    // L²·t⁻²  (exponent scaling)
+var root       = energy / 2;      // L·t⁻¹   (integer root; throws NondiscreteDimensionalityException if exponents aren't divisible)
 ```
 
 ---
