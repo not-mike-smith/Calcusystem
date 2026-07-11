@@ -18,16 +18,27 @@ force.KmsValue;           // 4.448… — internal representation is always SI
 
 ## Type hierarchy
 
+Listed from user-facing at the top to foundational primitive at the bottom.
+
 ```
-Dimensionality              — algebraic type: dictionary of FundamentalDimension → int exponent
-UnitOfMeasure               — symbol + Dimensionality + KMS conversion factor (constructed via UnitFactory)
-  OffsetUnitOfMeasure       — adds a zero-point offset; used for temperature only (°C, °F)
-Quantity                    — raw KMS value + Dimensionality; internal currency; no uncertainty
-PhysicalQuantity            — wraps Quantity; adds unit-aware In()/TryIn() and validity checks
-  PrecisionQuantity         — adds IUncertainty; base for all user-facing quantity types
-    Magnitude               — non-negative quantity (length, mass, absolute temperature, pressure…)
-    Delta                   — signed quantity (temperature change, displacement, force component…)
+Magnitude               — concrete; non-negative (length, mass, absolute temperature, pressure…)
+Delta                   — concrete; signed (temperature change, displacement, force component…)
+PrecisionQuantity       — abstract; adds IUncertainty; static propagation methods (Sum, Product, Quotient)
+PhysicalQuantity        — abstract; wraps Quantity; unit-aware In()/TryIn() and validity checks
+Quantity                — struct; raw KMS value + Dimensionality; internal currency; no uncertainty
+
+UnitOfMeasure           — symbol + Dimensionality + KMS conversion factor (constructed via UnitFactory)
+OffsetUnitOfMeasure     — extends UnitOfMeasure with a fixed zero-point offset; see note below
+
+Dimensionality          — struct; maps FundamentalDimension → integer exponent; supports algebra
 ```
+
+**`OffsetUnitOfMeasure`** stores a fixed zero-point offset baked in at construction time — not a live ambient reading. It is used for two physical domains:
+
+- **Temperature scales** (°C, °F) where 0 °C ≠ 0 K
+- **Gauge pressure** (psig, barg) where the zero is nominal atmospheric pressure (101 325 Pa), not a measured ambient value. If the actual ambient pressure matters, the caller is responsible for the correction.
+
+`OffsetUnitOfMeasure` also exposes a `DeltaUnit` property — the corresponding non-offset unit for expressing *changes* without re-adding the offset (e.g. `Δ°C` for a temperature difference).
 
 **`Magnitude` vs `Delta`** is a semantic distinction, not just a sign check. A `Magnitude` represents a *size* — something that is physically non-negative. A `Delta` represents a *change* or *difference* — something that can be negative. Arithmetic preserves this:
 
@@ -111,11 +122,19 @@ public class Force : ReflectiveUnitList<Force>
 | `UnitFactory.Create("sym", dimensionality, kmsConversionFactor)` | Base/fundamental unit (kmsConversionFactor = 1 for SI base) |
 | `UnitFactory.Create("sym", scale, baseUnit)` | Scaled variant of an existing unit |
 | `UnitFactory.Create("sym", (unit, exp), (unit, exp), …)` | Composite derived unit |
-| `UnitFactory.Create("sym", kmsConversionFactor, baseUnit, zeroOffset)` | Offset unit (`OffsetUnitOfMeasure`); temperature only |
+| `UnitFactory.Create("sym", kmsConversionFactor, baseUnit, zeroOffset)` | Offset unit (`OffsetUnitOfMeasure`); temperature and gauge pressure |
 
 **Available unit classes (40+):** Acceleration, Angle, AngularMomentum, AngularVelocity, Area, Density, Dimensionless, DynamicViscosity, ElectricCapacitance, ElectricCharge, ElectricConductance, ElectricCurrent, ElectricInductance, ElectricPotential, ElectricResistance, Energy, Force, Frequency, HeatTransferCoefficient, Jerk, KinematicViscosity, Length, LuminousIntensity, MagneticFlux, MagneticFluxDensity, Mass, MassFlow, MolecularMass, Moles, MomentOfInertia, Momentum, Power, Pressure, SpecificEnergy, SpecificHeatCapacity, Speed, SurfaceTension, Temperature, ThermalConductivity, Time, Torque, Volume, VolumetricFlow.
 
 Note: `Torque` has dimension `M·L²·Θ·t⁻²` (angle in numerator), distinct from `Energy` (`M·L²·t⁻²`). This is intentional — torque and energy are semantically different even though they are dimensionally equivalent in many systems.
+
+---
+
+## Deserialization
+
+`Measurement.Factories.Deserializer` provides a public entry point for reconstructing `Magnitude` and `Delta` instances from raw KMS values and relative error values — the representation used in serialization DTOs. It delegates to internal `Deserialize` static methods on each concrete type.
+
+> **Known placement issue:** This deserialization entry point lives in `Measurement` rather than in `Calcusystem.Serialization`. The reconstruction logic is co-located with the types it reconstructs, but the factory arguably belongs in the serialization assembly.
 
 ---
 
@@ -124,9 +143,8 @@ Note: `Torque` has dimension `M·L²·Θ·t⁻²` (angle in numerator), distinct
 **What belongs here:** physical quantities, units, dimensionality algebra, uncertainty types, error propagation.
 
 **What does NOT belong here:**
+
 - Expression trees or variables that represent unknowns → `DimensionedExpression`
 - Binary operators (equality, tolerance, inequality) → `DimensionedExpression`
 - Serialization DTOs or mappers → `Calcusystem.Serialization`
 - Evaluation engine, solver → future assemblies
-
-If you find yourself wanting to reference `DimensionedExpression` types from this assembly, the dependency direction is wrong.
