@@ -16,6 +16,18 @@ Three functional layers exist with serialization support:
 
 All projects target older framework versions (netcoreapp3.1 / net7.0) and need upgrading.
 
+*The longer-term product and ecosystem vision for Calcusystem lives in a companion private repository and is out of scope here.*
+
+---
+
+## Immediate Next Steps
+
+Tasks that are valuable but are not obvious prerequisites for the next milestone. Empty by default; populated when work surfaces that doesn't fit cleanly into a milestone.
+
+- [ ] **Per-assembly READMEs** — Add a `README.md` to the root of each project folder (`Measurement/`, `DimensionedExpression/`, `Calcusystem.Serialization/`, `Measurement.Test/`, `DimensionedExpression.Test/`). Each README should cover: what the project is responsible for, the key interfaces/types it exposes, key invariants (e.g. all values are KMS-normalized), dependencies on other projects, and explicit scope boundaries (what does NOT belong here). Goal: an LLM session can load the README + interface files to understand how to *use* the project without needing implementation files in context; implementation files are only needed when *modifying* the project.
+- [ ] **Interface docstring comments** — Add thorough XML `<summary>` / `<remarks>` / `<param>` comments to all public interfaces (`IExpression`, `IDirectExpression`, `ICalculatedExpression`, `IBinaryOperator`, `IUncertainty`, `ISymmetricUncertainty`, and the expression system interfaces). The docstrings should articulate the contract — invariants, expectations, and what implementations must guarantee — not just restate the member name. This completes the LLM-context strategy: README for orientation, interface docstrings for contract, implementation only when modifying.
+- [ ] **Project README** — Fill out the top-level `README.md` with: project overview and motivation; the three-layer mental model (load README + interfaces to *use* a module; load implementation only to *modify* it); project structure with one-line descriptions of each assembly; quick-start usage example; contributing notes. Audience is anyone who might use or contribute to the library.
+
 ---
 
 ## Milestones
