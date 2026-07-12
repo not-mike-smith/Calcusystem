@@ -1,28 +1,45 @@
 ﻿using System;
 using Measurement.Exceptions;
+using Measurement.Interfaces;
 using Measurement.Models;
+using Measurement.Uncertainty;
 
 namespace Measurement;
 
 public readonly struct Quantity
 {
-    private readonly double? _value;
+    private readonly double Value;
     public readonly Dimensionality Dimensionality;
-    private double Value => _value ?? double.NaN;
     internal double KmsValue => Value;
 
     internal static Quantity One => new Quantity(1, Dimensionality.Dimensionless);
 
+    public Quantity()
+    {
+        Value = double.NaN;
+        Dimensionality = Dimensionality.Dimensionless;
+    }
+
     public Quantity(double value, UnitOfMeasure unitOfMeasure)
     {
-        _value = unitOfMeasure.ConvertToKmsValue(value);
+        Value = unitOfMeasure.ConvertToKmsValue(value);
         Dimensionality = unitOfMeasure.Dimensionality;
     }
 
     internal Quantity(double value, Dimensionality dimensionality)
     {
-        _value = value;
+        Value = value;
         Dimensionality = dimensionality;
+    }
+
+    public Measurand Measurand(IUncertainty uncertainty)
+    {
+        return new Measurand(this, uncertainty);
+    }
+
+    public Measurand Measurand(UncertaintyFromNominalValue absoluteUncertainty)
+    {
+        return new Measurand(this, absoluteUncertainty(this));
     }
 
     public double In(UnitOfMeasure unitOfMeasure)
@@ -85,7 +102,7 @@ public readonly struct Quantity
 
     public override string ToString()
     {
-        return $"{Value:E4} {Dimensionality.ToString()}"; // try to get fundamental unit later
+        return $"{Value:E4} {Dimensionality}"; // try to get fundamental unit later
     }
 
     public static Quantity operator +(Quantity lhs, Quantity rhs)

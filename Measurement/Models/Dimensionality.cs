@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Measurement.Exceptions;
+﻿using Measurement.Exceptions;
 using Measurement.Extensions;
 using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.Models.FundamentalDimension, int>;
 
@@ -22,17 +19,21 @@ public readonly struct Dimensionality
     public static readonly Dimensionality Angle = new Dimensionality(FundamentalDimension.Angle);
     public static readonly Dimensionality Time = new Dimensionality(FundamentalDimension.Time);
 
-    private readonly ExponentDict _fundamentalDimensions;
-    private ExponentDict FundamentalDimensions => _fundamentalDimensions ?? new Dictionary<FundamentalDimension, int>();
+    private readonly ExponentDict FundamentalDimensions;
+
+    public Dimensionality()
+    {
+        FundamentalDimensions = new Dictionary<FundamentalDimension, int>();
+    }
 
     private Dimensionality(ExponentDict fundamentalDimensions)
     {
-        _fundamentalDimensions = Reduce(fundamentalDimensions);
+        FundamentalDimensions = Reduce(fundamentalDimensions);
     }
 
     private Dimensionality(FundamentalDimension fundamentalDimension)
     {
-        _fundamentalDimensions = new Dictionary<FundamentalDimension, int>
+        FundamentalDimensions = new Dictionary<FundamentalDimension, int>
         {
             {fundamentalDimension, 1}
         };
@@ -56,7 +57,7 @@ public readonly struct Dimensionality
                 return dict;
             });
 
-        _fundamentalDimensions = Reduce(dictionary);
+        FundamentalDimensions = Reduce(dictionary);
     }
 
     private static ExponentDict Reduce(ExponentDict fundamentalDimensions)
@@ -93,7 +94,7 @@ public readonly struct Dimensionality
 
     public override bool Equals(object? obj)
     {
-        if (!(obj is Dimensionality other)) return false;
+        if (! (obj is Dimensionality other)) return false;
 
         var me = this;
         return FundamentalDimensions.Count == other.FundamentalDimensions.Count &&
@@ -136,7 +137,7 @@ public readonly struct Dimensionality
 
     public static bool operator !=(Dimensionality lhs, Dimensionality rhs)
     {
-        return !(lhs == rhs);
+        return ! (lhs == rhs);
     }
 
     public static Dimensionality operator *(Dimensionality lhs, Dimensionality rhs)

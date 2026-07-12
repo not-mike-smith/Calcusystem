@@ -1,3 +1,5 @@
+using Measurement.Interfaces;
+
 namespace Measurement.Uncertainty;
 
 /// <summary>
@@ -25,4 +27,45 @@ public sealed class AsymmetricUncertainty : IUncertainty
     public double UpperAbsoluteError(double nominalKmsValue) => UpperRelativeError * Math.Abs(nominalKmsValue);
     public double LowerAbsoluteError(double nominalKmsValue) => LowerRelativeError * Math.Abs(nominalKmsValue);
     public double RelativeError(double nominalKmsValue) => Math.Max(UpperRelativeError, LowerRelativeError);
+
+    private static AsymmetricUncertainty FromAbsoluteError(
+        Quantity nominalValue,
+        Quantity upperAbsoluteError,
+        Quantity lowerAbsoluteError)
+    {
+        if (upperAbsoluteError.Dimensionality != nominalValue.Dimensionality ||
+            lowerAbsoluteError.Dimensionality != nominalValue.Dimensionality)
+            throw new ArgumentException(
+                "Upper and lower absolute errors must have the same dimensionality as nominal value.");
+
+        double upperRelativeError = Math.Abs(upperAbsoluteError.KmsValue) / Math.Abs(nominalValue.KmsValue);
+        double lowerRelativeError = Math.Abs(lowerAbsoluteError.KmsValue) / Math.Abs(nominalValue.KmsValue);
+
+        return new AsymmetricUncertainty(upperRelativeError, lowerRelativeError);
+    }
+
+    public static UncertaintyFromNominalValue FromAbsErr(Quantity upperAbsoluteError, Quantity lowerAbsoluteError)
+    {
+        AsymmetricUncertainty func(Quantity nominalValue)
+        {
+            return FromAbsoluteError(nominalValue, upperAbsoluteError, lowerAbsoluteError);
+        }
+
+        return func;
+    }
+
+    public double AbsoluteError(double nominalKmsValue)
+    {
+        return Math.Max(UpperAbsoluteError(nominalKmsValue), LowerAbsoluteError(nominalKmsValue));
+    }
+
+    public IUncertainty Reciprocal(double nominalKmsValue)
+    {
+        return new AsymmetricUncertainty(LowerRelativeError, UpperRelativeError);
+    }
+
+    public IUncertainty Negated(double nominalKmsValue)
+    {
+        return new AsymmetricUncertainty(LowerRelativeError, UpperRelativeError);
+    }
 }

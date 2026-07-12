@@ -22,10 +22,11 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 
 | Name | Type | Extends | Description |
 | ---- | ---- | ------- | ----------- |
-| Magnitude | class | PrecisionQuantity | Non-negative physical quantity with uncertainty |
-| Delta | class | PrecisionQuantity | Signed physical quantity with uncertainty |
-| PrecisionQuantity | abstract | PhysicalQuantity | Quantity + IUncertainty; static propagation methods |
-| PhysicalQuantity | abstract | | wraps Quantity; unit-aware In()/TryIn() and validity checks |
+| Measurand | class | | Quantity + IUncertainty |
+| IUncertainty | interface | | describes the uncertainty interval around a KMS value |
+| ISymmetricUncertainty | interface | IUncertainty | symmetric uncertainty; absolute error = relative error × \|v\| |
+| GaussianUncertainty | class | ISymmetricUncertainty | Gaussian uncertainty for Type A errors |
+| AsymmetricUncertainty | class | IUncertainty | independent upper/lower relative errors |
 | Quantity | struct | | raw KMS value + Dimensionality; internal currency; no uncertainty |
 | OffsetUnitOfMeasure | class | UnitOfMeasure | extends UnitOfMeasure with a fixed zero-point offset; see note below |
 | UnitOfMeasure | class | | symbol + Dimensionality + KMS conversion factor (constructed via UnitFactory) |
@@ -37,12 +38,6 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 - **Gauge pressure** (psig, barg) where the zero is nominal atmospheric pressure (101 325 Pa), not a measured ambient value. If the actual ambient pressure matters, the caller is responsible for the correction.
 
 `OffsetUnitOfMeasure` also exposes a `DeltaUnit` property — the corresponding non-offset unit for expressing *changes* without re-adding the offset (e.g. `Δ°C` for a temperature difference).
-
-**`Magnitude` vs `Delta`** is a semantic distinction, not just a sign check. A `Magnitude` represents a *size* — something that is physically non-negative. A `Delta` represents a *change* or *difference* — something that can be negative. Arithmetic preserves this:
-
-- `Magnitude + Delta → Delta` (a length offset by a displacement is still a length, but arithmetic returns Delta to allow sign)
-- `Magnitude - Magnitude → Delta` (the difference between two lengths can be negative)
-- `Magnitude` is implicitly convertible to `Delta`; explicit cast the other way
 
 **`Dimensionality`** is a `readonly struct` holding a `Dictionary<FundamentalDimension, int>`. Zero-exponent entries are automatically stripped. The nine fundamental dimensions are: `Mass`, `Length`, `Time`, `Temperature`, `ElectricCurrent`, `AmountOfMatter`, `LuminousIntensity`, `Angle`, `Currency`. Algebra is supported directly:
 
@@ -63,11 +58,11 @@ Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal
 | --- | --- | --- |
 | `GaussianUncertainty(relativeError)` | `ISymmetricUncertainty` | Symmetric; absolute error = `relativeError × |v|` |
 | `AsymmetricUncertainty(upperRel, lowerRel)` | `IUncertainty` | Independent upper/lower relative errors |
-| `BoundedUncertainty(upperKms, lowerKms)` | `IUncertainty` | Independent upper/lower absolute KMS errors |
 
 **`ISymmetricUncertainty`** extends `IUncertainty` and adds `AbsoluteError(v)`, with default interface implementations that satisfy `UpperAbsoluteError` and `LowerAbsoluteError`. Only `GaussianUncertainty` implements this.
 
-`PrecisionQuantity` exposes:
+`Measurand` exposes:
+
 - `KmsUpperAbsoluteError` / `KmsLowerAbsoluteError` — directional errors; use these in operators and checks
 - `KmsAbsoluteError` — `Max(upper, lower)`; conservative single value for propagation formulas
 - `RelativeError` — `KmsAbsoluteError / |KmsValue|`; conservative for propagation
@@ -77,22 +72,7 @@ Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal
 
 ## Error propagation
 
-`PrecisionQuantity` provides static factory methods for propagated results:
-
-```csharp
-// Sum: result is a Delta regardless of input types
-Delta result = PrecisionQuantity.Sum(ErrorPropagationMethod.Uncorrelated, a, b, c);
-
-// Product and Quotient
-Delta product  = PrecisionQuantity.Product(ErrorPropagationMethod.Uncorrelated, a, b);
-Delta quotient = PrecisionQuantity.Quotient(ErrorPropagationMethod.Uncorrelated, numerator, denominator);
-```
-
-`Magnitude` also exposes convenience instance methods (`Plus`, `Minus`, `Times`, `DividedBy`) that return the physically correct type (`Magnitude` or `Delta`).
-
-**`ErrorPropagationMethod`:**
-- `Uncorrelated` (default) — RSS: `σ_total = √(σ₁² + σ₂² + …)`. Assumes independent error sources.
-- `Correlated` — direct sum: `σ_total = σ₁ + σ₂ + …`. Conservative worst-case; use when errors share a common source.
+TODO: rewrite this section.
 
 ---
 
@@ -130,9 +110,7 @@ Note: `Torque` has dimension `M·L²·Θ·t⁻²` (angle in numerator), distinct
 
 ## Deserialization
 
-`Measurement.Factories.Deserializer` provides a public entry point for reconstructing `Magnitude` and `Delta` instances from raw KMS values and relative error values — the representation used in serialization DTOs. It delegates to internal `Deserialize` static methods on each concrete type.
-
-> **Known placement issue:** This deserialization entry point lives in `Measurement` rather than in `Calcusystem.Serialization`. The reconstruction logic is co-located with the types it reconstructs, but the factory arguably belongs in the serialization assembly.
+TODO: this needs to be reimplemented and then redocumented.
 
 ---
 

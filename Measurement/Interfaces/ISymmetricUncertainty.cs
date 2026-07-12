@@ -1,4 +1,4 @@
-namespace Measurement.Uncertainty;
+namespace Measurement.Interfaces;
 
 /// <summary>
 /// Symmetric uncertainty where the error above and below the nominal value is identical.
@@ -7,8 +7,6 @@ namespace Measurement.Uncertainty;
 /// </summary>
 public interface ISymmetricUncertainty : IUncertainty
 {
-    double AbsoluteError(double nominalKmsValue);
-
     double IUncertainty.UpperAbsoluteError(double nominalKmsValue) => AbsoluteError(nominalKmsValue);
     double IUncertainty.LowerAbsoluteError(double nominalKmsValue) => AbsoluteError(nominalKmsValue);
 }
