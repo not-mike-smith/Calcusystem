@@ -54,4 +54,9 @@ public class UnitOfMeasure
     {
         return value / KmsConversionFactor;
     }
+
+    public Quantity Quantity(double value)
+    {
+        return new Quantity(value, this);
+    }
 }

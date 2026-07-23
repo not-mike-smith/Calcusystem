@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Measurement.Models;
+﻿using Measurement.Models;
 
 namespace Measurement.Extensions;
 
-public static class DoubleQuantityExtensions
+public static class QuantityExtensions
 {
     public static Quantity Units(this double d, UnitOfMeasure unitOfMeasure)
     {

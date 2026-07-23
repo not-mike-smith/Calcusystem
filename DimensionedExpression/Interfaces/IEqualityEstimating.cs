@@ -1,8 +1,8 @@
-﻿using Measurement.BaseClasses;
+﻿using Measurement;
 
 namespace DimensionedExpression.Interfaces;
 
 public interface IEqualityEstimating
 {
-    bool AreEqual(PrecisionQuantity lhs, PrecisionQuantity rhs);
+    bool AreEqual(Measurand lhs, Measurand rhs);
 }

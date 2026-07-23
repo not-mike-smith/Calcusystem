@@ -1,29 +1,37 @@
-﻿using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+﻿using DimensionedExpression.BaseModels;
+using DimensionedExpression.Interfaces;
+using Measurement;
 using Measurement.Exceptions;
 using Measurement.Models;
 
-namespace DimensionedExpression.BaseModels;
+namespace DimensionedExpression.Expressions;
 
-public abstract class DirectExpressionBase<T> : IdBase, IDirectExpression<T> where T : PrecisionQuantity
+public class Variable : IdBase, IDirectExpression
 {
     // ReSharper disable once InconsistentNaming
-    protected PrecisionQuantity? _value;
+    protected Measurand? _value;
     // ReSharper disable once InconsistentNaming
     protected string _symbol;
 
-    protected DirectExpressionBase(string symbol, Dimensionality dimensionality, string id)
+    public Variable(
+        string symbol,
+        Dimensionality dimensionality,
+        string id = Constants.CREATE_NEW)
         : base(id)
     {
+        
         Dimensionality = dimensionality;
         _symbol = symbol;
     }
 
-    protected DirectExpressionBase(string symbol, PrecisionQuantity quantity, string id)
+    public Variable(
+        string symbol,
+        Measurand measurand,
+        string id = Constants.CREATE_NEW)
         : base(id)
     {
-        Dimensionality = quantity.Dimensionality;
-        _value = quantity;
+        Dimensionality = measurand.Dimensionality;
+        _value = measurand;
         _symbol = symbol;
     }
 
@@ -35,19 +43,17 @@ public abstract class DirectExpressionBase<T> : IdBase, IDirectExpression<T> whe
         return IsFullyDescribed ? 0 : 1;
     }
 
-    public T? Value
+    public Measurand? Value
     {
-        get => (T?)_value;
+        get => _value;
         set
         {
             if (value != null && value.Dimensionality != Dimensionality)
-                throw new IncompatibleDimensionsException("Quantity must match dimensionality of SingleVariable");
+                throw new IncompatibleDimensionsException("Measurand must match dimensionality of Expression");
 
             _value = value;
         }
     }
-
-    PrecisionQuantity? IExpression.Value => Value;
 
     public string Symbol
     {

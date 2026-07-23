@@ -1,6 +1,6 @@
 ﻿using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+using Measurement;
 using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
@@ -23,7 +23,7 @@ public class NegatedVariable : IdBase, IExpression
     public bool IsDirectlyMutable => false;
     public bool IsFullyDescribed => NegatedExpression.IsFullyDescribed;
     public Dimensionality Dimensionality => NegatedExpression.Dimensionality;
-    public PrecisionQuantity? Value => NegatedExpression.IsFullyDescribed ? -(NegatedExpression.Value!) : null;
+    public Measurand? Value => NegatedExpression.IsFullyDescribed ? -(NegatedExpression.Value!) : null;
 
     public int DegreesOfFreedom()
     {

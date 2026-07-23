@@ -1,6 +1,9 @@
 ﻿using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using DimensionedExpression.Systems;
+using Measurement.Interfaces;
+using Measurement;
+using Measurement.Uncertainty;
 
 namespace Calcusystem.Serialization.Mappers;
 
@@ -15,7 +18,7 @@ public class SerializingMapper
             Name = system.Name
         };
 
-        value.DirectExpressions.AddRange(system.DirectExpressions.Select(MapDirectExpressionByPattern));
+        value.DirectExpressions.AddRange(system.DirectExpressions.Select(MapVariable));
         value.SingleDerivedVariables.AddRange(system.DerivedExpressions
             .Select(MapSingleDerivedExpressionByPattern)
             .Where(x => x != null)!);
@@ -31,17 +34,6 @@ public class SerializingMapper
         value.Constraints.AddRange(system.Constraints.Select(Map));
         value.Definitions.AddRange(system.Definitions.Select(Map));
         return value;
-    }
-
-    private Dtos.SingleVariable MapDirectExpressionByPattern(IExpression expression)
-    {
-        return expression switch
-        {
-            DeltaVariable delta => Map(delta),
-            MagnitudeVariable magnitude => Map(magnitude),
-            _ => throw new NotImplementedException(
-                $"No mapping for direct expression of type {expression.GetType().Name}")
-        };
     }
 
     private Dtos.SingleDerivedVariable? MapSingleDerivedExpressionByPattern(IExpression expression)
@@ -82,29 +74,49 @@ public class SerializingMapper
         };
     }
 
-    public Dtos.SingleVariable Map(DeltaVariable v)
+    public Dtos.SingleVariable MapVariable(Variable v)
     {
+        if (v.Value == null)
+        {
+            return new Dtos.SingleVariable
+            {
+                Id = v.Id,
+                Type = v.GetType().Name,
+                Dimensionality = v.Dimensionality,
+                KmsValue = null,
+                Uncertainty = null,
+                Symbol = v.Symbol,
+            };
+        }
+        // else
         return new Dtos.SingleVariable
         {
             Id = v.Id,
             Type = v.GetType().Name,
             Dimensionality = v.Dimensionality,
-            KmsValue = v.Value?.KmsValue,
-            RelativeError = v.Value?.RelativeError,
+            KmsValue = v.Value.KmsValue,
+            Uncertainty = Map(v.Value.Uncertainty),
             Symbol = v.Symbol,
         };
     }
 
-    public Dtos.SingleVariable Map(MagnitudeVariable v)
+    private Dtos.Uncertainty Map(IUncertainty uncertainty)
     {
-        return new Dtos.SingleVariable
+        return uncertainty switch
         {
-            Id = v.Id,
-            Type = v.GetType().Name,
-            Dimensionality = v.Dimensionality,
-            KmsValue = v.Value?.KmsValue,
-            RelativeError = v.Value?.RelativeError,
-            Symbol = v.Symbol,
+            GaussianUncertainty symmetric => new Dtos.SymmetricUncertainty
+            {
+                Type = symmetric.GetType().Name,
+                RelativeError = symmetric.RelativeError(1)
+            },
+            AsymmetricUncertainty asymmetric => new Dtos.AsymmetricUncertainty
+            {
+                Type = asymmetric.GetType().Name,
+                UpperRelativeError = asymmetric.UpperRelativeError,
+                LowerRelativeError = asymmetric.LowerRelativeError
+            },
+            _ => throw new NotImplementedException(
+                $"No mapping for uncertainty of type {uncertainty.GetType().Name}")
         };
     }
 

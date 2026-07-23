@@ -1,6 +1,6 @@
 ﻿using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+using Measurement;
 using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
@@ -16,8 +16,9 @@ public class ProductExpression : CalculatedExpressionBase, ICalculatedExpression
         Dimensionality.Dimensionless,
         (productDimensions, current) => productDimensions * current.Dimensionality);
 
-    public PrecisionQuantity? Value => IsFullyDescribed
-        ? PrecisionQuantity.Product(ErrorPropagation, Factors.Select(f => f.Value!).ToArray())
+    public Measurand? Value => IsFullyDescribed && _factors.Count > 0
+        ? _factors.Select(f => f.Value!).Skip(1)
+            .Aggregate(_factors[0].Value!, (acc, f) => acc.Times(f, ErrorPropagation))
         : null;
 
     public void AddFactor(IExpression expression)

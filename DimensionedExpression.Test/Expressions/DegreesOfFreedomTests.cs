@@ -2,6 +2,7 @@ using DimensionedExpression.Expressions;
 using FluentAssertions;
 using Measurement;
 using Measurement.Models;
+using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 
@@ -12,11 +13,11 @@ public class DegreesOfFreedomTests
     private static readonly Dimensionality Mass = Measurement.Units.Mass.Kilogram.Dimensionality;
     private static readonly Dimensionality Length = Measurement.Units.Length.Meter.Dimensionality;
 
-    private static MagnitudeVariable Unbound(Dimensionality dim) =>
+    private static Variable Unbound(Dimensionality dim) =>
         new("x", dim);
 
-    private static MagnitudeVariable Bound(double kgValue) =>
-        new("x", new Magnitude(kgValue, Measurement.Units.Mass.Kilogram));
+    private static Variable Bound(double kgValue) =>
+        new("x", Measurement.Units.Mass.Kilogram.Quantity(kgValue).Measurand(GaussianUncertainty.FromRelErr(0)));
 
     [Fact]
     public void UnboundDirectVariable_HasOneDoF()
