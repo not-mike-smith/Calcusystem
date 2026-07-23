@@ -108,12 +108,6 @@ Note: `Torque` has dimension `M·L²·Θ·t⁻²` (angle in numerator), distinct
 
 ---
 
-## Deserialization
-
-TODO: this needs to be reimplemented and then redocumented.
-
----
-
 ## Scope boundaries
 
 **What belongs here:** physical quantities, units, dimensionality algebra, uncertainty types, error propagation.
