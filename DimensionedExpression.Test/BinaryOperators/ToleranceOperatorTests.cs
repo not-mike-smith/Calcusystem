@@ -3,7 +3,6 @@ using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using FluentAssertions;
 using Measurement;
-using Measurement.BaseClasses;
 using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
@@ -12,28 +11,29 @@ namespace DimensionedExpression.Test.BinaryOperators;
 
 public class ToleranceOperatorTests
 {
-    // Creates a bound MagnitudeVariable: kmsValue kg, symmetric relativeError
-    private static MagnitudeVariable Symmetric(double kmsValue, double relativeError = 0) =>
-        new("x", new Magnitude(kmsValue, Mass.Kilogram, relativeError));
+    // Creates a bound Variable: kmsValue kg, symmetric relativeError
+    private static Variable Symmetric(double kmsValue, double relativeError = 0) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(GaussianUncertainty.FromRelErr(relativeError)));
 
-    // Creates a bound MagnitudeVariable with independent upper/lower absolute errors (kg)
-    private static MagnitudeVariable Asymmetric(double kmsValue, double upperError, double lowerError) =>
-        new("x", new Magnitude(new Quantity(kmsValue, Mass.Kilogram), new BoundedUncertainty(upperError, lowerError)));
+    // Creates a bound Variable with independent upper/lower absolute errors (kg)
+    private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
+            AsymmetricUncertainty.FromAbsErr(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
 
-    private static MagnitudeVariable Unbound() =>
+    private static Variable Unbound() =>
         new("x", Mass.Kilogram.Dimensionality);
 
-    private static WithinBindingToleranceOperator PointOp(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static WithinBindingToleranceOperator PointOp(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static MutuallyWithinToleranceOperator MutualOp(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static MutuallyWithinToleranceOperator MutualOp(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static WhollyWithinToleranceOperator WhollyOp(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static WhollyWithinToleranceOperator WhollyOp(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static AnyToleranceOverlapOperator AnyOp(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static AnyToleranceOverlapOperator AnyOp(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static PointAndUpperBoundWithinToleranceOperator UpperOp(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static PointAndUpperBoundWithinToleranceOperator UpperOp(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static PointAndLowerBoundWithinToleranceOperator LowerOp(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static PointAndLowerBoundWithinToleranceOperator LowerOp(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
 
     // ── Null / not-fully-described ────────────────────────────────────────────
@@ -300,11 +300,11 @@ public class ToleranceOperatorTests
 
     private class AlwaysTrueEstimator : IEqualityEstimating
     {
-        public bool AreEqual(PrecisionQuantity lhs, PrecisionQuantity rhs) => true;
+        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 
     private class AlwaysFalseEstimator : IEqualityEstimating
     {
-        public bool AreEqual(PrecisionQuantity lhs, PrecisionQuantity rhs) => false;
+        public bool AreEqual(Measurand lhs, Measurand rhs) => false;
     }
 }

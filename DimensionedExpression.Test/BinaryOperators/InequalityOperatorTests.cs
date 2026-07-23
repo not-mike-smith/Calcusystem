@@ -10,26 +10,27 @@ namespace DimensionedExpression.Test.BinaryOperators;
 
 public class InequalityOperatorTests
 {
-    private static MagnitudeVariable Symmetric(double kmsValue, double relativeError = 0) =>
-        new("x", new Magnitude(kmsValue, Mass.Kilogram, relativeError));
+    private static Variable Symmetric(double kmsValue, double relativeError = 0) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(GaussianUncertainty.FromRelErr(relativeError)));
 
-    private static MagnitudeVariable Asymmetric(double kmsValue, double upperError, double lowerError) =>
-        new("x", new Magnitude(new Quantity(kmsValue, Mass.Kilogram), new BoundedUncertainty(upperError, lowerError)));
+    private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
+            AsymmetricUncertainty.FromAbsErr(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
 
-    private static MagnitudeVariable Unbound() =>
+    private static Variable Unbound() =>
         new("x", Mass.Kilogram.Dimensionality);
 
-    private static DefinitelyLessThanOperator DefLess(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static DefinitelyLessThanOperator DefLess(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static UpperBoundsLessThanOperator UpperLess(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static UpperBoundsLessThanOperator UpperLess(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static NominallyLessThanOperator NomLess(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static NominallyLessThanOperator NomLess(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static DefinitelyGreaterThanOperator DefGreater(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static DefinitelyGreaterThanOperator DefGreater(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static LowerBoundsGreaterThanOperator LowerGreater(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static LowerBoundsGreaterThanOperator LowerGreater(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
-    private static NominallyGreaterThanOperator NomGreater(MagnitudeVariable lhs, MagnitudeVariable rhs) =>
+    private static NominallyGreaterThanOperator NomGreater(Variable lhs, Variable rhs) =>
         new() { Id = "t", Lhs = lhs, Rhs = rhs };
 
     // ── Null / not-fully-described ────────────────────────────────────────────

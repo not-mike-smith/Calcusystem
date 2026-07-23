@@ -19,21 +19,17 @@ public readonly struct Dimensionality
     public static readonly Dimensionality Angle = new Dimensionality(FundamentalDimension.Angle);
     public static readonly Dimensionality Time = new Dimensionality(FundamentalDimension.Time);
 
-    private readonly ExponentDict FundamentalDimensions;
-
-    public Dimensionality()
-    {
-        FundamentalDimensions = new Dictionary<FundamentalDimension, int>();
-    }
+    private readonly ExponentDict? _fundamentalDimensions;
+    private ExponentDict FundamentalDimensions => _fundamentalDimensions ?? new Dictionary<FundamentalDimension, int>();
 
     private Dimensionality(ExponentDict fundamentalDimensions)
     {
-        FundamentalDimensions = Reduce(fundamentalDimensions);
+        _fundamentalDimensions = Reduce(fundamentalDimensions);
     }
 
     private Dimensionality(FundamentalDimension fundamentalDimension)
     {
-        FundamentalDimensions = new Dictionary<FundamentalDimension, int>
+        _fundamentalDimensions = new Dictionary<FundamentalDimension, int>
         {
             {fundamentalDimension, 1}
         };
@@ -57,7 +53,7 @@ public readonly struct Dimensionality
                 return dict;
             });
 
-        FundamentalDimensions = Reduce(dictionary);
+        _fundamentalDimensions = Reduce(dictionary);
     }
 
     private static ExponentDict Reduce(ExponentDict fundamentalDimensions)

@@ -8,27 +8,22 @@ namespace Measurement;
 
 public readonly struct Quantity
 {
-    private readonly double Value;
+    private readonly double? _value;
+    private double Value => _value ?? double.NaN;
     public readonly Dimensionality Dimensionality;
     internal double KmsValue => Value;
 
     internal static Quantity One => new Quantity(1, Dimensionality.Dimensionless);
 
-    public Quantity()
-    {
-        Value = double.NaN;
-        Dimensionality = Dimensionality.Dimensionless;
-    }
-
     public Quantity(double value, UnitOfMeasure unitOfMeasure)
     {
-        Value = unitOfMeasure.ConvertToKmsValue(value);
+        _value = unitOfMeasure.ConvertToKmsValue(value);
         Dimensionality = unitOfMeasure.Dimensionality;
     }
 
     internal Quantity(double value, Dimensionality dimensionality)
     {
-        Value = value;
+        _value = value;
         Dimensionality = dimensionality;
     }
 
