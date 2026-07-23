@@ -8,7 +8,7 @@ namespace Measurement;
 public class Measurand
 {
     internal readonly Quantity Quantity;
-    internal readonly IUncertainty Uncertainty;
+    public readonly IUncertainty Uncertainty;
 
 
     public Measurand()

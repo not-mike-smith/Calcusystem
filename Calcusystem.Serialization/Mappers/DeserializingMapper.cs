@@ -4,21 +4,21 @@ using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using DimensionedExpression.Systems;
+using Measurement;
+using Measurement.Interfaces;
+using Measurement.Uncertainty;
 
 namespace Calcusystem.Serialization.Mappers;
 
-public class Deserializer
+public class DeserializingMapper
 {
-    private readonly Measurement.Factories.Deserializer _quantityDeserializer;
     private readonly DeserializationContext _context;
     private readonly IEqualityEstimating _equalityEstimator;
 
-    public Deserializer(
-        Measurement.Factories.Deserializer quantityDeserializer,
+    public DeserializingMapper(
         DeserializationContext context,
         IEqualityEstimating equalityEstimator)
     {
-        _quantityDeserializer = quantityDeserializer;
         _context = context;
         _equalityEstimator = equalityEstimator;
     }
@@ -65,18 +65,17 @@ public class Deserializer
 
     delegate IExpression? MapDerivedExpressionFcn();
 
-    public IExpression MapDirectExpressionByPattern(Dtos.SingleVariable x)
+    public Variable MapDirectExpressionByPattern(Dtos.SingleVariable x)
     {
-        IExpression expression = x.Type switch
+        Variable variable = x.Type switch
         {
-            nameof(DeltaVariable) => MapDelta(x),
-            nameof(MagnitudeVariable) => MapMagnitude(x),
+            nameof(Variable) => MapVariable(x),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
         };
 
-        _context.AddLoadedExpression(expression);
-        return expression;
+        _context.AddLoadedExpression(variable);
+        return variable;
     }
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.SingleDerivedVariable x)
@@ -158,38 +157,29 @@ public class Deserializer
         };
     }
 
-    public DeltaVariable MapDelta(Dtos.SingleVariable v)
+    public Variable MapVariable(Dtos.SingleVariable v)
     {
-        var delta = _quantityDeserializer.DeserializeDelta(v.Dimensionality, v.KmsValue, v.RelativeError);
-        if (delta == null)
+        if (v.KmsValue == null)
         {
-            return new DeltaVariable(
-                v.Symbol,
-                v.Dimensionality,
-                v.Id);
+            return new Variable(v.Symbol, v.Dimensionality, v.Id);
         }
 
-        return new DeltaVariable(
-            v.Symbol,
-            delta,
-            v.Id);
+        var quantity = new Quantity(v.KmsValue.Value, v.Dimensionality);
+        return new Variable(v.Symbol, quantity.Measurand(MapUncertainty(v.Uncertainty)), v.Id);
     }
 
-    public MagnitudeVariable MapMagnitude(Dtos.SingleVariable v)
+    private IUncertainty MapUncertainty(Dtos.Uncertainty? uncertainty)
     {
-        var magnitude = _quantityDeserializer.DeserializeMagnitude(v.Dimensionality, v.KmsValue, v.RelativeError);
-        if (magnitude == null)
+        return uncertainty switch
         {
-            return new MagnitudeVariable(
-                v.Symbol,
-                v.Dimensionality,
-                v.Id);
-        }
-
-        return new MagnitudeVariable(
-            v.Symbol,
-            magnitude,
-            v.Id);
+            Dtos.SymmetricUncertainty sym => GaussianUncertainty.FromRelErr(sym.RelativeError ?? 0),
+            Dtos.AsymmetricUncertainty asym => new AsymmetricUncertainty(
+                asym.UpperRelativeError ?? 0,
+                asym.LowerRelativeError ?? 0),
+            null => GaussianUncertainty.FromRelErr(0),
+            _ => throw new NotImplementedException(
+                $"No deserialization method defined for uncertainty type {uncertainty.GetType().Name}")
+        };
     }
 
     private IExpression GetExpression(string id, ISerializedObject expressionDto)

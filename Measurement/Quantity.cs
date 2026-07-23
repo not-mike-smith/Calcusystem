@@ -21,9 +21,9 @@ public readonly struct Quantity
         Dimensionality = unitOfMeasure.Dimensionality;
     }
 
-    internal Quantity(double value, Dimensionality dimensionality)
+    public Quantity(double kmsValue, Dimensionality dimensionality)
     {
-        _value = value;
+        _value = kmsValue;
         Dimensionality = dimensionality;
     }
 

@@ -17,7 +17,7 @@ public interface IUncertainty // TODO: should this be internal?
     /// Conservative relative error for use in propagation formulas.
     /// For asymmetric uncertainty types this is the larger of upper and lower relative errors.
     /// </summary>
-    double RelativeError(double nominalKmsValue);
+    double RelativeError(double nominalKmsValue); // TODO : should this be a property instead of a method? It is not a function of the nominal value for symmetric uncertainty types, but it is for asymmetric uncertainty types.
 
     /// <summary>
     /// Conservative absolute error for use in propagation formulas.
