@@ -1,6 +1,6 @@
 ﻿using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+using Measurement;
 using Measurement.Exceptions;
 using Measurement.Models;
 
@@ -30,8 +30,9 @@ public class SumExpression : CalculatedExpressionBase, ICalculatedExpression
     public IReadOnlyList<IExpression> Addends => _addends;
     public bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
 
-    public PrecisionQuantity? Value => IsFullyDescribed
-        ? PrecisionQuantity.Sum(ErrorPropagation, _addends.Select(a => a.Value!).ToArray())
+    public Measurand? Value => IsFullyDescribed && _addends.Count > 0
+        ? _addends.Select(a => a.Value!).Skip(1)
+            .Aggregate(_addends[0].Value!, (acc, a) => acc.Plus(a, ErrorPropagation))
         : null;
 
     public void AddAddend(IExpression expression)

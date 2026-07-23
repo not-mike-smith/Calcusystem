@@ -1,14 +1,14 @@
 ﻿using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+using Measurement;
 using Measurement.Exceptions;
 using Measurement.Models;
 
 namespace DimensionedExpression.BaseModels;
 
-public abstract class DirectExpressionBase<T> : IdBase, IDirectExpression<T> where T : PrecisionQuantity
+public abstract class DirectExpressionBase : IdBase, IDirectExpression
 {
     // ReSharper disable once InconsistentNaming
-    protected PrecisionQuantity? _value;
+    protected Measurand? _value;
     // ReSharper disable once InconsistentNaming
     protected string _symbol;
 
@@ -19,7 +19,7 @@ public abstract class DirectExpressionBase<T> : IdBase, IDirectExpression<T> whe
         _symbol = symbol;
     }
 
-    protected DirectExpressionBase(string symbol, PrecisionQuantity quantity, string id)
+    protected DirectExpressionBase(string symbol, Measurand quantity, string id)
         : base(id)
     {
         Dimensionality = quantity.Dimensionality;
@@ -35,9 +35,9 @@ public abstract class DirectExpressionBase<T> : IdBase, IDirectExpression<T> whe
         return IsFullyDescribed ? 0 : 1;
     }
 
-    public T? Value
+    public Measurand? Value
     {
-        get => (T?)_value;
+        get => _value;
         set
         {
             if (value != null && value.Dimensionality != Dimensionality)
@@ -46,8 +46,6 @@ public abstract class DirectExpressionBase<T> : IdBase, IDirectExpression<T> whe
             _value = value;
         }
     }
-
-    PrecisionQuantity? IExpression.Value => Value;
 
     public string Symbol
     {

@@ -1,5 +1,4 @@
 ﻿using Measurement;
-using Measurement.BaseClasses;
 using Measurement.Models;
 
 namespace DimensionedExpression.Interfaces;
@@ -10,7 +9,7 @@ public interface IExpression
     bool IsDirectlyMutable { get; }
     bool IsFullyDescribed { get; }
     Dimensionality Dimensionality { get; }
-    PrecisionQuantity? Value { get; }
+    Measurand? Value { get; }
     int DegreesOfFreedom(); // TODO is this realistic?
 }
 
@@ -19,7 +18,7 @@ public interface ICalculatedExpression : IExpression
     ErrorPropagationMethod ErrorPropagation { get; set; }
 }
 
-public interface IDirectExpression<T> : IExpression where T : PrecisionQuantity
+public interface IDirectExpression : IExpression
 {
-    new T? Value { get; set; }
+    new Measurand? Value { get; set; }
 }

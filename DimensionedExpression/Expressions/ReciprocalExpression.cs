@@ -1,6 +1,6 @@
 ﻿using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+using Measurement;
 using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
@@ -24,7 +24,7 @@ public class ReciprocalExpression : IdBase, IExpression
     public bool IsFullyDescribed => Reciprocand.IsFullyDescribed;
     public Dimensionality Dimensionality => Reciprocand.Dimensionality.Reciprocal();
 
-    public PrecisionQuantity? Value => IsFullyDescribed
+    public Measurand? Value => IsFullyDescribed
         ? Reciprocand.Value!.Reciprocal()
         : null;
 

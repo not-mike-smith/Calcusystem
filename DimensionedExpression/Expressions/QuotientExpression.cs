@@ -1,6 +1,6 @@
 ﻿using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
-using Measurement.BaseClasses;
+using Measurement;
 using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
@@ -14,8 +14,8 @@ public class QuotientExpression : CalculatedExpressionBase, ICalculatedExpressio
     public bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
 
-    public PrecisionQuantity? Value => IsFullyDescribed
-        ? PrecisionQuantity.Quotient(ErrorPropagation, Numerator.Value!, Denominator.Value!)
+    public Measurand? Value => IsFullyDescribed
+        ? Numerator.Value!.DividedBy(Denominator.Value!, ErrorPropagation)
         : null;
 
     public override string ToString()

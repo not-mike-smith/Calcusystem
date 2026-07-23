@@ -1,5 +1,5 @@
 ﻿using DimensionedExpression.BaseModels;
-using Measurement.BaseClasses;
+using Measurement;
 
 namespace DimensionedExpression.BinaryOperators;
 
@@ -23,7 +23,7 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
         return IsWithinTolerance(Lhs.Value!, Rhs.Value!) && IsWithinTolerance(Rhs.Value!, Lhs.Value!);
     }
 
-    private bool IsWithinTolerance(PrecisionQuantity x, PrecisionQuantity y)
+    private bool IsWithinTolerance(Measurand x, Measurand y)
     {
         return x.KmsValue >= y.KmsValue - y.KmsLowerAbsoluteError &&
                x.KmsValue <= y.KmsValue + y.KmsUpperAbsoluteError;
