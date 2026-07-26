@@ -184,7 +184,7 @@ public class DeserializingMapper
 
     private IExpression GetExpression(string id, ISerializedObject expressionDto)
     {
-        var foundIt = _context.ExpressionsById.TryGetValue(expressionDto.Id, out var value);
+        var foundIt = _context.ExpressionsById.TryGetValue(id, out var value);
         if (foundIt is false)
         {
             throw new ExpressionNotFoundDeserializationException(id, expressionDto);
