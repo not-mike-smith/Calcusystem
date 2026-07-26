@@ -161,16 +161,22 @@ public class Measurand
 
     public Measurand TryAdd(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
     {
-        return new Measurand(
-            Quantity.TryAdd(other.Quantity),
-            Sum(method, this, other).Uncertainty);
+        var quantity = Quantity.TryAdd(other.Quantity);
+        var uncertainty = quantity.IsNaN()
+            ? GaussianUncertainty.FromRelErr(0)
+            : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, other]);
+
+        return new Measurand(quantity, uncertainty);
     }
 
     public Measurand TrySubtract(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
     {
-        return new Measurand(
-            Quantity.TrySubtract(other.Quantity),
-            Sum(method, this, -other).Uncertainty);
+        var quantity = Quantity.TrySubtract(other.Quantity);
+        var uncertainty = quantity.IsNaN()
+            ? GaussianUncertainty.FromRelErr(0)
+            : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, -other]);
+
+        return new Measurand(quantity, uncertainty);
     }
 
     public Measurand Plus(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)

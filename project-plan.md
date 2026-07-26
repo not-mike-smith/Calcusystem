@@ -10,7 +10,7 @@ An engineering calculation platform where physical quantities carry their units,
 
 Three functional layers exist with serialization support:
 
-- **Measurement** — Physical quantities with KMS-normalized units, dimensional algebra, `Magnitude`/`Delta` types, and uncertainty tracking. Mostly solid, a few rough edges.
+- **Measurement** — Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty tracking. Mostly solid, a few rough edges.
 - **DimensionedExpression** — Expression tree for building equation systems. Direct and derived variables, tolerance-based constraint operators. Several stubs remain.
 - **Calcusystem.Serialization** — DTO layer with dependency-ordered deserialization. Functional.
 
@@ -122,10 +122,10 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 **Expression type additions (prerequisite for evaluation and provenance reporting):**
 
 - [ ] Rename `ICalculatedExpression` / `CalculatedExpressionBase` → `IComputedExpression` / `ComputedExpressionBase` throughout — "calculated" is ambiguous; "computed" avoids collision with "derivative" once ODE relationships are added in M5
-- [ ] Introduce leaf variable subtypes, each implementing `IDirectExpression`. These capture *provenance semantics* — orthogonal to the existing `Magnitude`/`Delta` axis which captures *physical semantics*:
+- [ ] Introduce leaf variable subtypes, each implementing `IDirectExpression`. These capture *provenance semantics* — orthogonal to *physical semantics* (whether a value is a point quantity or a signed delta/difference), which is a modeling concern handled by context rather than encoded on the value type itself (the `Magnitude`/`Delta` split was removed from `Measurement` for this reason):
   - `MeasuredVariable` — an instrument or sensor reading; uncertainty characterises instrument calibration and repeatability; may carry instrument metadata (calibration date, instrument ID)
   - `ReferenceConstant` — a literature or tabulated value (thermodynamic property, material property, physical constant); uncertainty from the source's stated precision or treated as exact; carries provenance/citation (same idea as `ConversionSource` for unit factors)
-  - `DesignParameter` — an engineer-specified value, not measured or from literature; exact or carries a manufacturing/specification tolerance via `BoundedUncertainty`
+  - `DesignParameter` — an engineer-specified value, not measured or from literature; exact or carries a manufacturing/specification tolerance via `AsymmetricUncertainty.FromAbsErr` (the standalone `BoundedUncertainty` type was folded into `AsymmetricUncertainty` during the `Measurand` refactor)
   - `ModelParameter` — an empirically fitted constant within a constitutive relationship (e.g. discharge coefficient `Cᵈ`, Nusselt correlation coefficients); uncertainty from the fitting process; distinct from `ReferenceConstant` because it is model-specific, not a physical property
 - [ ] Resolve the `Definitions` / `Constraints` / instances semantic model: `Definitions` are always-true relationships used to *compute* unknowns (conservation laws, constitutive equations); `Constraints` are tolerance checks run against computed or measured values (pass/fail); leaf variable subtypes above replace the informal notion of "instances"
 
@@ -177,10 +177,10 @@ These features are worth designing for but intentionally deferred until M4 is so
 | Decision | Choice | Rationale |
 |---|---|---|
 | Internal representation | KMS (kg-m-s) | Normalizing to SI base units avoids conversion bugs at operation time |
-| Magnitude vs Delta | Two separate types | Enforces physical semantics: lengths can't be negative, temperature *changes* can |
+| Magnitude vs Delta | Unified into a single `Measurand` type | Point-vs-delta physical semantics (e.g. "lengths can't be negative, temperature changes can") is a modeling concern, not a value-type concern — the two-class split added complexity without enough payoff |
 | Error propagation | RSS (uncorrelated) default, direct sum (correlated) available | Standard engineering uncertainty practice |
 | Solver abstraction | Interface-based, swappable | Different problem domains may call for symbolic, numeric, or constraint solvers |
-| Variable provenance taxonomy | Four leaf subtypes: `MeasuredVariable`, `ReferenceConstant`, `DesignParameter`, `ModelParameter` | Provenance axis is orthogonal to the `Magnitude`/`Delta` physical axis; affects uncertainty characterisation and result reporting without changing evaluation logic |
+| Variable provenance taxonomy | Four leaf subtypes: `MeasuredVariable`, `ReferenceConstant`, `DesignParameter`, `ModelParameter` | Provenance axis is orthogonal to physical semantics (point vs. delta), which is now a modeling concern rather than a value-type distinction; affects uncertainty characterisation and result reporting without changing evaluation logic |
 | Definitions vs. Constraints | Definitions compute unknowns; Constraints check values | Conservation laws and constitutive equations belong in `Definitions`; tolerance checks belong in `Constraints` |
 | OffsetUnitOfMeasure | Inheritance from UnitOfMeasure | Acceptable for now; temperature is the only offset case and it works |
 
