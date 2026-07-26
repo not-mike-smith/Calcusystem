@@ -34,13 +34,13 @@ public class DegreesOfFreedomTests
     [Fact]
     public void NegatedUnbound_PropagatesDoF()
     {
-        new NegatedVariable(Unbound(Mass)).DegreesOfFreedom().Should().Be(1);
+        new NegatedExpression(Unbound(Mass)).DegreesOfFreedom().Should().Be(1);
     }
 
     [Fact]
     public void NegatedBound_HasZeroDoF()
     {
-        new NegatedVariable(Bound(5)).DegreesOfFreedom().Should().Be(0);
+        new NegatedExpression(Bound(5)).DegreesOfFreedom().Should().Be(0);
     }
 
     [Fact]
