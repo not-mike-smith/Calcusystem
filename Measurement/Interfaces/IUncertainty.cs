@@ -5,6 +5,11 @@ namespace Measurement.Interfaces;
 /// The uncertainty interval around a nominal value <c>v</c> is
 /// <c>[v - LowerAbsoluteError(v), v + UpperAbsoluteError(v)]</c>.
 /// </summary>
+/// <remarks>
+/// Errors are stored as a function of the nominal value rather than as fixed magnitudes: a relative-error
+/// implementation scales with <c>v</c>, while an absolute-error implementation ignores it. This is why every
+/// member takes <c>nominalKmsValue</c> — the interval cannot be resolved without knowing the value it surrounds.
+/// </remarks>
 public interface IUncertainty // TODO: should this be internal?
 {
     /// <summary>Absolute error above the nominal value in KMS units.</summary>
@@ -25,6 +30,20 @@ public interface IUncertainty // TODO: should this be internal?
     /// </summary>
     double AbsoluteError(double nominalKmsValue);
 
+    /// <summary>
+    /// Returns the uncertainty describing the reciprocal (<c>1 / v</c>) of the value this instance describes.
+    /// The relative error is preserved, but directional bounds swap: the upper bound of <c>v</c> becomes the
+    /// lower bound of <c>1 / v</c>. Symmetric implementations return themselves unchanged; asymmetric ones
+    /// swap their upper and lower errors.
+    /// </summary>
+    /// <param name="nominalKmsValue">The nominal KMS value this uncertainty currently describes.</param>
     IUncertainty Reciprocal(double nominalKmsValue);
+
+    /// <summary>
+    /// Returns the uncertainty describing the negation (<c>-v</c>) of the value this instance describes.
+    /// As with <see cref="Reciprocal"/>, the magnitude of the relative error is preserved while directional
+    /// bounds swap. Symmetric implementations return themselves unchanged; asymmetric ones swap upper and lower.
+    /// </summary>
+    /// <param name="nominalKmsValue">The nominal KMS value this uncertainty currently describes.</param>
     IUncertainty Negated(double nominalKmsValue);
 }

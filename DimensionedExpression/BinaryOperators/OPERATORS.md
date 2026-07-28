@@ -2,7 +2,7 @@
 
 All operators evaluate `IsSatisfied()` → `bool?` (returns `null` when either side is unbound).
 
-Interval notation: for a `PrecisionQuantity` *v*, its uncertainty interval is
+Interval notation: for a `Measurand` *v*, its uncertainty interval is
 `[v.KmsValue − v.KmsLowerAbsoluteError, v.KmsValue + v.KmsUpperAbsoluteError]`.
 
 ---

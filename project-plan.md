@@ -10,7 +10,7 @@ An engineering calculation platform where physical quantities carry their units,
 
 Three functional layers exist with serialization support:
 
-- **Measurement** — Physical quantities with KMS-normalized units, dimensional algebra, `Magnitude`/`Delta` types, and uncertainty tracking. Mostly solid, a few rough edges.
+- **Measurement** — Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty tracking. Mostly solid, a few rough edges.
 - **DimensionedExpression** — Expression tree for building equation systems. Direct and derived variables, tolerance-based constraint operators. Several stubs remain.
 - **Calcusystem.Serialization** — DTO layer with dependency-ordered deserialization. Functional.
 
@@ -24,9 +24,12 @@ All projects target older framework versions (netcoreapp3.1 / net7.0) and need u
 
 Tasks that are valuable but are not obvious prerequisites for the next milestone. Empty by default; populated when work surfaces that doesn't fit cleanly into a milestone.
 
-- [ ] **Per-assembly READMEs** — Add a `README.md` to the root of each project folder (`Measurement/`, `DimensionedExpression/`, `Calcusystem.Serialization/`, `Measurement.Test/`, `DimensionedExpression.Test/`). Each README should cover: what the project is responsible for, the key interfaces/types it exposes, key invariants (e.g. all values are KMS-normalized), dependencies on other projects, and explicit scope boundaries (what does NOT belong here). Goal: an LLM session can load the README + interface files to understand how to *use* the project without needing implementation files in context; implementation files are only needed when *modifying* the project.
-- [ ] **Interface docstring comments** — Add thorough XML `<summary>` / `<remarks>` / `<param>` comments to all public interfaces (`IExpression`, `IDirectExpression`, `ICalculatedExpression`, `IBinaryOperator`, `IUncertainty`, `ISymmetricUncertainty`, and the expression system interfaces). The docstrings should articulate the contract — invariants, expectations, and what implementations must guarantee — not just restate the member name. This completes the LLM-context strategy: README for orientation, interface docstrings for contract, implementation only when modifying.
-- [ ] **Project README** — Fill out the top-level `README.md` with: project overview and motivation; the three-layer mental model (load README + interfaces to *use* a module; load implementation only to *modify* it); project structure with one-line descriptions of each assembly; quick-start usage example; contributing notes. Audience is anyone who might use or contribute to the library.
+- [x] **Per-assembly READMEs** (PR #16) — Added `README.md` to the three library assemblies (`Measurement/`, `DimensionedExpression/`, `Calcusystem.Serialization/`), each covering responsibility, key interfaces/types, invariants (e.g. all values are KMS-normalized), dependencies, and explicit scope boundaries. Goal met: README + interface files are enough to *use* a project without its implementation in context. *Test-project READMEs are the remaining piece — see the outstanding item below.*
+- [x] **Interface docstring comments** (PR #16) — All public interfaces across the three assemblies now carry XML `<summary>` / `<remarks>` / `<param>` comments on the interface and every member, articulating the contract: `IUncertainty`, `ISymmetricUncertainty`, `IErrorPropagator` (Measurement); `IExpression`, `IDirectExpression`, `ICalculatedExpression`, `IBinaryOperator`, `IEqualityEstimating` (DimensionedExpression); `ISerializedObject` (Serialization). Measurement additionally documents the `Quantity`/`Dimensionality` structs, `FundamentalDimension`, `UnitOfMeasure`/`OffsetUnitOfMeasure`, and the `UncertaintyFromNominalValue` delegate (flagged in the Measurement README). This completes the LLM-context strategy: README for orientation, interface docstrings for contract, implementation only when modifying.
+- [x] **Project README** (PR #16) — Top-level `README.md` filled out with overview/motivation, the reading model (README + `Interfaces/` to *use*; implementation only to *modify*), the assembly structure, a verified quick-start, and build/test/contributing notes.
+- [ ] **Test-project READMEs** — Add a `README.md` to `Measurement.Test/`, `DimensionedExpression.Test/`, and `Calcusystem.Serialization.Test/`. These follow a different structure than the library READMEs (purpose, coverage, test helpers/patterns, how to run) — to be established when tackled.
+
+*Incidental fixes made during the documentation pass (PR #16), each with a regression test:* `Measurand.TryAdd`/`TrySubtract` no longer throw on dimension mismatch (return a NaN-valued `Measurand`); `DeserializingMapper.GetExpression` was resolving the parent DTO's own id instead of the requested child id, breaking deserialization of every derived expression/operator (first `Calcusystem.Serialization.Test` project added). Also renamed `NegatedVariable` → `NegatedExpression` (inner property → `Operand`).
 
 ---
 
@@ -122,10 +125,10 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 **Expression type additions (prerequisite for evaluation and provenance reporting):**
 
 - [ ] Rename `ICalculatedExpression` / `CalculatedExpressionBase` → `IComputedExpression` / `ComputedExpressionBase` throughout — "calculated" is ambiguous; "computed" avoids collision with "derivative" once ODE relationships are added in M5
-- [ ] Introduce leaf variable subtypes, each implementing `IDirectExpression`. These capture *provenance semantics* — orthogonal to the existing `Magnitude`/`Delta` axis which captures *physical semantics*:
+- [ ] Introduce leaf variable subtypes, each implementing `IDirectExpression`. These capture *provenance semantics* — orthogonal to *physical semantics* (whether a value is a point quantity or a signed delta/difference), which is a modeling concern handled by context rather than encoded on the value type itself (the `Magnitude`/`Delta` split was removed from `Measurement` for this reason):
   - `MeasuredVariable` — an instrument or sensor reading; uncertainty characterises instrument calibration and repeatability; may carry instrument metadata (calibration date, instrument ID)
   - `ReferenceConstant` — a literature or tabulated value (thermodynamic property, material property, physical constant); uncertainty from the source's stated precision or treated as exact; carries provenance/citation (same idea as `ConversionSource` for unit factors)
-  - `DesignParameter` — an engineer-specified value, not measured or from literature; exact or carries a manufacturing/specification tolerance via `BoundedUncertainty`
+  - `DesignParameter` — an engineer-specified value, not measured or from literature; exact or carries a manufacturing/specification tolerance via `AsymmetricUncertainty.FromAbsErr` (the standalone `BoundedUncertainty` type was folded into `AsymmetricUncertainty` during the `Measurand` refactor)
   - `ModelParameter` — an empirically fitted constant within a constitutive relationship (e.g. discharge coefficient `Cᵈ`, Nusselt correlation coefficients); uncertainty from the fitting process; distinct from `ReferenceConstant` because it is model-specific, not a physical property
 - [ ] Resolve the `Definitions` / `Constraints` / instances semantic model: `Definitions` are always-true relationships used to *compute* unknowns (conservation laws, constitutive equations); `Constraints` are tolerance checks run against computed or measured values (pass/fail); leaf variable subtypes above replace the informal notion of "instances"
 
@@ -177,10 +180,10 @@ These features are worth designing for but intentionally deferred until M4 is so
 | Decision | Choice | Rationale |
 |---|---|---|
 | Internal representation | KMS (kg-m-s) | Normalizing to SI base units avoids conversion bugs at operation time |
-| Magnitude vs Delta | Two separate types | Enforces physical semantics: lengths can't be negative, temperature *changes* can |
+| Magnitude vs Delta | Unified into a single `Measurand` type | Point-vs-delta physical semantics (e.g. "lengths can't be negative, temperature changes can") is a modeling concern, not a value-type concern — the two-class split added complexity without enough payoff |
 | Error propagation | RSS (uncorrelated) default, direct sum (correlated) available | Standard engineering uncertainty practice |
 | Solver abstraction | Interface-based, swappable | Different problem domains may call for symbolic, numeric, or constraint solvers |
-| Variable provenance taxonomy | Four leaf subtypes: `MeasuredVariable`, `ReferenceConstant`, `DesignParameter`, `ModelParameter` | Provenance axis is orthogonal to the `Magnitude`/`Delta` physical axis; affects uncertainty characterisation and result reporting without changing evaluation logic |
+| Variable provenance taxonomy | Four leaf subtypes: `MeasuredVariable`, `ReferenceConstant`, `DesignParameter`, `ModelParameter` | Provenance axis is orthogonal to physical semantics (point vs. delta), which is now a modeling concern rather than a value-type distinction; affects uncertainty characterisation and result reporting without changing evaluation logic |
 | Definitions vs. Constraints | Definitions compute unknowns; Constraints check values | Conservation laws and constitutive equations belong in `Definitions`; tolerance checks belong in `Constraints` |
 | OffsetUnitOfMeasure | Inheritance from UnitOfMeasure | Acceptable for now; temperature is the only offset case and it works |
 

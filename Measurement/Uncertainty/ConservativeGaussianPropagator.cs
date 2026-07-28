@@ -8,16 +8,16 @@ public class ConservativeGaussianPropagator : IErrorPropagator
 
     public IUncertainty PropagateErrorThroughSum(
         ErrorPropagationMethod method,
-        params Measurand[] quantities)
+        params Measurand[] measurands)
     {
         double absoluteError = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => Math.Sqrt(quantities.Sum(m => m.KmsAbsoluteError * m.KmsAbsoluteError)),
-            ErrorPropagationMethod.Correlated => quantities.Sum(m => m.KmsAbsoluteError),
+            ErrorPropagationMethod.Uncorrelated => Math.Sqrt(measurands.Sum(m => m.KmsAbsoluteError * m.KmsAbsoluteError)),
+            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsAbsoluteError),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        double relErr = absoluteError / quantities.Sum(m => m.Quantity.KmsValue);
+        double relErr = absoluteError / measurands.Sum(m => m.Quantity.KmsValue);
         return GaussianUncertainty.FromRelErr(relErr);
     }
 

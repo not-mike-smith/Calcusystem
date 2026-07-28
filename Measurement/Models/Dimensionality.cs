@@ -4,19 +4,50 @@ using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.
 
 namespace Measurement.Models;
 
+/// <summary>
+/// The physical dimension of a quantity, represented as a map from each <see cref="FundamentalDimension"/>
+/// to its integer exponent (e.g. velocity is Length¹·Time⁻¹). Exponents of zero are stripped, so any two
+/// dimensionally-equal values compare equal regardless of how they were built. Supports dimensional algebra
+/// via the <c>*</c> and <c>/</c> operators; integer roots (via <c>/ int</c>) require every exponent to divide
+/// evenly, throwing <see cref="NondiscreteDimensionalityException"/> otherwise.
+/// </summary>
+/// <remarks>
+/// A <c>readonly</c> value type: the <c>default</c> value (no backing dictionary) behaves as
+/// <see cref="Dimensionless"/>. Instances are constructed through the static fundamental-dimension fields and
+/// the algebra operators, not directly. Combine the fields to express derived dimensions, e.g.
+/// <c>Mass * Length / (Time * Time)</c> for force.
+/// </remarks>
 public readonly struct Dimensionality
 {
+    /// <summary>The empty dimension (all exponents zero) — a pure number such as a ratio or count.</summary>
     public static readonly Dimensionality Dimensionless = new Dimensionality(
         new Dictionary<FundamentalDimension, int>());
 
+    /// <summary>Monetary value (a non-physical fundamental dimension supported for engineering-economics use).</summary>
     public static readonly Dimensionality Currency = new Dimensionality(FundamentalDimension.Currency);
+
+    /// <summary>Amount of substance (mole).</summary>
     public static readonly Dimensionality AmountOfMatter = new Dimensionality(FundamentalDimension.AmountOfMatter);
+
+    /// <summary>Mass (kilogram).</summary>
     public static readonly Dimensionality Mass = new Dimensionality(FundamentalDimension.Mass);
+
+    /// <summary>Luminous intensity (candela).</summary>
     public static readonly Dimensionality LuminousIntensity = new Dimensionality(FundamentalDimension.LuminousIntensity);
+
+    /// <summary>Electric current (ampere).</summary>
     public static readonly Dimensionality ElectricCurrent = new Dimensionality(FundamentalDimension.ElectricCurrent);
+
+    /// <summary>Length (meter).</summary>
     public static readonly Dimensionality Length = new Dimensionality(FundamentalDimension.Length);
+
+    /// <summary>Thermodynamic temperature (kelvin).</summary>
     public static readonly Dimensionality Temperature = new Dimensionality(FundamentalDimension.Temperature);
+
+    /// <summary>Plane angle (radian) — treated as a fundamental dimension so torque stays distinct from energy.</summary>
     public static readonly Dimensionality Angle = new Dimensionality(FundamentalDimension.Angle);
+
+    /// <summary>Time (second).</summary>
     public static readonly Dimensionality Time = new Dimensionality(FundamentalDimension.Time);
 
     private readonly ExponentDict? _fundamentalDimensions;
@@ -63,14 +94,26 @@ public readonly struct Dimensionality
             pair => pair.Value);
     }
 
+    /// <summary>
+    /// The integer exponent of the given <see cref="FundamentalDimension"/> in this dimension,
+    /// or 0 if it is not present.
+    /// </summary>
     public int this[FundamentalDimension fundamentalDimension] =>
         FundamentalDimensions.TryGetValue(fundamentalDimension, out var exponent)
             ? exponent
             : 0;
 
+    /// <summary>
+    /// Creates a <see cref="Quantity"/> of this dimensionality directly from a raw KMS value. Unlike
+    /// <see cref="UnitOfMeasure.Quantity"/>, no unit conversion is applied — the value is taken as already
+    /// KMS-normalized.
+    /// </summary>
+    public Quantity Quantity(double kmsValue) => new Quantity(kmsValue, this);
+
     private IEnumerable<FundamentalDimension> OrderedKeys => FundamentalDimensions.Keys
         .OrderBy(f => FundamentalDimension.Order[f]);
 
+    /// <summary>Order-independent hash over the (dimension, exponent) pairs, consistent with <see cref="Equals"/>.</summary>
     public override int GetHashCode()
     {
         var i = 23;
@@ -88,6 +131,10 @@ public readonly struct Dimensionality
         return i;
     }
 
+    /// <summary>
+    /// Value equality: two dimensions are equal when they carry the same exponent for every
+    /// fundamental dimension (zero-exponent entries having been stripped).
+    /// </summary>
     public override bool Equals(object? obj)
     {
         if (! (obj is Dimensionality other)) return false;
@@ -105,6 +152,10 @@ public readonly struct Dimensionality
             : $"{f.Symbol}{exponent.ToSuperscript()}";
     }
 
+    /// <summary>
+    /// Human-readable form using symbols and superscript exponents, split into a <c>numerator/denominator</c>
+    /// around negative exponents (e.g. <c>M·L²/t²</c>). Returns <c>"1"</c> for a dimensionless value.
+    /// </summary>
     public override string ToString()
     {
         var me = this;
@@ -126,16 +177,19 @@ public readonly struct Dimensionality
         return $"{numerator}/{denominator}";
     }
 
+    /// <summary>Value equality; see <see cref="Equals"/>.</summary>
     public static bool operator==(Dimensionality lhs, Dimensionality rhs)
     {
         return lhs.Equals(rhs);
     }
 
+    /// <summary>Negation of the equality operator.</summary>
     public static bool operator !=(Dimensionality lhs, Dimensionality rhs)
     {
         return ! (lhs == rhs);
     }
 
+    /// <summary>Multiplies two dimensions by adding their exponents (e.g. Length · Length = Length²).</summary>
     public static Dimensionality operator *(Dimensionality lhs, Dimensionality rhs)
     {
         var pairs = lhs.FundamentalDimensions.ToList();
@@ -143,12 +197,14 @@ public readonly struct Dimensionality
         return new Dimensionality(pairs);
     }
 
+    /// <summary>The multiplicative inverse — every exponent negated (e.g. Time → Time⁻¹).</summary>
     public Dimensionality Reciprocal()
     {
         return new Dimensionality(FundamentalDimensions
             .Select(pair => new KeyValuePair<FundamentalDimension, int>(pair.Key, -pair.Value)));
     }
 
+    /// <summary>Divides two dimensions by subtracting the divisor's exponents from the dividend's.</summary>
     public static Dimensionality operator /(Dimensionality lhs, Dimensionality rhs)
     {
         var pairs = rhs.FundamentalDimensions
@@ -159,6 +215,10 @@ public readonly struct Dimensionality
         return new Dimensionality(pairs);
     }
 
+    /// <summary>
+    /// Raises the dimension to an integer power by scaling every exponent (e.g. Length <c>* 3</c> = Length³).
+    /// Used to express repeated products such as area and volume.
+    /// </summary>
     public static Dimensionality operator *(Dimensionality dimensionality, int exponent)
     {
         var dict = dimensionality.FundamentalDimensions.ToDictionary(
@@ -168,6 +228,13 @@ public readonly struct Dimensionality
         return new Dimensionality(dict);
     }
 
+    /// <summary>
+    /// Takes the integer <paramref name="root"/> of the dimension by dividing every exponent.
+    /// </summary>
+    /// <exception cref="DivideByZeroException">The root is 0.</exception>
+    /// <exception cref="NondiscreteDimensionalityException">
+    /// The root is negative, or an exponent does not divide evenly by it (which would yield a non-integer exponent).
+    /// </exception>
     public static Dimensionality operator /(Dimensionality dimensionality, int root)
     {
         if (root == 0) throw new DivideByZeroException("Cannot take 0th root of dimension");

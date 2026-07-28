@@ -85,7 +85,7 @@ public class DeserializingMapper
         IExpression expression = x.Type switch
         {
             nameof(ReciprocalExpression) => MapReciprocal(x),
-            nameof(NegatedVariable) => MapNegated(x),
+            nameof(NegatedExpression) => MapNegated(x),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for SingleDerivedVariable object with saved type, {x.Type}")
         };
@@ -184,7 +184,7 @@ public class DeserializingMapper
 
     private IExpression GetExpression(string id, ISerializedObject expressionDto)
     {
-        var foundIt = _context.ExpressionsById.TryGetValue(expressionDto.Id, out var value);
+        var foundIt = _context.ExpressionsById.TryGetValue(id, out var value);
         if (foundIt is false)
         {
             throw new ExpressionNotFoundDeserializationException(id, expressionDto);
@@ -198,9 +198,9 @@ public class DeserializingMapper
         return new ReciprocalExpression(GetExpression(x.InnerId, x), x.Id);
     }
 
-    public NegatedVariable MapNegated(Dtos.SingleDerivedVariable x)
+    public NegatedExpression MapNegated(Dtos.SingleDerivedVariable x)
     {
-        return new NegatedVariable(GetExpression(x.InnerId, x), x.Id);
+        return new NegatedExpression(GetExpression(x.InnerId, x), x.Id);
     }
 
     public ProductExpression MapProduct(Dtos.ListDerivedVariable x)

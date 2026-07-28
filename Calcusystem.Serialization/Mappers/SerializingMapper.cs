@@ -65,7 +65,7 @@ public class SerializingMapper
         return expression switch
         {
             ReciprocalExpression reciprocal => Map(reciprocal),
-            NegatedVariable negated => Map(negated),
+            NegatedExpression negated => Map(negated),
             ProductExpression product => Map(product),
             SumExpression sum => Map(sum),
             QuotientExpression quotient => Map(quotient),
@@ -130,13 +130,13 @@ public class SerializingMapper
         };
     }
 
-    public Dtos.SingleDerivedVariable Map(NegatedVariable x)
+    public Dtos.SingleDerivedVariable Map(NegatedExpression x)
     {
         return new Dtos.SingleDerivedVariable
         {
             Id = x.Id,
             Type = x.GetType().Name,
-            InnerId = x.NegatedExpression.Id
+            InnerId = x.Operand.Id
         };
     }
 
