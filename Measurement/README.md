@@ -2,6 +2,8 @@
 
 The foundation layer of Calcusystem. Provides physical quantities with units, dimensions, and measurement uncertainty as first-class concerns. All other assemblies depend on this one; it has no Calcusystem dependencies of its own.
 
+> **Using this assembly:** as with every project, this README plus the interfaces in `Interfaces/` cover what you need to *use* Measurement without reading implementation. Measurement is an exception in one respect — several non-interface types also carry essential contract docstrings worth reading directly: the `Quantity` and `Dimensionality` structs, the `FundamentalDimension` class, and the `UncertaintyFromNominalValue` delegate.
+
 ---
 
 ## The central invariant: KMS normalization
@@ -36,7 +38,7 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 
 | Category | Members |
 | --- | --- |
-| Arithmetic | `Plus`/`Minus`/`Times`/`DividedBy` (throw `IncompatibleDimensionsException` on a `Plus`/`Minus` dimension mismatch); `TryAdd`/`TrySubtract` — intended to be dimension-tolerant like `Quantity.TryAdd`/`TrySubtract` below, **currently still throws on mismatch** (an `ArgumentException` from `GaussianUncertainty`'s NaN guard, not `IncompatibleDimensionsException` — known issue, don't rely on this returning quietly yet); unary `-`; `Reciprocal()`; `ToPower(int)`/`ToRoot(int)` |
+| Arithmetic | `Plus`/`Minus`/`Times`/`DividedBy` (throw `IncompatibleDimensionsException` on a `Plus`/`Minus` dimension mismatch); `TryAdd`/`TrySubtract` — dimension-tolerant like `Quantity.TryAdd`/`TrySubtract` below, returning a NaN-valued `Measurand` (with zero uncertainty) instead of throwing on mismatch; unary `-`; `Reciprocal()`; `ToPower(int)`/`ToRoot(int)` |
 | Convert | `In(UnitOfMeasure)` (throws on dimension mismatch) / `TryIn(UnitOfMeasure)` (returns `NaN` on mismatch); `AbsoluteError(unit)` / `AbsoluteErrorIn(unit)` / `TryAbsoluteErrorIn(unit)` |
 | Validity | `IsValid()` (NaN/finite only — see point/delta note below), `IsNaN()`, `IsInfinity()`/`IsPositiveInfinity()`/`IsNegativeInfinity()`, `IsFinite()`, `IsNormal()`/`IsSubnormal()`, `IsNegative()` |
 
