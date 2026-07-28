@@ -54,11 +54,7 @@ public interface IExpression
 /// An <see cref="IExpression"/> that computes its value from child nodes and therefore needs an
 /// <see cref="ErrorPropagation"/> policy for combining their uncertainties.
 /// </summary>
-/// <remarks>
-/// Slated to be renamed to <c>IComputedExpression</c> in Milestone 3 ("calculated" collides with "derivative"
-/// once ODE relationships arrive).
-/// </remarks>
-public interface ICalculatedExpression : IExpression
+public interface IComputedExpression : IExpression
 {
     /// <summary>
     /// Whether child errors are treated as correlated or uncorrelated when their uncertainties are combined

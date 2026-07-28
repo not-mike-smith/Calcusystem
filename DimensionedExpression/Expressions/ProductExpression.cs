@@ -5,7 +5,7 @@ using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 
-public class ProductExpression : CalculatedExpressionBase, ICalculatedExpression
+public class ProductExpression : ComputedExpressionBase, IComputedExpression
 {
     private readonly List<IExpression> _factors = new();
 

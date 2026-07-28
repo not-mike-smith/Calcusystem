@@ -47,22 +47,20 @@ Two consequences worth internalizing:
 | --- | --- | --- |
 | `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Measurand? Value` (get), `DegreesOfFreedom()` |
 | `IDirectExpression` | `IExpression` | re-declares `Value` with a **setter** — a mutable leaf |
-| `ICalculatedExpression` | `IExpression` | `ErrorPropagation { get; set; }` — the `ErrorPropagationMethod` used when combining children |
+| `IComputedExpression` | `IExpression` | `ErrorPropagation { get; set; }` — the `ErrorPropagationMethod` used when combining children |
 
 ### Expression node types (`Expressions/`)
 
 | Class | Implements | Role |
 | --- | --- | --- |
 | `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. `DegreesOfFreedom()` = 0 if set, else 1. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. |
-| `SumExpression` | `ICalculatedExpression` | n-ary `+` over `Addends`. All addends must share a dimensionality (enforced on `AddAddend`); constructor can seed a fixed dimensionality for an empty sum. |
-| `ProductExpression` | `ICalculatedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
-| `QuotientExpression` | `ICalculatedExpression` | `Numerator / Denominator` (both `required`). |
+| `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`. All addends must share a dimensionality (enforced on `AddAddend`); constructor can seed a fixed dimensionality for an empty sum. |
+| `ProductExpression` | `IComputedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
+| `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
 | `NegatedExpression` | `IExpression` | Unary negation wrapper over any `IExpression` (its `Operand`). Not directly mutable. |
 | `ReciprocalExpression` | `IExpression` | Unary `1/x` wrapper over any `IExpression`; reciprocates the dimensionality. |
 
-Composite nodes (`Sum`/`Product`/`Quotient`) derive from `CalculatedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Value`/`Dimensionality`/`IsFullyDescribed`/`DegreesOfFreedom` itself. `DegreesOfFreedom()` on a composite is the sum of its children's.
-
-> Naming note: `ICalculatedExpression` / `CalculatedExpressionBase` are slated to be renamed to `IComputedExpression` / `ComputedExpressionBase` in Milestone 3 ("calculated" collides with "derivative" once ODE relationships arrive). Current code still uses the `Calculated*` names.
+Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Value`/`Dimensionality`/`IsFullyDescribed`/`DegreesOfFreedom` itself. `DegreesOfFreedom()` on a composite is the sum of its children's.
 
 ### Binary operators (`BinaryOperators/`)
 
