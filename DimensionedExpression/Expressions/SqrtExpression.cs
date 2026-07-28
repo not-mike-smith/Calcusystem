@@ -1,0 +1,48 @@
+using DimensionedExpression.BaseModels;
+using DimensionedExpression.Interfaces;
+using Measurement;
+using Measurement.Models;
+
+namespace DimensionedExpression.Expressions;
+
+/// <summary>
+/// Unary square root of any <see cref="IExpression"/>. The result's dimensionality is the argument's with every
+/// exponent halved (e.g. √(m²·s⁻²) → m·s⁻¹), so every exponent must be even — an odd exponent throws
+/// <see cref="Measurement.Exceptions.NondiscreteDimensionalityException"/>. A negative argument value yields a
+/// NaN result. Uncertainty follows the power rule: RelativeError(√x) = ½·RelativeError(x).
+/// </summary>
+public class SqrtExpression : IdBase, IExpression
+{
+    private IExpression _argument;
+
+    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    {
+        _argument = argument;
+    }
+
+    public IExpression Argument
+    {
+        get => _argument;
+        set => _argument = value;
+    }
+
+    public bool IsDirectlyMutable => false;
+    public bool IsFullyDescribed => Argument.IsFullyDescribed;
+
+    // Each exponent halved; throws NondiscreteDimensionalityException if any argument exponent is odd.
+    public Dimensionality Dimensionality => Argument.Dimensionality / 2;
+
+    public Measurand? Value => IsFullyDescribed
+        ? Argument.Value!.ToRoot(2)
+        : null;
+
+    public override string ToString()
+    {
+        return $"√({Argument})";
+    }
+
+    public int DegreesOfFreedom()
+    {
+        return Argument.DegreesOfFreedom();
+    }
+}

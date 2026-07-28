@@ -59,6 +59,9 @@ Two consequences worth internalizing:
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
 | `NegatedExpression` | `IExpression` | Unary negation wrapper over any `IExpression` (its `Operand`). Not directly mutable. |
 | `ReciprocalExpression` | `IExpression` | Unary `1/x` wrapper over any `IExpression`; reciprocates the dimensionality. |
+| `SqrtExpression` | `IExpression` | Unary `√x` over any `IExpression` (its `Argument`); halves each dimension exponent (odd exponent throws `NondiscreteDimensionalityException`). Uncertainty: `RelativeError(√x) = ½·RelativeError(x)`. |
+| `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeError(eˣ) ≈ \|x\|·RelativeError(x)`. |
+| `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteError(ln x) ≈ RelativeError(x)`. Degenerate at `x = 1` (result 0 → relative error undefined; throws). |
 
 Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Value`/`Dimensionality`/`IsFullyDescribed`/`DegreesOfFreedom` itself. `DegreesOfFreedom()` on a composite is the sum of its children's.
 
