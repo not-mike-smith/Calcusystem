@@ -1,13 +1,36 @@
-﻿namespace DimensionedExpression.Interfaces;
+namespace DimensionedExpression.Interfaces;
 
+/// <summary>
+/// A relationship asserted between two expressions — equality, tolerance compatibility, or ordering. Used both
+/// as a definition (a relationship that should hold) and as a constraint (a check to run). The full taxonomy of
+/// concrete operators, with symbols and exact interval conditions, is in <c>BinaryOperators/OPERATORS.md</c>.
+/// </summary>
 public interface IBinaryOperator
 {
+    /// <summary>Stable string identity (see <c>IdBase</c>).</summary>
     public string Id { get; }
+
+    /// <summary>Optional human-readable name for the relationship.</summary>
     public string? Name { get; set; }
+
+    /// <summary>Optional human-readable description.</summary>
     public string? Description { get; set; }
+
+    /// <summary>The left-hand operand. For non-commutative operators this is the value under test.</summary>
     IExpression Lhs { get; set; }
+
+    /// <summary>The right-hand operand. For non-commutative operators this is the bound or reference.</summary>
     IExpression Rhs { get; set; }
+
+    /// <summary>Whether swapping <see cref="Lhs"/> and <see cref="Rhs"/> leaves the result unchanged.</summary>
     bool IsCommutative { get; }
+
+    /// <summary>
+    /// Whether the relationship holds: three-valued — <see langword="true"/> / <see langword="false"/>, or
+    /// <see langword="null"/> when <see cref="AreBothSidesFullyDescribed"/> is false and the answer is unknown.
+    /// </summary>
     bool? IsSatisfied();
+
+    /// <summary>Whether both operands have values, so <see cref="IsSatisfied"/> can return a definite result.</summary>
     bool AreBothSidesFullyDescribed { get; }
 }
