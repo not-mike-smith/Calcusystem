@@ -33,6 +33,16 @@ Tasks that are valuable but are not obvious prerequisites for the next milestone
 
 ---
 
+## Known Bugs
+
+- [ ] **Uncertainty near, at, and across zero — semantic + implementation bug.** Uncertainty is stored *only* as a relative error, which is ill-defined for values at or near zero and says nothing about a magnitude's non-negativity. This has three intertwined facets that need a coherent answer, not just a guard:
+  - *At zero (implementation):* a result whose value is exactly 0 with a nonzero absolute error cannot be expressed as a relative error, so constructing the `Measurand` throws. Reproduced by `NaturalLogExpression` at `x = 1` (covered by a test documenting the current throw) and by a `SumExpression` whose addends cancel (the propagator divides by the summed value). This surfaces as an exception from a `Value` getter — bad.
+  - *Near zero (implementation):* as the value approaches zero the relative error explodes, so a modest absolute error becomes an enormous or unstable relative error. Even where it doesn't throw, the propagated result is numerically degenerate.
+  - *Crossing zero (semantic):* when the error interval spans zero, the meaning is unclear — and for a **magnitude** (a quantity that is physically non-negative, e.g. a length or mass), a lower error bound below zero is not physical. What should the interval mean there: clamp at zero, stay signed, or is relative error simply the wrong representation for these cases?
+  - *Direction to weigh (not yet decided):* likely needs a first-class absolute-error uncertainty representation and/or a magnitude-aware policy for the lower bound, rather than the relative-only model. Decide before/while building the evaluation engine, since that is where cancellation and near-zero results become routine. See the unary-expression notes in Milestone 3.
+
+---
+
 ## Milestones
 
 ### Milestone 1 — Clean Foundation ✅ *complete*
@@ -142,7 +152,7 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 - [x] Add `NaturalLogExpression(argument: IExpression)` — unary expression computing `ln(x)`; requires argument to be dimensionless and positive; result is dimensionless; uncertainty: `AbsoluteError(ln(x)) ≈ RelativeError(x)`; primary motivation is Arrhenius equations (`k = A · exp(-Eₐ / (R·T))`). *(Done. Note: result at `x = 1` is 0, whose relative error is undefined in the current relative-only uncertainty representation, so `Value` throws there — see below.)*
 - [x] Add `SqrtExpression(argument: IExpression)` — unary expression computing `√x`; requires all dimensional exponents of the argument to be even integers (so that the result has integer-exponent dimensions); result dimensionality has each exponent halved (e.g. `√(m²·s⁻²)` → `m·s⁻¹`); argument value must be non-negative; uncertainty: `RelativeError(√x) = ½ · RelativeError(x)`; pulled forward from M5 `PowerExpression` because it is needed for Torricelli-law expressions (`Q = Cᵈ·a·√(2gh)`) in the ODE tank-draining use case. *(Done; reuses `Measurand.ToRoot(2)`.)*
 
-*Known limitation surfaced while implementing the unary nodes: the uncertainty types store only a relative error, so any result whose value is exactly 0 (e.g. `ln(1)`, or a sum that cancels) cannot represent a nonzero absolute error and throws. Worth revisiting (an absolute-error uncertainty type, or a zero-value policy) if it bites during evaluation-engine work.*
+*Known limitation surfaced while implementing the unary nodes: results at/near zero cannot be represented by the relative-only uncertainty model (`ln(1)` and canceling sums throw). Tracked as a bug — see [Known Bugs](#known-bugs).*
 
 ---
 
