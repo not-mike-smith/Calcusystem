@@ -6,7 +6,7 @@ using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 
-public class SumExpression : CalculatedExpressionBase, ICalculatedExpression
+public class SumExpression : ComputedExpressionBase, IComputedExpression
 {
     private readonly List<IExpression> _addends = new();
 

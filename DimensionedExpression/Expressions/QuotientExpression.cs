@@ -5,7 +5,7 @@ using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 
-public class QuotientExpression : CalculatedExpressionBase, ICalculatedExpression
+public class QuotientExpression : ComputedExpressionBase, IComputedExpression
 {
     public required IExpression Numerator { get; set; }
 
