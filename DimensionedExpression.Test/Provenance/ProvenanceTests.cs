@@ -1,6 +1,5 @@
 using System;
 using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
 using DimensionedExpression.Provenance;
 using FluentAssertions;
 using Measurement.Models;
@@ -46,30 +45,11 @@ public class ProvenanceTests
             .Should().Be("Model parameter: Dittus-Boelter (fit fit-2021)");
     }
 
-    [Theory]
-    [MemberData(nameof(EveryKind))]
-    public void Serialize_RoundTripsThroughFactory(IProvenance original)
-    {
-        var roundTripped = ProvenanceFactory.Deserialize(original.Serialize());
-
-        roundTripped.Serialize().Should().Be(original.Serialize());
-        roundTripped.Summary().Should().Be(original.Summary());
-    }
-
-    public static TheoryData<IProvenance> EveryKind() => new()
-    {
-        ProvenanceFactory.Measured("SN-42", new DateOnly(2026, 1, 15)),
-        ProvenanceFactory.Measured(), // all-null payload still round-trips
-        ProvenanceFactory.Reference("NIST SP 811", "https://nist.gov", 2008),
-        ProvenanceFactory.Design("DWG-1007"),
-        ProvenanceFactory.Model("Dittus-Boelter", "fit-2021"),
-    };
-
     [Fact]
-    public void Deserialize_UnknownKind_Throws()
+    public void Factory_GeneratesIdByDefaultAndPreservesExplicitId()
     {
-        Action act = () => ProvenanceFactory.Deserialize("{\"Kind\":\"telepathy\"}");
-        act.Should().Throw<NotSupportedException>();
+        ProvenanceFactory.Design().Id.Should().NotBeNullOrWhiteSpace();
+        ProvenanceFactory.Design(id: "prov-1").Id.Should().Be("prov-1");
     }
 
     [Fact]

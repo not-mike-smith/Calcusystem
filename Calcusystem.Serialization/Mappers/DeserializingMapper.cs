@@ -3,6 +3,7 @@ using Calcusystem.Serialization.Interfaces;
 using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
+using DimensionedExpression.Provenance;
 using DimensionedExpression.Systems;
 using Measurement;
 using Measurement.Interfaces;
@@ -143,7 +144,7 @@ public class DeserializingMapper
 
     public IBinaryOperator MapBinaryOperatorByPattern(Dtos.BinaryOperator x)
     {
-        return x.Type switch
+        IBinaryOperator op = x.Type switch
         {
             nameof(AnyToleranceOverlapOperator) => MapAnyToleranceOverlapOperator(x),
             nameof(EqualityOperator) => MapEqualityOperator(x),
@@ -155,17 +156,34 @@ public class DeserializingMapper
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for BinaryOperator object with saved type, {x.Type}")
         };
+
+        op.Provenance = MapProvenance(x.Provenance);
+        return op;
     }
 
     public Variable MapVariable(Dtos.SingleVariable v)
     {
-        if (v.KmsValue == null)
-        {
-            return new Variable(v.Symbol, v.Dimensionality, v.Id);
-        }
+        var variable = v.KmsValue == null
+            ? new Variable(v.Symbol, v.Dimensionality, v.Id)
+            : new Variable(v.Symbol, new Quantity(v.KmsValue.Value, v.Dimensionality).Measurand(MapUncertainty(v.Uncertainty)), v.Id);
 
-        var quantity = new Quantity(v.KmsValue.Value, v.Dimensionality);
-        return new Variable(v.Symbol, quantity.Measurand(MapUncertainty(v.Uncertainty)), v.Id);
+        variable.Provenance = MapProvenance(v.Provenance);
+        return variable;
+    }
+
+    private IProvenance? MapProvenance(Dtos.Provenance? provenance)
+    {
+        if (provenance is null) return null;
+
+        return provenance.Type switch
+        {
+            nameof(MeasuredProvenance) => ProvenanceFactory.Measured(provenance.InstrumentId, provenance.CalibrationDate, provenance.Id),
+            nameof(ReferenceProvenance) => ProvenanceFactory.Reference(provenance.Citation!, provenance.Url, provenance.Year, provenance.Id),
+            nameof(DesignProvenance) => ProvenanceFactory.Design(provenance.SpecReference, provenance.Id),
+            nameof(ModelProvenance) => ProvenanceFactory.Model(provenance.ModelName!, provenance.FittingReference, provenance.Id),
+            _ => throw new NotImplementedException(
+                $"No deserialization method defined for provenance type {provenance.Type}")
+        };
     }
 
     private IUncertainty MapUncertainty(Dtos.Uncertainty? uncertainty)

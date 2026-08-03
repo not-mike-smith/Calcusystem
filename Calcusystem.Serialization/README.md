@@ -27,13 +27,15 @@ DTOs are bucketed by **structural arity**, not by domain type — the concrete t
 
 | DTO (`Dtos/`) | Shape | Domain types it carries |
 | --- | --- | --- |
-| `SingleVariable` | leaf: `Symbol`, `Dimensionality`, `KmsValue?`, `Uncertainty?` | `Variable` |
+| `SingleVariable` | leaf: `Symbol`, `Dimensionality`, `KmsValue?`, `Uncertainty?`, `Provenance?` | `Variable` |
 | `SingleDerivedVariable` | one child: `InnerId` | `ReciprocalExpression`, `NegatedExpression` |
 | `PairDerivedVariable` | two children: `InnerId1`, `InnerId2` | `QuotientExpression` |
 | `ListDerivedVariable` | n children: `InnerIds`, plus `ErrorPropagation` | `ProductExpression`, `SumExpression` |
-| `BinaryOperator` | `LhsId`, `RhsId`, `Name?`, `Description?` | all equality / tolerance / inequality operators |
+| `BinaryOperator` | `LhsId`, `RhsId`, `Name?`, `Description?`, `Provenance?` | all equality / tolerance / inequality operators |
 
 Uncertainty has its own small DTO hierarchy (`Dtos/Expression.cs`): `SymmetricUncertainty` (`RelativeError`) for `GaussianUncertainty`, and `AsymmetricUncertainty` (`UpperRelativeError`/`LowerRelativeError`) for the domain `AsymmetricUncertainty`. Both DTO and domain sides carry a `Type` string. (When serializing a Gaussian, the relative error is read out via `RelativeError(1)` — for a symmetric uncertainty the nominal value is irrelevant, so `1` just extracts the stored fraction.)
+
+Provenance is serialized similarly, as a single flat `Dtos.Provenance` (`Id` + `Type` discriminator + the union of the kinds' nullable fields) nested inline in `SingleVariable` and `BinaryOperator`. `Map`/`MapProvenance` dispatch on the concrete type / `Type` string; reconstruction routes back through `ProvenanceFactory` (whose `internal`-ctor'd kinds are public so the mapper can read their fields). Unlike expressions, provenance is owned inline rather than referenced by id — its `Id` rides along for fidelity but is not part of the reference graph.
 
 ---
 

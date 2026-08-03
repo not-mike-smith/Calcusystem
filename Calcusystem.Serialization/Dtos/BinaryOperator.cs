@@ -10,4 +10,5 @@ public class BinaryOperator : ISerializedObject
     public required string? Description { get; init; }
     public required string LhsId { get; init; }
     public required string RhsId { get; init; }
+    public Provenance? Provenance { get; init; }
 }

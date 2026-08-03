@@ -9,6 +9,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public string? Description { get; set; }
     public required IExpression Lhs { get; set; }
     public required IExpression Rhs { get; set; }
+    public IProvenance? Provenance { get; set; }
     public abstract bool IsCommutative { get; }
     public abstract bool? IsSatisfied(); // TODO? move to extension?
     public abstract string Symbol { get; }

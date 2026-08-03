@@ -111,9 +111,9 @@ The `Definitions` vs. `Constraints` distinction is semantic, not enforced by typ
 
 ## Provenance (`Interfaces/IProvenance.cs`, `Provenance/ProvenanceFactory.cs`)
 
-An optional audit annotation on a leaf `Variable` recording *where its value came from*. It is attached by **composition, not inheritance** — `Variable.Provenance` is an `IProvenance?` (null = untracked). Provenance is purely descriptive: it never affects how a variable evaluates.
+An optional audit annotation recording *where a value came from* — carried by both a leaf `Variable` (`Variable.Provenance`) and a relationship (`IBinaryOperator.Provenance`, e.g. a citation for a constitutive equation). It is attached by **composition, not inheritance**: the property is an `IProvenance?` (null = untracked), and provenance is purely descriptive — it never affects evaluation.
 
-`IProvenance` exposes just two members: `Summary()` (a one-line string for UI display) and `Serialize()` (a self-describing payload). All kinds are created through the single factory — read `ProvenanceFactory` to see the full set available:
+`IProvenance` exposes `Id` (it round-trips through serialization like any node) and `Summary()` (a one-line string for UI display). All kinds are created through the single factory — read `ProvenanceFactory` to see the full set available:
 
 | Factory method | Kind | Metadata |
 | --- | --- | --- |
@@ -122,13 +122,13 @@ An optional audit annotation on a leaf `Variable` recording *where its value cam
 | `ProvenanceFactory.Design(specReference?)` | engineer-specified value | spec/drawing reference |
 | `ProvenanceFactory.Model(modelName, fittingReference?)` | fitted constitutive constant | model name, fitting reference |
 
-Concrete implementations are private behind the factory, so consumers only ever see `IProvenance` + `ProvenanceFactory`. Provenance **self-serializes** (`IProvenance.Serialize()` / `ProvenanceFactory.Deserialize(payload)`) precisely so the taxonomy stays open — a new kind is added in the factory alone, without the closed mappers in `Calcusystem.Serialization` needing to know it. This is the one deliberate exception to the "no serialization in this assembly" rule below.
+The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so the serializer can map them, but their constructors are **internal** — construction always flows through the factory. Serialization itself lives in `Calcusystem.Serialization` (below), like everything else; provenance is *not* a special case.
 
 ---
 
 ## Serialization
 
-Apart from provenance (above), there is **none in this assembly** — no DTOs, no mappers, no persistence. Serialization lives in `Calcusystem.Serialization`, which references this project and maps these types to/from DTOs (using explicit `Id`s to rebuild the reference graph, and injecting the `IEqualityEstimating` needed by `EqualityOperator`). If you are round-tripping an `ExpressionSystem`, that is the assembly to reach for.
+There is **none in this assembly** — no DTOs, no mappers, no persistence. Serialization lives in `Calcusystem.Serialization`, which references this project and maps these types (including provenance) to/from DTOs (using explicit `Id`s to rebuild the reference graph, and injecting the `IEqualityEstimating` needed by `EqualityOperator`). If you are round-tripping an `ExpressionSystem`, that is the assembly to reach for.
 
 ---
 
@@ -139,5 +139,5 @@ Apart from provenance (above), there is **none in this assembly** — no DTOs, n
 **What does NOT belong here:**
 
 - Physical quantities, units, dimensional algebra, uncertainty types, error propagation math → `Measurement`
-- Serialization DTOs and mappers → `Calcusystem.Serialization` (the one exception is provenance, which self-serializes — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs))
+- Serialization DTOs and mappers → `Calcusystem.Serialization` (including provenance — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs))
 - The actual evaluation walk, constraint reporting, and solving → future assemblies (this layer provides `Value`, `IsFullyDescribed`, and `DegreesOfFreedom` as the primitives they will build on, but performs no orchestration itself)
