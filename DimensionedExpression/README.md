@@ -53,7 +53,7 @@ Two consequences worth internalizing:
 
 | Class | Implements | Role |
 | --- | --- | --- |
-| `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. `DegreesOfFreedom()` = 0 if set, else 1. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. |
+| `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. `DegreesOfFreedom()` = 0 if set, else 1. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
 | `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`. All addends must share a dimensionality (enforced on `AddAddend`); constructor can seed a fixed dimensionality for an empty sum. |
 | `ProductExpression` | `IComputedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
@@ -109,9 +109,26 @@ The `Definitions` vs. `Constraints` distinction is semantic, not enforced by typ
 
 ---
 
+## Provenance (`Interfaces/IProvenance.cs`, `Provenance/ProvenanceFactory.cs`)
+
+An optional audit annotation on a leaf `Variable` recording *where its value came from*. It is attached by **composition, not inheritance** — `Variable.Provenance` is an `IProvenance?` (null = untracked). Provenance is purely descriptive: it never affects how a variable evaluates.
+
+`IProvenance` exposes just two members: `Summary()` (a one-line string for UI display) and `Serialize()` (a self-describing payload). All kinds are created through the single factory — read `ProvenanceFactory` to see the full set available:
+
+| Factory method | Kind | Metadata |
+| --- | --- | --- |
+| `ProvenanceFactory.Measured(instrumentId?, calibrationDate?)` | instrument/sensor reading | instrument id, calibration date |
+| `ProvenanceFactory.Reference(citation, url?, year?)` | literature/tabulated value | citation, URL, year |
+| `ProvenanceFactory.Design(specReference?)` | engineer-specified value | spec/drawing reference |
+| `ProvenanceFactory.Model(modelName, fittingReference?)` | fitted constitutive constant | model name, fitting reference |
+
+Concrete implementations are private behind the factory, so consumers only ever see `IProvenance` + `ProvenanceFactory`. Provenance **self-serializes** (`IProvenance.Serialize()` / `ProvenanceFactory.Deserialize(payload)`) precisely so the taxonomy stays open — a new kind is added in the factory alone, without the closed mappers in `Calcusystem.Serialization` needing to know it. This is the one deliberate exception to the "no serialization in this assembly" rule below.
+
+---
+
 ## Serialization
 
-There is **none in this assembly** — no DTOs, no mappers, no persistence. Serialization lives in `Calcusystem.Serialization`, which references this project and maps these types to/from DTOs (using explicit `Id`s to rebuild the reference graph, and injecting the `IEqualityEstimating` needed by `EqualityOperator`). If you are round-tripping an `ExpressionSystem`, that is the assembly to reach for.
+Apart from provenance (above), there is **none in this assembly** — no DTOs, no mappers, no persistence. Serialization lives in `Calcusystem.Serialization`, which references this project and maps these types to/from DTOs (using explicit `Id`s to rebuild the reference graph, and injecting the `IEqualityEstimating` needed by `EqualityOperator`). If you are round-tripping an `ExpressionSystem`, that is the assembly to reach for.
 
 ---
 
@@ -122,5 +139,5 @@ There is **none in this assembly** — no DTOs, no mappers, no persistence. Seri
 **What does NOT belong here:**
 
 - Physical quantities, units, dimensional algebra, uncertainty types, error propagation math → `Measurement`
-- Serialization DTOs and mappers → `Calcusystem.Serialization`
+- Serialization DTOs and mappers → `Calcusystem.Serialization` (the one exception is provenance, which self-serializes — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs))
 - The actual evaluation walk, constraint reporting, and solving → future assemblies (this layer provides `Value`, `IsFullyDescribed`, and `DegreesOfFreedom` as the primitives they will build on, but performs no orchestration itself)

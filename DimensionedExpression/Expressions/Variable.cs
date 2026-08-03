@@ -61,6 +61,12 @@ public class Variable : IdBase, IDirectExpression
         set => _symbol = value;
     }
 
+    /// <summary>
+    /// Optional audit annotation describing where this variable's value came from. Null means provenance is not
+    /// tracked. Created via <c>ProvenanceFactory</c>; purely descriptive — it does not affect evaluation.
+    /// </summary>
+    public IProvenance? Provenance { get; set; }
+
     public override string ToString()
     {
         return Symbol;
