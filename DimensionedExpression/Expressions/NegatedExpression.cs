@@ -5,6 +5,12 @@ using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 
+/// <summary>
+/// Unary negation of any <see cref="IExpression"/> (its <see cref="Operand"/>): the same dimensionality, with
+/// the operand's value and uncertainty negated.
+/// <br/>
+/// Not directly mutable; <see cref="Value"/> is null until the operand is fully described.
+/// </summary>
 public class NegatedExpression : IdBase, IExpression
 {
     public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW) : base(id)

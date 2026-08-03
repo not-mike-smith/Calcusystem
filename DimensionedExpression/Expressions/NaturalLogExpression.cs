@@ -11,7 +11,9 @@ namespace DimensionedExpression.Expressions;
 /// <summary>
 /// Unary <c>ln(x)</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless
 /// (enforced on construction and assignment) and, to be meaningful, positive; a non-positive value yields a
-/// NaN or negative-infinity result. The result is dimensionless. Uncertainty: because <c>d(ln x) = dx/x</c>,
+/// NaN or negative-infinity result. The result is dimensionless.
+/// <br/>
+/// Uncertainty: because <c>d(ln x) = dx/x</c>,
 /// AbsoluteError(ln x) ≈ RelativeError(x).
 /// </summary>
 /// <remarks>

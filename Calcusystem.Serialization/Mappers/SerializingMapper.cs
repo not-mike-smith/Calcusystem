@@ -15,6 +15,7 @@ public class SerializingMapper
         var value = new Dtos.ExpressionSystem
         {
             Id = system.Id,
+            Type = system.GetType().Name,
             Description = system.Description,
             Name = system.Name
         };

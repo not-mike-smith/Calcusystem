@@ -5,6 +5,14 @@ using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 
+/// <summary>
+/// N-ary product (<c>×</c>) over its <see cref="Factors"/>; the result dimensionality is the product of the
+/// factors' dimensionalities.
+/// <br/>
+/// A computed node: uncertainty is propagated through <see cref="Measurand"/> multiplication using the
+/// <see cref="ComputedExpressionBase.ErrorPropagation"/> method, and <see cref="DegreesOfFreedom"/> is the sum
+/// of the factors'.
+/// </summary>
 public class ProductExpression : ComputedExpressionBase, IComputedExpression
 {
     private readonly List<IExpression> _factors = new();

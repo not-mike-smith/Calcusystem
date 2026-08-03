@@ -6,6 +6,13 @@ using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 
+/// <summary>
+/// N-ary sum (<c>+</c>) over its <see cref="Addends"/>, which must all share a dimensionality (enforced on
+/// <see cref="AddAddend"/>; the constructor can seed a fixed dimensionality for an otherwise-empty sum).
+/// <br/>
+/// A computed node: uncertainty is propagated through <see cref="Measurand"/> addition using the
+/// <see cref="ComputedExpressionBase.ErrorPropagation"/> method.
+/// </summary>
 public class SumExpression : ComputedExpressionBase, IComputedExpression
 {
     private readonly List<IExpression> _addends = new();

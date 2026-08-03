@@ -7,7 +7,9 @@ namespace DimensionedExpression.BinaryOperators;
 /// Satisfied when the entire Lhs uncertainty interval [Lhs ± Lhs.error] is strictly contained within
 /// the Rhs tolerance band [Rhs ± Rhs.error]. Both the lower and upper bounds of Lhs must lie inside
 /// the Rhs interval; the Lhs interval touching the Rhs boundary does not satisfy this operator.
-/// Symbol: [=}
+/// <br/>
+/// Symbol: <b>[=}</b>
+/// <br/>
 /// Use for worst-case bilateral conformance checks where no part of the measurement's uncertainty range
 /// may fall outside the specification.
 /// </summary>
