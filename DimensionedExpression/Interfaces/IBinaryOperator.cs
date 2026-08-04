@@ -33,4 +33,10 @@ public interface IBinaryOperator
 
     /// <summary>Whether both operands have values, so <see cref="IsSatisfied"/> can return a definite result.</summary>
     bool AreBothSidesFullyDescribed { get; }
+
+    /// <summary>
+    /// Optional audit annotation describing where this relationship came from (e.g. a citation for a
+    /// constitutive equation). Null means provenance is not tracked; purely descriptive.
+    /// </summary>
+    IProvenance? Provenance { get; set; }
 }

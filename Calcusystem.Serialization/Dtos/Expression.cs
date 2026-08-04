@@ -32,6 +32,7 @@ public class SingleVariable : ExpressionBase
     public required Dimensionality Dimensionality { get; init; }
     public required double? KmsValue { get; set; }
     public required Uncertainty? Uncertainty { get; init; }
+    public Provenance? Provenance { get; init; }
 }
 
 public class SingleDerivedVariable : ExpressionBase

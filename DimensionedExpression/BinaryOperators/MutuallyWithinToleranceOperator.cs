@@ -6,7 +6,9 @@ namespace DimensionedExpression.BinaryOperators;
 /// <summary>
 /// Satisfied when each side's nominal value falls within the other side's tolerance band — i.e.
 /// Lhs ∈ [Rhs ± Rhs.error] AND Rhs ∈ [Lhs ± Lhs.error]. The check is symmetric.
-/// Symbol: ≃
+/// <br/>
+/// Symbol: <b>≃</b>
+/// <br/>
 /// Use when two independently measured quantities are expected to agree within their own stated uncertainties.
 /// </summary>
 public class MutuallyWithinToleranceOperator : CommutativeOperatorBase

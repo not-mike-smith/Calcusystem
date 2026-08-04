@@ -1,5 +1,6 @@
 ﻿using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
+using DimensionedExpression.Provenance;
 using DimensionedExpression.Systems;
 using Measurement.Interfaces;
 using Measurement;
@@ -14,6 +15,7 @@ public class SerializingMapper
         var value = new Dtos.ExpressionSystem
         {
             Id = system.Id,
+            Type = system.GetType().Name,
             Description = system.Description,
             Name = system.Name
         };
@@ -86,6 +88,7 @@ public class SerializingMapper
                 KmsValue = null,
                 Uncertainty = null,
                 Symbol = v.Symbol,
+                Provenance = Map(v.Provenance),
             };
         }
         // else
@@ -97,6 +100,37 @@ public class SerializingMapper
             KmsValue = v.Value.KmsValue,
             Uncertainty = Map(v.Value.Uncertainty),
             Symbol = v.Symbol,
+            Provenance = Map(v.Provenance),
+        };
+    }
+
+    private Dtos.Provenance? Map(IProvenance? provenance)
+    {
+        return provenance switch
+        {
+            null => null,
+            MeasuredProvenance m => new Dtos.Provenance
+            {
+                Id = m.Id, Type = m.GetType().Name,
+                InstrumentId = m.InstrumentId, CalibrationDate = m.CalibrationDate
+            },
+            ReferenceProvenance r => new Dtos.Provenance
+            {
+                Id = r.Id, Type = r.GetType().Name,
+                Citation = r.Citation, Url = r.Url, Year = r.Year
+            },
+            DesignProvenance d => new Dtos.Provenance
+            {
+                Id = d.Id, Type = d.GetType().Name,
+                SpecReference = d.SpecReference
+            },
+            ModelProvenance md => new Dtos.Provenance
+            {
+                Id = md.Id, Type = md.GetType().Name,
+                ModelName = md.ModelName, FittingReference = md.FittingReference
+            },
+            _ => throw new NotImplementedException(
+                $"No mapping for provenance of type {provenance.GetType().Name}")
         };
     }
 
@@ -182,7 +216,8 @@ public class SerializingMapper
             Description = x.Description,
             Type = x.GetType().Name,
             LhsId = x.Lhs.Id,
-            RhsId = x.Rhs.Id
+            RhsId = x.Rhs.Id,
+            Provenance = Map(x.Provenance),
         };
     }
 }

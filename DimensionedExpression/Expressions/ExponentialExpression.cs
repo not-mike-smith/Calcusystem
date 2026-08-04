@@ -10,7 +10,9 @@ namespace DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary <c>e^x</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless (enforced
-/// on construction and assignment) and the result is dimensionless. Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
+/// on construction and assignment) and the result is dimensionless.
+/// <br/>
+/// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
 /// RelativeError(eˣ) ≈ |x|·RelativeError(x) (i.e. the absolute error of x).
 /// </summary>
 public class ExponentialExpression : IdBase, IExpression
