@@ -190,10 +190,8 @@ public class DeserializingMapper
     {
         return uncertainty switch
         {
-            Dtos.SymmetricUncertainty sym => GaussianUncertainty.FromRelErr(sym.RelativeError ?? 0),
-            Dtos.AsymmetricUncertainty asym => new AsymmetricUncertainty(
-                asym.UpperRelativeError ?? 0,
-                asym.LowerRelativeError ?? 0),
+            Dtos.SymmetricUncertainty sym => GaussianUncertainty.From(sym.Kind, sym.Magnitude),
+            Dtos.AsymmetricUncertainty asym => AsymmetricUncertainty.From(asym.Kind, asym.UpperMagnitude, asym.LowerMagnitude),
             null => GaussianUncertainty.FromRelErr(0),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for uncertainty type {uncertainty.GetType().Name}")

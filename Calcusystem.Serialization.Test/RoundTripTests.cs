@@ -54,6 +54,23 @@ public class RoundTripTests
     }
 
     [Fact]
+    public void AbsoluteUncertainty_RoundTrips()
+    {
+        var system = ExpressionSystem.Create("abs-unc", "absolute-error uncertainty on a zero value");
+        // value 0 carrying an absolute error — the case relative-only storage could not represent
+        system.DirectExpressions.Add(new Variable(
+            "z",
+            new Quantity(0, Dimensionality.Length).Measurand(GaussianUncertainty.FromAbsErr(new Quantity(0.5, Dimensionality.Length))),
+            "z"));
+
+        var restored = (Variable)ById(RoundTrip(system), "z");
+
+        restored.Value!.KmsValue.Should().Be(0);
+        restored.Value!.KmsAbsoluteError.Should().BeApproximately(0.5, 1E-9); // survives round-trip as absolute
+        double.IsPositiveInfinity(restored.Value!.RelativeError).Should().BeTrue();
+    }
+
+    [Fact]
     public void DerivedExpressions_RoundTrip()
     {
         var system = ExpressionSystem.Create("derived", "one of each derived shape");

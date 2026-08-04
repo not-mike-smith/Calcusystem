@@ -17,10 +17,9 @@ namespace DimensionedExpression.Expressions;
 /// AbsoluteError(ln x) ≈ RelativeError(x).
 /// </summary>
 /// <remarks>
-/// The uncertainty is inherently an absolute error, but the uncertainty types store a relative error, so it is
-/// resolved as <c>RelativeError(x) / |ln x|</c>. When the argument is exactly 1 the result is 0 and that
-/// relative error is undefined — the same degenerate case a sum that cancels to zero hits — and constructing the
-/// result throws. Callers evaluating near <c>x = 1</c> should expect that edge.
+/// The uncertainty is inherently an absolute error and is stored as one (via <c>FromAbsErr</c>). At <c>x = 1</c>
+/// the result is 0; its <em>relative</em> error is undefined, but the absolute error is retained and
+/// <c>RelativeError</c> reports <c>+∞</c> rather than throwing.
 /// </remarks>
 public class NaturalLogExpression : IdBase, IExpression
 {

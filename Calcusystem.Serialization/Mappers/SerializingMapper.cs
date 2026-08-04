@@ -141,13 +141,15 @@ public class SerializingMapper
             GaussianUncertainty symmetric => new Dtos.SymmetricUncertainty
             {
                 Type = symmetric.GetType().Name,
-                RelativeError = symmetric.RelativeError(1)
+                Kind = symmetric.Kind,
+                Magnitude = symmetric.Magnitude
             },
             AsymmetricUncertainty asymmetric => new Dtos.AsymmetricUncertainty
             {
                 Type = asymmetric.GetType().Name,
-                UpperRelativeError = asymmetric.UpperRelativeError,
-                LowerRelativeError = asymmetric.LowerRelativeError
+                Kind = asymmetric.Kind,
+                UpperMagnitude = asymmetric.UpperMagnitude,
+                LowerMagnitude = asymmetric.LowerMagnitude
             },
             _ => throw new NotImplementedException(
                 $"No mapping for uncertainty of type {uncertainty.GetType().Name}")

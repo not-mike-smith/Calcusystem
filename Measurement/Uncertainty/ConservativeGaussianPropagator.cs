@@ -17,8 +17,9 @@ public class ConservativeGaussianPropagator : IErrorPropagator
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        double relErr = absoluteError / measurands.Sum(m => m.Quantity.KmsValue);
-        return GaussianUncertainty.FromRelErr(relErr);
+        // Store the propagated error as an absolute value rather than dividing by the (possibly zero) sum —
+        // this is what keeps a sum that cancels to zero well-defined.
+        return GaussianUncertainty.FromKmsAbsErr(absoluteError);
     }
 
     public IUncertainty PropagateErrorThroughProduct(

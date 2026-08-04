@@ -119,12 +119,14 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Ln_AtOne_IsDegenerate_ResultZeroHasUndefinedRelativeError()
+    public void Ln_AtOne_ProducesZeroValueWithAbsoluteError()
     {
-        // ln(1) = 0; a nonzero absolute error over a zero result cannot be a relative error, so it throws.
-        var ln = new NaturalLogExpression(Dimensionless(1, 0.05));
-        Func<Measurement.Measurand?> access = () => ln.Value;
-        access.Should().Throw<ArgumentException>();
+        // ln(1) = 0. The absolute error (= RelativeError(x) = 0.05) is preserved as an absolute error; the
+        // relative error of a zero-valued result is undefined (+inf) but no longer throws.
+        var result = new NaturalLogExpression(Dimensionless(1, 0.05)).Value!;
+        result.KmsValue.Should().Be(0);
+        result.KmsAbsoluteError.Should().BeApproximately(0.05, 1E-9);
+        double.IsPositiveInfinity(result.RelativeError).Should().BeTrue();
     }
 
     [Fact]
