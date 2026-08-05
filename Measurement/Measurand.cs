@@ -151,14 +151,14 @@ public class Measurand
     {
         return new Measurand(
             Quantity.ToPower(exponent),
-            ResolveErrorPropagator().PropagateErrorThroughExponentiation(this, exponent, 1));
+            Uncertainty.Exponentiated(KmsValue, exponent, 1));
     }
 
     public Measurand ToRoot(int root)
     {
         return new Measurand(
             Quantity.ToRoot(root),
-            ResolveErrorPropagator().PropagateErrorThroughExponentiation(this, 1, root));
+            Uncertainty.Exponentiated(KmsValue, 1, root));
     }
 
     public Measurand TryAdd(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)

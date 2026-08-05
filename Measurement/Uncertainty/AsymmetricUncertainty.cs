@@ -86,6 +86,18 @@ public sealed class AsymmetricUncertainty : IUncertainty
             lowerRelativeError);
     }
 
+    public IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator)
+    {
+        // Relative error of x^p is |p| times the relative error of x; a negative p makes x^p decreasing,
+        // swapping the directional bounds.
+        var factor = Math.Abs((double)exponentNumerator / exponentDenominator);
+        var upper = UpperRelativeError(nominalKmsValue) * factor;
+        var lower = LowerRelativeError(nominalKmsValue) * factor;
+
+        var decreasing = (exponentNumerator < 0) ^ (exponentDenominator < 0);
+        return decreasing ? From(false, lower, upper) : From(false, upper, lower);
+    }
+
     public IUncertainty Reciprocal(double nominalKmsValue)
     {
         return new AsymmetricUncertainty(

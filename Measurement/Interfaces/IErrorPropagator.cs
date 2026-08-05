@@ -8,25 +8,13 @@ namespace Measurement.Interfaces;
 /// </summary>
 /// <remarks>
 /// The propagator is the injection seam for alternative uncertainty models (Monte Carlo, correlation-aware,
-/// etc.). The only implementation today is <c>ConservativeGaussianPropagator</c>, which always returns a
-/// symmetric <c>GaussianUncertainty</c> derived from each operand's conservative error.
+/// etc.). The only implementation today is <c>ConservativeGaussianPropagator</c>. It combines the operands'
+/// conservative errors, returning a symmetric result when all operands are symmetric and an asymmetric one
+/// otherwise. (Unary transforms — negation, reciprocal, exponentiation — are not here; they live on
+/// <see cref="IUncertainty"/> since they act on a single uncertainty.)
 /// </remarks>
 public interface IErrorPropagator
 {
-    /// <summary>
-    /// Propagates uncertainty through raising <paramref name="measurand"/> to the rational power
-    /// <paramref name="exponentNumerator"/>/<paramref name="exponentDenominator"/>. Integer powers pass a
-    /// denominator of 1; roots pass a numerator of 1.
-    /// </summary>
-    /// <param name="measurand">The operand being raised to a power.</param>
-    /// <param name="exponentNumerator">Numerator of the rational exponent.</param>
-    /// <param name="exponentDenominator">Denominator of the rational exponent.</param>
-    /// <returns>The uncertainty of the exponentiated result.</returns>
-    IUncertainty PropagateErrorThroughExponentiation(
-        Measurand measurand,
-        int exponentNumerator,
-        int exponentDenominator);
-
     /// <summary>
     /// Propagates uncertainty through the product (and quotient, via reciprocal operands) of the operands.
     /// </summary>

@@ -74,4 +74,29 @@ public class MeasurandTests
         zero.KmsAbsoluteError.Should().BeApproximately(0.5, 1E-9);
         double.IsPositiveInfinity(zero.RelativeError).Should().BeTrue();
     }
+
+    [Fact]
+    public void ToPower_ScalesRelativeErrorByExponent()
+    {
+        Meters(2, 0.01).ToPower(2).RelativeError.Should().BeApproximately(0.02, 1E-9);
+    }
+
+    [Fact]
+    public void ToRoot_ScalesRelativeErrorByReciprocalOfRoot()
+    {
+        // area (L²) so the square root yields an integer-exponent dimension
+        var area = (Dimensionality.Length * 2).Quantity(4).Measurand(GaussianUncertainty.FromRelErr(0.02));
+        area.ToRoot(2).RelativeError.Should().BeApproximately(0.01, 1E-9);
+    }
+
+    [Fact]
+    public void ToPower_PreservesAsymmetry()
+    {
+        // upper 1%, lower 2%; squaring scales both by |2|, keeping them distinct
+        var m = Length.Meter.Quantity(2).Measurand(AsymmetricUncertainty.FromRelErr(0.01, 0.02));
+
+        var squared = m.ToPower(2);
+        squared.UpperRelativeError.Should().BeApproximately(0.02, 1E-9);
+        squared.LowerRelativeError.Should().BeApproximately(0.04, 1E-9);
+    }
 }

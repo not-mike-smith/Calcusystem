@@ -48,12 +48,18 @@ public sealed class GaussianUncertainty : ISymmetricUncertainty // TODO rename t
         new(isStoredAsAbs, magnitude);
 
     /// <summary>
-    /// Creates a symmetric uncertainty from an absolute error. Absolute error is stored directly and needs no
-    /// nominal value, so the returned delegate ignores the value it is given.
+    /// Creates a symmetric uncertainty from an absolute error, stored directly (the nominal value is not needed).
     /// </summary>
     public static GaussianUncertainty FromAbsErr(Quantity absoluteError)
     {
         return FromKmsAbsErr(absoluteError.KmsValue);
+    }
+
+    public IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator)
+    {
+        // Relative error of x^p is |p| times the relative error of x; the result is symmetric.
+        var scaledRelativeError = RelativeError(nominalKmsValue) * exponentNumerator / exponentDenominator;
+        return FromRelErr(Math.Abs(scaledRelativeError));
     }
 
     public IUncertainty Reciprocal(double nominalKmsValue) =>

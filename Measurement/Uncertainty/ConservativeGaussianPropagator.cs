@@ -88,14 +88,4 @@ public class ConservativeGaussianPropagator : IErrorPropagator
 
         return GaussianUncertainty.FromRelErr(relErr);
     }
-
-    // TODO: move to the AsymmetricUncertainty and GaussianUncertainty classes, respectively
-    public IUncertainty PropagateErrorThroughExponentiation(
-        Measurand measurand,
-        int exponentNumerator,
-        int exponentDenominator)
-    {
-        var relErr = measurand.RelativeError * exponentNumerator / exponentDenominator;
-        return GaussianUncertainty.FromRelErr(Math.Abs(relErr));
-    }
 }
