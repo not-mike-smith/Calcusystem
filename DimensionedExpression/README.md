@@ -18,7 +18,7 @@ var force = new ProductExpression();
 force.AddFactor(mass);
 force.AddFactor(accel);
 
-force.Dimensionality;      // M·L·t⁻²  — known immediately
+force.Dimensionality;      // M·L·T⁻²  — known immediately
 force.IsFullyDescribed;    // false
 force.Value;               // null
 force.DegreesOfFreedom();  // 2  — two unbound leaves

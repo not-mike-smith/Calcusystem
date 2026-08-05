@@ -1,5 +1,6 @@
 using Measurement.Interfaces;
 using Measurement.Extensions;
+using Measurement.State;
 
 namespace Measurement;
 
@@ -12,13 +13,15 @@ namespace Measurement;
 public sealed class AsymmetricUncertainty : IUncertainty
 {
     /// <summary>Whether the magnitudes are relative fractions or absolute KMS errors.</summary>
-    public bool IsStoredAsAbs { get; }
+    /// <remarks>An implementation detail of the storage convention; it leaves the assembly only as part of
+    /// <see cref="UncertaintyState"/>.</remarks>
+    internal bool IsStoredAsAbs { get; }
 
     /// <summary>The stored error above the nominal value — relative or absolute per <see cref="IsStoredAsAbs"/>.</summary>
-    public double UpperMagnitude { get; }
+    internal double UpperMagnitude { get; }
 
     /// <summary>The stored error below the nominal value — relative or absolute per <see cref="IsStoredAsAbs"/>.</summary>
-    public double LowerMagnitude { get; }
+    internal double LowerMagnitude { get; }
 
     private AsymmetricUncertainty(bool isStoredAsAbs, double upper, double lower)
     {
@@ -60,8 +63,9 @@ public sealed class AsymmetricUncertainty : IUncertainty
     public double AbsoluteError(double nominalKmsValue) =>
         Math.Max(UpperAbsoluteError(nominalKmsValue), LowerAbsoluteError(nominalKmsValue));
 
-    /// <summary>Rebuilds an uncertainty from its stored form (used by deserialization).</summary>
-    public static AsymmetricUncertainty From(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) =>
+    /// <summary>Rebuilds an uncertainty from its stored form. Reached from outside the assembly only through
+    /// <see cref="UncertaintyFactory.FromState"/>.</summary>
+    internal static AsymmetricUncertainty From(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) =>
         new(isStoredAsAbs, upperMagnitude, lowerMagnitude);
 
     /// <summary>
@@ -108,4 +112,9 @@ public sealed class AsymmetricUncertainty : IUncertainty
 
     public IUncertainty Negated(double nominalKmsValue) =>
         new AsymmetricUncertainty(IsStoredAsAbs, LowerMagnitude, UpperMagnitude);
+
+    /// <remarks>Explicit implementation: the storage form is reachable through <see cref="IUncertainty"/>, but is
+    /// not part of this class's own public surface.</remarks>
+    UncertaintyState IUncertainty.GetState() =>
+        UncertaintyState.Asymmetric(IsStoredAsAbs, UpperMagnitude, LowerMagnitude);
 }

@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Linear momentum (M·L·t⁻¹) and impulse share the same dimensions.
+// Linear momentum (M·L·T⁻¹) and impulse share the same dimensions.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class Momentum : ReflectiveUnitList<Momentum>
 {

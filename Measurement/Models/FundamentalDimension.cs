@@ -11,8 +11,8 @@ namespace Measurement;
 /// </summary>
 /// <remarks>
 /// Two instances are equal when their <see cref="Name"/>s match. A defined ordering (see <see cref="CompareTo"/>)
-/// gives quantities a canonical symbol layout. Note the case-sensitive symbols: <c>T</c> is temperature vs.
-/// <c>t</c> time, and <c>C</c> is luminous intensity vs. <c>c</c> currency.
+/// gives quantities a canonical symbol layout. Symbols are distinct even ignoring case, so that the
+/// symbol-keyed serialization encoding cannot be corrupted by a stray case conversion.
 /// </remarks>
 public class FundamentalDimension : IComparable<FundamentalDimension> // TODO: should this be a record?
 {
@@ -34,8 +34,8 @@ public class FundamentalDimension : IComparable<FundamentalDimension> // TODO: s
     /// <summary>Length (symbol L).</summary>
     public static readonly FundamentalDimension Length = new ("Length", "L");
 
-    /// <summary>Thermodynamic temperature (symbol T, uppercase).</summary>
-    public static readonly FundamentalDimension Temperature = new ("Temperature", "T");
+    /// <summary>Thermodynamic temperature (symbol Θ, capital theta).</summary>
+    public static readonly FundamentalDimension Temperature = new ("Temperature", "Θ");
 
     /// <summary>Electric current (symbol I).</summary>
     public static readonly FundamentalDimension ElectricCurrent = new ("Electric Current", "I");
@@ -43,17 +43,17 @@ public class FundamentalDimension : IComparable<FundamentalDimension> // TODO: s
     /// <summary>Plane angle (symbol A) — a base dimension here so torque stays distinct from energy.</summary>
     public static readonly FundamentalDimension Angle = new ("Angle", "A");
 
-    /// <summary>Time (symbol t, lowercase).</summary>
-    public static readonly FundamentalDimension Time = new ("Time", "t");
+    /// <summary>Time (symbol T).</summary>
+    public static readonly FundamentalDimension Time = new ("Time", "T");
 
     /// <summary>Amount of substance (symbol N).</summary>
     public static readonly FundamentalDimension AmountOfMatter = new ("Amount of Matter", "N");
 
-    /// <summary>Luminous intensity (symbol C, uppercase).</summary>
-    public static readonly FundamentalDimension LuminousIntensity = new ("Luminous Intensity", "C");
+    /// <summary>Luminous intensity (symbol J).</summary>
+    public static readonly FundamentalDimension LuminousIntensity = new ("Luminous Intensity", "J");
 
-    /// <summary>Monetary value (symbol c, lowercase) — non-physical, supported for engineering-economics use.</summary>
-    public static readonly FundamentalDimension Currency = new ("Currency", "c");
+    /// <summary>Monetary value (symbol C) — non-physical, supported for engineering-economics use.</summary>
+    public static readonly FundamentalDimension Currency = new ("Currency", "C");
 
     /// <summary>Canonical sort position of each dimension, used to lay out symbols consistently.</summary>
     internal static readonly IReadOnlyDictionary<FundamentalDimension, int> Order = new Dictionary<FundamentalDimension, int>

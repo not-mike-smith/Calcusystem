@@ -1,9 +1,10 @@
 using Measurement.Exceptions;
 using Measurement.Interfaces;
+using Measurement.State;
 
 namespace Measurement;
 
-public class Measurand
+public class Measurand : IStateful<Measurand, MeasurandState>
 {
     internal readonly Quantity Quantity;
     public readonly IUncertainty Uncertainty;
@@ -198,4 +199,11 @@ public class Measurand
     {
         return Product(method, this, other.Reciprocal());
     }
+
+    /// <inheritdoc/>
+    public MeasurandState GetState() => new(Quantity.GetState(), Uncertainty.GetState());
+
+    /// <inheritdoc/>
+    public static Measurand FromState(MeasurandState state) =>
+        new(Quantity.FromState(state.Quantity), UncertaintyFactory.FromState(state.Uncertainty));
 }

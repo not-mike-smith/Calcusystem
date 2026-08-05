@@ -51,14 +51,28 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 
 `OffsetUnitOfMeasure` also exposes a `DeltaUnit` property — the corresponding non-offset unit for expressing *changes* without re-adding the offset (e.g. `Δ°C` for a temperature difference).
 
-**`Dimensionality`** is a `readonly struct` holding a `Dictionary<FundamentalDimension, int>`. Zero-exponent entries are automatically stripped. The nine fundamental dimensions are: `Mass`, `Length`, `Time`, `Temperature`, `ElectricCurrent`, `AmountOfMatter`, `LuminousIntensity`, `Angle`, `Currency`. Algebra is supported directly:
+**`Dimensionality`** is a `readonly struct` holding a `Dictionary<FundamentalDimension, int>`. Zero-exponent entries are automatically stripped. Algebra is supported directly:
 
 ```csharp
-var velocity   = Dimensionality.Length / Dimensionality.Time;  // L·t⁻¹
+var velocity   = Dimensionality.Length / Dimensionality.Time;  // L·T⁻¹
 var energy     = Dimensionality.Mass * Dimensionality.Length * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
-var specEnergy = velocity * 2;    // L²·t⁻²  (exponent scaling)
-var root       = energy / 2;      // L·t⁻¹   (integer root; throws NondiscreteDimensionalityException if exponents aren't divisible)
+var specEnergy = velocity * 2;    // L²·T⁻²  (exponent scaling)
+var root       = energy / 2;      // L·T⁻¹   (integer root; throws NondiscreteDimensionalityException if exponents aren't divisible)
 ```
+
+The nine fundamental dimensions and their symbols:
+
+| Dimension | Symbol | | Dimension | Symbol |
+| --- | --- | --- | --- | --- |
+| `Mass` | `M` | | `Temperature` | `Θ` |
+| `Length` | `L` | | `Angle` | `A` |
+| `Time` | `T` | | `AmountOfMatter` | `N` |
+| `ElectricCurrent` | `I` | | `Currency` | `C` |
+| `LuminousIntensity` | `J` | | | |
+
+Note `T` is time and `Θ` is temperature — the reverse of the convention some references use.
+
+**Treat the symbols as a published identity, not a display detail.** `Calcusystem.Serialization` keys its stored form on them, so renaming one invalidates previously persisted data (repairing that is its job, not this assembly's). The set is deliberately unambiguous: every symbol differs from every other *even ignoring case*, so no downstream case conversion can collapse two dimensions into one.
 
 **No point/delta distinction in the value type.** Earlier drafts had separate `Magnitude` (non-negative) and `Delta` (signed difference) classes; these were merged into the single `Measurand` above. Whether a value is a point quantity or a delta/difference is a *modeling* concern (how a variable is used in an expression or system), not a property of the value itself — the two-class split added complexity without enough payoff. Practical implications:
 
@@ -71,7 +85,7 @@ var root       = energy / 2;      // L·t⁻¹   (integer root; throws Nondiscre
 
 Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteError(v), v + UpperAbsoluteError(v)]`.
 
-**Relative or absolute storage (`IsStoredAsAbs`).** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by a `bool IsStoredAsAbs`. This is purely a **convention on what the stored `Magnitude` means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IErrorPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeError(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
+**Relative or absolute storage.** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by an internal `bool IsStoredAsAbs`. This is purely a **convention on what the stored magnitude means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IErrorPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeError(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
 
 | Factory | Interface | Stored as |
 | --- | --- | --- |
@@ -80,7 +94,7 @@ Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal
 | `AsymmetricUncertainty.FromRelErr(upperRel, lowerRel)` | `IUncertainty` | relative fractions |
 | `AsymmetricUncertainty.FromAbsErr(upperError, lowerError: Quantity)` | `IUncertainty` | absolute KMS errors |
 
-Both types' constructors are private — go through the factories: `FromRelErr` (relative), `FromAbsErr` (absolute — takes a `Quantity` and returns the uncertainty directly, since an absolute error needs no nominal value), or `From(isStoredAsAbs, magnitude…)` for deserialization.
+Both types' constructors are private — go through the factories above: `FromRelErr` (relative) and `FromAbsErr` (absolute — takes a `Quantity` and returns the uncertainty directly, since an absolute error needs no nominal value). Those four are the entire construction vocabulary; the storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a persisted uncertainty is a separate concern with a separate door — see [Persistence](#persistence-state-not-dtos).
 
 ```csharp
 var mass = Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromAbsErr(1.0.Units(Mass.Milligram)));
@@ -164,7 +178,7 @@ Named constants span the full SI range, `Yocto` (10⁻²⁴) to `Yotta` (10²⁴
 
 **Available unit classes (40+):** Acceleration, Angle, AngularMomentum, AngularVelocity, Area, Density, Dimensionless, DynamicViscosity, ElectricCapacitance, ElectricCharge, ElectricConductance, ElectricCurrent, ElectricInductance, ElectricPotential, ElectricResistance, Energy, Force, Frequency, HeatTransferCoefficient, Jerk, KinematicViscosity, Length, LuminousIntensity, MagneticFlux, MagneticFluxDensity, Mass, MassFlow, MolecularMass, Moles, MomentOfInertia, Momentum, Power, Pressure, SpecificEnergy, SpecificHeatCapacity, Speed, SurfaceTension, Temperature, ThermalConductivity, Time, Torque, Volume, VolumetricFlow.
 
-Note: `Torque` has dimension `M·L²·Θ·t⁻²` (angle in numerator), distinct from `Energy` (`M·L²·t⁻²`). This is intentional — torque and energy are semantically different even though they are dimensionally equivalent in many systems.
+Note: `Torque` has dimension `M·L²·A·T⁻²` (angle in numerator), distinct from `Energy` (`M·L²·T⁻²`). This is intentional — torque and energy are semantically different even though they are dimensionally equivalent in many systems.
 
 ---
 
@@ -181,13 +195,47 @@ Defined in `Measurement/Exceptions/`:
 
 ---
 
+## Persistence: state, not DTOs
+
+Measurement owns **what state defines a value**; it does not own **how that state is encoded, versioned, or migrated**. Those are different questions with different release cadences, and conflating them is what previously put serialization-only members on the public surface. The seam between them is a set of plain state records in `Measurement/State/`:
+
+| Type | State record | Contents |
+| --- | --- | --- |
+| `IUncertainty` | `UncertaintyState` | shape (symmetric/asymmetric), storage flag, magnitudes |
+| `Quantity` | `QuantityState` | KMS value + `DimensionalityState` |
+| `Measurand` | `MeasurandState` | `QuantityState` + `UncertaintyState` |
+| `Dimensionality` | `DimensionalityState` | exponent of each present fundamental dimension |
+
+These are **mementos, not DTOs**: no type discriminator, no schema version, no encoding choices. A persistence layer maps them to whatever wire format it likes and owns any fix-up of older payloads — Measurement never sees a version number.
+
+```csharp
+var state = measurand.GetState();          // hand to Calcusystem.Serialization
+var restored = Measurand.FromState(state); // rebuild
+```
+
+`Quantity`, `Measurand`, and `Dimensionality` implement `IStateful<TSelf, TState>` (`Interfaces/IStateful.cs`), which pairs an instance `GetState()` with a `static abstract FromState`.
+
+**`IUncertainty` deliberately does not.** Its concrete type is chosen by *inspecting* the state, so reconstruction cannot be a per-type `static abstract`; it is a static gateway over the closed set instead — `UncertaintyFactory.FromState(state)`, mirroring how `DimensionedExpression` rebuilds provenance through `ProvenanceFactory`. `IUncertainty.GetState()` is implemented **explicitly** by both concrete types, so the storage form is reachable through the interface but stays off `SymmetricUncertainty`'s and `AsymmetricUncertainty`'s own public surfaces. `Quantity` and `Measurand` implement `GetState()` publicly — their state is value and dimension, both already public concepts, so there is nothing to protect.
+
+**`DimensionalityState` carries the exponent pairs**, zero exponents stripped, so an empty map is a dimensionless value. It does *not* carry an encoded string: choosing to write those pairs as `"M1,L1,T-2"` versus a nested object, keying them on symbols versus names, and repairing a payload written before a symbol changed are all format decisions, and they live in `Calcusystem.Serialization` (see `DimensionalityCodec` there). This is also why the state is not `ToString()`, which is a human-readable form (`M·L/T²`) with middots and superscripts that does not round-trip.
+
+```csharp
+var pairs = force.GetState().Pairs;   // { Mass: 1, Length: 1, Time: -2 }, in canonical order
+```
+
+A map is affordable because a state object lives only for the duration of a serialization pass — it is not something the rest of the library computes with. `GetState()` yields its pairs in canonical dimension order, so a consumer writing them out gets a stable result for dimensionally-equal values without sorting them itself. `DimensionalityState` compares its maps set-wise rather than by reference; the compiler-generated equality would otherwise make two states describing the same dimension unequal, and that would propagate into `QuantityState` and `MeasurandState`.
+
+---
+
 ## Scope boundaries
 
-**What belongs here:** physical quantities, units, dimensionality algebra, uncertainty types, error propagation.
+**What belongs here:** physical quantities, units, dimensionality algebra, uncertainty types, error propagation, and the state records describing them.
 
 **What does NOT belong here:**
 
 - Expression trees or variables that represent unknowns → `DimensionedExpression`
 - Binary operators (equality, tolerance, inequality) → `DimensionedExpression`
 - Serialization DTOs or mappers → `Calcusystem.Serialization`
+
+The state records in `Measurement/State/` are not an exception to that last line. A state record says *what data defines a value*, which only this assembly can answer; a DTO adds *how that data is labelled, versioned, and encoded*, which is the persistence layer's business. Wire formats, type discriminators, and schema migrations stay out of here.
 - Evaluation engine, solver → future assemblies

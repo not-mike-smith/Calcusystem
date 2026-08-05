@@ -6,6 +6,7 @@ using DimensionedExpression.Interfaces;
 using DimensionedExpression.Provenance;
 using DimensionedExpression.Systems;
 using Measurement;
+using Measurement.State;
 using Measurement.Interfaces;
 
 namespace Calcusystem.Serialization.Mappers;
@@ -162,9 +163,11 @@ public class DeserializingMapper
 
     public Variable MapVariable(Dtos.SingleVariable v)
     {
+        var dimensionality = Dimensionality.FromState(DimensionalityCodec.Decode(v.Dimensionality));
+
         var variable = v.KmsValue == null
-            ? new Variable(v.Symbol, v.Dimensionality, v.Id)
-            : new Variable(v.Symbol, new Quantity(v.KmsValue.Value, v.Dimensionality).Measurand(MapUncertainty(v.Uncertainty)), v.Id);
+            ? new Variable(v.Symbol, dimensionality, v.Id)
+            : new Variable(v.Symbol, new Quantity(v.KmsValue.Value, dimensionality).Measurand(MapUncertainty(v.Uncertainty)), v.Id);
 
         variable.Provenance = MapProvenance(v.Provenance);
         return variable;
@@ -187,14 +190,36 @@ public class DeserializingMapper
 
     private IUncertainty MapUncertainty(Dtos.Uncertainty? uncertainty)
     {
-        return uncertainty switch
+        // This layer owns the wire format — including any version fix-up of older payloads — and hands
+        // Measurement nothing but the state it needs to rebuild.
+        if (uncertainty is null) return SymmetricUncertainty.FromRelErr(0);
+
+        return uncertainty.Type switch
         {
-            Dtos.SymmetricUncertainty sym => SymmetricUncertainty.From(sym.IsStoredAsAbs, sym.Magnitude),
-            Dtos.AsymmetricUncertainty asym => AsymmetricUncertainty.From(asym.IsStoredAsAbs, asym.UpperMagnitude, asym.LowerMagnitude),
-            null => SymmetricUncertainty.FromRelErr(0),
+            nameof(SymmetricUncertainty) => UncertaintyFactory.FromState(
+                UncertaintyState.Symmetric(
+                    uncertainty.IsStoredAsAbs,
+                    Required(uncertainty.Magnitude, nameof(uncertainty.Magnitude), uncertainty.Type))),
+
+            nameof(AsymmetricUncertainty) => UncertaintyFactory.FromState(
+                UncertaintyState.Asymmetric(
+                    uncertainty.IsStoredAsAbs,
+                    Required(uncertainty.UpperMagnitude, nameof(uncertainty.UpperMagnitude), uncertainty.Type),
+                    Required(uncertainty.LowerMagnitude, nameof(uncertainty.LowerMagnitude), uncertainty.Type))),
+
             _ => throw new NotImplementedException(
-                $"No deserialization method defined for uncertainty type {uncertainty.GetType().Name}")
+                $"No deserialization method defined for uncertainty type {uncertainty.Type}")
         };
+    }
+
+    /// <summary>
+    /// Reads a field of the flat uncertainty DTO that is required for the shape named by its discriminator.
+    /// Missing means the payload is malformed; substituting a default would quietly change the error band.
+    /// </summary>
+    private static double Required(double? value, string field, string type)
+    {
+        return value ?? throw new InvalidOperationException(
+            $"Uncertainty of type {type} is missing required field {field}.");
     }
 
     private IExpression GetExpression(string id, ISerializedObject expressionDto)

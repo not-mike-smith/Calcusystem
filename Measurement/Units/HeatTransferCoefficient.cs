@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Heat transfer coefficient (M·t⁻³·T⁻¹ = W/(m²·K)).
+// Heat transfer coefficient (M·T⁻³·Θ⁻¹ = W/(m²·K)).
 // Temperature appears as a delta, so DeltaFahrenheit is used in Imperial units.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class HeatTransferCoefficient : ReflectiveUnitList<HeatTransferCoefficient>

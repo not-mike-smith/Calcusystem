@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Thermal conductivity (M·L·t⁻³·T⁻¹ = W/(m·K)).
+// Thermal conductivity (M·L·T⁻³·Θ⁻¹ = W/(m·K)).
 // Temperature appears as a delta (temperature difference), so DeltaFahrenheit is used
 // in Imperial units rather than the absolute Fahrenheit scale.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.

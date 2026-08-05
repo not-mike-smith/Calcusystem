@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Torque (M·L²·Θ·t⁻²) — dimensionally distinct from energy (M·L²·t⁻²) because
+// Torque (M·L²·A·T⁻²) — dimensionally distinct from energy (M·L²·T⁻²) because
 // torque is the rate of change of angular momentum (which carries the angle dimension).
 // The Radian factor in each definition is what separates torque from energy in this system.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.

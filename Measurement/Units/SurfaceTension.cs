@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Surface tension (M·t⁻²) — equivalently N/m or J/m².
+// Surface tension (M·T⁻²) — equivalently N/m or J/m².
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class SurfaceTension : ReflectiveUnitList<SurfaceTension>
 {

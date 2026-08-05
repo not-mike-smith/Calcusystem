@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Magnetic flux (M·L²·t⁻²·A⁻¹ = Wb = V·s).
+// Magnetic flux (M·L²·T⁻²·I⁻¹ = Wb = V·s).
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class MagneticFlux : ReflectiveUnitList<MagneticFlux>
 {
