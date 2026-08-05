@@ -1,5 +1,4 @@
 using Measurement;
-using Measurement.Models;
 
 namespace DimensionedExpression.BaseModels;
 

@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace Measurement.Models; // TODO move to Measuremnt namespace
+namespace Measurement;
 
 /// <summary>
 /// A named unit in which a <see cref="Quantity"/> can be expressed — a symbol, a
-/// <see cref="Models.Dimensionality"/>, and the linear factor that converts a value in this unit to and from the
+/// <see cref="Dimensionality"/>, and the linear factor that converts a value in this unit to and from the
 /// internal KMS (kg-m-s) representation. Instances are created through <c>UnitFactory</c>, not directly.
 /// </summary>
 /// <remarks>

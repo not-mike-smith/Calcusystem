@@ -1,4 +1,3 @@
-﻿using Measurement.Models;
 
 namespace Measurement.Extensions;
 

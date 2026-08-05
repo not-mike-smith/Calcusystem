@@ -1,6 +1,5 @@
 ﻿using System;
 using FluentAssertions;
-using Measurement.Models;
 using Xunit;
 
 namespace Measurement.Test;

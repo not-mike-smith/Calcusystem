@@ -1,7 +1,5 @@
 using Measurement.Exceptions;
 using Measurement.Interfaces;
-using Measurement.Models;
-using Measurement.Uncertainty;
 
 namespace Measurement;
 
@@ -14,7 +12,7 @@ public class Measurand
     public Measurand()
     {
         Quantity = Quantity.One;
-        Uncertainty = GaussianUncertainty.FromRelErr(0);
+        Uncertainty = SymmetricUncertainty.FromRelErr(0);
     }
 
     public Measurand(Quantity quantity, IUncertainty uncertainty)
@@ -151,21 +149,21 @@ public class Measurand
     {
         return new Measurand(
             Quantity.ToPower(exponent),
-            ResolveErrorPropagator().PropagateErrorThroughExponentiation(this, exponent, 1));
+            Uncertainty.Exponentiated(KmsValue, exponent, 1));
     }
 
     public Measurand ToRoot(int root)
     {
         return new Measurand(
             Quantity.ToRoot(root),
-            ResolveErrorPropagator().PropagateErrorThroughExponentiation(this, 1, root));
+            Uncertainty.Exponentiated(KmsValue, 1, root));
     }
 
     public Measurand TryAdd(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
     {
         var quantity = Quantity.TryAdd(other.Quantity);
         var uncertainty = quantity.IsNaN()
-            ? GaussianUncertainty.FromRelErr(0)
+            ? SymmetricUncertainty.FromRelErr(0)
             : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, other]);
 
         return new Measurand(quantity, uncertainty);
@@ -175,7 +173,7 @@ public class Measurand
     {
         var quantity = Quantity.TrySubtract(other.Quantity);
         var uncertainty = quantity.IsNaN()
-            ? GaussianUncertainty.FromRelErr(0)
+            ? SymmetricUncertainty.FromRelErr(0)
             : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, -other]);
 
         return new Measurand(quantity, uncertainty);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Measurement.Extensions;
-using Measurement.Models;
 
 namespace Measurement.Factories;
 

@@ -39,18 +39,16 @@ Compute with units and uncertainty (the `Measurement` layer):
 
 ```csharp
 using Measurement;
-using Measurement.Models;
 using Measurement.Units;
-using Measurement.Uncertainty;
 
 // 2 kg ± 1% — supply and read values in whatever unit you like; storage is always KMS
-var mass = Mass.Kilogram.Quantity(2).Measurand(GaussianUncertainty.FromRelErr(0.01));
+var mass = Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
 mass.In(Mass.Pound);   // ≈ 4.409 lb
 mass.RelativeError;    // 0.01
 
 // arithmetic enforces dimensions and propagates uncertainty
 var accel = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time))
-    .Measurand(GaussianUncertainty.FromRelErr(0.005));
+    .Measurand(SymmetricUncertainty.FromRelErr(0.005));
 
 var force = mass.Times(accel);   // dimension M·L·t⁻²; uncertainty combines in quadrature
 ```
@@ -59,7 +57,7 @@ Assemble a reusable formula whose leaves get filled in later (the `DimensionedEx
 
 ```csharp
 using DimensionedExpression.Expressions;
-using Measurement.Models;
+using Measurement;
 
 var m = new Variable("m", Dimensionality.Mass);
 var a = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));

@@ -1,7 +1,6 @@
 ﻿using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
-using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 

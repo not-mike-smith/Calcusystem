@@ -3,8 +3,6 @@ using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
-using Measurement.Models;
-using Measurement.Uncertainty;
 
 namespace DimensionedExpression.Expressions;
 
@@ -56,7 +54,7 @@ public class NaturalLogExpression : IdBase, IExpression
 
             return Dimensionality.Dimensionless
                 .Quantity(Math.Log(argument.KmsValue))
-                .Measurand(GaussianUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
+                .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
         }
     }
 

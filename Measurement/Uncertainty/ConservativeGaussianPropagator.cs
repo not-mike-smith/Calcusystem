@@ -1,7 +1,7 @@
 using Measurement.Interfaces;
 using Measurement.Extensions;
 
-namespace Measurement.Uncertainty;
+namespace Measurement;
 
 public class ConservativeGaussianPropagator : IErrorPropagator
 {
@@ -46,7 +46,7 @@ public class ConservativeGaussianPropagator : IErrorPropagator
 
         // Store the propagated error as an absolute value rather than dividing by the (possibly zero) sum —
         // this is what keeps a sum that cancels to zero well-defined.
-        return GaussianUncertainty.FromKmsAbsErr(absoluteError);
+        return SymmetricUncertainty.FromKmsAbsErr(absoluteError);
     }
 
     public IUncertainty PropagateErrorThroughProduct(
@@ -86,16 +86,6 @@ public class ConservativeGaussianPropagator : IErrorPropagator
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        return GaussianUncertainty.FromRelErr(relErr);
-    }
-
-    // TODO: move to the AsymmetricUncertainty and GaussianUncertainty classes, respectively
-    public IUncertainty PropagateErrorThroughExponentiation(
-        Measurand measurand,
-        int exponentNumerator,
-        int exponentDenominator)
-    {
-        var relErr = measurand.RelativeError * exponentNumerator / exponentDenominator;
-        return GaussianUncertainty.FromRelErr(Math.Abs(relErr));
+        return SymmetricUncertainty.FromRelErr(relErr);
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Measurement.Exceptions;
 using Measurement.Extensions;
-using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.Models.FundamentalDimension, int>;
+using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.FundamentalDimension, int>;
 
-namespace Measurement.Models; // TODO: move to Measurement namespace
+namespace Measurement;
 
 /// <summary>
 /// The physical dimension of a quantity, represented as a map from each <see cref="FundamentalDimension"/>

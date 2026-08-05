@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Measurement.Exceptions;
 using FluentAssertions;
-using Measurement.Models;
 using Xunit;
 
 namespace Measurement.Test;

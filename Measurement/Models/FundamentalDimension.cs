@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Measurement.Models; // TODO: move to Measurement namespace
+namespace Measurement;
 
 /// <summary>
 /// One of the irreducible base dimensions of measurement (mass, length, time, …). A

@@ -1,6 +1,5 @@
 ﻿using Measurement.Extensions;
 using FluentAssertions;
-using Measurement.Models;
 using Xunit;
 
 namespace Measurement.Test.Extensions;

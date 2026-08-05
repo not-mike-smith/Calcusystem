@@ -1,8 +1,7 @@
 ﻿using System;
 using Measurement.BaseClasses;
 using Measurement.Factories;
-using Measurement.Models;
-using Uom = Measurement.Models.UnitOfMeasure;
+using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 

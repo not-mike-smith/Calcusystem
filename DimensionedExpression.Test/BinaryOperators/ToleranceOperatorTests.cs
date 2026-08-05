@@ -3,7 +3,6 @@ using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using FluentAssertions;
 using Measurement;
-using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 
@@ -13,7 +12,7 @@ public class ToleranceOperatorTests
 {
     // Creates a bound Variable: kmsValue kg, symmetric relativeError
     private static Variable Symmetric(double kmsValue, double relativeError = 0) =>
-        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(GaussianUncertainty.FromRelErr(relativeError)));
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
 
     // Creates a bound Variable with independent upper/lower absolute errors (kg)
     private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>

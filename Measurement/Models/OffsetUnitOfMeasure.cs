@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Measurement.Models; // TODO: move to Measurement namespace
+namespace Measurement;
 
 /// <summary>
 /// A <see cref="UnitOfMeasure"/> whose zero point is offset from the KMS zero, so conversion is affine

@@ -7,8 +7,6 @@ using DimensionedExpression.Interfaces;
 using DimensionedExpression.Systems;
 using FluentAssertions;
 using Measurement;
-using Measurement.Models;
-using Measurement.Uncertainty;
 
 namespace Calcusystem.Serialization.Test;
 
@@ -18,7 +16,7 @@ public class RoundTripTests
         Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 
     private static Variable Bound(string symbol, Dimensionality dim, double kmsValue, double relativeError) =>
-        new(symbol, new Quantity(kmsValue, dim).Measurand(GaussianUncertainty.FromRelErr(relativeError)), symbol);
+        new(symbol, new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelErr(relativeError)), symbol);
 
     /// <summary>Round-trips a whole system through both mappers and returns the rebuilt system.</summary>
     private static ExpressionSystem RoundTrip(ExpressionSystem system)
@@ -60,7 +58,7 @@ public class RoundTripTests
         // value 0 carrying an absolute error — the case relative-only storage could not represent
         system.DirectExpressions.Add(new Variable(
             "z",
-            new Quantity(0, Dimensionality.Length).Measurand(GaussianUncertainty.FromAbsErr(new Quantity(0.5, Dimensionality.Length))),
+            new Quantity(0, Dimensionality.Length).Measurand(SymmetricUncertainty.FromAbsErr(new Quantity(0.5, Dimensionality.Length))),
             "z"));
 
         var restored = (Variable)ById(RoundTrip(system), "z");

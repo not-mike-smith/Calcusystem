@@ -1,7 +1,6 @@
 using System;
 using Measurement.BaseClasses;
 using Measurement.Factories;
-using Measurement.Models;
 
 namespace Measurement.Units;
 

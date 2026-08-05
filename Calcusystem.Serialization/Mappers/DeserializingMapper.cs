@@ -7,7 +7,6 @@ using DimensionedExpression.Provenance;
 using DimensionedExpression.Systems;
 using Measurement;
 using Measurement.Interfaces;
-using Measurement.Uncertainty;
 
 namespace Calcusystem.Serialization.Mappers;
 
@@ -190,9 +189,9 @@ public class DeserializingMapper
     {
         return uncertainty switch
         {
-            Dtos.SymmetricUncertainty sym => GaussianUncertainty.From(sym.IsStoredAsAbs, sym.Magnitude),
+            Dtos.SymmetricUncertainty sym => SymmetricUncertainty.From(sym.IsStoredAsAbs, sym.Magnitude),
             Dtos.AsymmetricUncertainty asym => AsymmetricUncertainty.From(asym.IsStoredAsAbs, asym.UpperMagnitude, asym.LowerMagnitude),
-            null => GaussianUncertainty.FromRelErr(0),
+            null => SymmetricUncertainty.FromRelErr(0),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for uncertainty type {uncertainty.GetType().Name}")
         };

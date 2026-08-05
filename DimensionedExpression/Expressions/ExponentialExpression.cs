@@ -3,8 +3,6 @@ using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
-using Measurement.Models;
-using Measurement.Uncertainty;
 
 namespace DimensionedExpression.Expressions;
 
@@ -51,7 +49,7 @@ public class ExponentialExpression : IdBase, IExpression
 
             return Dimensionality.Dimensionless
                 .Quantity(Math.Exp(x))
-                .Measurand(GaussianUncertainty.FromRelErr(relativeError));
+                .Measurand(SymmetricUncertainty.FromRelErr(relativeError));
         }
     }
 

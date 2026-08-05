@@ -1,21 +1,19 @@
 ﻿using System;
 using Measurement.Exceptions;
 using Measurement.Interfaces;
-using Measurement.Models;
-using Measurement.Uncertainty;
 
 namespace Measurement;
 
 /// <summary>
 /// A dimensioned scalar without uncertainty: a KMS-normalized value paired with its
-/// <see cref="Models.Dimensionality"/>. This is the internal "currency" of the library — the raw numeric
+/// <see cref="Dimensionality"/>. This is the internal "currency" of the library — the raw numeric
 /// carrier that <see cref="Measurand"/> wraps once uncertainty is attached. Arithmetic operators enforce or
 /// combine dimensions; the value is always stored in SI base (kg-m-s) units.
 /// </summary>
 /// <remarks>
 /// A <c>readonly</c> value type whose <c>default</c> is a dimensionless <see cref="double.NaN"/>. Construct
 /// either from a user value plus a <see cref="UnitOfMeasure"/> (which converts to KMS), or directly from a
-/// raw KMS value plus a <see cref="Models.Dimensionality"/>.
+/// raw KMS value plus a <see cref="Dimensionality"/>.
 /// </remarks>
 public readonly struct Quantity
 {

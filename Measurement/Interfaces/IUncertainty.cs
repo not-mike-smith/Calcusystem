@@ -54,4 +54,15 @@ public interface IUncertainty
     /// </summary>
     /// <param name="nominalKmsValue">The nominal KMS value this uncertainty currently describes.</param>
     IUncertainty Negated(double nominalKmsValue);
+
+    /// <summary>
+    /// Returns the uncertainty describing this value raised to the rational power
+    /// <paramref name="exponentNumerator"/>/<paramref name="exponentDenominator"/>. Relative error scales by the
+    /// magnitude of the exponent; a negative exponent additionally swaps the directional bounds (the function is
+    /// decreasing). Symmetric implementations return a symmetric result; asymmetric ones preserve their asymmetry.
+    /// </summary>
+    /// <param name="nominalKmsValue">The nominal KMS value this uncertainty currently describes.</param>
+    /// <param name="exponentNumerator">Numerator of the rational exponent (integer powers pass 1 as the denominator).</param>
+    /// <param name="exponentDenominator">Denominator of the rational exponent (roots pass 1 as the numerator).</param>
+    IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator);
 }
