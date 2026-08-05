@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Magnetic flux density / field strength (M·t⁻²·A⁻¹ = T = kg/(A·s²) = Wb/m²).
+// Magnetic flux density / field strength (M·T⁻²·I⁻¹ = T = kg/(A·s²) = Wb/m²).
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class MagneticFluxDensity : ReflectiveUnitList<MagneticFluxDensity>
 {

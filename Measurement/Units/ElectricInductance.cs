@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Electric inductance (M·L²·A⁻²·t⁻² = H = V·s/A).
+// Electric inductance (M·L²·I⁻²·T⁻² = H = V·s/A).
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class ElectricInductance : ReflectiveUnitList<ElectricInductance>
 {

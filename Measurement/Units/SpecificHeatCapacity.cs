@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Specific heat capacity (L²·t⁻²·T⁻¹ = J/(kg·K)).
+// Specific heat capacity (L²·T⁻²·Θ⁻¹ = J/(kg·K)).
 // Temperature appears as a delta, so DeltaFahrenheit is used in Imperial units.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class SpecificHeatCapacity : ReflectiveUnitList<SpecificHeatCapacity>

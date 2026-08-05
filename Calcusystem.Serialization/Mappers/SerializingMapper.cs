@@ -84,7 +84,7 @@ public class SerializingMapper
             {
                 Id = v.Id,
                 Type = v.GetType().Name,
-                Dimensionality = v.Dimensionality.GetState().Encoded,
+                Dimensionality = DimensionalityCodec.Encode(v.Dimensionality.GetState()),
                 KmsValue = null,
                 Uncertainty = null,
                 Symbol = v.Symbol,
@@ -96,7 +96,7 @@ public class SerializingMapper
         {
             Id = v.Id,
             Type = v.GetType().Name,
-            Dimensionality = v.Dimensionality.GetState().Encoded,
+            Dimensionality = DimensionalityCodec.Encode(v.Dimensionality.GetState()),
             KmsValue = v.Value.KmsValue,
             Uncertainty = Map(v.Value.Uncertainty),
             Symbol = v.Symbol,

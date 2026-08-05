@@ -163,7 +163,7 @@ public class DeserializingMapper
 
     public Variable MapVariable(Dtos.SingleVariable v)
     {
-        var dimensionality = Dimensionality.FromState(new DimensionalityState(v.Dimensionality));
+        var dimensionality = Dimensionality.FromState(DimensionalityCodec.Decode(v.Dimensionality));
 
         var variable = v.KmsValue == null
             ? new Variable(v.Symbol, dimensionality, v.Id)

@@ -76,79 +76,61 @@ public class StateSeamTests
     }
 
     [Fact]
-    public void DimensionalityEncodesSymbolAndExponentPerEntry()
+    public void DimensionalityStateExposesItsExponentPairs()
     {
         var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 
-        force.GetState().Encoded.Should().Be("M1,L1,T-2");
+        var pairs = force.GetState().Pairs;
+
+        pairs.Should().HaveCount(3);
+        pairs[FundamentalDimension.Mass].Should().Be(1);
+        pairs[FundamentalDimension.Length].Should().Be(1);
+        pairs[FundamentalDimension.Time].Should().Be(-2);
     }
 
     [Fact]
-    public void DimensionlessEncodesAsEmptyAndRoundTrips()
+    public void DimensionalityStateIsOrderedCanonically()
     {
-        Dimensionality.Dimensionless.GetState().Encoded.Should().BeEmpty();
-        Dimensionality.FromState(new DimensionalityState("")).Should().Be(Dimensionality.Dimensionless);
-
-        // default(Dimensionality) has no backing map at all; it must encode the same way.
-        default(Dimensionality).GetState().Encoded.Should().BeEmpty();
-    }
-
-    [Theory]
-    [InlineData("M1")]
-    [InlineData("M1,L1,T-2")]
-    [InlineData("Θ1")]
-    [InlineData("M1,I-1,L2,T-3")]
-    [InlineData("L-1")]
-    public void DimensionalityStateRoundTripsExactly(string encoded)
-    {
-        var state = new DimensionalityState(encoded);
-
-        Dimensionality.FromState(state).GetState().Encoded.Should().Be(encoded);
-    }
-
-    [Fact]
-    public void OutOfOrderEncodingIsAcceptedAndNormalized()
-    {
-        // Reading is tolerant of entry order; writing always emits canonical order, so a file written by an
-        // older or hand-edited source converges on re-save rather than staying permanently diff-noisy.
-        var parsed = Dimensionality.FromState(new DimensionalityState("T-3,L2,M1,I-1"));
-
-        parsed.GetState().Encoded.Should().Be("M1,I-1,L2,T-3");
-    }
-
-    [Fact]
-    public void EncodingIsCanonicalRegardlessOfConstructionOrder()
-    {
+        // Not a format decision — a promise to whoever writes the pairs out, so they get a stable result for
+        // dimensionally-equal values without having to sort them.
         var oneWay = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
         var otherWay = Dimensionality.Length / Dimensionality.Time * Dimensionality.Mass / Dimensionality.Time;
 
-        oneWay.Should().Be(otherWay);
-        oneWay.GetState().Encoded.Should().Be(otherWay.GetState().Encoded);
-    }
-
-    [Theory]
-    [InlineData("M")]           // exponent missing
-    [InlineData("1")]           // symbol missing
-    [InlineData("Q1")]          // unknown symbol
-    [InlineData("M1,M2")]       // duplicate symbol
-    [InlineData("Mx")]          // unparseable exponent
-    [InlineData("M1,,L1")]      // empty entry
-    public void MalformedDimensionalityStateThrowsRatherThanSilentlyDroppingDimensions(string encoded)
-    {
-        var act = () => Dimensionality.FromState(new DimensionalityState(encoded));
-
-        act.Should().Throw<FormatException>();
+        oneWay.GetState().Pairs.Keys.Should().Equal(otherWay.GetState().Pairs.Keys);
+        oneWay.GetState().Pairs.Keys.Should().Equal(
+            FundamentalDimension.Mass, FundamentalDimension.Length, FundamentalDimension.Time);
     }
 
     [Fact]
-    public void FundamentalDimensionSymbolsAreDistinctIgnoringCase()
+    public void DimensionlessStateIsEmptyAndRoundTrips()
     {
-        // The encoding is keyed on Symbol, so a case-only collision would make a stray ToLower() downstream
-        // silently rewrite one dimension into another.
-        var symbols = FundamentalDimension.All.Select(f => f.Symbol).ToList();
+        Dimensionality.Dimensionless.GetState().Pairs.Should().BeEmpty();
+        Dimensionality.FromState(default).Should().Be(Dimensionality.Dimensionless);
 
-        symbols.Should().OnlyHaveUniqueItems();
-        symbols.Select(s => s.ToLowerInvariant()).Should().OnlyHaveUniqueItems();
+        // default(Dimensionality) has no backing map at all; it must behave the same way.
+        default(Dimensionality).GetState().Pairs.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void DimensionalityRoundTripsThroughItsState()
+    {
+        var dimension = Dimensionality.Mass * Dimensionality.Length * Dimensionality.Length
+                        / (Dimensionality.Time * Dimensionality.Time * Dimensionality.Temperature);
+
+        Dimensionality.FromState(dimension.GetState()).Should().Be(dimension);
+    }
+
+    [Fact]
+    public void DimensionalityStateEqualityIsStructural()
+    {
+        // The compiler-generated Equals would compare dictionary references, and that would propagate into
+        // QuantityState and MeasurandState, whose equality is built from their fields'.
+        var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
+        var sameAgain = Dimensionality.Length * Dimensionality.Mass / (Dimensionality.Time * Dimensionality.Time);
+
+        force.GetState().Should().Be(sameAgain.GetState());
+        force.GetState().GetHashCode().Should().Be(sameAgain.GetState().GetHashCode());
+        force.GetState().Should().NotBe(Dimensionality.Mass.GetState());
     }
 
     [Fact]

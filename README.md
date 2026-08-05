@@ -50,7 +50,7 @@ mass.RelativeError;    // 0.01
 var accel = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time))
     .Measurand(SymmetricUncertainty.FromRelErr(0.005));
 
-var force = mass.Times(accel);   // dimension M·L·t⁻²; uncertainty combines in quadrature
+var force = mass.Times(accel);   // dimension M·L·T⁻²; uncertainty combines in quadrature
 ```
 
 Assemble a reusable formula whose leaves get filled in later (the `DimensionedExpression` layer):
@@ -66,7 +66,7 @@ var f = new ProductExpression();
 f.AddFactor(m);
 f.AddFactor(a);
 
-f.Dimensionality;      // M·L·t⁻²  — known before any value is supplied
+f.Dimensionality;      // M·L·T⁻²  — known before any value is supplied
 f.DegreesOfFreedom();  // 2  — two unbound leaves
 f.IsFullyDescribed;    // false; f.Value is null until both leaves are set
 ```

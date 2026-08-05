@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Specific energy (L²·t⁻²) — energy per unit mass; also covers specific enthalpy.
+// Specific energy (L²·T⁻²) — energy per unit mass; also covers specific enthalpy.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class SpecificEnergy : ReflectiveUnitList<SpecificEnergy>
 {

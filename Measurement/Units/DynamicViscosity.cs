@@ -4,7 +4,7 @@ using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
-// Dynamic viscosity (M·L⁻¹·t⁻¹ = Pa·s = kg/(m·s)).
+// Dynamic viscosity (M·L⁻¹·T⁻¹ = Pa·s = kg/(m·s)).
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.
 public class DynamicViscosity : ReflectiveUnitList<DynamicViscosity>
 {
