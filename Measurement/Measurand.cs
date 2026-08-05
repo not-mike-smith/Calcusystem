@@ -14,7 +14,7 @@ public class Measurand
     public Measurand()
     {
         Quantity = Quantity.One;
-        Uncertainty = GaussianUncertainty.FromRelErr(0);
+        Uncertainty = SymmetricUncertainty.FromRelErr(0);
     }
 
     public Measurand(Quantity quantity, IUncertainty uncertainty)
@@ -165,7 +165,7 @@ public class Measurand
     {
         var quantity = Quantity.TryAdd(other.Quantity);
         var uncertainty = quantity.IsNaN()
-            ? GaussianUncertainty.FromRelErr(0)
+            ? SymmetricUncertainty.FromRelErr(0)
             : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, other]);
 
         return new Measurand(quantity, uncertainty);
@@ -175,7 +175,7 @@ public class Measurand
     {
         var quantity = Quantity.TrySubtract(other.Quantity);
         var uncertainty = quantity.IsNaN()
-            ? GaussianUncertainty.FromRelErr(0)
+            ? SymmetricUncertainty.FromRelErr(0)
             : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, -other]);
 
         return new Measurand(quantity, uncertainty);

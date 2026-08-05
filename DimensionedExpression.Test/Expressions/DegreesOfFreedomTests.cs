@@ -17,7 +17,7 @@ public class DegreesOfFreedomTests
         new("x", dim);
 
     private static Variable Bound(double kgValue) =>
-        new("x", Measurement.Units.Mass.Kilogram.Quantity(kgValue).Measurand(GaussianUncertainty.FromRelErr(0)));
+        new("x", Measurement.Units.Mass.Kilogram.Quantity(kgValue).Measurand(SymmetricUncertainty.FromRelErr(0)));
 
     [Fact]
     public void UnboundDirectVariable_HasOneDoF()

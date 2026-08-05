@@ -11,7 +11,7 @@ namespace DimensionedExpression.Test.BinaryOperators;
 public class InequalityOperatorTests
 {
     private static Variable Symmetric(double kmsValue, double relativeError = 0) =>
-        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(GaussianUncertainty.FromRelErr(relativeError)));
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
 
     private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(

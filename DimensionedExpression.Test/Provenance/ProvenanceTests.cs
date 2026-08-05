@@ -66,7 +66,7 @@ public class ProvenanceTests
     [Fact]
     public void Variable_Provenance_DoesNotAffectEvaluation()
     {
-        var bound = Measurement.Units.Mass.Kilogram.Quantity(2).Measurand(GaussianUncertainty.FromRelErr(0.01));
+        var bound = Measurement.Units.Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
         var variable = new Variable("m", bound) { Provenance = ProvenanceFactory.Design() };
 
         variable.DegreesOfFreedom().Should().Be(0);

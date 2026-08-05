@@ -138,7 +138,7 @@ public class SerializingMapper
     {
         return uncertainty switch
         {
-            GaussianUncertainty symmetric => new Dtos.SymmetricUncertainty
+            SymmetricUncertainty symmetric => new Dtos.SymmetricUncertainty
             {
                 Type = symmetric.GetType().Name,
                 IsStoredAsAbs = symmetric.IsStoredAsAbs,

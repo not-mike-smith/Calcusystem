@@ -13,13 +13,13 @@ public class UnaryMathExpressionTests
     private static readonly Dimensionality Area = Dimensionality.Length * 2;
 
     private static Variable Dimensionless(double value, double relativeError) =>
-        new("x", Dimensionality.Dimensionless.Quantity(value).Measurand(GaussianUncertainty.FromRelErr(relativeError)));
+        new("x", Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
 
     private static Variable UnboundDimensionless() =>
         new("x", Dimensionality.Dimensionless);
 
     private static Variable BoundArea(double squareMeters, double relativeError) =>
-        new("a", Area.Quantity(squareMeters).Measurand(GaussianUncertainty.FromRelErr(relativeError)));
+        new("a", Area.Quantity(squareMeters).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
 
     // ---- SqrtExpression ----
 

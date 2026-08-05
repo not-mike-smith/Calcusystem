@@ -56,7 +56,7 @@ public class NaturalLogExpression : IdBase, IExpression
 
             return Dimensionality.Dimensionless
                 .Quantity(Math.Log(argument.KmsValue))
-                .Measurand(GaussianUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
+                .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
         }
     }
 

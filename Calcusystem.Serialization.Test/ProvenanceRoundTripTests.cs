@@ -28,7 +28,7 @@ public class ProvenanceRoundTripTests
         var system = ExpressionSystem.Create("provenance", "variable provenance");
         var measured = new Variable(
             "m",
-            new Quantity(2, Dimensionality.Mass).Measurand(GaussianUncertainty.FromRelErr(0.01)),
+            new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
             "m")
         {
             Provenance = ProvenanceFactory.Measured("SN-42", new DateOnly(2026, 1, 15), "prov-m")

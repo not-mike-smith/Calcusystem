@@ -11,7 +11,7 @@ The foundation layer of Calcusystem. Provides physical quantities with units, di
 **All values are stored internally in kg-m-s (SI base units).** Units are only relevant at the boundary — when constructing a quantity from a user-supplied value, or when reading a value back out in a specific unit. All arithmetic, comparison, and uncertainty propagation operates on KMS values directly. This eliminates an entire class of conversion bugs.
 
 ```csharp
-var force = Force.PoundForce.Quantity(1.0).Measurand(GaussianUncertainty.FromRelErr(0));  // user supplies lbf
+var force = Force.PoundForce.Quantity(1.0).Measurand(SymmetricUncertainty.FromRelErr(0));  // user supplies lbf
 force.In(Force.OunceForce);  // 16.0   — conversion happens at output only
 force.KmsValue;              // 4.448… — internal representation is always SI
 ```
@@ -27,7 +27,7 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 | Measurand | class | | Quantity + IUncertainty |
 | IUncertainty | interface | | describes the uncertainty interval around a KMS value |
 | ISymmetricUncertainty | interface | IUncertainty | symmetric uncertainty; absolute error = relative error × \|v\| |
-| GaussianUncertainty | class | ISymmetricUncertainty | Gaussian uncertainty for Type A errors |
+| SymmetricUncertainty | class | ISymmetricUncertainty | symmetric error (same above and below), stored as a relative fraction or an absolute KMS value |
 | AsymmetricUncertainty | class | IUncertainty | independent upper/lower relative errors |
 | Quantity | struct | | raw KMS value + Dimensionality; internal currency; no uncertainty |
 | OffsetUnitOfMeasure | class | UnitOfMeasure | extends UnitOfMeasure with a fixed zero-point offset; see note below |
@@ -75,20 +75,20 @@ Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal
 
 | Factory | Interface | Stored as |
 | --- | --- | --- |
-| `GaussianUncertainty.FromRelErr(relativeError)` | `ISymmetricUncertainty` | relative fraction |
-| `GaussianUncertainty.FromAbsErr(absoluteError: Quantity)` | `ISymmetricUncertainty` | absolute KMS error |
+| `SymmetricUncertainty.FromRelErr(relativeError)` | `ISymmetricUncertainty` | relative fraction |
+| `SymmetricUncertainty.FromAbsErr(absoluteError: Quantity)` | `ISymmetricUncertainty` | absolute KMS error |
 | `AsymmetricUncertainty.FromRelErr(upperRel, lowerRel)` | `IUncertainty` | relative fractions |
 | `AsymmetricUncertainty.FromAbsErr(upperError, lowerError: Quantity)` | `IUncertainty` | absolute KMS errors |
 
 Both types' constructors are private — go through the factories: `FromRelErr` (relative), `FromAbsErr` (absolute — takes a `Quantity` and returns the uncertainty directly, since an absolute error needs no nominal value), or `From(isStoredAsAbs, magnitude…)` for deserialization.
 
 ```csharp
-var mass = Mass.Kilogram.Quantity(1).Measurand(GaussianUncertainty.FromAbsErr(1.0.Units(Mass.Milligram)));
+var mass = Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromAbsErr(1.0.Units(Mass.Milligram)));
 ```
 
 Propagation follows the storage: **sums/differences produce an absolute-error result** (no dividing by the possibly-zero sum), while products compose relative errors. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.
 
-**`ISymmetricUncertainty`** extends `IUncertainty` and adds default interface implementations of the directional members (`UpperAbsoluteError`/`LowerAbsoluteError` and their relative equivalents) in terms of the single `AbsoluteError`/`RelativeError`. Only `GaussianUncertainty` implements this.
+**`ISymmetricUncertainty`** extends `IUncertainty` and adds default interface implementations of the directional members (`UpperAbsoluteError`/`LowerAbsoluteError` and their relative equivalents) in terms of the single `AbsoluteError`/`RelativeError`. Only `SymmetricUncertainty` implements this.
 
 `Measurand` exposes:
 
@@ -120,8 +120,8 @@ Each takes an `ErrorPropagationMethod`, defaulting to `Uncorrelated`:
 
 **`ConservativeGaussianPropagator`** is the only implementation today and covers the large majority of cases — this is what you get, and what you should assume, unless you have a specific reason to reach for something else:
 
-- It always resolves the output to a symmetric `GaussianUncertainty`, built from each input's *conservative* error (`KmsAbsoluteError` / `RelativeError`, i.e. `Max(upper, lower)`). This means `AsymmetricUncertainty` does not survive arithmetic — asymmetry is only meaningful for values that are never combined via the operations above.
-- Monte Carlo propagation that preserves asymmetry through arithmetic is deferred to Milestone 4.
+- When every operand is symmetric it returns a `SymmetricUncertainty`; if any operand is asymmetric it preserves the asymmetry, returning an `AsymmetricUncertainty` built from the directional upper/lower errors. (Unary transforms — negation, reciprocal, exponentiation — likewise preserve asymmetry; they live on `IUncertainty` rather than the propagator.)
+- Full Monte Carlo propagation is still deferred to Milestone 4; the current propagator combines errors by RSS / direct sum per the table above.
 
 **Why `IErrorPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IErrorPropagator` is the intended seam for that. As it stands, `Measurand.ResolveErrorPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
 

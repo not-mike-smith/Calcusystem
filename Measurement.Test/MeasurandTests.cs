@@ -10,10 +10,10 @@ namespace Measurement.Test;
 public class MeasurandTests
 {
     private static Measurand Meters(double value, double relativeError = 0) =>
-        Length.Meter.Quantity(value).Measurand(GaussianUncertainty.FromRelErr(relativeError));
+        Length.Meter.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(relativeError));
 
     private static Measurand Kilograms(double value, double relativeError = 0) =>
-        Mass.Kilogram.Quantity(value).Measurand(GaussianUncertainty.FromRelErr(relativeError));
+        Mass.Kilogram.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(relativeError));
 
     [Fact]
     public void TryAdd_HappyPath()
@@ -68,7 +68,7 @@ public class MeasurandTests
     [Fact]
     public void FromAbsErr_OnZeroValue_KeepsAbsoluteErrorWithoutThrowing()
     {
-        var zero = Length.Meter.Quantity(0).Measurand(GaussianUncertainty.FromAbsErr(Length.Meter.Quantity(0.5)));
+        var zero = Length.Meter.Quantity(0).Measurand(SymmetricUncertainty.FromAbsErr(Length.Meter.Quantity(0.5)));
 
         zero.KmsValue.Should().Be(0);
         zero.KmsAbsoluteError.Should().BeApproximately(0.5, 1E-9);
@@ -85,7 +85,7 @@ public class MeasurandTests
     public void ToRoot_ScalesRelativeErrorByReciprocalOfRoot()
     {
         // area (L²) so the square root yields an integer-exponent dimension
-        var area = (Dimensionality.Length * 2).Quantity(4).Measurand(GaussianUncertainty.FromRelErr(0.02));
+        var area = (Dimensionality.Length * 2).Quantity(4).Measurand(SymmetricUncertainty.FromRelErr(0.02));
         area.ToRoot(2).RelativeError.Should().BeApproximately(0.01, 1E-9);
     }
 

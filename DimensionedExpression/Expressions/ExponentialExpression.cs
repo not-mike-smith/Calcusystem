@@ -51,7 +51,7 @@ public class ExponentialExpression : IdBase, IExpression
 
             return Dimensionality.Dimensionless
                 .Quantity(Math.Exp(x))
-                .Measurand(GaussianUncertainty.FromRelErr(relativeError));
+                .Measurand(SymmetricUncertainty.FromRelErr(relativeError));
         }
     }
 
