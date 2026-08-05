@@ -71,11 +71,11 @@ All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutati
 
 There are three families — equality, tolerance (compatibility within uncertainty), and inequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
 
-One construction wrinkle: **`EqualityOperator` is the only operator with a dependency** — it takes an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) as a constructor argument. Every other operator is constructed purely through `required` init properties:
+One construction wrinkle: **`EqualityOperator` is the only operator with a dependency** — it takes an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) as a constructor argument. Every operator is built through object initializers: `Lhs`/`Rhs` are `required`, while `Id` is optional — omit it and `IdBase` auto-generates one, or set it explicitly (as deserialization does):
 
 ```csharp
-var op = new WhollyWithinToleranceOperator { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = spec };
-var eq = new EqualityOperator(estimator)   { Id = Constants.CREATE_NEW, Lhs = a,        Rhs = b   };
+var op = new WhollyWithinToleranceOperator { Lhs = measured, Rhs = spec };  // Id auto-generated
+var eq = new EqualityOperator(estimator)   { Lhs = a,        Rhs = b   };  // Id auto-generated
 ```
 
 ---

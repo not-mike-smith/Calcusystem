@@ -1,9 +1,9 @@
-﻿namespace DimensionedExpression.BaseModels;
+namespace DimensionedExpression.BaseModels;
 
 public abstract class IdBase
 {
     private readonly string _id = null!;
-    public string Id // TODO make this required?
+    public string Id
     {
         get => _id;
         init
@@ -17,6 +17,11 @@ public abstract class IdBase
                 ? Guid.NewGuid().ToString("d")
                 : value;
         }
+    }
+
+    /// <summary>Generates a fresh id, as if <see cref="Constants.CREATE_NEW"/> were passed.</summary>
+    protected IdBase() : this(Constants.CREATE_NEW)
+    {
     }
 
     protected IdBase(string id)

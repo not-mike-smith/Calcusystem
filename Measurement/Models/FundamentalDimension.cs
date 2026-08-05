@@ -14,7 +14,8 @@ namespace Measurement;
 /// gives quantities a canonical symbol layout. Note the case-sensitive symbols: <c>T</c> is temperature vs.
 /// <c>t</c> time, and <c>C</c> is luminous intensity vs. <c>c</c> currency.
 /// </remarks>
-public class FundamentalDimension : IComparable<FundamentalDimension> // TODO: should this be a record?
+// A closed set of singletons (identity by Name, custom sort order) rather than a value object — kept as a class.
+public class FundamentalDimension : IComparable<FundamentalDimension>
 {
     /// <summary>Human-readable name (e.g. "Electric Current"); also the identity used for equality.</summary>
     public string Name { get; }

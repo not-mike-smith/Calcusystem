@@ -13,7 +13,9 @@ namespace Measurement;
 /// <see cref="OffsetUnitOfMeasure"/>, which overrides the conversion methods; consumers interact with both
 /// through this common type.
 /// </remarks>
-public class UnitOfMeasure // TODO: should this be a record?
+// Kept as a class: built via UnitFactory (internal ctor) and subclassed by OffsetUnitOfMeasure with virtual
+// conversion overrides — neither fits a record.
+public class UnitOfMeasure
 {
     /// <summary>The physical dimension this unit measures.</summary>
     public readonly Dimensionality Dimensionality;
