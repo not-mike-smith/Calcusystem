@@ -10,7 +10,7 @@ namespace Calcusystem.Core;
 /// state alone. A graph is not a tree: one node can be shared by several parents, so nesting children inside a
 /// parent's state would duplicate the shared ones and could not express the sharing at all. Referring to them by
 /// id keeps the state flat and the graph intact — at the cost of needing something that can turn an id back into
-/// a node, which is what <c>resolve</c> supplies.
+/// a node, which is what <paramref name="resolve"/> supplies.
 /// </para>
 /// <para>
 /// Supplying that resolver — and deciding the order in which nodes are rebuilt so their dependencies exist first
@@ -18,15 +18,13 @@ namespace Calcusystem.Core;
 /// node's state is and how to reconstitute one node given a way to look up its neighbours.
 /// </para>
 /// <para>
-/// <typeparamref name="TNode"/> is a type parameter rather than a fixed graph type, so this interface stays
-/// independent of any particular object model. Ids are <see langword="string"/> throughout Calcusystem, so the
-/// key type is fixed rather than parameterized.
+/// Neighbours need not share a type: <see cref="INodeResolver"/> is queried per reference, so a node that refers
+/// to several different kinds of node is no harder to express than one that refers to a single kind.
 /// </para>
 /// </remarks>
 /// <typeparam name="TSelf">The implementing type.</typeparam>
 /// <typeparam name="TState">The state record describing this node, referring to neighbours by id.</typeparam>
-/// <typeparam name="TNode">The graph's common node type, which <c>resolve</c> returns.</typeparam>
-public interface IStatefulNode<TSelf, TState, TNode> where TSelf : IStatefulNode<TSelf, TState, TNode>
+public interface IStatefulNode<TSelf, TState> where TSelf : IStatefulNode<TSelf, TState>
 {
     /// <summary>Returns the complete state defining this node, referring to its neighbours by id.</summary>
     TState GetState();
@@ -36,8 +34,8 @@ public interface IStatefulNode<TSelf, TState, TNode> where TSelf : IStatefulNode
     /// </summary>
     /// <param name="state">The captured state.</param>
     /// <param name="resolve">
-    /// Turns a referenced id into the node it names. The caller is responsible for rebuilding in an order that
-    /// makes every referenced node available before it is asked for.
+    /// Looks up the nodes this state references. The caller is responsible for rebuilding in an order that makes
+    /// every referenced node available before it is asked for.
     /// </param>
-    static abstract TSelf FromState(TState state, Func<string, TNode> resolve);
+    static abstract TSelf FromState(TState state, INodeResolver resolve);
 }

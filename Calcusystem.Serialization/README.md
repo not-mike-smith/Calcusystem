@@ -89,7 +89,7 @@ The flattened lists arrive in arbitrary order, so a parent may be read before th
    - **defers** — a child id isn't in the context yet, so the mapper returns `null` and the function is pushed to the back of the queue to try again later.
 3. The queue drains as dependencies fill in, without needing a topological pre-sort.
 
-`DeserializationContext` is the shared id-resolution table threaded through this process. `ExpressionNotFoundDeserializationException` carries the missing id and the DTO that referenced it.
+`DeserializationContext` is the shared id-resolution table threaded through this process. `ReferencedNodeNotFoundException` carries the missing id and the DTO that referenced it — it covers any referenced node, not only expressions.
 
 > ⚠️ **Cycle / dangling-reference caveat:** the retry loop assumes the graph is acyclic (expression trees always are) and that every referenced id is present. A genuinely missing or cyclic reference among derived expressions leaves at least one function permanently deferring — an **infinite loop**, not a clean error. There is currently no max-iteration or no-progress guard.
 

@@ -235,7 +235,7 @@ public class DeserializingMapper
         var foundIt = _context.ExpressionsById.TryGetValue(id, out var value);
         if (foundIt is false)
         {
-            throw new ExpressionNotFoundDeserializationException(id, expressionDto);
+            throw new ReferencedNodeNotFoundException(id, expressionDto);
         }
 
         return value!;
