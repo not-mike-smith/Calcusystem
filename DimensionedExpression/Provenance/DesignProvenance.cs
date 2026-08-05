@@ -1,5 +1,6 @@
 using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
 
 namespace DimensionedExpression.Provenance;
 
@@ -15,8 +16,11 @@ public sealed class DesignProvenance : IdBase, IProvenance
         SpecReference = specReference;
     }
 
-    public string? SpecReference { get; }
+    internal string? SpecReference { get; }
 
     public string Summary() =>
         $"Design parameter{(SpecReference is null ? "" : $" (spec {SpecReference})")}";
+
+    ProvenanceState IProvenance.GetState() =>
+        ProvenanceState.Design(Id, SpecReference);
 }

@@ -1,6 +1,7 @@
 ﻿using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using DimensionedExpression.Provenance;
+using DimensionedExpression.State;
 using DimensionedExpression.Systems;
 using Measurement.Interfaces;
 using Measurement;
@@ -106,31 +107,35 @@ public class SerializingMapper
 
     private Dtos.Provenance? Map(IProvenance? provenance)
     {
-        return provenance switch
+        if (provenance is null) return null;
+
+        // The kinds hand out their state; this layer decides how it is labelled on the wire.
+        var state = provenance.GetState();
+
+        return state.Kind switch
         {
-            null => null,
-            MeasuredProvenance m => new Dtos.Provenance
+            ProvenanceKind.Measured => new Dtos.Provenance
             {
-                Id = m.Id, Type = m.GetType().Name,
-                InstrumentId = m.InstrumentId, CalibrationDate = m.CalibrationDate
+                Id = state.Id, Type = nameof(MeasuredProvenance),
+                InstrumentId = state.InstrumentId, CalibrationDate = state.CalibrationDate
             },
-            ReferenceProvenance r => new Dtos.Provenance
+            ProvenanceKind.Reference => new Dtos.Provenance
             {
-                Id = r.Id, Type = r.GetType().Name,
-                Citation = r.Citation, Url = r.Url, Year = r.Year
+                Id = state.Id, Type = nameof(ReferenceProvenance),
+                Citation = state.Citation, Url = state.Url, Year = state.Year
             },
-            DesignProvenance d => new Dtos.Provenance
+            ProvenanceKind.Design => new Dtos.Provenance
             {
-                Id = d.Id, Type = d.GetType().Name,
-                SpecReference = d.SpecReference
+                Id = state.Id, Type = nameof(DesignProvenance),
+                SpecReference = state.SpecReference
             },
-            ModelProvenance md => new Dtos.Provenance
+            ProvenanceKind.Model => new Dtos.Provenance
             {
-                Id = md.Id, Type = md.GetType().Name,
-                ModelName = md.ModelName, FittingReference = md.FittingReference
+                Id = state.Id, Type = nameof(ModelProvenance),
+                ModelName = state.ModelName, FittingReference = state.FittingReference
             },
             _ => throw new NotImplementedException(
-                $"No mapping for provenance of type {provenance.GetType().Name}")
+                $"No mapping for provenance kind {state.Kind}")
         };
     }
 

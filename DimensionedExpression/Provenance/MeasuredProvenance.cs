@@ -1,6 +1,7 @@
 using System;
 using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
 
 namespace DimensionedExpression.Provenance;
 
@@ -16,8 +17,8 @@ public sealed class MeasuredProvenance : IdBase, IProvenance
         CalibrationDate = calibrationDate;
     }
 
-    public string? InstrumentId { get; }
-    public DateOnly? CalibrationDate { get; }
+    internal string? InstrumentId { get; }
+    internal DateOnly? CalibrationDate { get; }
 
     public string Summary()
     {
@@ -30,4 +31,7 @@ public sealed class MeasuredProvenance : IdBase, IProvenance
         };
         return $"Measured{detail}";
     }
+
+    ProvenanceState IProvenance.GetState() =>
+        ProvenanceState.Measured(Id, InstrumentId, CalibrationDate);
 }

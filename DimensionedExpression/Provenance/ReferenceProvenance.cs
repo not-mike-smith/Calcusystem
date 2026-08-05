@@ -1,5 +1,6 @@
 using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
 
 namespace DimensionedExpression.Provenance;
 
@@ -17,10 +18,13 @@ public sealed class ReferenceProvenance : IdBase, IProvenance
         Year = year;
     }
 
-    public string Citation { get; }
-    public string? Url { get; }
-    public int? Year { get; }
+    internal string Citation { get; }
+    internal string? Url { get; }
+    internal int? Year { get; }
 
     public string Summary() =>
         $"Reference: {Citation}{(Year is null ? "" : $" ({Year})")}";
+
+    ProvenanceState IProvenance.GetState() =>
+        ProvenanceState.Reference(Id, Citation, Url, Year);
 }

@@ -4,6 +4,7 @@ using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using DimensionedExpression.Provenance;
+using DimensionedExpression.State;
 using DimensionedExpression.Systems;
 using Measurement;
 using Measurement.State;
@@ -177,15 +178,22 @@ public class DeserializingMapper
     {
         if (provenance is null) return null;
 
-        return provenance.Type switch
+        // This layer reads the wire type-name and hands DimensionedExpression nothing but the state it needs.
+        var state = provenance.Type switch
         {
-            nameof(MeasuredProvenance) => ProvenanceFactory.Measured(provenance.InstrumentId, provenance.CalibrationDate, provenance.Id),
-            nameof(ReferenceProvenance) => ProvenanceFactory.Reference(provenance.Citation!, provenance.Url, provenance.Year, provenance.Id),
-            nameof(DesignProvenance) => ProvenanceFactory.Design(provenance.SpecReference, provenance.Id),
-            nameof(ModelProvenance) => ProvenanceFactory.Model(provenance.ModelName!, provenance.FittingReference, provenance.Id),
+            nameof(MeasuredProvenance) => ProvenanceState.Measured(
+                provenance.Id, provenance.InstrumentId, provenance.CalibrationDate),
+            nameof(ReferenceProvenance) => ProvenanceState.Reference(
+                provenance.Id, provenance.Citation!, provenance.Url, provenance.Year),
+            nameof(DesignProvenance) => ProvenanceState.Design(
+                provenance.Id, provenance.SpecReference),
+            nameof(ModelProvenance) => ProvenanceState.Model(
+                provenance.Id, provenance.ModelName!, provenance.FittingReference),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for provenance type {provenance.Type}")
         };
+
+        return ProvenanceFactory.FromState(state);
     }
 
     private IUncertainty MapUncertainty(Dtos.Uncertainty? uncertainty)
