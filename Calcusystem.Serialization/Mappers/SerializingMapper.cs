@@ -84,7 +84,7 @@ public class SerializingMapper
             {
                 Id = v.Id,
                 Type = v.GetType().Name,
-                Dimensionality = v.Dimensionality,
+                Dimensionality = v.Dimensionality.GetState().Encoded,
                 KmsValue = null,
                 Uncertainty = null,
                 Symbol = v.Symbol,
@@ -96,7 +96,7 @@ public class SerializingMapper
         {
             Id = v.Id,
             Type = v.GetType().Name,
-            Dimensionality = v.Dimensionality,
+            Dimensionality = v.Dimensionality.GetState().Encoded,
             KmsValue = v.Value.KmsValue,
             Uncertainty = Map(v.Value.Uncertainty),
             Symbol = v.Symbol,
@@ -141,13 +141,13 @@ public class SerializingMapper
 
         return state.Shape switch
         {
-            UncertaintyShape.Symmetric => new Dtos.SymmetricUncertainty
+            UncertaintyShape.Symmetric => new Dtos.Uncertainty
             {
                 Type = nameof(SymmetricUncertainty),
                 IsStoredAsAbs = state.IsStoredAsAbs,
                 Magnitude = state.UpperMagnitude
             },
-            UncertaintyShape.Asymmetric => new Dtos.AsymmetricUncertainty
+            UncertaintyShape.Asymmetric => new Dtos.Uncertainty
             {
                 Type = nameof(AsymmetricUncertainty),
                 IsStoredAsAbs = state.IsStoredAsAbs,

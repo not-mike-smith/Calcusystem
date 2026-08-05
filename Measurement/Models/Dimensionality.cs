@@ -1,5 +1,7 @@
 ﻿using Measurement.Exceptions;
 using Measurement.Extensions;
+using Measurement.Interfaces;
+using Measurement.State;
 using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.FundamentalDimension, int>;
 
 namespace Measurement;
@@ -17,7 +19,7 @@ namespace Measurement;
 /// the algebra operators, not directly. Combine the fields to express derived dimensions, e.g.
 /// <c>Mass * Length / (Time * Time)</c> for force.
 /// </remarks>
-public readonly struct Dimensionality
+public readonly struct Dimensionality : IStateful<Dimensionality, DimensionalityState>
 {
     /// <summary>The empty dimension (all exponents zero) — a pure number such as a ratio or count.</summary>
     public static readonly Dimensionality Dimensionless = new Dimensionality(
@@ -87,6 +89,51 @@ public readonly struct Dimensionality
         _fundamentalDimensions = Reduce(dictionary);
     }
 
+    private static readonly IReadOnlyDictionary<string, FundamentalDimension> BySymbol =
+        FundamentalDimension.All.ToDictionary(f => f.Symbol, StringComparer.Ordinal);
+
+    /// <inheritdoc/>
+    /// <remarks>Ordered by <see cref="FundamentalDimension.Order"/> so that dimensionally-equal values always
+    /// produce the identical string.</remarks>
+    public DimensionalityState GetState()
+    {
+        var me = this;
+        return new DimensionalityState(string.Join(
+            ',',
+            OrderedKeys.Select(key => $"{key.Symbol}{me[key]}")));
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="FormatException">
+    /// The encoding is malformed, names a symbol that is not a known <see cref="FundamentalDimension"/>, or
+    /// repeats one. Deserialization fails loudly rather than silently dropping a dimension — a quietly
+    /// dimensionless quantity is far worse than a rejected load.
+    /// </exception>
+    public static Dimensionality FromState(DimensionalityState state)
+    {
+        if (string.IsNullOrWhiteSpace(state.Encoded)) return Dimensionless;
+
+        var pairs = new Dictionary<FundamentalDimension, int>();
+        foreach (var token in state.Encoded.Split(',', StringSplitOptions.TrimEntries))
+        {
+            var splitAt = token.TakeWhile(char.IsLetter).Count();
+            if (splitAt == 0 || splitAt == token.Length)
+                throw new FormatException($"Malformed dimensionality entry '{token}' in '{state.Encoded}'.");
+
+            var symbol = token[..splitAt];
+            if (! BySymbol.TryGetValue(symbol, out var dimension))
+                throw new FormatException($"Unknown fundamental dimension symbol '{symbol}' in '{state.Encoded}'.");
+
+            if (! int.TryParse(token[splitAt..], out var exponent))
+                throw new FormatException($"Malformed exponent in dimensionality entry '{token}'.");
+
+            if (! pairs.TryAdd(dimension, exponent))
+                throw new FormatException($"Duplicate symbol '{symbol}' in '{state.Encoded}'.");
+        }
+
+        return new Dimensionality(pairs);
+    }
+
     private static ExponentDict Reduce(ExponentDict fundamentalDimensions)
     {
         return fundamentalDimensions.Where(pair => pair.Value != 0).ToDictionary(
@@ -154,7 +201,7 @@ public readonly struct Dimensionality
 
     /// <summary>
     /// Human-readable form using symbols and superscript exponents, split into a <c>numerator/denominator</c>
-    /// around negative exponents (e.g. <c>M·L²/t²</c>). Returns <c>"1"</c> for a dimensionless value.
+    /// around negative exponents (e.g. <c>M·L²/T²</c>). Returns <c>"1"</c> for a dimensionless value.
     /// </summary>
     public override string ToString()
     {

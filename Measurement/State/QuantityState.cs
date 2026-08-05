@@ -4,10 +4,11 @@ namespace Measurement.State;
 /// The complete stored state of a <see cref="Quantity"/>: its KMS-normalized value and its dimensionality.
 /// </summary>
 /// <remarks>
-/// <see cref="Dimensionality"/> travels as the struct, not as a formatted string. Rendering it as
-/// <c>"M·L²·t⁻²"</c> is a wire-format decision that belongs to the persistence layer — and one that would
-/// otherwise oblige this assembly to parse superscripts back out again.
+/// The dimensionality travels as a <see cref="DimensionalityState"/> rather than the <see cref="Dimensionality"/>
+/// struct. The struct keeps its exponent map private, so a serializer handed one emits <c>{}</c> and reads back a
+/// dimensionless value — silently, with no exception. Encoding it here means nothing that claims to be
+/// serializable state can carry that trap.
 /// </remarks>
 /// <param name="KmsValue">The value in SI base (kg-m-s) units.</param>
-/// <param name="Dimensionality">The physical dimension of the value.</param>
-public readonly record struct QuantityState(double KmsValue, Dimensionality Dimensionality);
+/// <param name="Dimensionality">The encoded physical dimension of the value.</param>
+public readonly record struct QuantityState(double KmsValue, DimensionalityState Dimensionality);

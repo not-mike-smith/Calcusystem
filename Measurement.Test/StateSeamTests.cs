@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using FluentAssertions;
 using Measurement.Extensions;
 using Measurement.Interfaces;
@@ -63,7 +65,7 @@ public class StateSeamTests
     }
 
     [Fact]
-    public void QuantityRoundTripsWithStructuralDimensionality()
+    public void QuantityRoundTripsItsDimensionality()
     {
         var original = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));
 
@@ -71,6 +73,82 @@ public class StateSeamTests
 
         rebuilt.In(Acceleration.MeterPerSecondSquared).Should().Be(9.81);
         rebuilt.Dimensionality.Should().Be(original.Dimensionality);
+    }
+
+    [Fact]
+    public void DimensionalityEncodesSymbolAndExponentPerEntry()
+    {
+        var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
+
+        force.GetState().Encoded.Should().Be("M1,L1,T-2");
+    }
+
+    [Fact]
+    public void DimensionlessEncodesAsEmptyAndRoundTrips()
+    {
+        Dimensionality.Dimensionless.GetState().Encoded.Should().BeEmpty();
+        Dimensionality.FromState(new DimensionalityState("")).Should().Be(Dimensionality.Dimensionless);
+
+        // default(Dimensionality) has no backing map at all; it must encode the same way.
+        default(Dimensionality).GetState().Encoded.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("M1")]
+    [InlineData("M1,L1,T-2")]
+    [InlineData("Θ1")]
+    [InlineData("M1,I-1,L2,T-3")]
+    [InlineData("L-1")]
+    public void DimensionalityStateRoundTripsExactly(string encoded)
+    {
+        var state = new DimensionalityState(encoded);
+
+        Dimensionality.FromState(state).GetState().Encoded.Should().Be(encoded);
+    }
+
+    [Fact]
+    public void OutOfOrderEncodingIsAcceptedAndNormalized()
+    {
+        // Reading is tolerant of entry order; writing always emits canonical order, so a file written by an
+        // older or hand-edited source converges on re-save rather than staying permanently diff-noisy.
+        var parsed = Dimensionality.FromState(new DimensionalityState("T-3,L2,M1,I-1"));
+
+        parsed.GetState().Encoded.Should().Be("M1,I-1,L2,T-3");
+    }
+
+    [Fact]
+    public void EncodingIsCanonicalRegardlessOfConstructionOrder()
+    {
+        var oneWay = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
+        var otherWay = Dimensionality.Length / Dimensionality.Time * Dimensionality.Mass / Dimensionality.Time;
+
+        oneWay.Should().Be(otherWay);
+        oneWay.GetState().Encoded.Should().Be(otherWay.GetState().Encoded);
+    }
+
+    [Theory]
+    [InlineData("M")]           // exponent missing
+    [InlineData("1")]           // symbol missing
+    [InlineData("Q1")]          // unknown symbol
+    [InlineData("M1,M2")]       // duplicate symbol
+    [InlineData("Mx")]          // unparseable exponent
+    [InlineData("M1,,L1")]      // empty entry
+    public void MalformedDimensionalityStateThrowsRatherThanSilentlyDroppingDimensions(string encoded)
+    {
+        var act = () => Dimensionality.FromState(new DimensionalityState(encoded));
+
+        act.Should().Throw<FormatException>();
+    }
+
+    [Fact]
+    public void FundamentalDimensionSymbolsAreDistinctIgnoringCase()
+    {
+        // The encoding is keyed on Symbol, so a case-only collision would make a stray ToLower() downstream
+        // silently rewrite one dimension into another.
+        var symbols = FundamentalDimension.All.Select(f => f.Symbol).ToList();
+
+        symbols.Should().OnlyHaveUniqueItems();
+        symbols.Select(s => s.ToLowerInvariant()).Should().OnlyHaveUniqueItems();
     }
 
     [Fact]

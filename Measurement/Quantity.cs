@@ -230,8 +230,9 @@ public readonly struct Quantity : IStateful<Quantity, QuantityState>
     /// <inheritdoc/>
     /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's state is its value
     /// and its dimension, both of which are already public concepts here. Nothing is being hidden to protect.</remarks>
-    public QuantityState GetState() => new(KmsValue, Dimensionality);
+    public QuantityState GetState() => new(KmsValue, Dimensionality.GetState());
 
     /// <inheritdoc/>
-    public static Quantity FromState(QuantityState state) => new(state.KmsValue, state.Dimensionality);
+    public static Quantity FromState(QuantityState state) =>
+        new(state.KmsValue, Dimensionality.FromState(state.Dimensionality));
 }
