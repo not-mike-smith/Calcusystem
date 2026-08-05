@@ -14,7 +14,7 @@ namespace Measurement;
 /// gives quantities a canonical symbol layout. Symbols are distinct even ignoring case, so that the
 /// symbol-keyed serialization encoding cannot be corrupted by a stray case conversion.
 /// </remarks>
-public class FundamentalDimension : IComparable<FundamentalDimension> // TODO: should this be a record?
+public class FundamentalDimension : IComparable<FundamentalDimension>
 {
     /// <summary>Human-readable name (e.g. "Electric Current"); also the identity used for equality.</summary>
     public string Name { get; }

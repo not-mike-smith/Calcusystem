@@ -1,3 +1,4 @@
+using Calcusystem.Core;
 using System;
 using DimensionedExpression.Interfaces;
 using DimensionedExpression.State;
@@ -44,7 +45,7 @@ public static class ProvenanceFactory
     /// <summary>
     /// Rebuilds a provenance from previously captured state, preserving its original identity. The counterpart to
     /// <see cref="IProvenance.GetState"/>, and the reason <see cref="IProvenance"/> does not implement
-    /// <c>IStateful</c>: the concrete kind is chosen by inspecting the state, so reconstruction is a static
+    /// <see cref="IStateful{TSelf,TState}"/>: the concrete kind is chosen by inspecting the state, so reconstruction is a static
     /// gateway over the closed set rather than a <c>static abstract</c> on each kind.
     /// </summary>
     /// <remarks>A persistence entry point, deliberately apart from the creation methods above.</remarks>
