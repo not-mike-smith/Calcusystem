@@ -1,9 +1,8 @@
 using System;
 using DimensionedExpression.Expressions;
 using FluentAssertions;
+using Measurement;
 using Measurement.Exceptions;
-using Measurement.Models;
-using Measurement.Uncertainty;
 using Xunit;
 
 namespace DimensionedExpression.Test.Expressions;

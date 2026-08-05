@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Measurement.BaseClasses;
 using Measurement.Extensions;
-using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 

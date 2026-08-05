@@ -1,8 +1,6 @@
 using DimensionedExpression.Expressions;
 using FluentAssertions;
 using Measurement;
-using Measurement.Models;
-using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 

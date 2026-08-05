@@ -2,8 +2,7 @@ using System;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Provenance;
 using FluentAssertions;
-using Measurement.Models;
-using Measurement.Uncertainty;
+using Measurement;
 using Xunit;
 
 namespace DimensionedExpression.Test.Provenance;

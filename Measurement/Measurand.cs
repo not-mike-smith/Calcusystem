@@ -1,7 +1,5 @@
 using Measurement.Exceptions;
 using Measurement.Interfaces;
-using Measurement.Models;
-using Measurement.Uncertainty;
 
 namespace Measurement;
 

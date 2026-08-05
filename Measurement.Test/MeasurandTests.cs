@@ -1,7 +1,5 @@
 using System;
 using FluentAssertions;
-using Measurement.Models;
-using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 

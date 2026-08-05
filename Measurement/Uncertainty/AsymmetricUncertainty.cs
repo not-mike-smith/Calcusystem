@@ -1,7 +1,7 @@
 using Measurement.Interfaces;
 using Measurement.Extensions;
 
-namespace Measurement.Uncertainty; // TODO: move to Measurement namespace
+namespace Measurement;
 
 /// <summary>
 /// Asymmetric uncertainty with independent errors above and below the nominal value. Both are stored in the same

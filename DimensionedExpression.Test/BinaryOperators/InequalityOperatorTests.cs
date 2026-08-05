@@ -2,7 +2,6 @@ using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
 using FluentAssertions;
 using Measurement;
-using Measurement.Uncertainty;
 using Measurement.Units;
 using Xunit;
 

@@ -1,7 +1,7 @@
 using Measurement.Interfaces;
 using Measurement.Extensions;
 
-namespace Measurement.Uncertainty; // TODO: move to Measurement namespace
+namespace Measurement;
 
 /// <summary>
 /// Symmetric uncertainty: the same error above and below the nominal value. The error is stored either as a

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs sed -i 's/cref=\"Models\\\\.Dimensionality\"/cref=\"Dimensionality\"/g')"
+    ]
+  }
+}

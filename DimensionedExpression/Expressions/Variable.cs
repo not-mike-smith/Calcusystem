@@ -2,7 +2,6 @@
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
-using Measurement.Models;
 
 namespace DimensionedExpression.Expressions;
 

@@ -39,9 +39,7 @@ Compute with units and uncertainty (the `Measurement` layer):
 
 ```csharp
 using Measurement;
-using Measurement.Models;
 using Measurement.Units;
-using Measurement.Uncertainty;
 
 // 2 kg ± 1% — supply and read values in whatever unit you like; storage is always KMS
 var mass = Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
@@ -59,7 +57,7 @@ Assemble a reusable formula whose leaves get filled in later (the `DimensionedEx
 
 ```csharp
 using DimensionedExpression.Expressions;
-using Measurement.Models;
+using Measurement;
 
 var m = new Variable("m", Dimensionality.Mass);
 var a = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));

@@ -1,6 +1,6 @@
 using Measurement.BaseClasses;
 using Measurement.Factories;
-using Uom = Measurement.Models.UnitOfMeasure;
+using Uom = Measurement.UnitOfMeasure;
 
 namespace Measurement.Units;
 
@@ -33,10 +33,10 @@ public class Pressure : ReflectiveUnitList<Pressure>
     public static readonly Uom KilopoundPerSquareInch = UnitFactory.Create("ksi", 1000, PoundPerSquareInch);
 
     // Nominal gauge (offset = 1 standard atmosphere; true gauge requires an expression relationship)
-    public static readonly Models.OffsetUnitOfMeasure BarGauge = UnitFactory.Create(
+    public static readonly OffsetUnitOfMeasure BarGauge = UnitFactory.Create(
         "barg", Bar.KmsConversionFactor, Bar, StandardAtmospherePa / Bar.KmsConversionFactor);
-    public static readonly Models.OffsetUnitOfMeasure KilopascalGauge = UnitFactory.Create(
+    public static readonly OffsetUnitOfMeasure KilopascalGauge = UnitFactory.Create(
         "kPag", Kilopascal.KmsConversionFactor, Kilopascal, StandardAtmospherePa / Kilopascal.KmsConversionFactor);
-    public static readonly Models.OffsetUnitOfMeasure PsiGauge = UnitFactory.Create(
+    public static readonly OffsetUnitOfMeasure PsiGauge = UnitFactory.Create(
         "psig", PoundPerSquareInch.KmsConversionFactor, PoundPerSquareInch, StandardAtmospherePa / PoundPerSquareInch.KmsConversionFactor);
 }

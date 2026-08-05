@@ -1,7 +1,7 @@
 using Measurement.Interfaces;
 using Measurement.Extensions;
 
-namespace Measurement.Uncertainty;
+namespace Measurement;
 
 public class ConservativeGaussianPropagator : IErrorPropagator
 {
