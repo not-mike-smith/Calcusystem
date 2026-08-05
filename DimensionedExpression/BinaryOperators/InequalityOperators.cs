@@ -1,4 +1,5 @@
 
+using DimensionedExpression.State;
 using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
@@ -13,6 +14,8 @@ namespace DimensionedExpression.BinaryOperators;
 /// </summary>
 public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.DefinitelyLessThan;
+
     public override string Symbol => "<<";
 
     public override bool? IsSatisfied()
@@ -37,6 +40,8 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.UpperBoundsLessThan;
+
     public override string Symbol => "<^";
 
     public override bool? IsSatisfied()
@@ -60,6 +65,8 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class NominallyLessThanOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.NominallyLessThan;
+
     public override string Symbol => "<~";
 
     public override bool? IsSatisfied()
@@ -81,6 +88,8 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.DefinitelyGreaterThan;
+
     public override string Symbol => ">>";
 
     public override bool? IsSatisfied()
@@ -105,6 +114,8 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.LowerBoundsGreaterThan;
+
     public override string Symbol => ">v";
 
     public override bool? IsSatisfied()
@@ -128,6 +139,8 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.NominallyGreaterThan;
+
     public override string Symbol => ">~";
 
     public override bool? IsSatisfied()

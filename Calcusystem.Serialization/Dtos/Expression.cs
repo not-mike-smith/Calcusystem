@@ -58,6 +58,13 @@ public class PairDerivedVariable : ExpressionBase
 {
     public required string InnerId1 { get; init; }
     public required string InnerId2 { get; init; }
+
+    /// <summary>
+    /// How child uncertainties are combined. Not <c>required</c>: payloads written before this field existed
+    /// simply lack it, and <see cref="ErrorPropagationMethod.Uncorrelated"/> — the default both here and on the
+    /// expression itself — is what they meant.
+    /// </summary>
+    public ErrorPropagationMethod ErrorPropagation { get; init; }
 }
 
 public class ListDerivedVariable : ExpressionBase

@@ -30,14 +30,27 @@ DTOs are bucketed by **structural arity**, not by domain type — the concrete t
 | DTO (`Dtos/`) | Shape | Domain types it carries |
 | --- | --- | --- |
 | `SingleVariable` | leaf: `Symbol`, `Dimensionality` (encoded string), `KmsValue?`, `Uncertainty?`, `Provenance?` | `Variable` |
-| `SingleDerivedVariable` | one child: `InnerId` | `ReciprocalExpression`, `NegatedExpression` |
-| `PairDerivedVariable` | two children: `InnerId1`, `InnerId2` | `QuotientExpression` |
+| `SingleDerivedVariable` | one child: `InnerId` | `ReciprocalExpression`, `NegatedExpression`, `SqrtExpression`, `ExponentialExpression`, `NaturalLogExpression` |
+| `PairDerivedVariable` | two children: `InnerId1`, `InnerId2`, plus `ErrorPropagation` | `QuotientExpression` |
 | `ListDerivedVariable` | n children: `InnerIds`, plus `ErrorPropagation` | `ProductExpression`, `SumExpression` |
 | `BinaryOperator` | `LhsId`, `RhsId`, `Name?`, `Description?`, `Provenance?` | all equality / tolerance / inequality operators |
 
 Uncertainty is a single flat `Dtos.Uncertainty` (`Dtos/Expression.cs`): a `Type` discriminator, an `IsStoredAsAbs` flag recording whether the magnitudes are relative fractions or absolute KMS values, and the union of the shapes' nullable fields — `Magnitude` for the symmetric case, `UpperMagnitude`/`LowerMagnitude` for the asymmetric one. Fields required by the named shape are validated on read rather than defaulted, since a missing magnitude would silently change the error band.
 
-**Dimensionality and uncertainty both cross the boundary as `Measurement` *state*, never as domain internals.** The mappers call `GetState()` on the way out and rebuild through `Dimensionality.FromState` / `UncertaintyFactory.FromState` on the way in — see the Persistence section of the [Measurement README](../Measurement/README.md). Those state records are structural and carry no format concerns of their own, which is exactly what leaves this layer free to own the format: the `Type` strings above, the dimensionality encoding below, and any fix-up of older payloads are all decided here. `Measurement` never sees a schema version.
+**Everything crosses the boundary as domain *state*, never as domain internals.** The mappers construct no domain object and read no domain property: each one calls `GetState()` on the way out, and on the way in translates a DTO into the matching state record and hands it to that type's own reconstruction — `Variable.FromState`, `ExpressionFactory.FromState`, `BinaryOperatorFactory.FromState`, `ExpressionSystem.FromState`, `UncertaintyFactory.FromState`, `Dimensionality.FromState`, `ProvenanceFactory.FromState`. See the persistence sections of the [Measurement](../Measurement/README.md) and [DimensionedExpression](../DimensionedExpression/README.md) READMEs.
+
+Those state records are structural and carry no format concerns, which is exactly what leaves this layer free to own the format: the `Type` strings, the dimensionality encoding, and any fix-up of older payloads are all decided here. Neither domain assembly ever sees a schema version.
+
+### What this layer still owns
+
+Two things that look like they could move into the domain but should not:
+
+- **Rebuild order.** The flattened lists arrive in arbitrary order, so `DeserializingMapper` rebuilds leaves first, then derived expressions as their dependencies appear, then operators, then the system. By the time any `FromState` asks the resolver for a neighbour, it is present. Choosing that order is a persistence strategy.
+- **What a dangling reference means.** `DeserializationContext` implements `INodeResolver` and throws `ReferencedNodeNotFoundException` when an id names nothing, or names a node of the wrong type. A domain object is never handed a null and asked to decide.
+
+### The `WireNames` table
+
+The state records discriminate with enums; the payload uses concrete type-name strings. `Mappers/WireNames.cs` is the whole of the translation between them, in both directions. It is deliberately the only place the two vocabularies meet — and the names are the *class* names rather than the enum member names, so introducing the state layer did not invalidate a single previously-written payload. If a domain class is renamed, the string here should **not** follow it; that mapping is a migration point, not a mirror.
 
 ### `DimensionalityCodec`
 

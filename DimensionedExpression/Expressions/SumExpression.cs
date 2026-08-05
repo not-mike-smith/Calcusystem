@@ -1,4 +1,6 @@
 ﻿using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
+using Calcusystem.Core;
 using DimensionedExpression.BaseModels;
 using Measurement;
 using Measurement.Exceptions;
@@ -12,7 +14,7 @@ namespace DimensionedExpression.Expressions;
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> addition using the
 /// <see cref="ComputedExpressionBase.ErrorPropagation"/> method.
 /// </summary>
-public class SumExpression : ComputedExpressionBase, IComputedExpression
+public class SumExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<SumExpression, NaryExpressionState>
 {
     private readonly List<IExpression> _addends = new();
 
@@ -69,4 +71,16 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression
     {
         return _addends.Sum(a => a.DegreesOfFreedom());
     }
+
+    /// <inheritdoc/>
+    public NaryExpressionState GetState() =>
+        new(NaryExpressionKind.Sum, Id, Addends.Select(a => a.Id).ToList(), ErrorPropagation);
+
+    /// <inheritdoc/>
+    public static SumExpression FromState(NaryExpressionState state, INodeResolver resolve) =>
+        new(state.InnerIds.Select(resolve.Resolve<IExpression>))
+        {
+            Id = state.Id,
+            ErrorPropagation = state.ErrorPropagation,
+        };
 }

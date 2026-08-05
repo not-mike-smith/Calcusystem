@@ -1,17 +1,23 @@
-﻿using Calcusystem.Serialization.Exceptions;
 using Calcusystem.Serialization.Interfaces;
 using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
-using DimensionedExpression.Provenance;
 using DimensionedExpression.State;
 using DimensionedExpression.Systems;
 using Measurement;
-using Measurement.State;
 using Measurement.Interfaces;
+using Measurement.State;
 
 namespace Calcusystem.Serialization.Mappers;
 
+/// <summary>
+/// Rebuilds a live <see cref="ExpressionSystem"/> from flat, id-referenced DTOs.
+/// </summary>
+/// <remarks>
+/// Constructs nothing directly. Each DTO is translated into the corresponding domain state record and handed to
+/// that type's own reconstruction, so this class owns the wire format and the rebuild <i>order</i> — not how any
+/// domain object is assembled.
+/// </remarks>
 public class DeserializingMapper
 {
     private readonly DeserializationContext _context;
@@ -25,195 +31,180 @@ public class DeserializingMapper
         _equalityEstimator = equalityEstimator;
     }
 
+    /// <remarks>
+    /// Order matters and is this layer's responsibility: leaves first, then derived expressions as their
+    /// dependencies appear, then operators over those expressions, and finally the system that references them
+    /// all. By the time any <c>FromState</c> asks the resolver for a neighbour, it is already present.
+    /// </remarks>
     public ExpressionSystem Map(Dtos.ExpressionSystem x)
     {
-        var system = new ExpressionSystem(x.Id)
+        foreach (var dto in x.DirectExpressions)
         {
-            Name = x.Name,
-            Description = x.Description
-        };
+            _context.AddLoadedExpression(MapDirectExpressionByPattern(dto));
+        }
 
-        system.DirectExpressions.AddRange(x.DirectExpressions.Select(MapDirectExpressionByPattern));
-        system.DerivedExpressions.AddRange(MapAllDerivedExpressions(x));
-        system.Definitions.AddRange(x.Definitions.Select(MapBinaryOperatorByPattern));
-        system.Constraints.AddRange(x.Constraints.Select(MapBinaryOperatorByPattern));
-        return system;
+        MapAllDerivedExpressions(x);
+
+        foreach (var dto in x.Definitions.Concat(x.Constraints))
+        {
+            _context.AddLoadedOperator(MapBinaryOperatorByPattern(dto));
+        }
+
+        _context.ReferencingDto = x;
+        return ExpressionSystem.FromState(
+            new ExpressionSystemState(
+                x.Id,
+                x.Name,
+                x.Description,
+                x.DirectExpressions.Select(d => d.Id).ToList(),
+                x.SingleDerivedVariables.Select(d => d.Id)
+                    .Concat(x.ListDerivedVariables.Select(d => d.Id))
+                    .Concat(x.PairDerivedVariables.Select(d => d.Id))
+                    .ToList(),
+                x.Definitions.Select(d => d.Id).ToList(),
+                x.Constraints.Select(d => d.Id).ToList()),
+            _context);
     }
 
-    private List<IExpression> MapAllDerivedExpressions(Dtos.ExpressionSystem x)
+    /// <remarks>
+    /// The flattened lists arrive in arbitrary order, so a parent may be read before the children it references
+    /// exist. Each mapping is queued as a deferred function; running one either succeeds, or defers because a
+    /// child id is not loaded yet and goes to the back of the queue. The queue drains as dependencies fill in,
+    /// without a topological pre-sort.
+    /// </remarks>
+    private void MapAllDerivedExpressions(Dtos.ExpressionSystem x)
     {
-        var deserializedExpressions = new List<IExpression>();
-        List<MapDerivedExpressionFcn> functions = new List<MapDerivedExpressionFcn>();
+        var functions = new List<MapDerivedExpressionFcn>();
         functions.AddRange(x.SingleDerivedVariables.Select(GetMapper));
         functions.AddRange(x.ListDerivedVariables.Select(GetMapper));
         functions.AddRange(x.PairDerivedVariables.Select(GetMapper));
+
         while (functions.Any())
         {
             var fcn = functions[0];
             functions.RemoveAt(0);
+
             var expression = fcn();
             if (expression != null)
             {
-                deserializedExpressions.Add(expression);
+                _context.AddLoadedExpression(expression);
             }
             else
             {
                 functions.Add(fcn);
             }
         }
-
-        return deserializedExpressions;
     }
 
-    delegate IExpression? MapDerivedExpressionFcn();
+    private delegate IExpression? MapDerivedExpressionFcn();
 
-    public Variable MapDirectExpressionByPattern(Dtos.SingleVariable x)
+    public Variable MapDirectExpressionByPattern(Dtos.SingleVariable x) => x.Type switch
     {
-        Variable variable = x.Type switch
-        {
-            nameof(Variable) => MapVariable(x),
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
-        };
-
-        _context.AddLoadedExpression(variable);
-        return variable;
-    }
+        nameof(Variable) => MapVariable(x),
+        _ => throw new NotImplementedException(
+            $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
+    };
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.SingleDerivedVariable x)
     {
-        if (! _context.ExpressionsById.ContainsKey(x.InnerId)) return null;
+        if (! _context.Contains(x.InnerId)) return null;
 
-        IExpression expression = x.Type switch
-        {
-            nameof(ReciprocalExpression) => MapReciprocal(x),
-            nameof(NegatedExpression) => MapNegated(x),
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for SingleDerivedVariable object with saved type, {x.Type}")
-        };
-
-        _context.AddLoadedExpression(expression);
-        return expression;
-    }
-
-    private MapDerivedExpressionFcn GetMapper(Dtos.SingleDerivedVariable x)
-    {
-        return () => MapDerivedExpressionByPattern(x);
+        _context.ReferencingDto = x;
+        return ExpressionFactory.FromState(
+            new UnaryExpressionState(WireNames.UnaryKind(x.Type), x.Id, x.InnerId),
+            _context);
     }
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.ListDerivedVariable x)
     {
-        if (! x.InnerIds.All(_context.ExpressionsById.ContainsKey)) return null;
+        if (! x.InnerIds.All(_context.Contains)) return null;
 
-        IExpression expression = x.Type switch
-        {
-            nameof(ProductExpression) => MapProduct(x),
-            nameof(SumExpression) => MapSum(x),
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for ListDerivedVariable object with saved type, {x.Type}")
-        };
-
-        _context.AddLoadedExpression(expression);
-        return expression;
-    }
-
-    private MapDerivedExpressionFcn GetMapper(Dtos.ListDerivedVariable x)
-    {
-        return () => MapDerivedExpressionByPattern(x);
+        _context.ReferencingDto = x;
+        return ExpressionFactory.FromState(
+            new NaryExpressionState(WireNames.NaryKind(x.Type), x.Id, x.InnerIds, x.ErrorPropagation),
+            _context);
     }
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.PairDerivedVariable x)
     {
-        if (! _context.ExpressionsById.ContainsKey(x.InnerId1) || ! _context.ExpressionsById.ContainsKey(x.InnerId2))
-            return null;
+        if (! _context.Contains(x.InnerId1) || ! _context.Contains(x.InnerId2)) return null;
 
-        IExpression expression = x.Type switch
-        {
-            nameof(QuotientExpression) => MapQuotient(x),
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for PairDerivedVariable object with saved type, {x.Type}")
-        };
-
-        _context.AddLoadedExpression(expression);
-        return expression;
+        _context.ReferencingDto = x;
+        return ExpressionFactory.FromState(
+            new BinaryExpressionState(
+                WireNames.BinaryKind(x.Type), x.Id, x.InnerId1, x.InnerId2, x.ErrorPropagation),
+            _context);
     }
 
-    private MapDerivedExpressionFcn GetMapper(Dtos.PairDerivedVariable x)
-    {
-        return () => MapDerivedExpressionByPattern(x);
-    }
+    private MapDerivedExpressionFcn GetMapper(Dtos.SingleDerivedVariable x) =>
+        () => MapDerivedExpressionByPattern(x);
+
+    private MapDerivedExpressionFcn GetMapper(Dtos.ListDerivedVariable x) =>
+        () => MapDerivedExpressionByPattern(x);
+
+    private MapDerivedExpressionFcn GetMapper(Dtos.PairDerivedVariable x) =>
+        () => MapDerivedExpressionByPattern(x);
 
     public IBinaryOperator MapBinaryOperatorByPattern(Dtos.BinaryOperator x)
     {
-        IBinaryOperator op = x.Type switch
-        {
-            nameof(AnyToleranceOverlapOperator) => MapAnyToleranceOverlapOperator(x),
-            nameof(EqualityOperator) => MapEqualityOperator(x),
-            nameof(MutuallyWithinToleranceOperator) => MapMutuallyWithToleranceOperator(x),
-            nameof(WhollyWithinToleranceOperator) => MapWhollyWithinToleranceOperator(x),
-            nameof(WithinBindingToleranceOperator) => MapWithinBindingToleranceOperator(x),
-            nameof(PointAndUpperBoundWithinToleranceOperator) => MapPointAndUpperBoundWithinToleranceOperator(x),
-            nameof(PointAndLowerBoundWithinToleranceOperator) => MapPointAndLowerBoundWithinToleranceOperator(x),
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for BinaryOperator object with saved type, {x.Type}")
-        };
-
-        op.Provenance = MapProvenance(x.Provenance);
-        return op;
+        _context.ReferencingDto = x;
+        return BinaryOperatorFactory.FromState(
+            new BinaryOperatorState(
+                WireNames.OperatorKind(x.Type),
+                x.Id,
+                x.LhsId,
+                x.RhsId,
+                x.Name,
+                x.Description,
+                MapProvenance(x.Provenance)),
+            _context,
+            _equalityEstimator);
     }
 
-    public Variable MapVariable(Dtos.SingleVariable v)
-    {
-        var dimensionality = Dimensionality.FromState(DimensionalityCodec.Decode(v.Dimensionality));
+    public Variable MapVariable(Dtos.SingleVariable v) => Variable.FromState(
+        new VariableState(
+            v.Id,
+            v.Symbol,
+            DimensionalityCodec.Decode(v.Dimensionality),
+            v.KmsValue is { } kms
+                ? new MeasurandState(
+                    new QuantityState(kms, DimensionalityCodec.Decode(v.Dimensionality)),
+                    MapUncertainty(v.Uncertainty))
+                : null,
+            MapProvenance(v.Provenance)));
 
-        var variable = v.KmsValue == null
-            ? new Variable(v.Symbol, dimensionality, v.Id)
-            : new Variable(v.Symbol, new Quantity(v.KmsValue.Value, dimensionality).Measurand(MapUncertainty(v.Uncertainty)), v.Id);
-
-        variable.Provenance = MapProvenance(v.Provenance);
-        return variable;
-    }
-
-    private IProvenance? MapProvenance(Dtos.Provenance? provenance)
+    private static ProvenanceState? MapProvenance(Dtos.Provenance? provenance)
     {
         if (provenance is null) return null;
 
-        // This layer reads the wire type-name and hands DimensionedExpression nothing but the state it needs.
-        var state = provenance.Type switch
+        return WireNames.ProvenanceKindOf(provenance.Type) switch
         {
-            nameof(MeasuredProvenance) => ProvenanceState.Measured(
+            ProvenanceKind.Measured => ProvenanceState.Measured(
                 provenance.Id, provenance.InstrumentId, provenance.CalibrationDate),
-            nameof(ReferenceProvenance) => ProvenanceState.Reference(
+            ProvenanceKind.Reference => ProvenanceState.Reference(
                 provenance.Id, provenance.Citation!, provenance.Url, provenance.Year),
-            nameof(DesignProvenance) => ProvenanceState.Design(
+            ProvenanceKind.Design => ProvenanceState.Design(
                 provenance.Id, provenance.SpecReference),
-            nameof(ModelProvenance) => ProvenanceState.Model(
+            ProvenanceKind.Model => ProvenanceState.Model(
                 provenance.Id, provenance.ModelName!, provenance.FittingReference),
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for provenance type {provenance.Type}")
+            var kind => throw new NotImplementedException($"No state mapping for provenance kind {kind}")
         };
-
-        return ProvenanceFactory.FromState(state);
     }
 
-    private IUncertainty MapUncertainty(Dtos.Uncertainty? uncertainty)
+    private static UncertaintyState MapUncertainty(Dtos.Uncertainty? uncertainty)
     {
-        // This layer owns the wire format — including any version fix-up of older payloads — and hands
-        // Measurement nothing but the state it needs to rebuild.
-        if (uncertainty is null) return SymmetricUncertainty.FromRelErr(0);
+        if (uncertainty is null) return UncertaintyState.Symmetric(false, 0);
 
         return uncertainty.Type switch
         {
-            nameof(SymmetricUncertainty) => UncertaintyFactory.FromState(
-                UncertaintyState.Symmetric(
-                    uncertainty.IsStoredAsAbs,
-                    Required(uncertainty.Magnitude, nameof(uncertainty.Magnitude), uncertainty.Type))),
+            nameof(SymmetricUncertainty) => UncertaintyState.Symmetric(
+                uncertainty.IsStoredAsAbs,
+                Required(uncertainty.Magnitude, nameof(uncertainty.Magnitude), uncertainty.Type)),
 
-            nameof(AsymmetricUncertainty) => UncertaintyFactory.FromState(
-                UncertaintyState.Asymmetric(
-                    uncertainty.IsStoredAsAbs,
-                    Required(uncertainty.UpperMagnitude, nameof(uncertainty.UpperMagnitude), uncertainty.Type),
-                    Required(uncertainty.LowerMagnitude, nameof(uncertainty.LowerMagnitude), uncertainty.Type))),
+            nameof(AsymmetricUncertainty) => UncertaintyState.Asymmetric(
+                uncertainty.IsStoredAsAbs,
+                Required(uncertainty.UpperMagnitude, nameof(uncertainty.UpperMagnitude), uncertainty.Type),
+                Required(uncertainty.LowerMagnitude, nameof(uncertainty.LowerMagnitude), uncertainty.Type)),
 
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for uncertainty type {uncertainty.Type}")
@@ -224,149 +215,7 @@ public class DeserializingMapper
     /// Reads a field of the flat uncertainty DTO that is required for the shape named by its discriminator.
     /// Missing means the payload is malformed; substituting a default would quietly change the error band.
     /// </summary>
-    private static double Required(double? value, string field, string type)
-    {
-        return value ?? throw new InvalidOperationException(
+    private static double Required(double? value, string field, string type) =>
+        value ?? throw new InvalidOperationException(
             $"Uncertainty of type {type} is missing required field {field}.");
-    }
-
-    private IExpression GetExpression(string id, ISerializedObject expressionDto)
-    {
-        var foundIt = _context.ExpressionsById.TryGetValue(id, out var value);
-        if (foundIt is false)
-        {
-            throw new ReferencedNodeNotFoundException(id, expressionDto);
-        }
-
-        return value!;
-    }
-
-    public ReciprocalExpression MapReciprocal(Dtos.SingleDerivedVariable x)
-    {
-        return new ReciprocalExpression(GetExpression(x.InnerId, x), x.Id);
-    }
-
-    public NegatedExpression MapNegated(Dtos.SingleDerivedVariable x)
-    {
-        return new NegatedExpression(GetExpression(x.InnerId, x), x.Id);
-    }
-
-    public ProductExpression MapProduct(Dtos.ListDerivedVariable x)
-    {
-        var expressions = x.InnerIds.Select(id => GetExpression(id, x)).ToList();
-        var value = new ProductExpression
-        {
-            Id = x.Id,
-            ErrorPropagation = x.ErrorPropagation,
-        };
-
-        expressions.ForEach(expression => value.AddFactor(expression));
-        return value;
-    }
-
-    public SumExpression MapSum(Dtos.ListDerivedVariable x)
-    {
-        var expressions = x.InnerIds.Select(id => GetExpression(id, x)).ToList();
-        var value = new SumExpression(expressions)
-        {
-            Id = x.Id,
-            ErrorPropagation = x.ErrorPropagation,
-        };
-
-        return value;
-    }
-
-    public QuotientExpression MapQuotient(Dtos.PairDerivedVariable x)
-    {
-        return new QuotientExpression
-        {
-            Id = x.Id,
-            Numerator = GetExpression(x.InnerId1, x),
-            Denominator = GetExpression(x.InnerId2, x)
-        };
-    }
-
-    public AnyToleranceOverlapOperator MapAnyToleranceOverlapOperator(Dtos.BinaryOperator x)
-    {
-        return new AnyToleranceOverlapOperator
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
-
-    public EqualityOperator MapEqualityOperator(Dtos.BinaryOperator x)
-    {
-        return new EqualityOperator(_equalityEstimator)
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
-
-    public MutuallyWithinToleranceOperator MapMutuallyWithToleranceOperator(Dtos.BinaryOperator x)
-    {
-        return new MutuallyWithinToleranceOperator
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
-
-    public WhollyWithinToleranceOperator MapWhollyWithinToleranceOperator(Dtos.BinaryOperator x)
-    {
-        return new WhollyWithinToleranceOperator
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
-
-    public WithinBindingToleranceOperator MapWithinBindingToleranceOperator(Dtos.BinaryOperator x)
-    {
-        return new WithinBindingToleranceOperator
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
-
-    public PointAndUpperBoundWithinToleranceOperator MapPointAndUpperBoundWithinToleranceOperator(Dtos.BinaryOperator x)
-    {
-        return new PointAndUpperBoundWithinToleranceOperator
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
-
-    public PointAndLowerBoundWithinToleranceOperator MapPointAndLowerBoundWithinToleranceOperator(Dtos.BinaryOperator x)
-    {
-        return new PointAndLowerBoundWithinToleranceOperator
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Lhs = GetExpression(x.LhsId, x),
-            Rhs = GetExpression(x.RhsId, x)
-        };
-    }
 }

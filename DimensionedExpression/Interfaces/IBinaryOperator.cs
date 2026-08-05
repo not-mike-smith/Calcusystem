@@ -1,3 +1,4 @@
+using DimensionedExpression.State;
 using Calcusystem.Core;
 namespace DimensionedExpression.Interfaces;
 
@@ -40,4 +41,10 @@ public interface IBinaryOperator
     /// constitutive equation). Null means provenance is not tracked; purely descriptive.
     /// </summary>
     IProvenance? Provenance { get; set; }
+
+    /// <summary>
+    /// Returns the complete stored state of this operator — which operator it is, its operand ids, and its
+    /// annotations. Rebuild via <c>BinaryOperatorFactory.FromState</c>.
+    /// </summary>
+    BinaryOperatorState GetState();
 }

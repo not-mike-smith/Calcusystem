@@ -1,4 +1,5 @@
 ﻿
+using DimensionedExpression.State;
 using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
@@ -15,6 +16,8 @@ namespace DimensionedExpression.BinaryOperators;
 /// </summary>
 public class AnyToleranceOverlapOperator : CommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.AnyToleranceOverlap;
+
     public override string Symbol => "≈";
 
     public override bool? IsSatisfied()

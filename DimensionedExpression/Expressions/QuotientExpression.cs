@@ -1,4 +1,6 @@
 ﻿using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
+using Calcusystem.Core;
 using DimensionedExpression.BaseModels;
 using Measurement;
 
@@ -11,7 +13,7 @@ namespace DimensionedExpression.Expressions;
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> division using the
 /// <see cref="ComputedExpressionBase.ErrorPropagation"/> method.
 /// </summary>
-public class QuotientExpression : ComputedExpressionBase, IComputedExpression
+public class QuotientExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<QuotientExpression, BinaryExpressionState>
 {
     public required IExpression Numerator { get; set; }
 
@@ -33,4 +35,18 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression
     {
         return Numerator.DegreesOfFreedom() + Denominator.DegreesOfFreedom();
     }
+
+    /// <inheritdoc/>
+    public BinaryExpressionState GetState() =>
+        new(BinaryExpressionKind.Quotient, Id, Numerator.Id, Denominator.Id, ErrorPropagation);
+
+    /// <inheritdoc/>
+    public static QuotientExpression FromState(BinaryExpressionState state, INodeResolver resolve) =>
+        new()
+        {
+            Id = state.Id,
+            Numerator = resolve.Resolve<IExpression>(state.InnerId1),
+            Denominator = resolve.Resolve<IExpression>(state.InnerId2),
+            ErrorPropagation = state.ErrorPropagation,
+        };
 }

@@ -1,4 +1,6 @@
 ﻿using DimensionedExpression.Interfaces;
+using DimensionedExpression.Provenance;
+using DimensionedExpression.State;
 
 namespace DimensionedExpression.BaseModels;
 
@@ -13,6 +15,16 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public abstract bool IsCommutative { get; }
     public abstract bool? IsSatisfied(); // TODO? move to extension?
     public abstract string Symbol { get; }
+
+    /// <summary>Which operator this is, for state capture. Declared alongside <see cref="Symbol"/>.</summary>
+    protected abstract BinaryOperatorKind Kind { get; }
+
+    /// <summary>
+    /// Returns this operator's complete stored state. Every operator has the same shape — two operand
+    /// references plus annotations — so this is implemented once here rather than thirteen times.
+    /// </summary>
+    public BinaryOperatorState GetState() =>
+        new(Kind, Id, Lhs.Id, Rhs.Id, Name, Description, Provenance?.GetState());
 
     public bool AreBothSidesFullyDescribed => Lhs.IsFullyDescribed && Rhs.IsFullyDescribed;
     public override string ToString()

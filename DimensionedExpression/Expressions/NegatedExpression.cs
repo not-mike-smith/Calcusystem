@@ -1,3 +1,4 @@
+using DimensionedExpression.State;
 using Calcusystem.Core;
 using DimensionedExpression.Interfaces;
 using Measurement;
@@ -10,7 +11,7 @@ namespace DimensionedExpression.Expressions;
 /// <br/>
 /// Not directly mutable; <see cref="Value"/> is null until the operand is fully described.
 /// </summary>
-public class NegatedExpression : IdBase, IExpression
+public class NegatedExpression : IdBase, IExpression, IStatefulNode<NegatedExpression, UnaryExpressionState>
 {
     public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW_ID) : base(id)
     {
@@ -39,4 +40,12 @@ public class NegatedExpression : IdBase, IExpression
     {
         return $"-{Operand}";
     }
+
+    /// <inheritdoc/>
+    public UnaryExpressionState GetState() =>
+        new(UnaryExpressionKind.Negated, Id, Operand.Id);
+
+    /// <inheritdoc/>
+    public static NegatedExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

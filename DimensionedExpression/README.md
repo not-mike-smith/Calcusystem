@@ -122,13 +122,54 @@ An optional audit annotation recording *where a value came from* — carried by 
 | `ProvenanceFactory.Design(specReference?)` | engineer-specified value | spec/drawing reference |
 | `ProvenanceFactory.Model(modelName, fittingReference?)` | fitted constitutive constant | model name, fitting reference |
 
-The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so the serializer can map them, but their constructors are **internal** — construction always flows through the factory. Serialization itself lives in `Calcusystem.Serialization` (below), like everything else; provenance is *not* a special case.
+The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so callers can pattern-match on a kind, but their constructors **and their metadata** are **internal** — construction always flows through the factory, and the metadata leaves the assembly only as a `ProvenanceState`. The factory methods above mint a fresh identity and take no `id`; restoring a persisted one is `ProvenanceFactory.FromState(state)`, deliberately kept apart from the creation vocabulary so a caller recording where a value came from is never offered a parameter that only makes sense to a deserializer.
+
+`IProvenance.GetState()` is implemented *explicitly*, so a consumer holding a `MeasuredProvenance` sees `Summary()` and `Id`, not the raw fields. Reading them is a persistence concern and this is its one door.
 
 ---
 
-## Serialization
+## Persistence: state, not DTOs
 
-There is **none in this assembly** — no DTOs, no mappers, no persistence. Serialization lives in `Calcusystem.Serialization`, which references this project and maps these types (including provenance) to/from DTOs (using explicit `Id`s to rebuild the reference graph, and injecting the `IEqualityEstimating` needed by `EqualityOperator`). If you are round-tripping an `ExpressionSystem`, that is the assembly to reach for.
+There are **no DTOs and no mappers in this assembly** — those live in `Calcusystem.Serialization`. What lives here is the *state* each type is defined by. This assembly answers "what data describes this node"; the persistence layer answers "how is that data encoded, versioned, and migrated". Records in `State/`:
+
+| State | Discriminator | Covers |
+| --- | --- | --- |
+| `VariableState` | — | `Variable` |
+| `UnaryExpressionState` | `UnaryExpressionKind` | `Reciprocal`, `Negated`, `Sqrt`, `Exponential`, `NaturalLog` |
+| `NaryExpressionState` | `NaryExpressionKind` | `Product`, `Sum` |
+| `BinaryExpressionState` | `BinaryExpressionKind` | `Quotient` (M5's `PowerExpression` joins by adding a kind) |
+| `BinaryOperatorState` | `BinaryOperatorKind` | all thirteen operators |
+| `ExpressionSystemState` | — | `ExpressionSystem` |
+| `ProvenanceState` | `ProvenanceKind` | the four provenance kinds |
+
+Grouped by **arity, not by type** — the kinds within a group differ in what they compute, not in what must be stored. The semantic difference lives in the discriminator, which is also what reconstruction dispatches on.
+
+### Two seams, because a graph is not a value
+
+`Variable` rebuilds from its own state alone, so it uses `IStateful<Variable, VariableState>` (from `Calcusystem.Core`). Every other node references neighbours **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `IStatefulNode<TSelf, TState>`, whose `FromState` also takes an `INodeResolver` to turn those ids back into nodes:
+
+```csharp
+public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve)
+{
+    var product = new ProductExpression { Id = state.Id, ErrorPropagation = state.ErrorPropagation };
+    foreach (var id in state.InnerIds) product.AddFactor(resolve.Resolve<IExpression>(id));
+    return product;
+}
+```
+
+The axis is *does rebuilding need outside help*, not where a node sits in the tree — `Variable` is a genuine leaf, but that is incidental.
+
+`INodeResolver.Resolve<TNode>(id)` is a per-reference query rather than one typed delegate because a node's neighbours need not share a type: `ExpressionSystem` refers to expressions in two of its lists and to operators in the other two. **Supplying the resolver, and rebuilding in an order that makes each referenced node available before it is asked for, is the caller's job** — that ordering is a persistence strategy, not domain knowledge. A resolver throws when an id cannot be resolved; a node is never asked to decide what a dangling reference means.
+
+### Reconstruction gateways
+
+Where a state carries a discriminator, the concrete type is chosen by inspecting it, so reconstruction is a static gateway over the closed set rather than a `static abstract` on each type — the same treatment `IUncertainty` and `IProvenance` get:
+
+- `ExpressionFactory.FromState(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromState`, which is where per-type construction actually lives.
+- `BinaryOperatorFactory.FromState(state, resolve, equalityEstimator)` — a gateway rather than per-type implementations, because construction is identical across all thirteen apart from which type is instantiated, and because `EqualityOperator` needs an `IEqualityEstimating` that a two-argument seam has nowhere to accept.
+- `ProvenanceFactory.FromState(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
+
+If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Serialization` is still the assembly to reach for; it consumes these seams.
 
 ---
 
@@ -139,5 +180,6 @@ There is **none in this assembly** — no DTOs, no mappers, no persistence. Seri
 **What does NOT belong here:**
 
 - Physical quantities, units, dimensional algebra, uncertainty types, error propagation math → `Measurement`
-- Serialization DTOs and mappers → `Calcusystem.Serialization` (including provenance — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs))
+- Serialization DTOs, wire formats, type-discriminator strings, and schema migration → `Calcusystem.Serialization`. The state records above are not an exception: a state record says *what data defines a node*, which only this assembly can answer; a DTO adds *how that data is labelled and encoded*, which is the persistence layer's business.
+- Deciding the order in which a graph is rebuilt, or what a dangling id reference means → whatever supplies the `INodeResolver`
 - The actual evaluation walk, constraint reporting, and solving → future assemblies (this layer provides `Value`, `IsFullyDescribed`, and `DegreesOfFreedom` as the primitives they will build on, but performs no orchestration itself)
