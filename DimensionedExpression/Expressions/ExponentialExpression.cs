@@ -1,5 +1,5 @@
+using Calcusystem.Core;
 using System;
-using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
@@ -17,7 +17,7 @@ public class ExponentialExpression : IdBase, IExpression
 {
     private IExpression _argument;
 
-    public ExponentialExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    public ExponentialExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;

@@ -22,25 +22,25 @@ public static class ProvenanceFactory
     public static IProvenance Measured(
         string? instrumentId = null,
         DateOnly? calibrationDate = null) =>
-        new MeasuredProvenance(instrumentId, calibrationDate, Constants.CREATE_NEW);
+        new MeasuredProvenance(instrumentId, calibrationDate, Constants.CREATE_NEW_ID);
 
     /// <summary>A literature or tabulated value (physical constant, material/thermodynamic property).</summary>
     public static IProvenance Reference(
         string citation,
         string? url = null,
         int? year = null) =>
-        new ReferenceProvenance(citation, url, year, Constants.CREATE_NEW);
+        new ReferenceProvenance(citation, url, year, Constants.CREATE_NEW_ID);
 
     /// <summary>An engineer-specified value; the tolerance, if any, lives in the variable's uncertainty.</summary>
     public static IProvenance Design(
         string? specReference = null) =>
-        new DesignProvenance(specReference, Constants.CREATE_NEW);
+        new DesignProvenance(specReference, Constants.CREATE_NEW_ID);
 
     /// <summary>An empirically fitted constant within a constitutive relationship (model-specific, not a physical property).</summary>
     public static IProvenance Model(
         string modelName,
         string? fittingReference = null) =>
-        new ModelProvenance(modelName, fittingReference, Constants.CREATE_NEW);
+        new ModelProvenance(modelName, fittingReference, Constants.CREATE_NEW_ID);
 
     /// <summary>
     /// Rebuilds a provenance from previously captured state, preserving its original identity. The counterpart to

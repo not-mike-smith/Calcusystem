@@ -1,4 +1,5 @@
-﻿using DimensionedExpression.BaseModels;
+﻿
+using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
 

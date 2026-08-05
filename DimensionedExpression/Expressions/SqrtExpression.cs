@@ -1,4 +1,4 @@
-using DimensionedExpression.BaseModels;
+using Calcusystem.Core;
 using DimensionedExpression.Interfaces;
 using Measurement;
 
@@ -16,7 +16,7 @@ public class SqrtExpression : IdBase, IExpression
 {
     private IExpression _argument;
 
-    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _argument = argument;
     }

@@ -1,5 +1,6 @@
-﻿using DimensionedExpression.BaseModels;
-using Measurement;
+﻿using Measurement;
+
+using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
 

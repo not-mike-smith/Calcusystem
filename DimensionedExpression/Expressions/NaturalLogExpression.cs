@@ -1,5 +1,5 @@
+using Calcusystem.Core;
 using System;
-using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
@@ -23,7 +23,7 @@ public class NaturalLogExpression : IdBase, IExpression
 {
     private IExpression _argument;
 
-    public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;

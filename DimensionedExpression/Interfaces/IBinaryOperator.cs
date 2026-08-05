@@ -1,3 +1,4 @@
+using Calcusystem.Core;
 namespace DimensionedExpression.Interfaces;
 
 /// <summary>

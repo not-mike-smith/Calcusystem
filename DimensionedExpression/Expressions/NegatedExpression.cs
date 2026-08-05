@@ -1,4 +1,4 @@
-using DimensionedExpression.BaseModels;
+using Calcusystem.Core;
 using DimensionedExpression.Interfaces;
 using Measurement;
 
@@ -12,7 +12,7 @@ namespace DimensionedExpression.Expressions;
 /// </summary>
 public class NegatedExpression : IdBase, IExpression
 {
-    public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW) : base(id)
+    public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _operand = operand;
     }

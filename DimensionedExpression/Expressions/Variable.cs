@@ -1,5 +1,5 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+using Calcusystem.Core;
 using Measurement;
 using Measurement.Exceptions;
 
@@ -24,7 +24,7 @@ public class Variable : IdBase, IDirectExpression
     public Variable(
         string symbol,
         Dimensionality dimensionality,
-        string id = Constants.CREATE_NEW)
+        string id = Constants.CREATE_NEW_ID)
         : base(id)
     {
         
@@ -35,7 +35,7 @@ public class Variable : IdBase, IDirectExpression
     public Variable(
         string symbol,
         Measurand measurand,
-        string id = Constants.CREATE_NEW)
+        string id = Constants.CREATE_NEW_ID)
         : base(id)
     {
         Dimensionality = measurand.Dimensionality;

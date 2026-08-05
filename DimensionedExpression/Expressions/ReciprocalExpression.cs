@@ -1,5 +1,5 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+using Calcusystem.Core;
 using Measurement;
 
 namespace DimensionedExpression.Expressions;
@@ -14,7 +14,7 @@ public class ReciprocalExpression : IdBase, IExpression
 {
     private IExpression _reciprocand;
 
-    public ReciprocalExpression(IExpression reciprocand, string id = Constants.CREATE_NEW) : base(id)
+    public ReciprocalExpression(IExpression reciprocand, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _reciprocand = reciprocand;
     }

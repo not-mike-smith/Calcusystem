@@ -1,5 +1,5 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Expressions;
+﻿using DimensionedExpression.Expressions;
+using Calcusystem.Core;
 using DimensionedExpression.Interfaces;
 
 namespace DimensionedExpression.Systems;
@@ -13,7 +13,7 @@ public class ExpressionSystem : IdBase
     /// </summary>
     public static ExpressionSystem Create(string name, string description = "")
     {
-        return new ExpressionSystem(Constants.CREATE_NEW)
+        return new ExpressionSystem(Constants.CREATE_NEW_ID)
         {
             Name = name,
             Description = description,

@@ -1,5 +1,5 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+using DimensionedExpression.BaseModels;
 using Measurement;
 
 namespace DimensionedExpression.Expressions;
