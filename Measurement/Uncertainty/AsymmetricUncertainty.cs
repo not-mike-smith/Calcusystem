@@ -1,71 +1,99 @@
 using Measurement.Interfaces;
+using Measurement.Extensions;
 
-namespace Measurement.Uncertainty;
+namespace Measurement.Uncertainty; // TODO: move to Measurement namespace
 
 /// <summary>
-/// Asymmetric relative uncertainty with independent bounds above and below the nominal value.
-/// For propagation through arithmetic operations, the larger of the two relative errors is used
-/// as a conservative estimate. Monte Carlo propagation (preserving asymmetry) is deferred to Milestone 4.
+/// Asymmetric uncertainty with independent errors above and below the nominal value. Both are stored in the same
+/// form (relative or absolute, see <see cref="IsStoredAsAbs"/>). For propagation through arithmetic the larger of the two
+/// is used as a conservative estimate; Monte Carlo propagation preserving the asymmetry is deferred to a later
+/// milestone.
 /// </summary>
 public sealed class AsymmetricUncertainty : IUncertainty
 {
-    public double UpperRelativeError { get; }
-    public double LowerRelativeError { get; }
+    /// <summary>Whether the magnitudes are relative fractions or absolute KMS errors.</summary>
+    public bool IsStoredAsAbs { get; }
 
-    public AsymmetricUncertainty(double upperRelativeError, double lowerRelativeError)
+    /// <summary>The stored error above the nominal value — relative or absolute per <see cref="IsStoredAsAbs"/>.</summary>
+    public double UpperMagnitude { get; }
+
+    /// <summary>The stored error below the nominal value — relative or absolute per <see cref="IsStoredAsAbs"/>.</summary>
+    public double LowerMagnitude { get; }
+
+    private AsymmetricUncertainty(bool isStoredAsAbs, double upper, double lower)
     {
-        if (double.IsNegative(upperRelativeError) || double.IsNegative(lowerRelativeError))
-            throw new ArgumentException("Relative errors cannot be negative.");
-        if (double.IsInfinity(upperRelativeError) || double.IsNaN(upperRelativeError) ||
-            double.IsInfinity(lowerRelativeError) || double.IsNaN(lowerRelativeError))
-            throw new ArgumentException("Relative errors cannot be infinite or NaN.");
+        if (double.IsNaN(upper) || double.IsNegative(upper) || double.IsNaN(lower) || double.IsNegative(lower))
+            throw new ArgumentException("Uncertainty magnitudes cannot be negative or NaN.");
 
-        UpperRelativeError = upperRelativeError;
-        LowerRelativeError = lowerRelativeError;
+        IsStoredAsAbs = isStoredAsAbs;
+        UpperMagnitude = upper;
+        LowerMagnitude = lower;
     }
 
-    public double UpperAbsoluteError(double nominalKmsValue) => UpperRelativeError * Math.Abs(nominalKmsValue);
-    public double LowerAbsoluteError(double nominalKmsValue) => LowerRelativeError * Math.Abs(nominalKmsValue);
-    public double RelativeError(double nominalKmsValue) => Math.Max(UpperRelativeError, LowerRelativeError);
-
-    private static AsymmetricUncertainty FromAbsoluteError(
-        Quantity nominalValue,
-        Quantity upperAbsoluteError,
-        Quantity lowerAbsoluteError)
+    public double UpperAbsoluteError(double nominalKmsValue) => IsStoredAsAbs switch
     {
-        if (upperAbsoluteError.Dimensionality != nominalValue.Dimensionality ||
-            lowerAbsoluteError.Dimensionality != nominalValue.Dimensionality)
-            throw new ArgumentException(
-                "Upper and lower absolute errors must have the same dimensionality as nominal value.");
+        true => UpperMagnitude,
+        false => UpperMagnitude * Math.Abs(nominalKmsValue),
+    };
 
-        double upperRelativeError = Math.Abs(upperAbsoluteError.KmsValue) / Math.Abs(nominalValue.KmsValue);
-        double lowerRelativeError = Math.Abs(lowerAbsoluteError.KmsValue) / Math.Abs(nominalValue.KmsValue);
+    public double LowerAbsoluteError(double nominalKmsValue) => IsStoredAsAbs switch
+    {
+        true => LowerMagnitude,
+        false => LowerMagnitude * Math.Abs(nominalKmsValue),
+    };
 
-        return new AsymmetricUncertainty(upperRelativeError, lowerRelativeError);
+    public double UpperRelativeError(double nominalKmsValue) => IsStoredAsAbs switch
+    {
+        true => UpperMagnitude.SafeDivide(Math.Abs(nominalKmsValue)),
+        false => UpperMagnitude,
+    };
+
+    public double LowerRelativeError(double nominalKmsValue) => IsStoredAsAbs switch
+    {
+        true => LowerMagnitude.SafeDivide(Math.Abs(nominalKmsValue)),
+        false => LowerMagnitude,
+    };
+
+    public double RelativeError(double nominalKmsValue) => 
+        Math.Max(UpperRelativeError(nominalKmsValue), LowerRelativeError(nominalKmsValue));
+
+    public double AbsoluteError(double nominalKmsValue) =>
+        Math.Max(UpperAbsoluteError(nominalKmsValue), LowerAbsoluteError(nominalKmsValue));
+
+    /// <summary>Rebuilds an uncertainty from its stored form (used by deserialization).</summary>
+    public static AsymmetricUncertainty From(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) =>
+        new(isStoredAsAbs, upperMagnitude, lowerMagnitude);
+
+    /// <summary>
+    /// Creates an asymmetric uncertainty from independent upper/lower absolute errors.
+    /// </summary>
+    public static AsymmetricUncertainty FromAbsErr(Quantity upperAbsoluteError, Quantity lowerAbsoluteError)
+    {
+        return new AsymmetricUncertainty(
+            true,
+            upperAbsoluteError.KmsValue,
+            lowerAbsoluteError.KmsValue);
     }
 
-    public static UncertaintyFromNominalValue FromAbsErr(Quantity upperAbsoluteError, Quantity lowerAbsoluteError)
+    /// <summary>
+    /// Creates an asymmetric uncertainty from independent upper/lower relative errors (fractions).
+    /// </summary>
+    public static AsymmetricUncertainty FromRelErr(double upperRelativeError, double lowerRelativeError)
     {
-        AsymmetricUncertainty func(Quantity nominalValue)
-        {
-            return FromAbsoluteError(nominalValue, upperAbsoluteError, lowerAbsoluteError);
-        }
-
-        return func;
-    }
-
-    public double AbsoluteError(double nominalKmsValue)
-    {
-        return Math.Max(UpperAbsoluteError(nominalKmsValue), LowerAbsoluteError(nominalKmsValue));
+        return new AsymmetricUncertainty(
+            false,
+            upperRelativeError,
+            lowerRelativeError);
     }
 
     public IUncertainty Reciprocal(double nominalKmsValue)
     {
-        return new AsymmetricUncertainty(LowerRelativeError, UpperRelativeError);
+        return new AsymmetricUncertainty(
+            false,
+            LowerRelativeError(nominalKmsValue),
+            UpperRelativeError(nominalKmsValue));
     }
 
-    public IUncertainty Negated(double nominalKmsValue)
-    {
-        return new AsymmetricUncertainty(LowerRelativeError, UpperRelativeError);
-    }
+    public IUncertainty Negated(double nominalKmsValue) =>
+        new AsymmetricUncertainty(IsStoredAsAbs, LowerMagnitude, UpperMagnitude);
 }

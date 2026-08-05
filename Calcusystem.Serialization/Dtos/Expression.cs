@@ -1,6 +1,7 @@
 ﻿using Calcusystem.Serialization.Interfaces;
 using Measurement;
 using Measurement.Models;
+using Measurement.Uncertainty;
 
 namespace Calcusystem.Serialization.Dtos;
 
@@ -13,17 +14,18 @@ public abstract class ExpressionBase : ISerializedObject
 public abstract class Uncertainty
 {
     public required string Type { get; init; }
+    public required bool IsStoredAsAbs { get; init; }
 }
 
 public class SymmetricUncertainty : Uncertainty
 {
-    public required double? RelativeError { get; init; }
+    public required double Magnitude { get; init; }
 }
 
 public class AsymmetricUncertainty : Uncertainty
 {
-    public required double? UpperRelativeError { get; init; }
-    public required double? LowerRelativeError { get; init; }
+    public required double UpperMagnitude { get; init; }
+    public required double LowerMagnitude { get; init; }
 }
 
 public class SingleVariable : ExpressionBase

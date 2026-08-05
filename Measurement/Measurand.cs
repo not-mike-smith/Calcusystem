@@ -26,6 +26,8 @@ public class Measurand
     public Dimensionality Dimensionality => Quantity.Dimensionality;
 
     public double RelativeError => Uncertainty.RelativeError(KmsValue);
+    public double UpperRelativeError => Uncertainty.UpperRelativeError(KmsValue);
+    public double LowerRelativeError => Uncertainty.LowerRelativeError(KmsValue);
 
     public double AbsoluteError(UnitOfMeasure unitOfMeasure)
     {
@@ -129,7 +131,7 @@ public class Measurand
         if (quantities.Length == 0) return new Measurand();
 
         var product = quantities.Select(q => q.Quantity).Aggregate(
-            Measurement.Quantity.One,
+            Quantity.One,
             (prod, q) => prod * q);
 
         return new Measurand(product, ResolveErrorPropagator().PropagateErrorThroughProduct(method, quantities));
@@ -148,7 +150,7 @@ public class Measurand
     public Measurand ToPower(int exponent)
     {
         return new Measurand(
-            Quantity.ToPower(exponent), 
+            Quantity.ToPower(exponent),
             ResolveErrorPropagator().PropagateErrorThroughExponentiation(this, exponent, 1));
     }
 

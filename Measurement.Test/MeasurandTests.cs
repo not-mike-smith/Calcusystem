@@ -52,4 +52,26 @@ public class MeasurandTests
         var result = length.TrySubtract(mass);
         result.IsNaN().Should().BeTrue();
     }
+
+    [Fact]
+    public void Minus_CancelingToZero_KeepsAbsoluteErrorWithoutThrowing()
+    {
+        // 2m ± 0.02 (abs) minus itself → value 0. The propagated error is stored as an absolute error rather
+        // than dividing by the (zero) sum, so this no longer throws.
+        var difference = Meters(2, 0.01).Minus(Meters(2, 0.01));
+
+        difference.KmsValue.Should().Be(0);
+        difference.KmsAbsoluteError.Should().BeApproximately(Math.Sqrt(2) * 0.02, 1E-9);
+        double.IsPositiveInfinity(difference.RelativeError).Should().BeTrue();
+    }
+
+    [Fact]
+    public void FromAbsErr_OnZeroValue_KeepsAbsoluteErrorWithoutThrowing()
+    {
+        var zero = Length.Meter.Quantity(0).Measurand(GaussianUncertainty.FromAbsErr(Length.Meter.Quantity(0.5)));
+
+        zero.KmsValue.Should().Be(0);
+        zero.KmsAbsoluteError.Should().BeApproximately(0.5, 1E-9);
+        double.IsPositiveInfinity(zero.RelativeError).Should().BeTrue();
+    }
 }

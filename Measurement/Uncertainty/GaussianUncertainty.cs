@@ -1,58 +1,63 @@
 using Measurement.Interfaces;
+using Measurement.Extensions;
 
-namespace Measurement.Uncertainty;
+namespace Measurement.Uncertainty; // TODO: move to Measurement namespace
 
 /// <summary>
-/// Symmetric relative uncertainty, equivalent to the original single-value model.
-/// Propagates via RSS (uncorrelated) or direct sum (correlated) through arithmetic operations.
+/// Symmetric uncertainty: the same error above and below the nominal value. The error is stored either as a
+/// relative fraction or as an absolute KMS value (see <see cref="IsStoredAsAbs"/>) — absolute storage is what lets a
+/// zero-valued quantity carry a meaningful uncertainty. Which form is stored is invisible to consumers, who read
+/// absolute or relative error through <see cref="IUncertainty"/>.
 /// </summary>
-public sealed class GaussianUncertainty : ISymmetricUncertainty
+public sealed class GaussianUncertainty : ISymmetricUncertainty // TODO rename to SymmetricUncertainty
 {
-    private readonly double _relativeError;
+    /// <summary>Whether <see cref="Magnitude"/> is a relative fraction or an absolute KMS error.</summary>
+    public bool IsStoredAsAbs { get; }
 
-    private GaussianUncertainty(double relativeError)
+    /// <summary>The stored error — a relative fraction or an absolute KMS value, per <see cref="IsStoredAsAbs"/>.</summary>
+    public double Magnitude { get; }
+
+    private GaussianUncertainty(bool isStoredAsAbs, double magnitude)
     {
-        if (double.IsNegative(relativeError) || double.IsInfinity(relativeError) || double.IsNaN(relativeError))
-            throw new ArgumentException("Relative error cannot be negative, infinite, or NaN.", nameof(relativeError));
+        if (double.IsNaN(magnitude) || double.IsNegative(magnitude))
+            throw new ArgumentException("Uncertainty magnitude cannot be negative or NaN.", nameof(magnitude));
 
-        _relativeError = relativeError;
+        IsStoredAsAbs = isStoredAsAbs;
+        Magnitude = magnitude;
     }
 
-    public double RelativeError(double nominalKmsValue) => _relativeError;
+    public double RelativeError(double nominalKmsValue) =>
+        IsStoredAsAbs
+            ? Magnitude.SafeDivide(Math.Abs(nominalKmsValue))
+            : Magnitude;
 
-    public double AbsoluteError(double nominalKmsValue) => _relativeError * Math.Abs(nominalKmsValue);
+    public double AbsoluteError(double nominalKmsValue) =>
+        IsStoredAsAbs
+            ? Magnitude
+            : Magnitude * Math.Abs(nominalKmsValue);
 
-    private static GaussianUncertainty FromAbsoluteError(Quantity value, Quantity absoluteError)
+    /// <summary>Creates a symmetric uncertainty from a relative error (a fraction).</summary>
+    public static GaussianUncertainty FromRelErr(double relativeError) => new(false, relativeError);
+
+    /// <summary>Creates a symmetric uncertainty from an absolute error already in KMS units.</summary>
+    internal static GaussianUncertainty FromKmsAbsErr(double kmsAbsoluteError) =>
+        new(true, Math.Abs(kmsAbsoluteError));
+
+    /// <summary>Rebuilds an uncertainty from its stored form (used by deserialization).</summary>
+    public static GaussianUncertainty From(bool isStoredAsAbs, double magnitude) =>
+        new(isStoredAsAbs, magnitude);
+
+    /// <summary>
+    /// Creates a symmetric uncertainty from an absolute error. Absolute error is stored directly and needs no
+    /// nominal value, so the returned delegate ignores the value it is given.
+    /// </summary>
+    public static GaussianUncertainty FromAbsErr(Quantity absoluteError)
     {
-        if (value.Dimensionality != absoluteError.Dimensionality)
-            throw new ArgumentException("Value and absolute error must have the same dimensionality.");
-
-        double relativeError = Math.Abs(absoluteError.KmsValue) / Math.Abs(value.KmsValue);
-        return new GaussianUncertainty(relativeError);
+        return FromKmsAbsErr(absoluteError.KmsValue);
     }
 
-    public static GaussianUncertainty FromRelErr(double relativeError)
-    {
-        return new GaussianUncertainty(relativeError);
-    }
+    public IUncertainty Reciprocal(double nominalKmsValue) =>
+        new GaussianUncertainty(false, RelativeError(nominalKmsValue)); // relative error is invariant under reciprocal
 
-    public static UncertaintyFromNominalValue FromAbsErr(Quantity absoluteError)
-    {
-        GaussianUncertainty func(Quantity value)
-        {
-            return FromAbsoluteError(value, absoluteError);
-        }
-
-        return func;
-    }
-
-    public IUncertainty Reciprocal(double nominalKmsValue)
-    {
-        return this;
-    }
-
-    public IUncertainty Negated(double nominalKmsValue)
-    {
-        return this;
-    }
+    public IUncertainty Negated(double nominalKmsValue) => this; // negation preserves both stored forms
 }

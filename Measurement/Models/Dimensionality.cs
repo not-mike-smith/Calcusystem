@@ -2,7 +2,7 @@
 using Measurement.Extensions;
 using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.Models.FundamentalDimension, int>;
 
-namespace Measurement.Models;
+namespace Measurement.Models; // TODO: move to Measurement namespace
 
 /// <summary>
 /// The physical dimension of a quantity, represented as a map from each <see cref="FundamentalDimension"/>

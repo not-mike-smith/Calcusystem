@@ -15,7 +15,7 @@ So, depending on your task:
 - **Using an assembly** (calling it from another project, or from your own code): read its `README.md`, then the interfaces in `Interfaces/`. The interfaces carry XML docstrings describing each member's contract.
 - **Modifying an assembly**: additionally read the implementation files for the types you're changing.
 
-A few assemblies note exceptions at the top of their README — types outside `Interfaces/` that also carry essential contract docstrings (for example, `Measurement` calls out its `Quantity` and `Dimensionality` structs, `FundamentalDimension`, and the `UncertaintyFromNominalValue` delegate).
+A few assemblies note exceptions at the top of their README — types outside `Interfaces/` that also carry essential contract docstrings (for example, `Measurement` calls out its `Quantity` and `Dimensionality` structs and the `FundamentalDimension` class).
 
 ---
 
