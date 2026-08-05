@@ -1,5 +1,6 @@
 using Measurement.Interfaces;
 using Measurement.Extensions;
+using Measurement.State;
 
 namespace Measurement;
 
@@ -12,10 +13,12 @@ namespace Measurement;
 public sealed class SymmetricUncertainty : ISymmetricUncertainty
 {
     /// <summary>Whether <see cref="Magnitude"/> is a relative fraction or an absolute KMS error.</summary>
-    public bool IsStoredAsAbs { get; }
+    /// <remarks>An implementation detail of the storage convention; it leaves the assembly only as part of
+    /// <see cref="UncertaintyState"/>.</remarks>
+    internal bool IsStoredAsAbs { get; }
 
     /// <summary>The stored error — a relative fraction or an absolute KMS value, per <see cref="IsStoredAsAbs"/>.</summary>
-    public double Magnitude { get; }
+    internal double Magnitude { get; }
 
     private SymmetricUncertainty(bool isStoredAsAbs, double magnitude)
     {
@@ -43,8 +46,9 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
     internal static SymmetricUncertainty FromKmsAbsErr(double kmsAbsoluteError) =>
         new(true, Math.Abs(kmsAbsoluteError));
 
-    /// <summary>Rebuilds an uncertainty from its stored form (used by deserialization).</summary>
-    public static SymmetricUncertainty From(bool isStoredAsAbs, double magnitude) =>
+    /// <summary>Rebuilds an uncertainty from its stored form. Reached from outside the assembly only through
+    /// <see cref="UncertaintyFactory.FromState"/>.</summary>
+    internal static SymmetricUncertainty From(bool isStoredAsAbs, double magnitude) =>
         new(isStoredAsAbs, magnitude);
 
     /// <summary>
@@ -66,4 +70,8 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
         new SymmetricUncertainty(false, RelativeError(nominalKmsValue)); // relative error is invariant under reciprocal
 
     public IUncertainty Negated(double nominalKmsValue) => this; // negation preserves both stored forms
+
+    /// <remarks>Explicit implementation: the storage form is reachable through <see cref="IUncertainty"/>, but is
+    /// not part of this class's own public surface.</remarks>
+    UncertaintyState IUncertainty.GetState() => UncertaintyState.Symmetric(IsStoredAsAbs, Magnitude);
 }

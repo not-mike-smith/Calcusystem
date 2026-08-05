@@ -6,6 +6,7 @@ using DimensionedExpression.Interfaces;
 using DimensionedExpression.Provenance;
 using DimensionedExpression.Systems;
 using Measurement;
+using Measurement.State;
 using Measurement.Interfaces;
 
 namespace Calcusystem.Serialization.Mappers;
@@ -187,10 +188,14 @@ public class DeserializingMapper
 
     private IUncertainty MapUncertainty(Dtos.Uncertainty? uncertainty)
     {
+        // This layer owns the wire format — including any version fix-up of older payloads — and hands
+        // Measurement nothing but the state it needs to rebuild.
         return uncertainty switch
         {
-            Dtos.SymmetricUncertainty sym => SymmetricUncertainty.From(sym.IsStoredAsAbs, sym.Magnitude),
-            Dtos.AsymmetricUncertainty asym => AsymmetricUncertainty.From(asym.IsStoredAsAbs, asym.UpperMagnitude, asym.LowerMagnitude),
+            Dtos.SymmetricUncertainty sym => UncertaintyFactory.FromState(
+                UncertaintyState.Symmetric(sym.IsStoredAsAbs, sym.Magnitude)),
+            Dtos.AsymmetricUncertainty asym => UncertaintyFactory.FromState(
+                UncertaintyState.Asymmetric(asym.IsStoredAsAbs, asym.UpperMagnitude, asym.LowerMagnitude)),
             null => SymmetricUncertainty.FromRelErr(0),
             _ => throw new NotImplementedException(
                 $"No deserialization method defined for uncertainty type {uncertainty.GetType().Name}")

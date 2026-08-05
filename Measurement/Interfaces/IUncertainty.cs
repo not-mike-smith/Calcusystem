@@ -1,3 +1,5 @@
+using Measurement.State;
+
 namespace Measurement.Interfaces;
 
 /// <summary>
@@ -65,4 +67,15 @@ public interface IUncertainty
     /// <param name="exponentNumerator">Numerator of the rational exponent (integer powers pass 1 as the denominator).</param>
     /// <param name="exponentDenominator">Denominator of the rational exponent (roots pass 1 as the numerator).</param>
     IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator);
+
+    /// <summary>
+    /// Returns the complete stored state of this uncertainty — the storage convention and magnitudes needed to
+    /// rebuild it via <see cref="UncertaintyFactory.FromState"/>, and nothing more.
+    /// </summary>
+    /// <remarks>
+    /// The persistence seam. Implementations provide this <i>explicitly</i>, so the storage form stays off their
+    /// own public surface: consumers holding a concrete <see cref="SymmetricUncertainty"/> still see only the
+    /// error-reading and construction members, never the raw magnitude.
+    /// </remarks>
+    UncertaintyState GetState();
 }

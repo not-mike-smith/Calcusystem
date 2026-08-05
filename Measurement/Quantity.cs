@@ -1,6 +1,7 @@
 ﻿using System;
 using Measurement.Exceptions;
 using Measurement.Interfaces;
+using Measurement.State;
 
 namespace Measurement;
 
@@ -15,7 +16,7 @@ namespace Measurement;
 /// either from a user value plus a <see cref="UnitOfMeasure"/> (which converts to KMS), or directly from a
 /// raw KMS value plus a <see cref="Dimensionality"/>.
 /// </remarks>
-public readonly struct Quantity
+public readonly struct Quantity : IStateful<Quantity, QuantityState>
 {
     private readonly double? _value;
     private double Value => _value ?? double.NaN;
@@ -225,4 +226,12 @@ public readonly struct Quantity
 
         return new Quantity(value, Dimensionality);
     }
+
+    /// <inheritdoc/>
+    /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's state is its value
+    /// and its dimension, both of which are already public concepts here. Nothing is being hidden to protect.</remarks>
+    public QuantityState GetState() => new(KmsValue, Dimensionality);
+
+    /// <inheritdoc/>
+    public static Quantity FromState(QuantityState state) => new(state.KmsValue, state.Dimensionality);
 }

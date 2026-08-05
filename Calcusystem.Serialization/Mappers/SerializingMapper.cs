@@ -4,6 +4,7 @@ using DimensionedExpression.Provenance;
 using DimensionedExpression.Systems;
 using Measurement.Interfaces;
 using Measurement;
+using Measurement.State;
 
 namespace Calcusystem.Serialization.Mappers;
 
@@ -135,23 +136,26 @@ public class SerializingMapper
 
     private Dtos.Uncertainty Map(IUncertainty uncertainty)
     {
-        return uncertainty switch
+        // Measurement hands out its state; this layer decides how that state is labelled on the wire.
+        var state = uncertainty.GetState();
+
+        return state.Shape switch
         {
-            SymmetricUncertainty symmetric => new Dtos.SymmetricUncertainty
+            UncertaintyShape.Symmetric => new Dtos.SymmetricUncertainty
             {
-                Type = symmetric.GetType().Name,
-                IsStoredAsAbs = symmetric.IsStoredAsAbs,
-                Magnitude = symmetric.Magnitude
+                Type = nameof(SymmetricUncertainty),
+                IsStoredAsAbs = state.IsStoredAsAbs,
+                Magnitude = state.UpperMagnitude
             },
-            AsymmetricUncertainty asymmetric => new Dtos.AsymmetricUncertainty
+            UncertaintyShape.Asymmetric => new Dtos.AsymmetricUncertainty
             {
-                Type = asymmetric.GetType().Name,
-                IsStoredAsAbs = asymmetric.IsStoredAsAbs,
-                UpperMagnitude = asymmetric.UpperMagnitude,
-                LowerMagnitude = asymmetric.LowerMagnitude
+                Type = nameof(AsymmetricUncertainty),
+                IsStoredAsAbs = state.IsStoredAsAbs,
+                UpperMagnitude = state.UpperMagnitude,
+                LowerMagnitude = state.LowerMagnitude
             },
             _ => throw new NotImplementedException(
-                $"No mapping for uncertainty of type {uncertainty.GetType().Name}")
+                $"No mapping for uncertainty shape {state.Shape}")
         };
     }
 
