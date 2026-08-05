@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Measurement.Models;
+namespace Measurement.Models; // TODO move to Measuremnt namespace
 
 /// <summary>
 /// A named unit in which a <see cref="Quantity"/> can be expressed — a symbol, a
@@ -13,7 +13,7 @@ namespace Measurement.Models;
 /// <see cref="OffsetUnitOfMeasure"/>, which overrides the conversion methods; consumers interact with both
 /// through this common type.
 /// </remarks>
-public class UnitOfMeasure
+public class UnitOfMeasure // TODO: should this be a record?
 {
     /// <summary>The physical dimension this unit measures.</summary>
     public readonly Dimensionality Dimensionality;

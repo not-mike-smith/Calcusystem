@@ -141,13 +141,13 @@ public class SerializingMapper
             GaussianUncertainty symmetric => new Dtos.SymmetricUncertainty
             {
                 Type = symmetric.GetType().Name,
-                Kind = symmetric.Kind,
+                IsStoredAsAbs = symmetric.IsStoredAsAbs,
                 Magnitude = symmetric.Magnitude
             },
             AsymmetricUncertainty asymmetric => new Dtos.AsymmetricUncertainty
             {
                 Type = asymmetric.GetType().Name,
-                Kind = asymmetric.Kind,
+                IsStoredAsAbs = asymmetric.IsStoredAsAbs,
                 UpperMagnitude = asymmetric.UpperMagnitude,
                 LowerMagnitude = asymmetric.LowerMagnitude
             },

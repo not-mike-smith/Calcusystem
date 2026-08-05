@@ -14,7 +14,7 @@ public abstract class ExpressionBase : ISerializedObject
 public abstract class Uncertainty
 {
     public required string Type { get; init; }
-    public required UncertaintyKind Kind { get; init; }
+    public required bool IsStoredAsAbs { get; init; }
 }
 
 public class SymmetricUncertainty : Uncertainty

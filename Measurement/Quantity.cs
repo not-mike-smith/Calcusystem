@@ -54,15 +54,6 @@ public readonly struct Quantity
     }
 
     /// <summary>
-    /// Attaches uncertainty derived from this quantity's nominal value (e.g. an absolute error resolved into a
-    /// relative one), producing a <see cref="Measurand"/>. See <see cref="UncertaintyFromNominalValue"/>.
-    /// </summary>
-    public Measurand Measurand(UncertaintyFromNominalValue absoluteUncertainty)
-    {
-        return new Measurand(this, absoluteUncertainty(this));
-    }
-
-    /// <summary>
     /// Returns this quantity's value expressed in <paramref name="unitOfMeasure"/>.
     /// </summary>
     /// <exception cref="IncompatibleDimensionsException">The unit's dimensionality does not match this quantity's.</exception>

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Measurement.Models;
+namespace Measurement.Models; // TODO: move to Measurement namespace
 
 /// <summary>
 /// One of the irreducible base dimensions of measurement (mass, length, time, …). A
@@ -14,7 +14,7 @@ namespace Measurement.Models;
 /// gives quantities a canonical symbol layout. Note the case-sensitive symbols: <c>T</c> is temperature vs.
 /// <c>t</c> time, and <c>C</c> is luminous intensity vs. <c>c</c> currency.
 /// </remarks>
-public class FundamentalDimension : IComparable<FundamentalDimension>
+public class FundamentalDimension : IComparable<FundamentalDimension> // TODO: should this be a record?
 {
     /// <summary>Human-readable name (e.g. "Electric Current"); also the identity used for equality.</summary>
     public string Name { get; }

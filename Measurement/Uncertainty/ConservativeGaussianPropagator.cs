@@ -1,4 +1,5 @@
 using Measurement.Interfaces;
+using Measurement.Extensions;
 
 namespace Measurement.Uncertainty;
 
@@ -10,9 +11,35 @@ public class ConservativeGaussianPropagator : IErrorPropagator
         ErrorPropagationMethod method,
         params Measurand[] measurands)
     {
+        if (measurands.All(m => m.Uncertainty is ISymmetricUncertainty))
+        {
+            return PropagateSymmetricErrorThroughSum(method, measurands);
+        }
+
+        double upperAbsoluteError = method switch
+        {
+            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsUpperAbsoluteError),
+            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsUpperAbsoluteError),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+        };
+
+        double lowerAbsoluteError = method switch
+        {
+            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsLowerAbsoluteError),
+            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsLowerAbsoluteError),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+        };
+
+        return AsymmetricUncertainty.From(true, upperAbsoluteError, lowerAbsoluteError);
+    }
+
+    private IUncertainty PropagateSymmetricErrorThroughSum(
+        ErrorPropagationMethod method,
+        params Measurand[] measurands)
+    {
         double absoluteError = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => Math.Sqrt(measurands.Sum(m => m.KmsAbsoluteError * m.KmsAbsoluteError)),
+            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsAbsoluteError),
             ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsAbsoluteError),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
@@ -26,9 +53,35 @@ public class ConservativeGaussianPropagator : IErrorPropagator
         ErrorPropagationMethod method,
         params Measurand[] measurands)
     {
+        if (measurands.All(m => m.Uncertainty is ISymmetricUncertainty))
+        {
+            return PropagateSymmetricErrorThroughProduct(method, measurands);
+        }
+
+        double upperRelativeError = method switch
+        {
+            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.UpperRelativeError),
+            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.UpperRelativeError),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+        };
+
+        double lowerRelativeError = method switch
+        {
+            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.LowerRelativeError),
+            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.LowerRelativeError),
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+        };
+
+        return AsymmetricUncertainty.From(false, upperRelativeError, lowerRelativeError);
+    }
+
+    private IUncertainty PropagateSymmetricErrorThroughProduct(
+        ErrorPropagationMethod method,
+        params Measurand[] measurands)
+    {
         var relErr = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => Math.Sqrt(measurands.Sum(m => m.RelativeError * m.RelativeError)),
+            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.RelativeError),
             ErrorPropagationMethod.Correlated => measurands.Sum(m => m.RelativeError),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
@@ -36,6 +89,7 @@ public class ConservativeGaussianPropagator : IErrorPropagator
         return GaussianUncertainty.FromRelErr(relErr);
     }
 
+    // TODO: move to the AsymmetricUncertainty and GaussianUncertainty classes, respectively
     public IUncertainty PropagateErrorThroughExponentiation(
         Measurand measurand,
         int exponentNumerator,

@@ -10,19 +10,27 @@ namespace Measurement.Interfaces;
 /// implementation scales with <c>v</c>, while an absolute-error implementation ignores it. This is why every
 /// member takes <c>nominalKmsValue</c> — the interval cannot be resolved without knowing the value it surrounds.
 /// </remarks>
-public interface IUncertainty // TODO: should this be internal?
+public interface IUncertainty
 {
     /// <summary>Absolute error above the nominal value in KMS units.</summary>
     double UpperAbsoluteError(double nominalKmsValue);
 
-    /// <summary>Absolute error below the nominal value in KMS units.</summary>
+    /// <summary>Absolute error below the nominal value in KMS units.  Always a positive value</summary>
     double LowerAbsoluteError(double nominalKmsValue);
+
+    /// <summary>Relative error above the nominal value (a fraction of the nominal value).</summary>
+    double UpperRelativeError(double nominalKmsValue);
+
+    /// <summary>
+    /// Relative error below the nominal value (a fraction of the nominal value). Always a positive value
+    /// </summary>
+    double LowerRelativeError(double nominalKmsValue);
 
     /// <summary>
     /// Conservative relative error for use in propagation formulas.
     /// For asymmetric uncertainty types this is the larger of upper and lower relative errors.
     /// </summary>
-    double RelativeError(double nominalKmsValue); // TODO : should this be a property instead of a method? It is not a function of the nominal value for symmetric uncertainty types, but it is for asymmetric uncertainty types.
+    double RelativeError(double nominalKmsValue);
 
     /// <summary>
     /// Conservative absolute error for use in propagation formulas.

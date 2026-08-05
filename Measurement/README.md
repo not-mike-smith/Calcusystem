@@ -2,7 +2,7 @@
 
 The foundation layer of Calcusystem. Provides physical quantities with units, dimensions, and measurement uncertainty as first-class concerns. All other assemblies depend on this one; it has no Calcusystem dependencies of its own.
 
-> **Using this assembly:** as with every project, this README plus the interfaces in `Interfaces/` cover what you need to *use* Measurement without reading implementation. Measurement is an exception in one respect — several non-interface types also carry essential contract docstrings worth reading directly: the `Quantity` and `Dimensionality` structs, the `FundamentalDimension` class, and the `UncertaintyFromNominalValue` delegate.
+> **Using this assembly:** as with every project, this README plus the interfaces in `Interfaces/` cover what you need to *use* Measurement without reading implementation. Measurement is an exception in one respect — several non-interface types also carry essential contract docstrings worth reading directly: the `Quantity` and `Dimensionality` structs and the `FundamentalDimension` class.
 
 ---
 
@@ -71,16 +71,16 @@ var root       = energy / 2;      // L·t⁻¹   (integer root; throws Nondiscre
 
 Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteError(v), v + UpperAbsoluteError(v)]`.
 
-**Relative or absolute storage (`UncertaintyKind`).** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, tagged by `UncertaintyKind` (`Relative` / `Absolute`; `Interval` reserved for a future representation). Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeError(0)` returns `+∞` rather than throwing. This is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
+**Relative or absolute storage (`IsStoredAsAbs`).** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by a `bool IsStoredAsAbs`. This is purely a **convention on what the stored `Magnitude` means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IErrorPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeError(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
 
 | Factory | Interface | Stored as |
 | --- | --- | --- |
 | `GaussianUncertainty.FromRelErr(relativeError)` | `ISymmetricUncertainty` | relative fraction |
 | `GaussianUncertainty.FromAbsErr(absoluteError: Quantity)` | `ISymmetricUncertainty` | absolute KMS error |
-| `new AsymmetricUncertainty(upperRel, lowerRel)` | `IUncertainty` | relative fractions |
+| `AsymmetricUncertainty.FromRelErr(upperRel, lowerRel)` | `IUncertainty` | relative fractions |
 | `AsymmetricUncertainty.FromAbsErr(upperError, lowerError: Quantity)` | `IUncertainty` | absolute KMS errors |
 
-`GaussianUncertainty`'s constructor is private — go through the factories (`FromRelErr`/`FromAbsErr`, or `From(kind, magnitude)` for deserialization). The `FromAbsErr` factories still return an `UncertaintyFromNominalValue` delegate for API symmetry, but an absolute error no longer needs the nominal value, so the delegate simply ignores it:
+Both types' constructors are private — go through the factories: `FromRelErr` (relative), `FromAbsErr` (absolute — takes a `Quantity` and returns the uncertainty directly, since an absolute error needs no nominal value), or `From(isStoredAsAbs, magnitude…)` for deserialization.
 
 ```csharp
 var mass = Mass.Kilogram.Quantity(1).Measurand(GaussianUncertainty.FromAbsErr(1.0.Units(Mass.Milligram)));
@@ -88,7 +88,7 @@ var mass = Mass.Kilogram.Quantity(1).Measurand(GaussianUncertainty.FromAbsErr(1.
 
 Propagation follows the storage: **sums/differences produce an absolute-error result** (no dividing by the possibly-zero sum), while products compose relative errors. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.
 
-**`ISymmetricUncertainty`** extends `IUncertainty` (which already declares `AbsoluteError(v)`) and adds default interface implementations of `UpperAbsoluteError`/`LowerAbsoluteError` in terms of it. Only `GaussianUncertainty` implements this.
+**`ISymmetricUncertainty`** extends `IUncertainty` and adds default interface implementations of the directional members (`UpperAbsoluteError`/`LowerAbsoluteError` and their relative equivalents) in terms of the single `AbsoluteError`/`RelativeError`. Only `GaussianUncertainty` implements this.
 
 `Measurand` exposes:
 
