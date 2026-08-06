@@ -11,7 +11,7 @@ The foundation layer of Calcusystem. Provides physical quantities with units, di
 **All values are stored internally in kg-m-s (SI base units).** Units are only relevant at the boundary — when constructing a quantity from a user-supplied value, or when reading a value back out in a specific unit. All arithmetic, comparison, and uncertainty propagation operates on KMS values directly. This eliminates an entire class of conversion bugs.
 
 ```csharp
-var force = Force.PoundForce.Quantity(1.0).Measurand(SymmetricUncertainty.FromRelErr(0));  // user supplies lbf
+var force = Force.PoundForce.Quantity(1.0).WithoutError();  // user supplies lbf
 force.In(Force.OunceForce);  // 16.0   — conversion happens at output only
 force.KmsValue;              // 4.448… — internal representation is always SI
 ```
@@ -83,21 +83,51 @@ Note `T` is time and `Θ` is temperature — the reverse of the convention some 
 
 ## Uncertainty system
 
-Defined in `Measurement/Uncertainty/`. The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteError(v), v + UpperAbsoluteError(v)]`.
+The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteError(v), v + UpperAbsoluteError(v)]`.
 
 **Relative or absolute storage.** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by an internal `bool IsStoredAsAbs`. This is purely a **convention on what the stored magnitude means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IErrorPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeError(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
 
-| Factory | Interface | Stored as |
-| --- | --- | --- |
-| `SymmetricUncertainty.FromRelErr(relativeError)` | `ISymmetricUncertainty` | relative fraction |
-| `SymmetricUncertainty.FromAbsErr(absoluteError: Quantity)` | `ISymmetricUncertainty` | absolute KMS error |
-| `AsymmetricUncertainty.FromRelErr(upperRel, lowerRel)` | `IUncertainty` | relative fractions |
-| `AsymmetricUncertainty.FromAbsErr(upperError, lowerError: Quantity)` | `IUncertainty` | absolute KMS errors |
+### Building one
 
-Both types' constructors are private — go through the factories above: `FromRelErr` (relative) and `FromAbsErr` (absolute — takes a `Quantity` and returns the uncertainty directly, since an absolute error needs no nominal value). Those four are the entire construction vocabulary; the storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a persisted uncertainty is a separate concern with a separate door — see [Persistence](#persistence-state-not-dtos).
+The concrete constructors are private. `Uncertainty` is the whole construction vocabulary:
+
+| Factory | Returns | Stored as |
+| --- | --- | --- |
+| `Uncertainty.Exact()` | `SymmetricUncertainty` | — (no error) |
+| `Uncertainty.Relative(error)` | `SymmetricUncertainty` | relative fraction |
+| `Uncertainty.Absolute(error: Quantity)` | `SymmetricUncertainty` | absolute KMS error |
+| `Uncertainty.Relative(upper, lower)` | `AsymmetricUncertainty` | relative fractions |
+| `Uncertainty.Absolute(upper, lower: Quantity)` | `AsymmetricUncertainty` | absolute KMS errors |
+
+The storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a *persisted* uncertainty is a separate concern with a separate door — `UncertaintyFactory.FromState`, see [Persistence](#persistence-state-not-dtos).
+
+**Relative error is a `RelativeError`, not a bare `double`.** A number on its own cannot say whether it means a fraction of a value or an amount of it: given a mass in kilograms, `0.001` reads equally well as one gram or as one tenth of a percent. Build one with `Percent()` or `Fraction()`:
 
 ```csharp
-var mass = Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromAbsErr(1.0.Units(Mass.Milligram)));
+0.1.Percent()     // 0.001 — one tenth of one percent
+0.1.Fraction()    // 0.1   — ten percent
+```
+
+### Attaching one to a value
+
+`Quantity` carries shorthands for the common cases, so most code never names an uncertainty type at all:
+
+```csharp
+var exact    = Mass.Kilogram.Quantity(1).WithoutError();
+var relative = Mass.Kilogram.Quantity(1).WithError(0.1.Percent());
+var absolute = Mass.Kilogram.Quantity(1).WithError(1.0.Units(Mass.Gram));
+
+var lopsided = Mass.Kilogram.Quantity(1).WithAsymmetricError(
+    upper: 0.1.Percent(),
+    lower: 2.0.Percent());
+```
+
+`WithError` is symmetric and `WithAsymmetricError` takes both bounds at once — there is no way to supply one bound and not the other, and no way to mix a relative bound with an absolute one, because no overload accepts that. **Pass the asymmetric arguments by name.** Which bound is which is otherwise invisible at the call site, and swapping them produces a plausible-looking error band rather than an obvious fault.
+
+For anything else, `Quantity.Measurand(IUncertainty)` takes an uncertainty built from the table above.
+
+```csharp
+var mass = Mass.Kilogram.Quantity(1).WithError(1.0.Units(Mass.Milligram));
 ```
 
 Propagation follows the storage: **sums/differences produce an absolute-error result** (no dividing by the possibly-zero sum), while products compose relative errors. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.

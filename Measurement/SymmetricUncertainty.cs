@@ -59,6 +59,8 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
         return FromKmsAbsErr(absoluteError.KmsValue);
     }
 
+    public static SymmetricUncertainty Exact() => new(false, 0d);
+
     public IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator)
     {
         // Relative error of x^p is |p| times the relative error of x; the result is symmetric.
