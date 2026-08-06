@@ -1,3 +1,5 @@
+
+using DimensionedExpression.State;
 using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
@@ -12,6 +14,8 @@ namespace DimensionedExpression.BinaryOperators;
 /// </summary>
 public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.WithinBindingTolerance;
+
     public override bool? IsSatisfied()
     {
         if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
@@ -39,6 +43,8 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 /// </summary>
 public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndUpperBoundWithinTolerance;
+
     public override bool? IsSatisfied()
     {
         if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
@@ -68,6 +74,8 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 /// </summary>
 public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndLowerBoundWithinTolerance;
+
     public override bool? IsSatisfied()
     {
         if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)

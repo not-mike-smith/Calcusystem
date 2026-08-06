@@ -1,5 +1,7 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+
+using DimensionedExpression.State;
+using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
 
@@ -15,6 +17,8 @@ namespace DimensionedExpression.BinaryOperators;
 /// </summary>
 public class EqualityOperator(IEqualityEstimating equalityEstimator) : CommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.Equality;
+
     public override string Symbol => "==";
 
     public override bool? IsSatisfied()

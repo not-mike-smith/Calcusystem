@@ -1,5 +1,7 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
+using Calcusystem.Core;
+using DimensionedExpression.BaseModels;
 using Measurement;
 
 namespace DimensionedExpression.Expressions;
@@ -12,7 +14,7 @@ namespace DimensionedExpression.Expressions;
 /// <see cref="ComputedExpressionBase.ErrorPropagation"/> method, and <see cref="DegreesOfFreedom"/> is the sum
 /// of the factors'.
 /// </summary>
-public class ProductExpression : ComputedExpressionBase, IComputedExpression
+public class ProductExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<ProductExpression, NaryExpressionState>
 {
     private readonly List<IExpression> _factors = new();
 
@@ -46,5 +48,21 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression
     public int DegreesOfFreedom()
     {
         return _factors.Sum(f => f.DegreesOfFreedom());
+    }
+
+    /// <inheritdoc/>
+    public NaryExpressionState GetState() =>
+        new(NaryExpressionKind.Product, Id, Factors.Select(f => f.Id).ToList(), ErrorPropagation);
+
+    /// <inheritdoc/>
+    public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve)
+    {
+        var product = new ProductExpression { Id = state.Id, ErrorPropagation = state.ErrorPropagation };
+        foreach (var id in state.InnerIds)
+        {
+            product.AddFactor(resolve.Resolve<IExpression>(id));
+        }
+
+        return product;
     }
 }

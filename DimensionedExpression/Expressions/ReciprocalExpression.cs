@@ -1,5 +1,6 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
+using Calcusystem.Core;
 using Measurement;
 
 namespace DimensionedExpression.Expressions;
@@ -10,11 +11,11 @@ namespace DimensionedExpression.Expressions;
 /// <br/>
 /// Not directly mutable; <see cref="Value"/> is null until the reciprocand is fully described.
 /// </summary>
-public class ReciprocalExpression : IdBase, IExpression
+public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<ReciprocalExpression, UnaryExpressionState>
 {
     private IExpression _reciprocand;
 
-    public ReciprocalExpression(IExpression reciprocand, string id = Constants.CREATE_NEW) : base(id)
+    public ReciprocalExpression(IExpression reciprocand, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _reciprocand = reciprocand;
     }
@@ -43,4 +44,12 @@ public class ReciprocalExpression : IdBase, IExpression
         return Reciprocand.DegreesOfFreedom();
     }
 
+
+    /// <inheritdoc/>
+    public UnaryExpressionState GetState() =>
+        new(UnaryExpressionKind.Reciprocal, Id, Reciprocand.Id);
+
+    /// <inheritdoc/>
+    public static ReciprocalExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

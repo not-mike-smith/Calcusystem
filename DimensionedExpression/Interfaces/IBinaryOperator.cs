@@ -1,3 +1,5 @@
+using DimensionedExpression.State;
+using Calcusystem.Core;
 namespace DimensionedExpression.Interfaces;
 
 /// <summary>
@@ -5,10 +7,8 @@ namespace DimensionedExpression.Interfaces;
 /// as a definition (a relationship that should hold) and as a constraint (a check to run). The full taxonomy of
 /// concrete operators, with symbols and exact interval conditions, is in <c>BinaryOperators/OPERATORS.md</c>.
 /// </summary>
-public interface IBinaryOperator
+public interface IBinaryOperator : IIdentified
 {
-    /// <summary>Stable string identity (see <c>IdBase</c>).</summary>
-    public string Id { get; }
 
     /// <summary>Optional human-readable name for the relationship.</summary>
     public string? Name { get; set; }
@@ -39,4 +39,10 @@ public interface IBinaryOperator
     /// constitutive equation). Null means provenance is not tracked; purely descriptive.
     /// </summary>
     IProvenance? Provenance { get; set; }
+
+    /// <summary>
+    /// Returns the complete stored state of this operator — which operator it is, its operand ids, and its
+    /// annotations. Rebuild via <c>BinaryOperatorFactory.FromState</c>.
+    /// </summary>
+    BinaryOperatorState GetState();
 }

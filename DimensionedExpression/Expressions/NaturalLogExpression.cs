@@ -1,5 +1,6 @@
+using DimensionedExpression.State;
+using Calcusystem.Core;
 using System;
-using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
@@ -19,11 +20,11 @@ namespace DimensionedExpression.Expressions;
 /// the result is 0; its <em>relative</em> error is undefined, but the absolute error is retained and
 /// <c>RelativeError</c> reports <c>+∞</c> rather than throwing.
 /// </remarks>
-public class NaturalLogExpression : IdBase, IExpression
+public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLogExpression, UnaryExpressionState>
 {
     private IExpression _argument;
 
-    public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;
@@ -74,4 +75,12 @@ public class NaturalLogExpression : IdBase, IExpression
             throw new IncompatibleDimensionsException(
                 $"NaturalLogExpression argument must be dimensionless, was {argument.Dimensionality}");
     }
+
+    /// <inheritdoc/>
+    public UnaryExpressionState GetState() =>
+        new(UnaryExpressionKind.NaturalLog, Id, Argument.Id);
+
+    /// <inheritdoc/>
+    public static NaturalLogExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

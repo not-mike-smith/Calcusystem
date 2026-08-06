@@ -1,5 +1,6 @@
+using DimensionedExpression.State;
+using Calcusystem.Core;
 using System;
-using DimensionedExpression.BaseModels;
 using DimensionedExpression.Interfaces;
 using Measurement;
 using Measurement.Exceptions;
@@ -13,11 +14,11 @@ namespace DimensionedExpression.Expressions;
 /// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
 /// RelativeError(eˣ) ≈ |x|·RelativeError(x) (i.e. the absolute error of x).
 /// </summary>
-public class ExponentialExpression : IdBase, IExpression
+public class ExponentialExpression : IdBase, IExpression, IStatefulNode<ExponentialExpression, UnaryExpressionState>
 {
     private IExpression _argument;
 
-    public ExponentialExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    public ExponentialExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;
@@ -69,4 +70,12 @@ public class ExponentialExpression : IdBase, IExpression
             throw new IncompatibleDimensionsException(
                 $"ExponentialExpression argument must be dimensionless, was {argument.Dimensionality}");
     }
+
+    /// <inheritdoc/>
+    public UnaryExpressionState GetState() =>
+        new(UnaryExpressionKind.Exponential, Id, Argument.Id);
+
+    /// <inheritdoc/>
+    public static ExponentialExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

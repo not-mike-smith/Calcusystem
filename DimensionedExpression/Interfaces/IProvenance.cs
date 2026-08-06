@@ -1,3 +1,6 @@
+using Calcusystem.Core;
+using DimensionedExpression.State;
+
 namespace DimensionedExpression.Interfaces;
 
 /// <summary>
@@ -11,11 +14,20 @@ namespace DimensionedExpression.Interfaces;
 /// other serialized object, even though it is always owned inline by a single node rather than referenced by id.
 /// Serialization itself lives in that assembly, not here.
 /// </remarks>
-public interface IProvenance
+public interface IProvenance : IIdentified
 {
-    /// <summary>Stable identity, preserved across serialization.</summary>
-    string Id { get; }
 
     /// <summary>A one-line, human-readable description suitable for display in a UI.</summary>
     string Summary();
+
+    /// <summary>
+    /// Returns the complete stored state of this provenance — its kind and that kind's audit metadata — for
+    /// rebuilding via <c>ProvenanceFactory.FromState</c>.
+    /// </summary>
+    /// <remarks>
+    /// The persistence seam. Implementations provide this <i>explicitly</i>, so the metadata stays off their own
+    /// public surface: a consumer holding a <c>MeasuredProvenance</c> sees <see cref="Summary"/> and
+    /// <see cref="Id"/>, not the raw fields. Reading them is a persistence concern, and this is its one door.
+    /// </remarks>
+    ProvenanceState GetState();
 }

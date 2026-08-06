@@ -11,5 +11,8 @@
             <_Parameter1>Measurement.Test</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Calcusystem.Core\Calcusystem.Core.csproj" />
+    </ItemGroup>
 
 </Project>

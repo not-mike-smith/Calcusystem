@@ -1,5 +1,8 @@
-﻿using DimensionedExpression.BaseModels;
-using DimensionedExpression.Interfaces;
+﻿using DimensionedExpression.Interfaces;
+using Measurement.State;
+using DimensionedExpression.State;
+using DimensionedExpression.Provenance;
+using Calcusystem.Core;
 using Measurement;
 using Measurement.Exceptions;
 
@@ -14,7 +17,7 @@ namespace DimensionedExpression.Expressions;
 /// Optionally carries an <see cref="IProvenance"/> recording where its value came from; purely descriptive, it
 /// never affects evaluation.
 /// </summary>
-public class Variable : IdBase, IDirectExpression
+public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableState>
 {
     // ReSharper disable once InconsistentNaming
     protected Measurand? _value;
@@ -24,7 +27,7 @@ public class Variable : IdBase, IDirectExpression
     public Variable(
         string symbol,
         Dimensionality dimensionality,
-        string id = Constants.CREATE_NEW)
+        string id = Constants.CREATE_NEW_ID)
         : base(id)
     {
         
@@ -35,7 +38,7 @@ public class Variable : IdBase, IDirectExpression
     public Variable(
         string symbol,
         Measurand measurand,
-        string id = Constants.CREATE_NEW)
+        string id = Constants.CREATE_NEW_ID)
         : base(id)
     {
         Dimensionality = measurand.Dimensionality;
@@ -78,5 +81,32 @@ public class Variable : IdBase, IDirectExpression
     public override string ToString()
     {
         return Symbol;
+    }
+
+    /// <inheritdoc/>
+    public VariableState GetState() => new(
+        Id,
+        Symbol,
+        Dimensionality.GetState(),
+        _value?.GetState(),
+        Provenance?.GetState());
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// An unbound variable keeps its declared dimensionality; a bound one takes its dimensionality from the
+    /// measurand, which the constructor requires to agree with it anyway.
+    /// </remarks>
+    public static Variable FromState(VariableState state)
+    {
+        var variable = state.Value is { } value
+            ? new Variable(state.Symbol, Measurand.FromState(value), state.Id)
+            : new Variable(state.Symbol, Dimensionality.FromState(state.Dimensionality), state.Id);
+
+        if (state.Provenance is { } provenance)
+        {
+            variable.Provenance = ProvenanceFactory.FromState(provenance);
+        }
+
+        return variable;
     }
 }

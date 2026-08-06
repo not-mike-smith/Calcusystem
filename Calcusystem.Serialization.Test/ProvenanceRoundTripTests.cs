@@ -5,6 +5,7 @@ using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
 using DimensionedExpression.Provenance;
+using DimensionedExpression.State;
 using DimensionedExpression.Systems;
 using FluentAssertions;
 using Measurement;
@@ -29,18 +30,20 @@ public class ProvenanceRoundTripTests
             new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
             "m")
         {
-            Provenance = ProvenanceFactory.Measured("SN-42", new DateOnly(2026, 1, 15), "prov-m")
+            Provenance = ProvenanceFactory.FromState(
+                ProvenanceState.Measured("prov-m", "SN-42", new DateOnly(2026, 1, 15)))
         };
         system.DirectExpressions.Add(measured);
 
         var restored = (Variable)RoundTrip(system).GetAllExpressions().Single(e => e.Id == "m");
 
         restored.Provenance.Should().BeOfType<MeasuredProvenance>();
-        var provenance = (MeasuredProvenance)restored.Provenance!;
-        provenance.Id.Should().Be("prov-m");
-        provenance.InstrumentId.Should().Be("SN-42");
-        provenance.CalibrationDate.Should().Be(new DateOnly(2026, 1, 15));
-        provenance.Summary().Should().Be(measured.Provenance!.Summary());
+        var state = restored.Provenance!.GetState();
+        state.Id.Should().Be("prov-m");
+        state.Kind.Should().Be(ProvenanceKind.Measured);
+        state.InstrumentId.Should().Be("SN-42");
+        state.CalibrationDate.Should().Be(new DateOnly(2026, 1, 15));
+        restored.Provenance.Summary().Should().Be(measured.Provenance!.Summary());
     }
 
     [Fact]
@@ -67,17 +70,19 @@ public class ProvenanceRoundTripTests
             Id = "op",
             Lhs = lhs,
             Rhs = rhs,
-            Provenance = ProvenanceFactory.Reference("NIST SP 811", "https://nist.gov", 2008, "prov-op")
+            Provenance = ProvenanceFactory.FromState(
+                ProvenanceState.Reference("prov-op", "NIST SP 811", "https://nist.gov", 2008))
         });
 
         var restored = RoundTrip(system).Definitions.Single();
 
         restored.Provenance.Should().BeOfType<ReferenceProvenance>();
-        var provenance = (ReferenceProvenance)restored.Provenance!;
-        provenance.Id.Should().Be("prov-op");
-        provenance.Citation.Should().Be("NIST SP 811");
-        provenance.Url.Should().Be("https://nist.gov");
-        provenance.Year.Should().Be(2008);
+        var state = restored.Provenance!.GetState();
+        state.Id.Should().Be("prov-op");
+        state.Kind.Should().Be(ProvenanceKind.Reference);
+        state.Citation.Should().Be("NIST SP 811");
+        state.Url.Should().Be("https://nist.gov");
+        state.Year.Should().Be(2008);
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating

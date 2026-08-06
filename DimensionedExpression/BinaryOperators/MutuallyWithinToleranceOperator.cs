@@ -1,5 +1,7 @@
-﻿using DimensionedExpression.BaseModels;
-using Measurement;
+﻿using Measurement;
+
+using DimensionedExpression.State;
+using DimensionedExpression.BaseModels;
 
 namespace DimensionedExpression.BinaryOperators;
 
@@ -13,6 +15,8 @@ namespace DimensionedExpression.BinaryOperators;
 /// </summary>
 public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 {
+    protected override BinaryOperatorKind Kind => BinaryOperatorKind.MutuallyWithinTolerance;
+
     public override string Symbol => "≃";
 
     public override bool? IsSatisfied()

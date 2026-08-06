@@ -1,5 +1,6 @@
-using DimensionedExpression.BaseModels;
+using Calcusystem.Core;
 using DimensionedExpression.Interfaces;
+using DimensionedExpression.State;
 
 namespace DimensionedExpression.Provenance;
 
@@ -16,9 +17,12 @@ public sealed class ModelProvenance : IdBase, IProvenance
         FittingReference = fittingReference;
     }
 
-    public string ModelName { get; }
-    public string? FittingReference { get; }
+    internal string ModelName { get; }
+    internal string? FittingReference { get; }
 
     public string Summary() =>
         $"Model parameter: {ModelName}{(FittingReference is null ? "" : $" (fit {FittingReference})")}";
+
+    ProvenanceState IProvenance.GetState() =>
+        ProvenanceState.Model(Id, ModelName, FittingReference);
 }

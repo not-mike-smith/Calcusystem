@@ -1,4 +1,5 @@
-using DimensionedExpression.BaseModels;
+using DimensionedExpression.State;
+using Calcusystem.Core;
 using DimensionedExpression.Interfaces;
 using Measurement;
 
@@ -12,11 +13,11 @@ namespace DimensionedExpression.Expressions;
 /// <br/>
 /// Uncertainty follows the power rule: RelativeError(√x) = ½·RelativeError(x).
 /// </summary>
-public class SqrtExpression : IdBase, IExpression
+public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression, UnaryExpressionState>
 {
     private IExpression _argument;
 
-    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW) : base(id)
+    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _argument = argument;
     }
@@ -46,4 +47,12 @@ public class SqrtExpression : IdBase, IExpression
     {
         return Argument.DegreesOfFreedom();
     }
+
+    /// <inheritdoc/>
+    public UnaryExpressionState GetState() =>
+        new(UnaryExpressionKind.Sqrt, Id, Argument.Id);
+
+    /// <inheritdoc/>
+    public static SqrtExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

@@ -1,228 +1,155 @@
-﻿using DimensionedExpression.Expressions;
+using DimensionedExpression.Expressions;
 using DimensionedExpression.Interfaces;
-using DimensionedExpression.Provenance;
+using DimensionedExpression.State;
 using DimensionedExpression.Systems;
-using Measurement.Interfaces;
 using Measurement;
+using Measurement.Interfaces;
 using Measurement.State;
 
 namespace Calcusystem.Serialization.Mappers;
 
+/// <summary>
+/// Maps a live <see cref="ExpressionSystem"/> to flat, id-referenced DTOs.
+/// </summary>
+/// <remarks>
+/// Reads nothing but state. Every domain type hands out a state record; this class decides only how that state
+/// is labelled and laid out on the wire. It never touches an expression's children, an operator's operands, or a
+/// value's internals directly.
+/// </remarks>
 public class SerializingMapper
 {
     public Dtos.ExpressionSystem Map(ExpressionSystem system)
     {
+        var state = system.GetState();
+
         var value = new Dtos.ExpressionSystem
         {
-            Id = system.Id,
-            Type = system.GetType().Name,
-            Description = system.Description,
-            Name = system.Name
+            Id = state.Id,
+            Type = nameof(ExpressionSystem),
+            Name = state.Name,
+            Description = state.Description,
         };
 
         value.DirectExpressions.AddRange(system.DirectExpressions.Select(MapVariable));
-        value.SingleDerivedVariables.AddRange(system.DerivedExpressions
-            .Select(MapSingleDerivedExpressionByPattern)
-            .Where(x => x != null)!);
 
-        value.ListDerivedVariables.AddRange(system.DerivedExpressions
-            .Select(MapListDerivedExpressionByPattern)
-            .Where(x => x != null)!);
-
-        value.PairDerivedVariables.AddRange(system.DerivedExpressions
-            .Select(MapPairDerivedExpressionByPattern)
-            .Where(x => x != null)!);
-
-        value.Constraints.AddRange(system.Constraints.Select(Map));
-        value.Definitions.AddRange(system.Definitions.Select(Map));
-        return value;
-    }
-
-    private Dtos.SingleDerivedVariable? MapSingleDerivedExpressionByPattern(IExpression expression)
-    {
-        var x = MapDerivedExpressionByPattern(expression);
-        if (x is Dtos.SingleDerivedVariable variable) return variable;
-
-        return null;
-    }
-
-    private Dtos.ListDerivedVariable? MapListDerivedExpressionByPattern(IExpression expression)
-    {
-        var x = MapDerivedExpressionByPattern(expression);
-        if (x is Dtos.ListDerivedVariable variable) return variable;
-
-        return null;
-    }
-
-    private Dtos.PairDerivedVariable? MapPairDerivedExpressionByPattern(IExpression expression)
-    {
-        var x = MapDerivedExpressionByPattern(expression);
-        if (x is Dtos.PairDerivedVariable variable) return variable;
-
-        return null;
-    }
-
-    private Dtos.ExpressionBase MapDerivedExpressionByPattern(IExpression expression)
-    {
-        return expression switch
+        foreach (var dto in system.DerivedExpressions.Select(MapDerivedExpression))
         {
-            ReciprocalExpression reciprocal => Map(reciprocal),
-            NegatedExpression negated => Map(negated),
-            ProductExpression product => Map(product),
-            SumExpression sum => Map(sum),
-            QuotientExpression quotient => Map(quotient),
-            _ => throw new NotImplementedException(
-                $"No mapping for derived expression of type {expression.GetType().Name}")
-        };
+            switch (dto)
+            {
+                case Dtos.SingleDerivedVariable single: value.SingleDerivedVariables.Add(single); break;
+                case Dtos.ListDerivedVariable list: value.ListDerivedVariables.Add(list); break;
+                case Dtos.PairDerivedVariable pair: value.PairDerivedVariables.Add(pair); break;
+            }
+        }
+
+        value.Definitions.AddRange(system.Definitions.Select(Map));
+        value.Constraints.AddRange(system.Constraints.Select(Map));
+        return value;
     }
 
     public Dtos.SingleVariable MapVariable(Variable v)
     {
-        if (v.Value == null)
-        {
-            return new Dtos.SingleVariable
-            {
-                Id = v.Id,
-                Type = v.GetType().Name,
-                Dimensionality = DimensionalityCodec.Encode(v.Dimensionality.GetState()),
-                KmsValue = null,
-                Uncertainty = null,
-                Symbol = v.Symbol,
-                Provenance = Map(v.Provenance),
-            };
-        }
-        // else
+        var state = v.GetState();
+
         return new Dtos.SingleVariable
         {
-            Id = v.Id,
-            Type = v.GetType().Name,
-            Dimensionality = DimensionalityCodec.Encode(v.Dimensionality.GetState()),
-            KmsValue = v.Value.KmsValue,
-            Uncertainty = Map(v.Value.Uncertainty),
-            Symbol = v.Symbol,
-            Provenance = Map(v.Provenance),
+            Id = state.Id,
+            Type = nameof(Variable),
+            Symbol = state.Symbol,
+            Dimensionality = DimensionalityCodec.Encode(state.Dimensionality),
+            KmsValue = state.Value?.Quantity.KmsValue,
+            Uncertainty = state.Value is { } value ? Map(value.Uncertainty) : null,
+            Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
         };
     }
 
-    private Dtos.Provenance? Map(IProvenance? provenance)
+    /// <remarks>
+    /// The type switch is only here to pick which state record to ask for — the kind discriminator inside that
+    /// state, not this switch, is what determines the wire name.
+    /// </remarks>
+    private Dtos.ExpressionBase MapDerivedExpression(IExpression expression) => expression switch
     {
-        return provenance switch
-        {
-            null => null,
-            MeasuredProvenance m => new Dtos.Provenance
-            {
-                Id = m.Id, Type = m.GetType().Name,
-                InstrumentId = m.InstrumentId, CalibrationDate = m.CalibrationDate
-            },
-            ReferenceProvenance r => new Dtos.Provenance
-            {
-                Id = r.Id, Type = r.GetType().Name,
-                Citation = r.Citation, Url = r.Url, Year = r.Year
-            },
-            DesignProvenance d => new Dtos.Provenance
-            {
-                Id = d.Id, Type = d.GetType().Name,
-                SpecReference = d.SpecReference
-            },
-            ModelProvenance md => new Dtos.Provenance
-            {
-                Id = md.Id, Type = md.GetType().Name,
-                ModelName = md.ModelName, FittingReference = md.FittingReference
-            },
-            _ => throw new NotImplementedException(
-                $"No mapping for provenance of type {provenance.GetType().Name}")
-        };
-    }
+        ReciprocalExpression x => Map(x.GetState()),
+        NegatedExpression x => Map(x.GetState()),
+        SqrtExpression x => Map(x.GetState()),
+        ExponentialExpression x => Map(x.GetState()),
+        NaturalLogExpression x => Map(x.GetState()),
+        ProductExpression x => Map(x.GetState()),
+        SumExpression x => Map(x.GetState()),
+        QuotientExpression x => Map(x.GetState()),
+        _ => throw new NotImplementedException(
+            $"No mapping for derived expression of type {expression.GetType().Name}")
+    };
 
-    private Dtos.Uncertainty Map(IUncertainty uncertainty)
+    private Dtos.SingleDerivedVariable Map(UnaryExpressionState state) => new()
     {
-        // Measurement hands out its state; this layer decides how that state is labelled on the wire.
-        var state = uncertainty.GetState();
+        Id = state.Id,
+        Type = WireNames.Of(state.Kind),
+        InnerId = state.InnerId,
+    };
 
-        return state.Shape switch
-        {
-            UncertaintyShape.Symmetric => new Dtos.Uncertainty
-            {
-                Type = nameof(SymmetricUncertainty),
-                IsStoredAsAbs = state.IsStoredAsAbs,
-                Magnitude = state.UpperMagnitude
-            },
-            UncertaintyShape.Asymmetric => new Dtos.Uncertainty
-            {
-                Type = nameof(AsymmetricUncertainty),
-                IsStoredAsAbs = state.IsStoredAsAbs,
-                UpperMagnitude = state.UpperMagnitude,
-                LowerMagnitude = state.LowerMagnitude
-            },
-            _ => throw new NotImplementedException(
-                $"No mapping for uncertainty shape {state.Shape}")
-        };
-    }
-
-    public Dtos.SingleDerivedVariable Map(ReciprocalExpression x)
+    private Dtos.ListDerivedVariable Map(NaryExpressionState state) => new()
     {
-        return new Dtos.SingleDerivedVariable
-        {
-            Id = x.Id,
-            Type = x.GetType().Name,
-            InnerId = x.Reciprocand.Id
-        };
-    }
+        Id = state.Id,
+        Type = WireNames.Of(state.Kind),
+        InnerIds = state.InnerIds.ToList(),
+        ErrorPropagation = state.ErrorPropagation,
+    };
 
-    public Dtos.SingleDerivedVariable Map(NegatedExpression x)
+    private Dtos.PairDerivedVariable Map(BinaryExpressionState state) => new()
     {
-        return new Dtos.SingleDerivedVariable
-        {
-            Id = x.Id,
-            Type = x.GetType().Name,
-            InnerId = x.Operand.Id
-        };
-    }
+        Id = state.Id,
+        Type = WireNames.Of(state.Kind),
+        InnerId1 = state.InnerId1,
+        InnerId2 = state.InnerId2,
+        ErrorPropagation = state.ErrorPropagation,
+    };
 
-    public Dtos.ListDerivedVariable Map(ProductExpression x)
+    public Dtos.BinaryOperator Map(IBinaryOperator op)
     {
-        return new Dtos.ListDerivedVariable
-        {
-            Id = x.Id,
-            Type = x.GetType().Name,
-            InnerIds = x.Factors.Select(f => f.Id).ToList(),
-            ErrorPropagation = x.ErrorPropagation,
-        };
-    }
+        var state = op.GetState();
 
-    public Dtos.ListDerivedVariable Map(SumExpression x)
-    {
-        return new Dtos.ListDerivedVariable
-        {
-            Id = x.Id,
-            Type = x.GetType().Name,
-            InnerIds = x.Addends.Select(f => f.Id).ToList(),
-            ErrorPropagation = x.ErrorPropagation,
-        };
-    }
-
-    public Dtos.PairDerivedVariable Map(QuotientExpression x)
-    {
-        return new Dtos.PairDerivedVariable
-        {
-            Id = x.Id,
-            Type = x.GetType().Name,
-            InnerId1 = x.Numerator.Id,
-            InnerId2 = x.Denominator.Id
-        };
-    }
-
-    public Dtos.BinaryOperator Map(IBinaryOperator x)
-    {
         return new Dtos.BinaryOperator
         {
-            Id = x.Id,
-            Name = x.Name,
-            Description = x.Description,
-            Type = x.GetType().Name,
-            LhsId = x.Lhs.Id,
-            RhsId = x.Rhs.Id,
-            Provenance = Map(x.Provenance),
+            Id = state.Id,
+            Type = WireNames.Of(state.Kind),
+            Name = state.Name,
+            Description = state.Description,
+            LhsId = state.LhsId,
+            RhsId = state.RhsId,
+            Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
         };
     }
+
+    private Dtos.Provenance Map(ProvenanceState state) => new()
+    {
+        Id = state.Id,
+        Type = WireNames.Of(state.Kind),
+        InstrumentId = state.InstrumentId,
+        CalibrationDate = state.CalibrationDate,
+        Citation = state.Citation,
+        Url = state.Url,
+        Year = state.Year,
+        SpecReference = state.SpecReference,
+        ModelName = state.ModelName,
+        FittingReference = state.FittingReference,
+    };
+
+    private Dtos.Uncertainty Map(UncertaintyState state) => state.Shape switch
+    {
+        UncertaintyShape.Symmetric => new Dtos.Uncertainty
+        {
+            Type = nameof(SymmetricUncertainty),
+            IsStoredAsAbs = state.IsStoredAsAbs,
+            Magnitude = state.UpperMagnitude,
+        },
+        UncertaintyShape.Asymmetric => new Dtos.Uncertainty
+        {
+            Type = nameof(AsymmetricUncertainty),
+            IsStoredAsAbs = state.IsStoredAsAbs,
+            UpperMagnitude = state.UpperMagnitude,
+            LowerMagnitude = state.LowerMagnitude,
+        },
+        _ => throw new NotImplementedException($"No mapping for uncertainty shape {state.Shape}")
+    };
 }

@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimensionedExpression.Test"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Serialization.Test", "Calcusystem.Serialization.Test\Calcusystem.Serialization.Test.csproj", "{C81395C1-A06A-43AD-A356-8ECAD5E54E57}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Core", "Calcusystem.Core\Calcusystem.Core.csproj", "{BC3C8DF0-A310-4EAA-BD91-B569881637E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,6 +96,18 @@ Global
 		{C81395C1-A06A-43AD-A356-8ECAD5E54E57}.Release|x64.Build.0 = Release|Any CPU
 		{C81395C1-A06A-43AD-A356-8ECAD5E54E57}.Release|x86.ActiveCfg = Release|Any CPU
 		{C81395C1-A06A-43AD-A356-8ECAD5E54E57}.Release|x86.Build.0 = Release|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Debug|x86.Build.0 = Debug|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Release|x64.Build.0 = Release|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Release|x86.ActiveCfg = Release|Any CPU
+		{BC3C8DF0-A310-4EAA-BD91-B569881637E7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
