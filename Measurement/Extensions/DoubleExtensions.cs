@@ -34,4 +34,14 @@ public static class DoubleExtensions
 
         return Math.Sqrt(sumOfSquares);
     }
+
+    public static RelativeError Fraction(this double relativeError)
+    {
+        return new RelativeError(relativeError);
+    }
+
+    public static RelativeError Percent(this double relativeErrorPercent)
+    {
+        return new RelativeError(relativeErrorPercent / 100d);
+    }
 }

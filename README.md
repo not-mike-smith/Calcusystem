@@ -40,16 +40,17 @@ Compute with units and uncertainty (the `Measurement` layer):
 
 ```csharp
 using Measurement;
+using Measurement.Extensions;   // Percent(), Fraction(), Units()
 using Measurement.Units;
 
 // 2 kg ± 1% — supply and read values in whatever unit you like; storage is always KMS
-var mass = Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
+var mass = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
 mass.In(Mass.Pound);   // ≈ 4.409 lb
 mass.RelativeError;    // 0.01
 
 // arithmetic enforces dimensions and propagates uncertainty
 var accel = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time))
-    .Measurand(SymmetricUncertainty.FromRelErr(0.005));
+    .WithError(0.5.Percent());
 
 var force = mass.Times(accel);   // dimension M·L·T⁻²; uncertainty combines in quadrature
 ```

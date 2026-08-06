@@ -23,7 +23,7 @@ force.IsFullyDescribed;    // false
 force.Value;               // null
 force.DegreesOfFreedom();  // 2  — two unbound leaves
 
-mass.Value  = Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
+mass.Value  = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
 accel.Value = /* … */;
 
 force.IsFullyDescribed;    // true once both are set

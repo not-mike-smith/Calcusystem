@@ -9,7 +9,7 @@ public class Metric
     /// <summary>
     /// Creates a metric prefix with the given symbol prefix and multiplicative factor.
     /// </summary>
-    public Metric(string prefix, double factor)
+    private Metric(string prefix, double factor)
     {
         Prefix = prefix;
         Factor = factor;

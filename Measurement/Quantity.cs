@@ -53,6 +53,27 @@ public readonly struct Quantity : IStateful<Quantity, QuantityState>
         return new Measurand(this, uncertainty);
     }
 
+    /// <summary>This value with no uncertainty at all — exact.</summary>
+    public Measurand WithoutError() => Measurand(Uncertainty.Exact());
+
+    /// <summary>This value with equal error above and below, as a fraction of it.</summary>
+    public Measurand WithError(RelativeError relativeError) => Measurand(Uncertainty.Relative(relativeError));
+
+    /// <summary>This value with equal error above and below, as a dimensioned amount.</summary>
+    public Measurand WithError(Quantity absoluteError) => Measurand(Uncertainty.Absolute(absoluteError));
+
+    /// <summary>This value with independent errors above and below, each a fraction of it.</summary>
+    /// <remarks>
+    /// Pass the arguments by name. Which bound is which is otherwise invisible at the call site, and swapping
+    /// them yields a plausible-looking error band rather than an obvious fault.
+    /// </remarks>
+    public Measurand WithAsymmetricError(RelativeError upper, RelativeError lower) =>
+        Measurand(Uncertainty.Relative(upper, lower));
+
+    /// <inheritdoc cref="WithAsymmetricError(RelativeError, RelativeError)"/>
+    public Measurand WithAsymmetricError(Quantity upper, Quantity lower) =>
+        Measurand(Uncertainty.Absolute(upper, lower));
+
     /// <summary>
     /// Returns this quantity's value expressed in <paramref name="unitOfMeasure"/>.
     /// </summary>
