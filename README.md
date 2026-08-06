@@ -15,7 +15,7 @@ So, depending on your task:
 - **Using an assembly** (calling it from another project, or from your own code): read its `README.md`, then the interfaces in `Interfaces/`. The interfaces carry XML docstrings describing each member's contract.
 - **Modifying an assembly**: additionally read the implementation files for the types you're changing.
 
-A few assemblies note exceptions at the top of their README — types outside `Interfaces/` that also carry essential contract docstrings (for example, `Measurement` calls out its `Quantity` and `Dimensionality` structs and the `FundamentalDimension` class).
+A few assemblies note exceptions at the top of their README — types outside `Interfaces/` that also carry essential contract docstrings (for example, `Measurement` calls out its `Quantity` and `Dimensionality` structs and the `FundamentalDimension` class). `Calcusystem.Core` is the other exception: it has no `Interfaces/` directory because the interfaces *are* the assembly, and they sit at its root.
 
 ---
 
@@ -25,7 +25,7 @@ Four library assemblies stacked bottom-up; the upper three each have a matching 
 
 | Assembly | Depends on | What it does |
 | --- | --- | --- |
-| [`Calcusystem.Core`](Calcusystem.Core/) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
+| [`Calcusystem.Core`](Calcusystem.Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
 | [`Measurement`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | [`DimensionedExpression`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
 | [`Calcusystem.Serialization`](Calcusystem.Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
