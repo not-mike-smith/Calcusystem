@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs sed -i 's/cref=\"Models\\\\.Dimensionality\"/cref=\"Dimensionality\"/g')"
+      "Bash(xargs sed -i 's/cref=\"Models\\\\.Dimensionality\"/cref=\"Dimensionality\"/g')",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git stash *)",
+      "Bash(git rm *)",
+      "Bash(git restore *)",
+      "Bash(git branch *)",
+      "Bash(gh auth *)",
+      "Bash(git commit *)",
+      "Bash(mkdir -p /tmp/claude-1000/-home-gaunt-src-Calcusystem/2c5d0099-2c41-46a6-9e19-110a7087d79a/scratchpad/jsonprobe)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet add *)",
+      "Bash(dotnet run *)",
+      "Bash(python3 -)",
+      "Bash(gh api *)",
+      "Bash(xargs -n1 basename)",
+      "Bash(sed -i 's/ExpressionNotFoundDeserializationException/ReferencedNodeNotFoundException/g' Calcusystem.Serialization/Mappers/DeserializingMapper.cs)",
+      "Bash(sed -i 's/`ExpressionNotFoundDeserializationException` carries the missing id and the DTO that referenced it./`ReferencedNodeNotFoundException` carries the missing id and the DTO that referenced it — it covers any referenced node, not only expressions./' Calcusystem.Serialization/README.md)"
     ]
   }
 }

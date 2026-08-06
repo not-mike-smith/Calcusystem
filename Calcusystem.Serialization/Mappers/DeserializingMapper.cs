@@ -82,22 +82,33 @@ public class DeserializingMapper
     /// stop it.
     /// </para>
     /// </remarks>
-    private void MapAllDerivedExpressions(Dtos.ExpressionSystem x)
+    private void MapAllDerivedExpressions(Dtos.ExpressionSystem expressionSystem)
     {
-        var pending = new List<PendingExpression>();
-        pending.AddRange(x.SingleDerivedVariables.Select(
-            d => new PendingExpression(d.Id, new[] { d.InnerId }, () => MapDerivedExpressionByPattern(d))));
-        pending.AddRange(x.ListDerivedVariables.Select(
-            d => new PendingExpression(d.Id, d.InnerIds, () => MapDerivedExpressionByPattern(d))));
-        pending.AddRange(x.PairDerivedVariables.Select(
-            d => new PendingExpression(d.Id, new[] { d.InnerId1, d.InnerId2 }, () => MapDerivedExpressionByPattern(d))));
+        var singlePending = expressionSystem.SingleDerivedVariables
+            .Select(d => new PendingExpression(
+                d.Id,
+                [d.InnerId],
+                () => MapDerivedExpressionByPattern(d)));
 
+        var pairPending = expressionSystem.PairDerivedVariables
+            .Select(d => new PendingExpression(
+                d.Id,
+                [d.InnerId1, d.InnerId2],
+                () => MapDerivedExpressionByPattern(d)));
+
+        var listPending = expressionSystem.ListDerivedVariables
+            .Select(d => new PendingExpression(
+                d.Id,
+                d.InnerIds,
+                () => MapDerivedExpressionByPattern(d)));
+
+        // Queue is FIFO by default
+        var pending = new Queue<PendingExpression>(singlePending.Concat(pairPending).Concat(listPending));
         var deferralsSinceProgress = 0;
 
         while (pending.Count > 0)
         {
-            var next = pending[0];
-            pending.RemoveAt(0);
+            var next = pending.Dequeue();
 
             var expression = next.Build();
             if (expression != null)
@@ -107,12 +118,12 @@ public class DeserializingMapper
                 continue;
             }
 
-            pending.Add(next);
+            pending.Enqueue(next);
             deferralsSinceProgress++;
 
             if (deferralsSinceProgress >= pending.Count)
             {
-                throw BuildUnresolvableGraphException(pending, x);
+                throw BuildUnresolvableGraphException(pending.ToList(), expressionSystem);
             }
         }
     }
