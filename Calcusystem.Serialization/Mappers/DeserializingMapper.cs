@@ -41,14 +41,14 @@ public class DeserializingMapper
     {
         foreach (var dto in x.DirectExpressions)
         {
-            _context.AddLoadedExpression(MapDirectExpressionByPattern(dto));
+            _context.AddLoadedNode(MapDirectExpressionByPattern(dto));
         }
 
         MapAllDerivedExpressions(x);
 
         foreach (var dto in x.Definitions.Concat(x.Constraints))
         {
-            _context.AddLoadedOperator(MapBinaryOperatorByPattern(dto));
+            _context.AddLoadedNode(MapBinaryOperatorByPattern(dto));
         }
 
         _context.ReferencingDto = x;
@@ -113,7 +113,7 @@ public class DeserializingMapper
             var expression = next.Build();
             if (expression != null)
             {
-                _context.AddLoadedExpression(expression);
+                _context.AddLoadedNode(expression);
                 deferralsSinceProgress = 0;
                 continue;
             }

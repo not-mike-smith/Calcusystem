@@ -25,7 +25,7 @@ Four library assemblies stacked bottom-up; the upper three each have a matching 
 
 | Assembly | Depends on | What it does |
 | --- | --- | --- |
-| [`Calcusystem.Core`](Calcusystem.Core/) | — | The basement: shared identity (`IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
+| [`Calcusystem.Core`](Calcusystem.Core/) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
 | [`Measurement`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | [`DimensionedExpression`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
 | [`Calcusystem.Serialization`](Calcusystem.Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |

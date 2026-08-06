@@ -16,17 +16,21 @@ namespace Calcusystem.Serialization;
 /// </remarks>
 public class DeserializationContext : INodeResolver
 {
-    private readonly Dictionary<string, object> _nodesById = new();
+    private readonly Dictionary<string, IIdentified> _nodesById = new();
 
     /// <summary>Every expression loaded so far, by id.</summary>
     public IReadOnlyDictionary<string, IExpression> ExpressionsById =>
         _nodesById.Values.OfType<IExpression>().ToDictionary(x => x.Id);
 
-    /// <summary>Records a rebuilt expression so later nodes can reference it.</summary>
-    public void AddLoadedExpression(IExpression x) => _nodesById.Add(x.Id, x);
-
-    /// <summary>Records a rebuilt operator so the containing system can reference it.</summary>
-    public void AddLoadedOperator(IBinaryOperator x) => _nodesById.Add(x.Id, x);
+    /// <summary>
+    /// Records a rebuilt node so later nodes, and the containing system, can reference it.
+    /// </summary>
+    /// <remarks>
+    /// One method rather than one per node type: the id comes from the node itself, so there is no way to file
+    /// something under an id it does not claim. <see cref="IIdentified"/> is what makes that possible — an
+    /// <c>object</c> overload would have had to take the id separately.
+    /// </remarks>
+    public void AddLoadedNode(IIdentified node) => _nodesById.Add(node.Id, node);
 
     /// <summary>Whether a node with this id has been loaded yet.</summary>
     public bool Contains(string id) => _nodesById.ContainsKey(id);
@@ -41,7 +45,7 @@ public class DeserializationContext : INodeResolver
     /// <exception cref="ReferencedNodeNotFoundException">
     /// No node has that id, or it is not a <typeparamref name="TNode"/>.
     /// </exception>
-    public TNode Resolve<TNode>(string id) where TNode : class
+    public TNode Resolve<TNode>(string id) where TNode : class, IIdentified
     {
         if (! _nodesById.TryGetValue(id, out var node))
             throw new ReferencedNodeNotFoundException(id, ReferencingDto!);

@@ -1,3 +1,4 @@
+using Calcusystem.Core;
 using DimensionedExpression.State;
 
 namespace DimensionedExpression.Interfaces;
@@ -13,10 +14,8 @@ namespace DimensionedExpression.Interfaces;
 /// other serialized object, even though it is always owned inline by a single node rather than referenced by id.
 /// Serialization itself lives in that assembly, not here.
 /// </remarks>
-public interface IProvenance
+public interface IProvenance : IIdentified
 {
-    /// <summary>Stable identity, preserved across serialization.</summary>
-    string Id { get; }
 
     /// <summary>A one-line, human-readable description suitable for display in a UI.</summary>
     string Summary();

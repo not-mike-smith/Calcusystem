@@ -29,5 +29,5 @@ public interface INodeResolver
     /// <exception cref="Exception">
     /// Implementation-defined, when no node has that id or it is not a <typeparamref name="TNode"/>.
     /// </exception>
-    TNode Resolve<TNode>(string id) where TNode : class;
+    TNode Resolve<TNode>(string id) where TNode : class, IIdentified;
 }

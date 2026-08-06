@@ -8,7 +8,7 @@ namespace Calcusystem.Core;
 /// it verbatim, which is how a rebuilt graph restores the references between its nodes. A null or blank id
 /// throws — an object with no identity cannot be referred to, so there is no useful default.
 /// </remarks>
-public abstract class IdBase
+public abstract class IdBase : IIdentified
 {
     private readonly string _id = null!;
 

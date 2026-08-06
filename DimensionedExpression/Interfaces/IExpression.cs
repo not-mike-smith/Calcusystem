@@ -13,11 +13,8 @@ namespace DimensionedExpression.Interfaces;
 /// caching and no separate evaluate step. Arithmetic and uncertainty propagation are delegated to
 /// <see cref="Measurand"/>; this layer only assembles and walks the tree.
 /// </remarks>
-public interface IExpression
+public interface IExpression : IIdentified
 {
-    /// <summary>Stable string identity (see <c>IdBase</c>); preserved across serialization to rebuild references.</summary>
-    public string Id { get; }
-
     /// <summary>
     /// Whether this node's value can be set directly. True for leaf variables (<see cref="IDirectExpression"/>);
     /// false for computed nodes, whose value derives from their children.

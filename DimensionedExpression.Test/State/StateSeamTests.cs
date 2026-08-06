@@ -23,15 +23,15 @@ public class StateSeamTests
     /// <summary>Minimal stand-in for whatever a persistence layer uses to resolve id references.</summary>
     private sealed class StubResolver : INodeResolver
     {
-        private readonly Dictionary<string, object> _nodes = new();
+        private readonly Dictionary<string, IIdentified> _nodes = new();
 
-        public StubResolver With(string id, object node)
+        public StubResolver With(string id, IIdentified node)
         {
             _nodes[id] = node;
             return this;
         }
 
-        public TNode Resolve<TNode>(string id) where TNode : class =>
+        public TNode Resolve<TNode>(string id) where TNode : class, IIdentified =>
             _nodes.TryGetValue(id, out var node)
                 ? node as TNode ?? throw new InvalidOperationException($"'{id}' is not a {typeof(TNode).Name}")
                 : throw new KeyNotFoundException(id);
