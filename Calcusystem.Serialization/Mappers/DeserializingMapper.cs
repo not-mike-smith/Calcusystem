@@ -1,3 +1,4 @@
+using Calcusystem.Serialization.Exceptions;
 using Calcusystem.Serialization.Interfaces;
 using DimensionedExpression.BinaryOperators;
 using DimensionedExpression.Expressions;
@@ -67,36 +68,86 @@ public class DeserializingMapper
     }
 
     /// <remarks>
+    /// <para>
     /// The flattened lists arrive in arbitrary order, so a parent may be read before the children it references
-    /// exist. Each mapping is queued as a deferred function; running one either succeeds, or defers because a
-    /// child id is not loaded yet and goes to the back of the queue. The queue drains as dependencies fill in,
-    /// without a topological pre-sort.
+    /// exist. Each mapping is queued as a deferred build; running one either succeeds, or defers because a child
+    /// id is not loaded yet and goes to the back of the queue. The queue drains as dependencies fill in, without
+    /// a topological pre-sort.
+    /// </para>
+    /// <para>
+    /// That terminates only while deferrals keep becoming buildable. A missing or cyclic reference makes at
+    /// least one entry permanently unbuildable, so the counter below tracks consecutive deferrals: once a full
+    /// pass over the remaining queue has produced no progress, nothing can change and the payload is rejected.
+    /// Without it the loop spins forever — and because the retry is iterative, not even a stack overflow would
+    /// stop it.
+    /// </para>
     /// </remarks>
     private void MapAllDerivedExpressions(Dtos.ExpressionSystem x)
     {
-        var functions = new List<MapDerivedExpressionFcn>();
-        functions.AddRange(x.SingleDerivedVariables.Select(GetMapper));
-        functions.AddRange(x.ListDerivedVariables.Select(GetMapper));
-        functions.AddRange(x.PairDerivedVariables.Select(GetMapper));
+        var pending = new List<PendingExpression>();
+        pending.AddRange(x.SingleDerivedVariables.Select(
+            d => new PendingExpression(d.Id, new[] { d.InnerId }, () => MapDerivedExpressionByPattern(d))));
+        pending.AddRange(x.ListDerivedVariables.Select(
+            d => new PendingExpression(d.Id, d.InnerIds, () => MapDerivedExpressionByPattern(d))));
+        pending.AddRange(x.PairDerivedVariables.Select(
+            d => new PendingExpression(d.Id, new[] { d.InnerId1, d.InnerId2 }, () => MapDerivedExpressionByPattern(d))));
 
-        while (functions.Any())
+        var deferralsSinceProgress = 0;
+
+        while (pending.Count > 0)
         {
-            var fcn = functions[0];
-            functions.RemoveAt(0);
+            var next = pending[0];
+            pending.RemoveAt(0);
 
-            var expression = fcn();
+            var expression = next.Build();
             if (expression != null)
             {
                 _context.AddLoadedExpression(expression);
+                deferralsSinceProgress = 0;
+                continue;
             }
-            else
+
+            pending.Add(next);
+            deferralsSinceProgress++;
+
+            if (deferralsSinceProgress >= pending.Count)
             {
-                functions.Add(fcn);
+                throw BuildUnresolvableGraphException(pending, x);
             }
         }
     }
 
-    private delegate IExpression? MapDerivedExpressionFcn();
+    /// <summary>
+    /// Distinguishes the two ways the queue can stall: an id referenced but absent from the payload is a
+    /// dangling reference, while one that is present yet still unbuilt is part of a cycle.
+    /// </summary>
+    private UnresolvableGraphException BuildUnresolvableGraphException(
+        List<PendingExpression> pending,
+        Dtos.ExpressionSystem x)
+    {
+        var idsInPayload = x.DirectExpressions.Select(d => d.Id)
+            .Concat(x.SingleDerivedVariables.Select(d => d.Id))
+            .Concat(x.ListDerivedVariables.Select(d => d.Id))
+            .Concat(x.PairDerivedVariables.Select(d => d.Id))
+            .ToHashSet();
+
+        var unresolved = pending
+            .SelectMany(p => p.DependsOn)
+            .Where(id => ! _context.Contains(id))
+            .Distinct()
+            .ToList();
+
+        return new UnresolvableGraphException(
+            pending.Select(p => p.Id).ToList(),
+            unresolved.Where(id => ! idsInPayload.Contains(id)).ToList(),
+            unresolved.Where(idsInPayload.Contains).ToList());
+    }
+
+    /// <summary>An expression whose build is deferred until the ids it references are loaded.</summary>
+    private readonly record struct PendingExpression(
+        string Id,
+        IReadOnlyList<string> DependsOn,
+        Func<IExpression?> Build);
 
     public Variable MapDirectExpressionByPattern(Dtos.SingleVariable x) => x.Type switch
     {
@@ -135,15 +186,6 @@ public class DeserializingMapper
                 WireNames.BinaryKind(x.Type), x.Id, x.InnerId1, x.InnerId2, x.ErrorPropagation),
             _context);
     }
-
-    private MapDerivedExpressionFcn GetMapper(Dtos.SingleDerivedVariable x) =>
-        () => MapDerivedExpressionByPattern(x);
-
-    private MapDerivedExpressionFcn GetMapper(Dtos.ListDerivedVariable x) =>
-        () => MapDerivedExpressionByPattern(x);
-
-    private MapDerivedExpressionFcn GetMapper(Dtos.PairDerivedVariable x) =>
-        () => MapDerivedExpressionByPattern(x);
 
     public IBinaryOperator MapBinaryOperatorByPattern(Dtos.BinaryOperator x)
     {

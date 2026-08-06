@@ -104,7 +104,9 @@ The flattened lists arrive in arbitrary order, so a parent may be read before th
 
 `DeserializationContext` is the shared id-resolution table threaded through this process. `ReferencedNodeNotFoundException` carries the missing id and the DTO that referenced it — it covers any referenced node, not only expressions.
 
-> ⚠️ **Cycle / dangling-reference caveat:** the retry loop assumes the graph is acyclic (expression trees always are) and that every referenced id is present. A genuinely missing or cyclic reference among derived expressions leaves at least one function permanently deferring — an **infinite loop**, not a clean error. There is currently no max-iteration or no-progress guard.
+**Termination is guarded, not assumed.** The loop only ends if deferrals keep becoming buildable, which a missing or cyclic reference breaks. A counter tracks *consecutive* deferrals: once a full pass over the remaining queue produces no progress, nothing can change and the payload is rejected with `UnresolvableGraphException`. Without that check the loop spins forever — and since the retry is iterative, not even a stack overflow would end it.
+
+The exception separates the two causes, which is worth having because they mean different things: an id referenced but **absent from the payload** (`MissingIds`) is truncated or hand-edited data, whereas an id that is **present but itself unbuilt** (`CyclicIds`) is a reference cycle. Expression trees are acyclic by construction, so a cycle means the payload came from something other than `SerializingMapper`, or was edited afterwards.
 
 ---
 
