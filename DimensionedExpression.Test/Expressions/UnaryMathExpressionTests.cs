@@ -1,5 +1,6 @@
 using System;
 using DimensionedExpression.Expressions;
+using DimensionedExpression.Traversal;
 using FluentAssertions;
 using Measurement;
 using Measurement.Exceptions;
@@ -50,7 +51,7 @@ public class UnaryMathExpressionTests
         var sqrt = new SqrtExpression(new Variable("a", Area));
         sqrt.IsFullyDescribed.Should().BeFalse();
         sqrt.Value.Should().BeNull();
-        sqrt.DegreesOfFreedom().Should().Be(1);
+        sqrt.FreeVariables().Should().HaveCount(1);
     }
 
     // ---- ExponentialExpression ----
@@ -81,7 +82,7 @@ public class UnaryMathExpressionTests
     {
         var exp = new ExponentialExpression(UnboundDimensionless());
         exp.Value.Should().BeNull();
-        exp.DegreesOfFreedom().Should().Be(1);
+        exp.FreeVariables().Should().HaveCount(1);
     }
 
     // ---- NaturalLogExpression ----
@@ -133,6 +134,6 @@ public class UnaryMathExpressionTests
     {
         var ln = new NaturalLogExpression(UnboundDimensionless());
         ln.Value.Should().BeNull();
-        ln.DegreesOfFreedom().Should().Be(1);
+        ln.FreeVariables().Should().HaveCount(1);
     }
 }

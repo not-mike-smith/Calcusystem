@@ -45,10 +45,8 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
         return $"({string.Join('·', Factors.Select(f => f.ToString()))})";
     }
 
-    public int DegreesOfFreedom()
-    {
-        return _factors.Sum(f => f.DegreesOfFreedom());
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => _factors;
 
     /// <inheritdoc/>
     public NaryExpressionState GetState() =>

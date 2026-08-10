@@ -64,10 +64,8 @@ public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLo
         return $"ln({Argument})";
     }
 
-    public int DegreesOfFreedom()
-    {
-        return Argument.DegreesOfFreedom();
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => [Argument];
 
     private static void RequireDimensionless(IExpression argument)
     {

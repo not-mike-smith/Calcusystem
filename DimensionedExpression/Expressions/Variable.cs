@@ -49,10 +49,10 @@ public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableS
     public bool IsDirectlyMutable => true;
     public bool IsFullyDescribed => Value != null;
     public Dimensionality Dimensionality { get; }
-    public int DegreesOfFreedom()
-    {
-        return IsFullyDescribed ? 0 : 1;
-    }
+
+    /// <inheritdoc/>
+    /// <remarks>A leaf: a variable is computed from nothing, so it has no children.</remarks>
+    public IEnumerable<IExpression> Children => [];
 
     public Measurand? Value
     {

@@ -142,6 +142,7 @@ Goal: given a populated `ExpressionSystem`, compute everything that can be compu
 
 **Evaluation engine:**
 
+- [x] **Degrees of freedom for a system** — new `Calcusystem.Analysis` assembly. `SystemFlattener.Flatten(system, bindings?)` reduces a system to a `FlatSystem` of unknowns × equations; `DegreesOfFreedom` = unknowns − determining equations, classified as `Underdetermined`/`ExactlyDetermined`/`Overdetermined`. Over-determined is reported as redundancy, never refused. Prerequisites landed with it: `IExpression.Children` (the single accessor every graph walk goes through) and `ExpressionTraversal.FreeVariables()`, which replaced the per-type `DegreesOfFreedom()` that summed over children and so double-counted shared sub-expressions. The optional `bindings` argument keeps analysis a pure function of `(system, bindings)` so a solver can probe trial values without leaving scratch in the caller's model. Deliberately count-based: it assumes independence, which M4's structural analysis replaces.
 - [ ] Graph walk: for each expression, if all dependencies are set, compute its value and propagate uncertainty
 - [ ] Run all constraints (`Definitions` and `Constraints` lists) and report pass/fail with actual vs. expected values
 - [ ] Surface a clean result model (which expressions resolved, which constraints passed/failed, which variables are still missing)
@@ -161,7 +162,7 @@ Goal: given a system with some unknowns, determine if it is solvable and solve i
 **Design principle:** A robust abstraction layer sits between `ExpressionSystem` and any concrete solver, so different solver strategies can be plugged in (e.g. symbolic, numeric, linear algebraic).
 
 - [ ] Define solver interface: takes an `ExpressionSystem`, returns a solution or a structured "unsolvable" result with explanation
-- [ ] `DegreesOfFreedom()` (from Milestone 2) becomes the gate: DoF == 0 → evaluate; DoF == 1 → solve; DoF > 1 → report which variables are needed
+- [ ] `FlatSystem.DegreesOfFreedom` (M3, `Calcusystem.Analysis`) becomes the gate: DoF == 0 → evaluate; DoF == 1 → solve; DoF > 1 → report which variables are needed. **Upgrade the count to a structural analysis:** a maximum bipartite matching over the incidence already carried on `Equation.Unknowns`, giving Dulmage–Mendelsohn decomposition. That yields under-/over-determined *subsets* rather than one global number, detects the structurally singular DoF-0 case the count cannot, and produces a block lower-triangular ordering — which is also the order the evaluator should compute in, so the two share the computation.
 - [ ] Implement a basic solver for product/quotient/sum relationships (the linear and multiplicative cases are tractable without a CAS)
 - [ ] Leave the door open for a symbolic or numeric solver as a future plugin
 
