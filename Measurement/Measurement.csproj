@@ -12,7 +12,7 @@
         </AssemblyAttribute>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Calcusystem.Core\Calcusystem.Core.csproj" />
+      <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
 </Project>

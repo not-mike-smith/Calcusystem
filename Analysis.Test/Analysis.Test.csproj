@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Calcusystem.Analysis\Calcusystem.Analysis.csproj" />
+        <ProjectReference Include="..\Analysis\Analysis.csproj" />
         <ProjectReference Include="..\DimensionedExpression\DimensionedExpression.csproj" />
         <ProjectReference Include="..\Measurement\Measurement.csproj" />
     </ItemGroup>

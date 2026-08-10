@@ -6,17 +6,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Measurement.Test", "Measure
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimensionedExpression", "DimensionedExpression\DimensionedExpression.csproj", "{AD0DB48B-98F7-45EC-83CD-61E5D2A4C43F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Serialization", "Calcusystem.Serialization\Calcusystem.Serialization.csproj", "{8213B9E9-E0F0-4F6F-BEBD-4683EDD8ACD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serialization", "Serialization\Serialization.csproj", "{8213B9E9-E0F0-4F6F-BEBD-4683EDD8ACD8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimensionedExpression.Test", "DimensionedExpression.Test\DimensionedExpression.Test.csproj", "{5E13E752-1774-40C4-B9EB-36CFA6074116}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Serialization.Test", "Calcusystem.Serialization.Test\Calcusystem.Serialization.Test.csproj", "{C81395C1-A06A-43AD-A356-8ECAD5E54E57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serialization.Test", "Serialization.Test\Serialization.Test.csproj", "{C81395C1-A06A-43AD-A356-8ECAD5E54E57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Core", "Calcusystem.Core\Calcusystem.Core.csproj", "{BC3C8DF0-A310-4EAA-BD91-B569881637E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{BC3C8DF0-A310-4EAA-BD91-B569881637E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Analysis", "Calcusystem.Analysis\Calcusystem.Analysis.csproj", "{C037BC26-EBF4-4A4D-8E83-CE5603D6BA92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analysis", "Analysis\Analysis.csproj", "{C037BC26-EBF4-4A4D-8E83-CE5603D6BA92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calcusystem.Analysis.Test", "Calcusystem.Analysis.Test\Calcusystem.Analysis.Test.csproj", "{A285BA6D-9EF9-41A5-9C8C-5BF9C388BB0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analysis.Test", "Analysis.Test\Analysis.Test.csproj", "{A285BA6D-9EF9-41A5-9C8C-5BF9C388BB0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
