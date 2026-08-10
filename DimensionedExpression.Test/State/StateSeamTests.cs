@@ -1,19 +1,19 @@
-using DimensionedExpression.Traversal;
+using Calcusystem.DimensionedExpression.Traversal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Calcusystem.Core;
-using DimensionedExpression.BinaryOperators;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.Provenance;
-using DimensionedExpression.State;
-using DimensionedExpression.Systems;
+using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Provenance;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
-using Measurement;
+using Calcusystem.Measurement;
 using Xunit;
 
-namespace DimensionedExpression.Test.State;
+namespace Calcusystem.DimensionedExpression.Test.State;
 
 /// <summary>
 /// The state seam on its own terms, with no serializer involved — these types hand out their state and rebuild

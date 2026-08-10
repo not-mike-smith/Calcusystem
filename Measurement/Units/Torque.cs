@@ -1,8 +1,8 @@
-using Measurement.BaseClasses;
-using Measurement.Factories;
-using Uom = Measurement.UnitOfMeasure;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Factories;
+using Uom = Calcusystem.Measurement.UnitOfMeasure;
 
-namespace Measurement.Units;
+namespace Calcusystem.Measurement.Units;
 
 // Torque (M·L²·A·T⁻²) — dimensionally distinct from energy (M·L²·T⁻²) because
 // torque is the rate of change of angular momentum (which carries the angle dimension).

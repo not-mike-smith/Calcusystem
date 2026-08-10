@@ -1,10 +1,10 @@
 ﻿using System;
 using Calcusystem.Core;
-using Measurement.Exceptions;
-using Measurement.Interfaces;
-using Measurement.State;
+using Calcusystem.Measurement.Exceptions;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.State;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// A dimensioned scalar without uncertainty: a KMS-normalized value paired with its

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Measurement.Exceptions;
+using Calcusystem.Measurement.Exceptions;
 using FluentAssertions;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 public class DimensionalityTests
 {

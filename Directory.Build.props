@@ -1,0 +1,19 @@
+<Project>
+
+    <!--
+      Every project ships under the product namespace, while the directories stay short. Setting both here
+      rather than in each .csproj keeps one rule in one place: on-disk name is the short one, and what a
+      consumer sees - assembly and root namespace - is always `Calcusystem.<project>`.
+
+      This matters most for `Measurement`, which is far too generic a name to occupy a consumer's global
+      namespace or produce a `Measurement.dll` on their output path.
+
+      RootNamespace only affects newly generated files; existing `namespace` declarations are spelled out in
+      source and were rewritten alongside this file.
+    -->
+    <PropertyGroup>
+        <RootNamespace>Calcusystem.$(MSBuildProjectName)</RootNamespace>
+        <AssemblyName>Calcusystem.$(MSBuildProjectName)</AssemblyName>
+    </PropertyGroup>
+
+</Project>

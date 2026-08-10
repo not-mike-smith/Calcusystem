@@ -1,11 +1,11 @@
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Traversal;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Traversal;
 using FluentAssertions;
-using Measurement;
-using Measurement.Units;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Units;
 using Xunit;
 
-namespace DimensionedExpression.Test.Expressions;
+namespace Calcusystem.DimensionedExpression.Test.Expressions;
 
 /// <summary>
 /// <c>FreeVariables()</c> is what a node contributes to a system's unknowns, and the count of it replaced the

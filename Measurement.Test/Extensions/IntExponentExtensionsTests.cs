@@ -1,8 +1,8 @@
-﻿using Measurement.Extensions;
+﻿using Calcusystem.Measurement.Extensions;
 using FluentAssertions;
 using Xunit;
 
-namespace Measurement.Test.Extensions;
+namespace Calcusystem.Measurement.Test.Extensions;
 
 public class IntExponentExtensionsTests
 {

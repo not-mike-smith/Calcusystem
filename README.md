@@ -21,17 +21,30 @@ A few assemblies note exceptions at the top of their README — types outside `I
 
 ## Project structure
 
-Five library assemblies stacked bottom-up; the upper four each have a matching test project:
+Five library assemblies stacked bottom-up; the upper four each have a matching test project. Every assembly and namespace is `Calcusystem.*`; the directory it lives in is the short name (`Core/`, `Measurement/`, …). See [naming](#naming-directories-assemblies-and-namespaces).
 
-| Assembly | Depends on | What it does |
-| --- | --- | --- |
-| [`Calcusystem.Core`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
-| [`Measurement`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
-| [`DimensionedExpression`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
-| [`Calcusystem.Serialization`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
-| [`Calcusystem.Analysis`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed: flattens it to unknowns × equations and reports degrees of freedom. Where the evaluator and solver will live. |
+| Assembly / namespace | Directory | Depends on | What it does |
+| --- | --- | --- | --- |
+| `Calcusystem.Core` | [`Core/`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
+| `Calcusystem.Measurement` | [`Measurement/`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
+| `Calcusystem.DimensionedExpression` | [`DimensionedExpression/`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
+| `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
+| `Calcusystem.Analysis` | [`Analysis/`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed: flattens it to unknowns × equations and reports degrees of freedom. Where the evaluator and solver will live. |
 
-`Measurement.Test`, `DimensionedExpression.Test`, `Calcusystem.Serialization.Test`, and `Calcusystem.Analysis.Test` hold the xUnit suites for each layer. `Calcusystem.Core` has none of its own — it declares contracts and holds no logic to test; its seams are exercised through the layers that implement them.
+`Measurement.Test/`, `DimensionedExpression.Test/`, `Serialization.Test/`, and `Analysis.Test/` hold the xUnit suites for each layer. `Core` has none of its own — it declares contracts and holds no logic to test; its seams are exercised through the layers that implement them.
+
+### Naming: directories, assemblies, and namespaces
+
+One rule, enforced in one place:
+
+| | Example |
+| --- | --- |
+| Directory and `.csproj` | `Measurement/Measurement.csproj` |
+| Assembly and root namespace | `Calcusystem.Measurement` |
+
+[`Directory.Build.props`](Directory.Build.props) derives the second from the first, so adding a project needs no per-project configuration — create `Foo/Foo.csproj` and it ships as `Calcusystem.Foo`.
+
+The split exists because the two names answer to different audiences. On disk, the prefix is pure repetition — every directory would carry it. To a consumer it is the opposite: `Measurement` is far too generic a name to occupy a global namespace or drop a `Measurement.dll` on someone's output path, and a library should own exactly one root.
 
 ---
 
@@ -40,9 +53,9 @@ Five library assemblies stacked bottom-up; the upper four each have a matching t
 Compute with units and uncertainty (the `Measurement` layer):
 
 ```csharp
-using Measurement;
-using Measurement.Extensions;   // Percent(), Fraction(), Units()
-using Measurement.Units;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Extensions;   // Percent(), Fraction(), Units()
+using Calcusystem.Measurement.Units;
 
 // 2 kg ± 1% — supply and read values in whatever unit you like; storage is always KMS
 var mass = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
@@ -59,8 +72,8 @@ var force = mass.Times(accel);   // dimension M·L·T⁻²; uncertainty combines
 Assemble a reusable formula whose leaves get filled in later (the `DimensionedExpression` layer):
 
 ```csharp
-using DimensionedExpression.Expressions;
-using Measurement;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.Measurement;
 
 var m = new Variable("m", Dimensionality.Mass);
 var a = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));
@@ -108,6 +121,7 @@ The measurement, expression, serialization, and degrees-of-freedom layers are fu
 ## Contributing conventions
 
 - **Every assembly has a `README.md`** at its root, covering purpose, key types, invariants, dependencies, and explicit scope boundaries (what does _not_ belong there).
+- **A new project is `Foo/Foo.csproj`** — short directory, no prefix. `Directory.Build.props` gives it the `Calcusystem.Foo` assembly and root namespace; do not set either in the `.csproj`.
 - **Public interfaces carry XML docstrings** on the interface and each member, articulating the contract — this is what lets a reader use a layer without opening its implementation.
 - **Tests live in the matching `*.Test` project** and reference only the layers they cover.
 - Prefer small, focused commits; keep behavior changes and documentation legible in the diff.

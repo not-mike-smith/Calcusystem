@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Measurement.BaseClasses;
+using Calcusystem.Measurement.BaseClasses;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 public class Lists
 {

@@ -1,7 +1,7 @@
-using Measurement.Interfaces;
-using Measurement.Extensions;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Extensions;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 public class ConservativeGaussianPropagator : IErrorPropagator
 {

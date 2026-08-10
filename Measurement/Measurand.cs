@@ -1,9 +1,9 @@
 using Calcusystem.Core;
-using Measurement.Exceptions;
-using Measurement.Interfaces;
-using Measurement.State;
+using Calcusystem.Measurement.Exceptions;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.State;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 public class Measurand : IStateful<Measurand, MeasurandState>
 {

@@ -1,4 +1,4 @@
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// The construction vocabulary for uncertainty. Every uncertainty a caller creates comes from here.

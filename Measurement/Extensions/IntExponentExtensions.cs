@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Measurement.Extensions;
+namespace Calcusystem.Measurement.Extensions;
 
 public static class IntExponentExtensions
 {

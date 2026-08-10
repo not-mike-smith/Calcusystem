@@ -1,10 +1,10 @@
-﻿using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using DimensionedExpression.BaseModels;
-using Measurement;
+using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Binary quotient of a <see cref="Numerator"/> over a <see cref="Denominator"/> (both required); the result

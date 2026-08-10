@@ -1,7 +1,7 @@
 using Calcusystem.Core;
-using Measurement;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.BaseModels;
+namespace Calcusystem.DimensionedExpression.BaseModels;
 
 public abstract class ComputedExpressionBase : IdBase
 {

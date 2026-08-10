@@ -1,6 +1,6 @@
-using Measurement;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>Which n-ary expression a <see cref="NaryExpressionState"/> rebuilds into.</summary>
 public enum NaryExpressionKind

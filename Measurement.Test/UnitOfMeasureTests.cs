@@ -1,9 +1,9 @@
 ﻿using System;
-using Measurement.Units;
+using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 public class UnitOfMeasureTests
 {

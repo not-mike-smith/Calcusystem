@@ -1,10 +1,10 @@
-﻿using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using DimensionedExpression.BaseModels;
-using Measurement;
+using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// N-ary product (<c>×</c>) over its <see cref="Factors"/>; the result dimensionality is the product of the

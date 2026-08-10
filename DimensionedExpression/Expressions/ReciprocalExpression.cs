@@ -1,9 +1,9 @@
-﻿using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using Measurement;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary reciprocal (<c>1/x</c>) of any <see cref="IExpression"/> (its <see cref="Reciprocand"/>); the result

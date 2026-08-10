@@ -1,4 +1,4 @@
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// An error expressed as a fraction of the value it qualifies — 0.01 meaning one percent.

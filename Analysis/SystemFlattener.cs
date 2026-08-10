@@ -1,7 +1,7 @@
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Systems;
-using DimensionedExpression.Traversal;
-using Measurement;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Systems;
+using Calcusystem.DimensionedExpression.Traversal;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.Analysis;
 

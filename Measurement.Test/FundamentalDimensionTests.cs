@@ -2,7 +2,7 @@ using System.Linq;
 using FluentAssertions;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 public class FundamentalDimensionTests
 {

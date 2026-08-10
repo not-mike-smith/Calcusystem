@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using FluentAssertions;
-using Measurement;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.Serialization.Test;
 

@@ -1,5 +1,5 @@
 
-namespace Measurement.Factories;
+namespace Calcusystem.Measurement.Factories;
 
 public class Metric
 {

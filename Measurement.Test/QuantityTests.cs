@@ -1,9 +1,9 @@
 ﻿using System;
-using Measurement.Exceptions;
+using Calcusystem.Measurement.Exceptions;
 using FluentAssertions;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 public class QuantityTests
 {

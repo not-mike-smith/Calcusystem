@@ -1,10 +1,10 @@
 using Calcusystem.Analysis;
-using DimensionedExpression.BinaryOperators;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.Systems;
+using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
-using Measurement;
+using Calcusystem.Measurement;
 using Xunit;
 
 namespace Calcusystem.Analysis.Test;

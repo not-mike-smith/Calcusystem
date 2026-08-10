@@ -2,13 +2,13 @@ using Calcusystem.Core;
 using System;
 using System.Linq;
 using FluentAssertions;
-using Measurement.Extensions;
-using Measurement.Interfaces;
-using Measurement.State;
-using Measurement.Units;
+using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Units;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 /// <summary>
 /// Covers the persistence seam: <see cref="IUncertainty.GetState"/> / <see cref="IStateful{TSelf,TState}"/> out,

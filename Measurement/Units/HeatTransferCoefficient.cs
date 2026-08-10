@@ -1,8 +1,8 @@
-using Measurement.BaseClasses;
-using Measurement.Factories;
-using Uom = Measurement.UnitOfMeasure;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Factories;
+using Uom = Calcusystem.Measurement.UnitOfMeasure;
 
-namespace Measurement.Units;
+namespace Calcusystem.Measurement.Units;
 
 // Heat transfer coefficient (M·T⁻³·Θ⁻¹ = W/(m²·K)).
 // Temperature appears as a delta, so DeltaFahrenheit is used in Imperial units.

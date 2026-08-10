@@ -1,8 +1,8 @@
 using Calcusystem.Core;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.Provenance;
+namespace Calcusystem.DimensionedExpression.Provenance;
 
 /// <summary>
 /// Provenance for an engineer-specified value; any tolerance lives in the variable's uncertainty, not here.

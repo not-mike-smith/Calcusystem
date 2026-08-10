@@ -1,6 +1,6 @@
-using Measurement.Interfaces;
+using Calcusystem.Measurement.Interfaces;
 
-namespace Measurement.State;
+namespace Calcusystem.Measurement.State;
 
 /// <summary>The directional shape an <see cref="UncertaintyState"/> describes — which concrete
 /// <see cref="IUncertainty"/> it rebuilds into.</summary>

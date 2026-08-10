@@ -1,8 +1,8 @@
-using Measurement.BaseClasses;
-using Measurement.Factories;
-using Uom = Measurement.UnitOfMeasure;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Factories;
+using Uom = Calcusystem.Measurement.UnitOfMeasure;
 
-namespace Measurement.Units;
+namespace Calcusystem.Measurement.Units;
 
 // Linear momentum (M·L·T⁻¹) and impulse share the same dimensions.
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.

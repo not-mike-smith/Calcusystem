@@ -1,7 +1,7 @@
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
 
-namespace DimensionedExpression.Traversal;
+namespace Calcusystem.DimensionedExpression.Traversal;
 
 /// <summary>
 /// Walks over an expression graph, written once against <see cref="IExpression.Children"/> rather than once per

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using Measurement.BaseClasses;
-using Measurement.Factories;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Factories;
 
-namespace Measurement.Units;
+namespace Calcusystem.Measurement.Units;
 
 public class Temperature : ReflectiveUnitList<Temperature>
 {

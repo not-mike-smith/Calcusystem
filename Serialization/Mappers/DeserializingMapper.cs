@@ -1,13 +1,13 @@
 using Calcusystem.Serialization.Exceptions;
 using Calcusystem.Serialization.Interfaces;
-using DimensionedExpression.BinaryOperators;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
-using DimensionedExpression.Systems;
-using Measurement;
-using Measurement.Interfaces;
-using Measurement.State;
+using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Systems;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.State;
 
 namespace Calcusystem.Serialization.Mappers;
 

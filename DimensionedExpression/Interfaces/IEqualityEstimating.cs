@@ -1,6 +1,6 @@
-using Measurement;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Interfaces;
+namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
 /// Strategy for deciding when two <see cref="Measurand"/>s count as equal. Because measured values carry

@@ -1,4 +1,4 @@
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>Which operator a <see cref="BinaryOperatorState"/> rebuilds into.</summary>
 /// <remarks>

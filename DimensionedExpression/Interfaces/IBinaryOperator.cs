@@ -1,6 +1,6 @@
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-namespace DimensionedExpression.Interfaces;
+namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
 /// A relationship asserted between two expressions — equality, tolerance compatibility, or ordering. Used both

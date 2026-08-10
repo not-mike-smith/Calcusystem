@@ -1,8 +1,8 @@
-using Measurement.BaseClasses;
-using Measurement.Factories;
-using Uom = Measurement.UnitOfMeasure;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Factories;
+using Uom = Calcusystem.Measurement.UnitOfMeasure;
 
-namespace Measurement.Units;
+namespace Calcusystem.Measurement.Units;
 
 // Surface tension (M·T⁻²) — equivalently N/m or J/m².
 // Additional metric prefix variants can be added using the Metric.k/M/m/micro etc. pattern.

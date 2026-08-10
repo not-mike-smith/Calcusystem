@@ -1,6 +1,6 @@
-using Measurement;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>Which two-argument expression a <see cref="BinaryExpressionState"/> rebuilds into.</summary>
 public enum BinaryExpressionKind

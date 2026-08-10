@@ -1,11 +1,11 @@
-using DimensionedExpression.BinaryOperators;
-using DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Expressions;
 using FluentAssertions;
-using Measurement;
-using Measurement.Units;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Units;
 using Xunit;
 
-namespace DimensionedExpression.Test.BinaryOperators;
+namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 
 public class InequalityOperatorTests
 {

@@ -1,4 +1,4 @@
-namespace Measurement.Interfaces;
+namespace Calcusystem.Measurement.Interfaces;
 
 /// <summary>
 /// Strategy for propagating measurement uncertainty through arithmetic on <see cref="Measurand"/>s.

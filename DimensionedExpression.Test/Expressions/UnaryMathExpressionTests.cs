@@ -1,12 +1,12 @@
 using System;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Traversal;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Traversal;
 using FluentAssertions;
-using Measurement;
-using Measurement.Exceptions;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Exceptions;
 using Xunit;
 
-namespace DimensionedExpression.Test.Expressions;
+namespace Calcusystem.DimensionedExpression.Test.Expressions;
 
 public class UnaryMathExpressionTests
 {

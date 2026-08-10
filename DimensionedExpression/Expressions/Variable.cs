@@ -1,12 +1,12 @@
-﻿using DimensionedExpression.Interfaces;
-using Measurement.State;
-using DimensionedExpression.State;
-using DimensionedExpression.Provenance;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Measurement.State;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.Core;
-using Measurement;
-using Measurement.Exceptions;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Exceptions;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// A mutable leaf expression — a named quantity whose <see cref="Value"/> is set directly. Construct it unbound

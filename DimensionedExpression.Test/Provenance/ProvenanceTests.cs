@@ -1,13 +1,13 @@
 using System;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Provenance;
-using DimensionedExpression.State;
-using DimensionedExpression.Traversal;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Provenance;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Traversal;
 using FluentAssertions;
-using Measurement;
+using Calcusystem.Measurement;
 using Xunit;
 
-namespace DimensionedExpression.Test.Provenance;
+namespace Calcusystem.DimensionedExpression.Test.Provenance;
 
 public class ProvenanceTests
 {

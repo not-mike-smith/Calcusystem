@@ -1,14 +1,14 @@
 using System;
 using System.Linq;
 using Calcusystem.Serialization.Mappers;
-using DimensionedExpression.BinaryOperators;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.Provenance;
-using DimensionedExpression.State;
-using DimensionedExpression.Systems;
+using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Provenance;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
-using Measurement;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.Serialization.Test;
 

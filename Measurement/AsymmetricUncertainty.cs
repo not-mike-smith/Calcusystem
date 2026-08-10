@@ -1,8 +1,8 @@
-using Measurement.Interfaces;
-using Measurement.Extensions;
-using Measurement.State;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.State;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// Asymmetric uncertainty with independent errors above and below the nominal value. Both are stored in the same

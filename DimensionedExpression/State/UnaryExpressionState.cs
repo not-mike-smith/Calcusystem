@@ -1,4 +1,4 @@
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>Which single-argument expression a <see cref="UnaryExpressionState"/> rebuilds into.</summary>
 public enum UnaryExpressionKind

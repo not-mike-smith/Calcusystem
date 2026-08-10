@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// A named unit in which a <see cref="Quantity"/> can be expressed — a symbol, a
