@@ -144,6 +144,45 @@ public class FlatSystemTests
         flat.Determination.Should().Be(Determination.Underdetermined);
     }
 
+    /// <remarks>
+    /// Whether a variable is an unknown depends on whether it has a value, not on what kind of relationship
+    /// mentions it. A bound length under <c>l &lt; 3 m</c> is known and checkable; the same length unbound is
+    /// still unknown, because a constraint bounds a value rather than producing one — and so it also appears in
+    /// <c>UnknownsWithNoEquation</c> despite carrying a constraint.
+    /// </remarks>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AConstraintNeverDeterminesItsSubject(bool lengthIsKnown)
+    {
+        var length = lengthIsKnown
+            ? Bound("l", 2, Dimensionality.Length)
+            : Unbound("l", Dimensionality.Length);
+        var limit = Bound("3m", 3, Dimensionality.Length);
+
+        var system = ExpressionSystem.Create("bounded length", "");
+        system.DirectExpressions.Add(length);
+        system.DirectExpressions.Add(limit);
+        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<3m", Lhs = length, Rhs = limit });
+
+        var flat = SystemFlattener.Flatten(system);
+
+        flat.Equations.Should().BeEmpty();
+
+        if (lengthIsKnown)
+        {
+            flat.Unknowns.Should().BeEmpty();
+            flat.Determination.Should().Be(Determination.ExactlyDetermined);
+            flat.UnknownsWithNoEquation.Should().BeEmpty();
+        }
+        else
+        {
+            flat.Unknowns.Select(u => u.Id).Should().Equal("l");
+            flat.Determination.Should().Be(Determination.Underdetermined);
+            flat.UnknownsWithNoEquation.Select(u => u.Id).Should().Equal("l");
+        }
+    }
+
     // ── Classification ───────────────────────────────────────────────────────
 
     [Fact]
@@ -166,7 +205,7 @@ public class FlatSystemTests
     }
 
     [Fact]
-    public void UnconstrainedUnknownsAreReportedSeparatelyFromTheCount()
+    public void UnknownsWithNoEquationAreReportedSeparatelyFromTheCount()
     {
         // Square overall, but `orphan` has no equation on it and `m` has two — the aggregate hides both.
         var m = Unbound("m");
@@ -184,7 +223,7 @@ public class FlatSystemTests
 
         flat.DegreesOfFreedom.Should().Be(0);
         flat.Determination.Should().Be(Determination.ExactlyDetermined);
-        flat.UnconstrainedUnknowns.Select(u => u.Id).Should().Equal("orphan");
+        flat.UnknownsWithNoEquation.Select(u => u.Id).Should().Equal("orphan");
     }
 
     // ── Bindings ─────────────────────────────────────────────────────────────

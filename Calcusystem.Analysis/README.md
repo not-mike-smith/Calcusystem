@@ -25,7 +25,7 @@ flat.Unknowns;             // the distinct unbound Variables
 flat.Equations;            // determining relationships, each with its incident unknowns
 flat.DegreesOfFreedom;     // Unknowns.Count - Equations.Count
 flat.Determination;        // Underdetermined / ExactlyDetermined / Overdetermined
-flat.UnconstrainedUnknowns;// unknowns no equation touches
+flat.UnknownsWithNoEquation; // unknowns no equation touches (a constraint is not an equation)
 ```
 
 ### What becomes a row, a column, or neither
@@ -68,7 +68,7 @@ It is also how an over-determined system is interrogated — pin different subse
 
 **Over-determined systems are never refused.** Redundant equations either agree, in which case they corroborate a result, or disagree, in which case the model or the measurements are inconsistent and the engineer needs to know. Refusing to look would discard the more interesting of the two outcomes.
 
-**`ExactlyDetermined` is necessary, not sufficient.** The count does not check that the equations are independent. Two equations asserting the same thing, alongside a genuinely free variable, also lands on zero — and no count can tell that apart from a well-posed square system. `UnconstrainedUnknowns` catches the cheapest slice of this (a column no row touches), but the general case needs a matching over the incidence structure. Treat DoF as a gate that can *reject*, never as a promise that solving will succeed.
+**`ExactlyDetermined` is necessary, not sufficient.** The count does not check that the equations are independent. Two equations asserting the same thing, alongside a genuinely free variable, also lands on zero — and no count can tell that apart from a well-posed square system. `UnknownsWithNoEquation` catches the cheapest slice of this (a column no row touches), but the general case needs a matching over the incidence structure. Treat DoF as a gate that can *reject*, never as a promise that solving will succeed.
 
 ---
 

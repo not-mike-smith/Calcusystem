@@ -58,15 +58,22 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
     };
 
     /// <summary>
-    /// Unknowns that no equation is incident on — declared or referenced by an expression, but with nothing in
-    /// the system able to determine them.
+    /// Unknowns that no equation is incident on — referenced by the system, but with nothing in it able to
+    /// determine them.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Not the same as "unconstrained": a variable may well carry tolerance or ordering constraints and still
+    /// appear here, because a constraint bounds a value rather than producing one. <c>l &lt; 3 m</c> tells a
+    /// solver nothing about what <c>l</c> is.
+    /// </para>
+    /// <para>
     /// A cheap slice of what a full structural analysis would report. These are guaranteed unsolvable however
     /// the rest of the system is arranged, so they are worth surfacing separately from the aggregate count: a
     /// system can be square overall and still contain one of these, paired with a redundancy elsewhere.
+    /// </para>
     /// </remarks>
-    public IEnumerable<Variable> UnconstrainedUnknowns
+    public IEnumerable<Variable> UnknownsWithNoEquation
     {
         get
         {
