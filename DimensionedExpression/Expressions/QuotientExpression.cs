@@ -31,10 +31,8 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
         return $"{Numerator} / {Denominator}";
     }
 
-    public int DegreesOfFreedom()
-    {
-        return Numerator.DegreesOfFreedom() + Denominator.DegreesOfFreedom();
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => [Numerator, Denominator];
 
     /// <inheritdoc/>
     public BinaryExpressionState GetState() =>

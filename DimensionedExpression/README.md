@@ -21,7 +21,7 @@ force.AddFactor(accel);
 force.Dimensionality;      // M·L·T⁻²  — known immediately
 force.IsFullyDescribed;    // false
 force.Value;               // null
-force.DegreesOfFreedom();  // 2  — two unbound leaves
+force.FreeVariables();     // [mass, accel]  — the distinct unbound leaves
 
 mass.Value  = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
 accel.Value = /* … */;
@@ -35,7 +35,7 @@ force.Value;               // a Measurand (value + propagated uncertainty), comp
 Two consequences worth internalizing:
 
 - **Dimensionality is total; Value is partial.** Ask for `Dimensionality` any time. Only dereference `Value` after checking `IsFullyDescribed` (or guard for `null`) — the `Value!` null-forgiving usage inside the library is always gated by that check.
-- **`DegreesOfFreedom()` counts unbound leaves.** A fully-described tree has 0. This is the intended gate for the future evaluation/solver work (DoF 0 → evaluate, 1 → solvable, >1 → underdetermined).
+- **`FreeVariables()` names the unbound leaves.** A fully-described tree has none. It is set-valued rather than a count because the graph is a **DAG, not a tree** — a shared sub-expression is reachable by several paths, and anything that asks "how many distinct unknowns" must deduplicate. It is also what the caller needs: a report has to name the missing values, not just tally them. Whether a whole *system* is solvable is a different question — see `Calcusystem.Analysis`.
 
 ---
 
@@ -45,7 +45,7 @@ Two consequences worth internalizing:
 
 | Interface | Extends | Adds |
 | --- | --- | --- |
-| `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Measurand? Value` (get), `DegreesOfFreedom()` |
+| `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Measurand? Value` (get), `Children` |
 | `IDirectExpression` | `IExpression` | re-declares `Value` with a **setter** — a mutable leaf |
 | `IComputedExpression` | `IExpression` | `ErrorPropagation { get; set; }` — the `ErrorPropagationMethod` used when combining children |
 
@@ -53,7 +53,7 @@ Two consequences worth internalizing:
 
 | Class | Implements | Role |
 | --- | --- | --- |
-| `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. `DegreesOfFreedom()` = 0 if set, else 1. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
+| `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. A leaf: `Children` is empty, and it is the only node type that can be a free variable. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
 | `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`. All addends must share a dimensionality (enforced on `AddAddend`); constructor can seed a fixed dimensionality for an empty sum. |
 | `ProductExpression` | `IComputedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
@@ -63,7 +63,18 @@ Two consequences worth internalizing:
 | `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeError(eˣ) ≈ \|x\|·RelativeError(x)`. |
 | `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteError(ln x) ≈ RelativeError(x)`. Degenerate at `x = 1` (result 0 → relative error undefined; throws). |
 
-Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Value`/`Dimensionality`/`IsFullyDescribed`/`DegreesOfFreedom` itself. `DegreesOfFreedom()` on a composite is the sum of its children's.
+Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Value`/`Dimensionality`/`IsFullyDescribed`/`Children` itself.
+
+### Traversal (`Traversal/ExpressionTraversal.cs`)
+
+`Children` is the one accessor every graph walk goes through, so the walks are written **once** as extension methods rather than once per node type:
+
+| Extension | Yields |
+| --- | --- |
+| `SelfAndDescendants()` | the node and everything reachable from it, each exactly once |
+| `FreeVariables()` | the distinct unbound `Variable` leaves — on an `IExpression`, or on an `IBinaryOperator` across both its sides |
+
+Both deduplicate by `Id`. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
 
 ### Binary operators (`BinaryOperators/`)
 
@@ -196,4 +207,4 @@ If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Seriali
 - Physical quantities, units, dimensional algebra, uncertainty types, error propagation math → `Measurement`
 - Serialization DTOs, wire formats, type-discriminator strings, and schema migration → `Calcusystem.Serialization`. The state records above are not an exception: a state record says *what data defines a node*, which only this assembly can answer; a DTO adds *how that data is labelled and encoded*, which is the persistence layer's business.
 - Deciding the order in which a graph is rebuilt, or what a dangling id reference means → whatever supplies the `INodeResolver`
-- The actual evaluation walk, constraint reporting, and solving → future assemblies (this layer provides `Value`, `IsFullyDescribed`, and `DegreesOfFreedom` as the primitives they will build on, but performs no orchestration itself)
+- Degrees of freedom for a *system*, the evaluation walk, constraint reporting, and solving → `Calcusystem.Analysis` (this layer provides `Value`, `IsFullyDescribed`, `Children`, and `FreeVariables()` as the primitives those build on, but performs no orchestration itself)

@@ -2,6 +2,7 @@ using System;
 using DimensionedExpression.Expressions;
 using DimensionedExpression.Provenance;
 using DimensionedExpression.State;
+using DimensionedExpression.Traversal;
 using FluentAssertions;
 using Measurement;
 using Xunit;
@@ -93,7 +94,7 @@ public class ProvenanceTests
         var bound = Measurement.Units.Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
         var variable = new Variable("m", bound) { Provenance = ProvenanceFactory.Design() };
 
-        variable.DegreesOfFreedom().Should().Be(0);
+        variable.FreeVariables().Should().BeEmpty();
         variable.Value!.KmsValue.Should().BeApproximately(2, 1E-9);
     }
 }

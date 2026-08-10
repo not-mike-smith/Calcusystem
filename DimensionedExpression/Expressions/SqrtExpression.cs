@@ -43,10 +43,8 @@ public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression,
         return $"√({Argument})";
     }
 
-    public int DegreesOfFreedom()
-    {
-        return Argument.DegreesOfFreedom();
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => [Argument];
 
     /// <inheritdoc/>
     public UnaryExpressionState GetState() =>

@@ -40,11 +40,16 @@ public interface IExpression : IIdentified
     Measurand? Value { get; }
 
     /// <summary>
-    /// The number of unbound leaf variables reachable from this node: 0 when fully described, higher when values
-    /// are still missing. Intended as the gate for future evaluation/solving (0 → evaluate, 1 → solvable,
-    /// &gt;1 → underdetermined).
+    /// The nodes this one is computed from, in operand order; empty for a leaf. The single accessor every graph
+    /// walk goes through — free-variable collection, dependency ordering, and incidence are all one traversal
+    /// over this rather than a switch over node types.
     /// </summary>
-    int DegreesOfFreedom(); // TODO is this realistic?
+    /// <remarks>
+    /// A node may appear as a child of more than one parent: the graph is a DAG, not a tree, and shared
+    /// sub-expressions are the point of referencing neighbours by id. Any walk must therefore deduplicate by
+    /// <see cref="IIdentified.Id"/> — see <c>ExpressionTraversal</c>, which does.
+    /// </remarks>
+    IEnumerable<IExpression> Children { get; }
 }
 
 /// <summary>

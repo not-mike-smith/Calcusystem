@@ -67,10 +67,8 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
         return $"({string.Join('+', Addends.Select(a => a.ToString()))})";
     }
 
-    public int DegreesOfFreedom()
-    {
-        return _addends.Sum(a => a.DegreesOfFreedom());
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => _addends;
 
     /// <inheritdoc/>
     public NaryExpressionState GetState() =>

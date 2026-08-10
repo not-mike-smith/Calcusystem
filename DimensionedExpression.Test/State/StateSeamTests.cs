@@ -1,3 +1,4 @@
+using DimensionedExpression.Traversal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,7 +66,7 @@ public class StateSeamTests
 
         restored.Value.Should().BeNull();
         restored.Dimensionality.Should().Be(original.Dimensionality);
-        restored.DegreesOfFreedom().Should().Be(1);
+        restored.FreeVariables().Should().Equal(restored);
     }
 
     [Fact]

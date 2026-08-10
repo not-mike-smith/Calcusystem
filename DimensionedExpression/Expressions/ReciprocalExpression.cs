@@ -39,10 +39,8 @@ public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<Reciproca
         return $"1/({Reciprocand})";
     }
 
-    public int DegreesOfFreedom()
-    {
-        return Reciprocand.DegreesOfFreedom();
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => [Reciprocand];
 
 
     /// <inheritdoc/>

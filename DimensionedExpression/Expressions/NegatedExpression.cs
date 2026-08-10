@@ -31,10 +31,8 @@ public class NegatedExpression : IdBase, IExpression, IStatefulNode<NegatedExpre
     public Dimensionality Dimensionality => Operand.Dimensionality;
     public Measurand? Value => Operand.IsFullyDescribed ? -(Operand.Value!) : null;
 
-    public int DegreesOfFreedom()
-    {
-        return Operand.DegreesOfFreedom();
-    }
+    /// <inheritdoc/>
+    public IEnumerable<IExpression> Children => [Operand];
 
     public override string ToString()
     {
