@@ -92,6 +92,14 @@ The DTOs are format-agnostic, but not serializer-*indifferent* — a POCO can be
 
 ---
 
+## Payload compatibility
+
+There is no schema version field and **no back-compatibility machinery**: the mappers read exactly the shape they write. A DTO change invalidates payloads written before it, and that is currently an acceptable cost — there is no stored corpus to protect. Revisit when there is.
+
+The most recent such break: `Dtos.ExpressionSystem.Relationships` replaced a `Definitions`/`Constraints` pair, and `BinaryOperator` gained `IsDetermining`. Whether a relationship defines a value or checks one used to be recorded as *which array the operator sat in*; it now rides on the operator itself.
+
+---
+
 ## Deserialization is dependency-ordered
 
 The flattened lists arrive in arbitrary order, so a parent may be read before the children it references exist yet. `DeserializingMapper.MapAllDerivedExpressions` resolves this with a **worklist that retries**:

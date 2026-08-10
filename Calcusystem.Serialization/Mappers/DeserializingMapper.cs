@@ -46,7 +46,7 @@ public class DeserializingMapper
 
         MapAllDerivedExpressions(x);
 
-        foreach (var dto in x.Definitions.Concat(x.Constraints))
+        foreach (var dto in x.Relationships)
         {
             _context.AddLoadedNode(MapBinaryOperatorByPattern(dto));
         }
@@ -62,8 +62,7 @@ public class DeserializingMapper
                     .Concat(x.ListDerivedVariables.Select(d => d.Id))
                     .Concat(x.PairDerivedVariables.Select(d => d.Id))
                     .ToList(),
-                x.Definitions.Select(d => d.Id).ToList(),
-                x.Constraints.Select(d => d.Id).ToList()),
+                x.Relationships.Select(d => d.Id).ToList()),
             _context);
     }
 
@@ -207,6 +206,7 @@ public class DeserializingMapper
                 x.Id,
                 x.LhsId,
                 x.RhsId,
+                x.IsDetermining,
                 x.Name,
                 x.Description,
                 MapProvenance(x.Provenance)),

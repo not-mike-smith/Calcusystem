@@ -42,8 +42,7 @@ public class SerializingMapper
             }
         }
 
-        value.Definitions.AddRange(system.Definitions.Select(Map));
-        value.Constraints.AddRange(system.Constraints.Select(Map));
+        value.Relationships.AddRange(system.Relationships.Select(Map));
         return value;
     }
 
@@ -117,6 +116,7 @@ public class SerializingMapper
             Description = state.Description,
             LhsId = state.LhsId,
             RhsId = state.RhsId,
+            IsDetermining = state.IsDetermining,
             Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
         };
     }

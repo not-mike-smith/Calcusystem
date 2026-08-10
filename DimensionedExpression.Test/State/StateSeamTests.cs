@@ -143,7 +143,7 @@ public class StateSeamTests
         var rhs = Leaf("r", 2);
 
         var restored = BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(BinaryOperatorKind.Equality, "eq", "l", "r", null, null, null),
+            new BinaryOperatorState(BinaryOperatorKind.Equality, "eq", "l", "r", false, null, null, null),
             new StubResolver().With("l", lhs).With("r", rhs),
             new AlwaysEqual());
 
@@ -154,7 +154,7 @@ public class StateSeamTests
     [Fact]
     public void ExpressionSystemResolvesTwoDifferentNodeTypes()
     {
-        // The case a single typed resolver could not express: expressions in two lists, operators in the others.
+        // The case a single typed resolver could not express: expressions in two lists, operators in the third.
         var a = Leaf("a", 1);
         var b = Leaf("b", 1);
         var sum = new SumExpression(new IExpression[] { a, b }) { Id = "s" };
@@ -164,7 +164,7 @@ public class StateSeamTests
         original.DirectExpressions.Add(a);
         original.DirectExpressions.Add(b);
         original.DerivedExpressions.Add(sum);
-        original.Constraints.Add(op);
+        original.Relationships.Add(op);
 
         var resolver = new StubResolver().With("a", a).With("b", b).With("s", sum).With("op", op);
         var restored = ExpressionSystem.FromState(original.GetState(), resolver);

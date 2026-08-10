@@ -26,6 +26,20 @@ public interface IBinaryOperator : IIdentified
     bool IsCommutative { get; }
 
     /// <summary>
+    /// Whether this relationship <i>determines</i> a value — an equation the solver may use to compute an
+    /// unknown — rather than merely <i>checking</i> one. Determining relationships are the equations counted
+    /// against the unknowns when a system's degrees of freedom are calculated; every other relationship is a
+    /// check and reduces degrees of freedom by nothing.
+    /// </summary>
+    /// <remarks>
+    /// Read-only, and settable only where it can meaningfully be true. Ordering and tolerance relations yield an
+    /// interval rather than a point, so no value can be derived from them; their implementations return
+    /// <see langword="false"/> unconditionally and their constructors offer no way to say otherwise. This is why
+    /// the property needs no validation — an operator that cannot determine cannot be built claiming it does.
+    /// </remarks>
+    bool IsDetermining { get; }
+
+    /// <summary>
     /// Whether the relationship holds: three-valued — <see langword="true"/> / <see langword="false"/>, or
     /// <see langword="null"/> when <see cref="AreBothSidesFullyDescribed"/> is false and the answer is unknown.
     /// </summary>

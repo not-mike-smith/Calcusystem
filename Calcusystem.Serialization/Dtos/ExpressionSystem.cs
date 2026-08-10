@@ -16,6 +16,5 @@ public class ExpressionSystem : ISerializedObject
     public List<SingleDerivedVariable> SingleDerivedVariables { get; init; } = new();
     public List<ListDerivedVariable> ListDerivedVariables { get; init; } = new();
     public List<PairDerivedVariable> PairDerivedVariables { get; init; } = new();
-    public List<BinaryOperator> Definitions { get; init; } = new();
-    public List<BinaryOperator> Constraints { get; init; } = new();
+    public List<BinaryOperator> Relationships { get; init; } = new();
 }

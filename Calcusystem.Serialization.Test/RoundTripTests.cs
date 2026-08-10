@@ -123,7 +123,7 @@ public class RoundTripTests
         system.DirectExpressions.Add(lhs);
         system.DirectExpressions.Add(rhs);
 
-        var equality = new EqualityOperator(new AlwaysEqual())
+        var equality = new EqualityOperator(new AlwaysEqual(), isDetermining: true)
         {
             Id = "eq", Name = "x equals y", Description = "defn", Lhs = lhs, Rhs = rhs
         };
@@ -131,8 +131,10 @@ public class RoundTripTests
         {
             Id = "tol", Name = "x within y", Description = "constraint", Lhs = lhs, Rhs = rhs
         };
-        system.Definitions.Add(equality);
-        system.Constraints.Add(tolerance);
+        // Both go into the one list; which of them is a definition and which a constraint is carried by the
+        // operator, so the Definitions/Constraints views below are asserting that the flag survived the trip.
+        system.Relationships.Add(equality);
+        system.Relationships.Add(tolerance);
 
         var restored = RoundTrip(system);
 
