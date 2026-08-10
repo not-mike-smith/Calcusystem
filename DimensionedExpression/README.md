@@ -71,12 +71,20 @@ All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutati
 
 There are three families — equality, tolerance (compatibility within uncertainty), and inequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
 
-One construction wrinkle: **`EqualityOperator` is the only operator with a dependency** — it takes an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) as a constructor argument. Every other operator is constructed purely through `required` init properties:
+One construction wrinkle: **`EqualityOperator` is the only operator with constructor arguments** — an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) and `isDetermining` (below). Every other operator is constructed purely through `required` init properties:
 
 ```csharp
-var op = new WhollyWithinToleranceOperator { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = spec };
-var eq = new EqualityOperator(estimator)   { Id = Constants.CREATE_NEW, Lhs = a,        Rhs = b   };
+var op = new WhollyWithinToleranceOperator      { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = spec };
+var eq = new EqualityOperator(estimator, true)  { Id = Constants.CREATE_NEW, Lhs = a,        Rhs = b   };
 ```
+
+### `IsDetermining` — equations vs. checks
+
+`IBinaryOperator.IsDetermining` says whether a relationship *determines* a value (an equation a solver may use to compute an unknown) or merely *checks* one. It is what the degrees-of-freedom calculation counts against the unknowns; a non-determining relationship reduces DoF by nothing.
+
+**Only `EqualityOperator` can be determining.** Ordering and tolerance relations yield an interval rather than a point, so no value can be derived from them: `BinaryOperatorBase.IsDetermining` returns `false` and the other twelve operators offer no constructor parameter to say otherwise. There is nothing to validate and nothing to throw — an operator that cannot determine cannot be built claiming it does.
+
+`isDetermining` has **no default** on `EqualityOperator`, because both readings are common and neither is safe to assume: `mass_in == mass_out` is an equation to solve, `measured_T == design_T` is an assertion to check. Every construction states its intent.
 
 ---
 
@@ -94,18 +102,24 @@ The container for one coherent model. Create it via the factory (auto-generated 
 var system = ExpressionSystem.Create("Newton's second law", "F = m·a");
 ```
 
-It holds four lists plus a `Name`/`Description`:
+It holds three lists plus a `Name`/`Description`:
 
 | Member | Type | Purpose |
 | --- | --- | --- |
 | `DirectExpressions` | `List<Variable>` | the mutable leaf variables |
 | `DerivedExpressions` | `List<IExpression>` | computed nodes built over those leaves |
-| `Definitions` | `List<IBinaryOperator>` | always-true relationships used to *compute* unknowns (conservation laws, constitutive equations) |
-| `Constraints` | `List<IBinaryOperator>` | tolerance/ordering checks evaluated against values (pass / fail / unknown) |
+| `Relationships` | `List<IBinaryOperator>` | every asserted relationship — definitions and constraints alike |
+
+plus two read-only views over that third list:
+
+| View | Contents |
+| --- | --- |
+| `Definitions` | relationships where `IsDetermining` — always-true relationships used to *compute* unknowns (conservation laws, constitutive equations) |
+| `Constraints` | everything else — tolerance/ordering checks evaluated against values (pass / fail / unknown) |
 
 `GetAllExpressions()` returns direct + derived. The scope of one `ExpressionSystem` is a single model (one equation of state, one heat exchanger); composing multiple systems into a flowsheet is a future (Milestone 5) concern.
 
-The `Definitions` vs. `Constraints` distinction is semantic, not enforced by type — both are `List<IBinaryOperator>`. The convention: if an operator exists to derive a value, it's a definition; if it exists to check one, it's a constraint.
+**Add through `Relationships`.** Definitions and constraints share one list because which one a relationship is belongs to the operator — its `IsDetermining` — not to where it was filed. Two parallel lists would encode the same fact twice and let the two answers diverge; as views they cannot.
 
 ---
 
@@ -166,7 +180,7 @@ The axis is *does rebuilding need outside help*, not where a node sits in the tr
 Where a state carries a discriminator, the concrete type is chosen by inspecting it, so reconstruction is a static gateway over the closed set rather than a `static abstract` on each type — the same treatment `IUncertainty` and `IProvenance` get:
 
 - `ExpressionFactory.FromState(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromState`, which is where per-type construction actually lives.
-- `BinaryOperatorFactory.FromState(state, resolve, equalityEstimator)` — a gateway rather than per-type implementations, because construction is identical across all thirteen apart from which type is instantiated, and because `EqualityOperator` needs an `IEqualityEstimating` that a two-argument seam has nowhere to accept.
+- `BinaryOperatorFactory.FromState(state, resolve, equalityEstimator)` — a gateway rather than per-type implementations, because construction is identical across all thirteen apart from which type is instantiated, and because `EqualityOperator` needs an `IEqualityEstimating` that a two-argument seam has nowhere to accept. `BinaryOperatorState.IsDetermining` is read only for the equality kind; the other twelve have no way to represent it, so reconstruction drops it rather than inventing an equation.
 - `ProvenanceFactory.FromState(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
 
 If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Serialization` is still the assembly to reach for; it consumes these seams.

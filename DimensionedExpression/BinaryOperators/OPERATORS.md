@@ -11,7 +11,7 @@ Interval notation: for a `Measurand` *v*, its uncertainty interval is
 
 | Class | Symbol | Commutative | Condition |
 | --- | --- | --- | --- |
-| `EqualityOperator` | `==` | ✓ | `IEqualityEstimating.AreEqual(Lhs, Rhs)` — injected strategy |
+| `EqualityOperator` | `==` | ✓ | `IEqualityEstimating.AreEqual(Lhs, Rhs)` — injected strategy. The only operator that can be `IsDetermining` (see the DimensionedExpression README); every other operator on this page yields an interval rather than a point, so no value can be derived from it. |
 
 ---
 

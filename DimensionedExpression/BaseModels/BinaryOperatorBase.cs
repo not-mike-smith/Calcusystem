@@ -16,6 +16,14 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public abstract bool? IsSatisfied(); // TODO? move to extension?
     public abstract string Symbol { get; }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Virtual rather than abstract, and false by default, because determining is the exception: only the
+    /// equality family can derive a value. An operator that overrides this takes the flag through its own
+    /// constructor, so the twelve that do not override it have no way to be constructed claiming otherwise.
+    /// </remarks>
+    public virtual bool IsDetermining => false;
+
     /// <summary>Which operator this is, for state capture. Declared alongside <see cref="Symbol"/>.</summary>
     protected abstract BinaryOperatorKind Kind { get; }
 
@@ -24,7 +32,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// references plus annotations — so this is implemented once here rather than thirteen times.
     /// </summary>
     public BinaryOperatorState GetState() =>
-        new(Kind, Id, Lhs.Id, Rhs.Id, Name, Description, Provenance?.GetState());
+        new(Kind, Id, Lhs.Id, Rhs.Id, IsDetermining, Name, Description, Provenance?.GetState());
 
     public bool AreBothSidesFullyDescribed => Lhs.IsFullyDescribed && Rhs.IsFullyDescribed;
     public override string ToString()

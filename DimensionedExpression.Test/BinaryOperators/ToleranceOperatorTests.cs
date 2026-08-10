@@ -264,7 +264,7 @@ public class ToleranceOperatorTests
     [Fact]
     public void EqualityOperator_DelegatesToInjectedEstimator_WhenTrue()
     {
-        var op = new EqualityOperator(new AlwaysTrueEstimator())
+        var op = new EqualityOperator(new AlwaysTrueEstimator(), false)
         {
             Id = "test",
             Lhs = Symmetric(10.0),
@@ -276,7 +276,7 @@ public class ToleranceOperatorTests
     [Fact]
     public void EqualityOperator_DelegatesToInjectedEstimator_WhenFalse()
     {
-        var op = new EqualityOperator(new AlwaysFalseEstimator())
+        var op = new EqualityOperator(new AlwaysFalseEstimator(), false)
         {
             Id = "test",
             Lhs = Symmetric(10.0),
@@ -288,7 +288,7 @@ public class ToleranceOperatorTests
     [Fact]
     public void EqualityOperator_ReturnsNull_WhenNotFullyDescribed()
     {
-        var op = new EqualityOperator(new AlwaysTrueEstimator())
+        var op = new EqualityOperator(new AlwaysTrueEstimator(), false)
         {
             Id = "test",
             Lhs = Unbound(),

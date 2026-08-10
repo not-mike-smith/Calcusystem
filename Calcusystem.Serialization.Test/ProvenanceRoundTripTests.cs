@@ -65,7 +65,7 @@ public class ProvenanceRoundTripTests
         system.DirectExpressions.Add(lhs);
         system.DirectExpressions.Add(rhs);
 
-        system.Definitions.Add(new WithinBindingToleranceOperator
+        system.Relationships.Add(new WithinBindingToleranceOperator
         {
             Id = "op",
             Lhs = lhs,
@@ -74,7 +74,7 @@ public class ProvenanceRoundTripTests
                 ProvenanceState.Reference("prov-op", "NIST SP 811", "https://nist.gov", 2008))
         });
 
-        var restored = RoundTrip(system).Definitions.Single();
+        var restored = RoundTrip(system).Relationships.Single();
 
         restored.Provenance.Should().BeOfType<ReferenceProvenance>();
         var state = restored.Provenance!.GetState();

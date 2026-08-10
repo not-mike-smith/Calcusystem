@@ -10,5 +10,9 @@ public class BinaryOperator : ISerializedObject
     public required string? Description { get; init; }
     public required string LhsId { get; init; }
     public required string RhsId { get; init; }
+
+    /// <summary>Whether this relationship determines a value rather than merely checking one.</summary>
+    public bool IsDetermining { get; init; }
+
     public Provenance? Provenance { get; init; }
 }
