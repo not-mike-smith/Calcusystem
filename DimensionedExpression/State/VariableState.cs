@@ -1,6 +1,6 @@
-using Measurement.State;
+using Calcusystem.Measurement.State;
 
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>
 /// The complete stored state of a <see cref="Expressions.Variable"/>.

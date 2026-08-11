@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Measurement.BaseClasses;
+namespace Calcusystem.Measurement.BaseClasses;
 
 public abstract class ReflectiveUnitList<T> : UnitList where T : class
 {

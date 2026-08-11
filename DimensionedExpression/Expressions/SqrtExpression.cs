@@ -1,9 +1,9 @@
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using DimensionedExpression.Interfaces;
-using Measurement;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary square root of any <see cref="IExpression"/>. The result's dimensionality is the argument's with every

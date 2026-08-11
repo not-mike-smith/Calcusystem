@@ -1,11 +1,11 @@
-﻿using Measurement.Exceptions;
+﻿using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Core;
-using Measurement.Extensions;
-using Measurement.Interfaces;
-using Measurement.State;
-using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Measurement.FundamentalDimension, int>;
+using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.State;
+using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Calcusystem.Measurement.FundamentalDimension, int>;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// The physical dimension of a quantity, represented as a map from each <see cref="FundamentalDimension"/>

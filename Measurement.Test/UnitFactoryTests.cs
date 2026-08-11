@@ -1,9 +1,9 @@
 ﻿using System;
 using FluentAssertions;
-using Measurement.Factories;
+using Calcusystem.Measurement.Factories;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 public class UnitFactoryTests
 {

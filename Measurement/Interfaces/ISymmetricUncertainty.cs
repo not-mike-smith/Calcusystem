@@ -1,4 +1,4 @@
-namespace Measurement.Interfaces;
+namespace Calcusystem.Measurement.Interfaces;
 
 /// <summary>
 /// Marker specialization of <see cref="IUncertainty"/> for the symmetric case, where the error above and

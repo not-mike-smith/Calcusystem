@@ -1,7 +1,7 @@
 using Calcusystem.Core;
-using Measurement;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Interfaces;
+namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
 /// A node in a dimensioned expression tree — a leaf variable or a computed combination of other nodes.

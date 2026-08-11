@@ -1,8 +1,8 @@
 using Calcusystem.Core;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Rebuilds expressions from captured state. The counterpart to each expression's <c>GetState</c>.

@@ -1,9 +1,9 @@
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using DimensionedExpression.Interfaces;
-using Measurement;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Measurement;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary negation of any <see cref="IExpression"/> (its <see cref="Operand"/>): the same dimensionality, with

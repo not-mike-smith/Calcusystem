@@ -1,11 +1,11 @@
-﻿using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using DimensionedExpression.BaseModels;
-using Measurement;
-using Measurement.Exceptions;
+using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Exceptions;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// N-ary sum (<c>+</c>) over its <see cref="Addends"/>, which must all share a dimensionality (enforced on

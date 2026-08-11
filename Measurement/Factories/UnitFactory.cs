@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using Measurement.Extensions;
+using Calcusystem.Measurement.Extensions;
 
-namespace Measurement.Factories;
+namespace Calcusystem.Measurement.Factories;
 
 public static class UnitFactory
 {

@@ -1,8 +1,8 @@
-using Measurement.BaseClasses;
-using Measurement.Factories;
-using Uom = Measurement.UnitOfMeasure;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Factories;
+using Uom = Calcusystem.Measurement.UnitOfMeasure;
 
-namespace Measurement.Units;
+namespace Calcusystem.Measurement.Units;
 
 // Specific heat capacity (L²·T⁻²·Θ⁻¹ = J/(kg·K)).
 // Temperature appears as a delta, so DeltaFahrenheit is used in Imperial units.

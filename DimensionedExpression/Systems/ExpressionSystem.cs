@@ -1,9 +1,9 @@
-﻿using DimensionedExpression.Expressions;
-using DimensionedExpression.State;
+﻿using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
-using DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Interfaces;
 
-namespace DimensionedExpression.Systems;
+namespace Calcusystem.DimensionedExpression.Systems;
 
 public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, ExpressionSystemState>
 {

@@ -1,9 +1,9 @@
 ﻿using System.Linq;
-using Measurement.Units;
+using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
 
-namespace Measurement.Test.Units;
+namespace Calcusystem.Measurement.Test.Units;
 
 public class MassTests
 {

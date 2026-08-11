@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Calcusystem.Serialization.Mappers;
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.Systems;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
-using Measurement;
-using Measurement.Units;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Units;
 
 namespace Calcusystem.Serialization.Test;
 

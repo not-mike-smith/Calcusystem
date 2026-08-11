@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Measurement.Exceptions;
+namespace Calcusystem.Measurement.Exceptions;
 
 public class NegativeMagnitudeException : InvalidOperationException
 {

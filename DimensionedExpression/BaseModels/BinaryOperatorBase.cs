@@ -1,8 +1,8 @@
-﻿using DimensionedExpression.Interfaces;
-using DimensionedExpression.Provenance;
-using DimensionedExpression.State;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Provenance;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.BaseModels;
+namespace Calcusystem.DimensionedExpression.BaseModels;
 
 public abstract class BinaryOperatorBase : IBinaryOperator
 {

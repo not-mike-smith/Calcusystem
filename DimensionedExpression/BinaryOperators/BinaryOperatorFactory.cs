@@ -1,10 +1,10 @@
-using DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Core;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.Provenance;
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Provenance;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.BinaryOperators;
+namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Rebuilds binary operators from captured state. The counterpart to <c>BinaryOperatorBase.GetState</c>.

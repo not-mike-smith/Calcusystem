@@ -1,9 +1,9 @@
-﻿using DimensionedExpression.Interfaces;
+﻿using Calcusystem.DimensionedExpression.Interfaces;
 
-using DimensionedExpression.State;
-using DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.BaseModels;
 
-namespace DimensionedExpression.BinaryOperators;
+namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Satisfied when the Lhs and Rhs are judged equal by the injected <see cref="IEqualityEstimating"/> strategy,

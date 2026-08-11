@@ -1,9 +1,9 @@
 using Calcusystem.Core;
 using System;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.Provenance;
+namespace Calcusystem.DimensionedExpression.Provenance;
 
 /// <summary>
 /// Provenance for an instrument or sensor reading. Construct via <see cref="ProvenanceFactory.Measured"/>.

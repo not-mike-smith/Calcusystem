@@ -1,8 +1,8 @@
 
-using DimensionedExpression.State;
-using DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.BaseModels;
 
-namespace DimensionedExpression.BinaryOperators;
+namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Satisfied when the entire Lhs uncertainty interval lies strictly below the entire Rhs uncertainty

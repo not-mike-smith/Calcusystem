@@ -1,6 +1,6 @@
-using DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Interfaces;
 
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>Which provenance kind a <see cref="ProvenanceState"/> describes — the type it rebuilds into.</summary>
 public enum ProvenanceKind

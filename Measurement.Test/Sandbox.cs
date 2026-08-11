@@ -1,10 +1,10 @@
 ﻿using System.Linq;
-using Measurement.BaseClasses;
-using Measurement.Extensions;
-using Measurement.Units;
+using Calcusystem.Measurement.BaseClasses;
+using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.Units;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 public class Sandbox
 {

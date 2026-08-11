@@ -1,6 +1,6 @@
-using Measurement.State;
+using Calcusystem.Measurement.State;
 
-namespace Measurement.Interfaces;
+namespace Calcusystem.Measurement.Interfaces;
 
 /// <summary>
 /// Represents the uncertainty of a physical quantity expressed in KMS units.

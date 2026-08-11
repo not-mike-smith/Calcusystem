@@ -1,4 +1,4 @@
-namespace Measurement.State;
+namespace Calcusystem.Measurement.State;
 
 /// <summary>
 /// The complete stored state of a <see cref="Quantity"/>: its KMS-normalized value and its dimensionality.

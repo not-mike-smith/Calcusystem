@@ -1,9 +1,9 @@
 using Calcusystem.Core;
 using System;
-using DimensionedExpression.Interfaces;
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.Provenance;
+namespace Calcusystem.DimensionedExpression.Provenance;
 
 /// <summary>
 /// The single creation point for <see cref="IProvenance"/> values. Every provenance kind is created here —

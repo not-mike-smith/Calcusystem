@@ -1,8 +1,8 @@
 using Calcusystem.Core;
-using Measurement.Interfaces;
-using Measurement.State;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.State;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// Rebuilds an <see cref="IUncertainty"/> from previously captured <see cref="UncertaintyState"/>.

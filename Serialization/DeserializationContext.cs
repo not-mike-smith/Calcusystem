@@ -1,7 +1,7 @@
 using Calcusystem.Core;
 using Calcusystem.Serialization.Exceptions;
 using Calcusystem.Serialization.Interfaces;
-using DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Interfaces;
 
 namespace Calcusystem.Serialization;
 

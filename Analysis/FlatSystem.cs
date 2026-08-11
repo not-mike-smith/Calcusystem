@@ -1,5 +1,5 @@
-using DimensionedExpression.Expressions;
-using DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
 
 namespace Calcusystem.Analysis;
 

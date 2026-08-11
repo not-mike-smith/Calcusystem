@@ -1,4 +1,4 @@
-﻿namespace Measurement;
+﻿namespace Calcusystem.Measurement;
 
 public enum ErrorPropagationMethod : byte
 {

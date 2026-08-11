@@ -1,7 +1,7 @@
 using Calcusystem.Core;
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.State;
 
-namespace DimensionedExpression.Interfaces;
+namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
 /// Describes where a leaf variable's (or an operator's) value came from — an audit annotation, not a behavioral

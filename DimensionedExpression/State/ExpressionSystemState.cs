@@ -1,4 +1,4 @@
-namespace DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>
 /// The complete stored state of an <see cref="Systems.ExpressionSystem"/>: its identity, its labels, and the ids

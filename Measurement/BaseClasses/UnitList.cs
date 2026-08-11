@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Measurement.BaseClasses;
+namespace Calcusystem.Measurement.BaseClasses;
 
 public abstract class UnitList
 {

@@ -1,5 +1,5 @@
 
-namespace Measurement.Extensions;
+namespace Calcusystem.Measurement.Extensions;
 
 public static class QuantityExtensions
 {

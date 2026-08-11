@@ -1,11 +1,11 @@
-using DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using System;
-using DimensionedExpression.Interfaces;
-using Measurement;
-using Measurement.Exceptions;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Exceptions;
 
-namespace DimensionedExpression.Expressions;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary <c>ln(x)</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless

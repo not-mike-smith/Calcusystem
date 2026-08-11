@@ -1,8 +1,8 @@
-using Measurement.Interfaces;
-using Measurement.Extensions;
-using Measurement.State;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.State;
 
-namespace Measurement;
+namespace Calcusystem.Measurement;
 
 /// <summary>
 /// Symmetric uncertainty: the same error above and below the nominal value. The error is stored either as a

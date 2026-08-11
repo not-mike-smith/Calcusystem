@@ -1,5 +1,5 @@
-using Measurement;
-using Measurement.State;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.State;
 
 namespace Calcusystem.Serialization;
 

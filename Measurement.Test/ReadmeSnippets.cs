@@ -1,9 +1,9 @@
 using FluentAssertions;
-using Measurement.Extensions;
-using Measurement.Units;
+using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.Units;
 using Xunit;
 
-namespace Measurement.Test;
+namespace Calcusystem.Measurement.Test;
 
 /// <summary>
 /// The snippets printed in the READMEs, compiled. Documentation that no longer builds is worse than none, and
