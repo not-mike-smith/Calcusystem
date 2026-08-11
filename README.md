@@ -25,11 +25,11 @@ Five library assemblies stacked bottom-up; the upper four each have a matching t
 
 | Assembly | Depends on | What it does |
 | --- | --- | --- |
-| [`Calcusystem.Core`](Calcusystem.Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
+| [`Calcusystem.Core`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
 | [`Measurement`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | [`DimensionedExpression`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
-| [`Calcusystem.Serialization`](Calcusystem.Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
-| [`Calcusystem.Analysis`](Calcusystem.Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed: flattens it to unknowns × equations and reports degrees of freedom. Where the evaluator and solver will live. |
+| [`Calcusystem.Serialization`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
+| [`Calcusystem.Analysis`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed: flattens it to unknowns × equations and reports degrees of freedom. Where the evaluator and solver will live. |
 
 `Measurement.Test`, `DimensionedExpression.Test`, `Calcusystem.Serialization.Test`, and `Calcusystem.Analysis.Test` hold the xUnit suites for each layer. `Calcusystem.Core` has none of its own — it declares contracts and holds no logic to test; its seams are exercised through the layers that implement them.
 
