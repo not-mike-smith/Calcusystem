@@ -86,7 +86,7 @@ public class StateSeamTests
         var restored = ProductExpression.FromState(state, new StubResolver().With("a", a).With("b", b));
 
         restored.Id.Should().Be("p");
-        restored.Value!.KmsValue.Should().BeApproximately(12, 1e-12);
+        restored.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(12, 1e-12);
     }
 
     [Theory]

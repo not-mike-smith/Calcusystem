@@ -101,11 +101,11 @@ public class RoundTripTests
 
         var restored = RoundTrip(system);
 
-        ById(restored, "force").Value!.KmsValue.Should().BeApproximately(6, 1E-9);      // 2 * 3
-        ById(restored, "totalMass").Value!.KmsValue.Should().BeApproximately(7, 1E-9);  // 2 + 5
-        ById(restored, "q").Value!.KmsValue.Should().BeApproximately(3, 1E-9);          // 6 / 2
-        ById(restored, "recip").Value!.KmsValue.Should().BeApproximately(0.5, 1E-9);    // 1 / 2
-        ById(restored, "neg").Value!.KmsValue.Should().BeApproximately(-3, 1E-9);       // -3
+        ById(restored, "force").CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(6, 1E-9);      // 2 * 3
+        ById(restored, "totalMass").CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(7, 1E-9);  // 2 + 5
+        ById(restored, "q").CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(3, 1E-9);          // 6 / 2
+        ById(restored, "recip").CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(0.5, 1E-9);    // 1 / 2
+        ById(restored, "neg").CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(-3, 1E-9);       // -3
 
         // Shared-reference integrity: the quotient's denominator is the same restored 'm' leaf.
         var restoredM = ById(restored, "m");

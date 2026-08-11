@@ -18,11 +18,14 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var testValue = Lhs.Value!;
-        var bindingValue = Rhs.Value!;
+        var testValue = lhs;
+        var bindingValue = rhs;
         var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
         var bindingUpperBound = bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
         return testValue.KmsValue >= bindingLowerBound && testValue.KmsValue <= bindingUpperBound;
@@ -47,11 +50,14 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var testValue = Lhs.Value!;
-        var bindingValue = Rhs.Value!;
+        var testValue = lhs;
+        var bindingValue = rhs;
         var isAboveLowerBound = testValue.KmsValue >= bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
         var upperBoundNotExceeded =
             testValue.KmsValue + testValue.KmsUpperAbsoluteError <=
@@ -78,11 +84,14 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var testValue = Lhs.Value!;
-        var bindingValue = Rhs.Value!;
+        var testValue = lhs;
+        var bindingValue = rhs;
         var isBelowUpperBound = testValue.KmsValue <= bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
         var lowerBoundNotViolated =
             testValue.KmsValue - testValue.KmsLowerAbsoluteError >=

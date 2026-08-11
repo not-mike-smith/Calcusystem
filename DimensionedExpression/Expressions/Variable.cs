@@ -54,6 +54,17 @@ public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableS
     /// <remarks>A leaf: a variable is computed from nothing, so it has no children.</remarks>
     public IEnumerable<IExpression> Children => [];
 
+    /// <inheritdoc/>
+    /// <remarks>A leaf has nothing to combine; its value is whatever was assigned, or null.</remarks>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => _value;
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Nothing to walk, so this is just <see cref="Value"/>. It exists because callers holding an
+    /// <c>IExpression</c> cannot see the leaf's property, and it costs a leaf nothing to answer.
+    /// </remarks>
+    public Measurand? CalculateValueIfDetermined() => _value;
+
     public Measurand? Value
     {
         get => _value;

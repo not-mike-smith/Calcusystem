@@ -23,13 +23,14 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-        {
-            return null;
-        }
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var testValue = Lhs.Value!;
-        var bindingValue = Rhs.Value!;
+        var testValue = lhs;
+        var bindingValue = rhs;
         var lowerBoundWithinTolerance = testValue.KmsValue - testValue.KmsLowerAbsoluteError >
                                         bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
 

@@ -25,10 +25,15 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
         Dimensionality.Dimensionless,
         (productDimensions, current) => productDimensions * current.Dimensionality);
 
-    public Measurand? Value => IsFullyDescribed && _factors.Count > 0
-        ? _factors.Select(f => f.Value!).Skip(1)
-            .Aggregate(_factors[0].Value!, (acc, f) => acc.Times(f, ErrorPropagation))
+    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed && _factors.Count > 0
+        ? ComputeFrom(_factors.Select(f => f.CalculateValueIfDetermined()!).ToList())
         : null;
+
+    /// <inheritdoc/>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) =>
+        operands.Count == 0
+            ? null
+            : operands.Skip(1).Aggregate(operands[0], (acc, f) => acc.Times(f, ErrorPropagation));
 
     public void AddFactor(IExpression expression)
     {

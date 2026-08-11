@@ -8,7 +8,7 @@ Depends only on `Measurement` (for `Measurand`, `Dimensionality`, `ErrorPropagat
 
 ## The central idea: lazy, dimension-checked expression trees
 
-Every node in the tree is an `IExpression`. A node knows its `Dimensionality` *structurally* — always available, even before any values are supplied — but produces a `Measurand? Value` **only once every leaf it depends on has been given a value**. Until then `Value` is `null` and `IsFullyDescribed` is `false`.
+Every node in the tree is an `IExpression`. A node knows its `Dimensionality` *structurally* — always available, even before any values are supplied — but produces a value **only once every leaf it depends on has been given a value**. Until then `CalculateValueIfDetermined()` returns `null` and `IsFullyDescribed` is `false`.
 
 ```csharp
 var mass  = new Variable("m", Dimensionality.Mass);
@@ -20,21 +20,25 @@ force.AddFactor(accel);
 
 force.Dimensionality;      // M·L·T⁻²  — known immediately
 force.IsFullyDescribed;    // false
-force.Value;               // null
+force.CalculateValueIfDetermined();  // null
 force.FreeVariables();     // [mass, accel]  — the distinct unbound leaves
 
 mass.Value  = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
 accel.Value = /* … */;
 
 force.IsFullyDescribed;    // true once both are set
-force.Value;               // a Measurand (value + propagated uncertainty), computed on demand
+force.CalculateValueIfDetermined();  // a Measurand (value + propagated uncertainty)
 ```
 
-`Value` is recomputed on each access from the current children — there is no caching and no separate "evaluate" step. Arithmetic and uncertainty propagation are delegated entirely to `Measurand` (see the Measurement README); this layer only assembles the tree and walks it.
+**`CalculateValueIfDetermined()` is a method, and named for what it costs.** It walks the entire graph beneath the node on every call and caches nothing, so a sub-expression shared by three parents is computed three times. It was once a `Value` property, which invited callers to read it like a field and to call it in a loop.
+
+Nothing is memoised on the node deliberately: a node cannot learn that a leaf beneath it was reassigned, so a cached answer there could silently go stale. Caching belongs to a caller that knows over what scope the graph is unchanged — `Calcusystem.Analysis`'s `SystemEvaluator` computes each node exactly once per run by walking in dependency order and feeding results to `ComputeFrom`. **Prefer the evaluator for anything beyond a one-off read.**
+
+Arithmetic and uncertainty propagation are delegated entirely to `Measurand` (see the Measurement README); this layer only assembles the graph and walks it.
 
 Two consequences worth internalizing:
 
-- **Dimensionality is total; Value is partial.** Ask for `Dimensionality` any time. Only dereference `Value` after checking `IsFullyDescribed` (or guard for `null`) — the `Value!` null-forgiving usage inside the library is always gated by that check.
+- **Dimensionality is total; value is partial.** Ask for `Dimensionality` any time. A null result from `CalculateValueIfDetermined()` *is* the "not fully described" answer, so prefer checking the result over calling `IsFullyDescribed` first — the latter is itself a walk, and asking both walks the graph twice.
 - **`FreeVariables()` names the unbound leaves.** A fully-described tree has none. It is set-valued rather than a count because the graph is a **DAG, not a tree** — a shared sub-expression is reachable by several paths, and anything that asks "how many distinct unknowns" must deduplicate. It is also what the caller needs: a report has to name the missing values, not just tally them. Whether a whole *system* is solvable is a different question — see `Calcusystem.Analysis`.
 
 ---
@@ -45,8 +49,8 @@ Two consequences worth internalizing:
 
 | Interface | Extends | Adds |
 | --- | --- | --- |
-| `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Measurand? Value` (get), `Children` |
-| `IDirectExpression` | `IExpression` | re-declares `Value` with a **setter** — a mutable leaf |
+| `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Children`, `CalculateValueIfDetermined()`, `ComputeFrom(operands)` |
+| `IDirectExpression` | `IExpression` | adds `Measurand? Value { get; set; }` — a mutable leaf's *stored* value. A genuine property: there is nothing beneath a leaf to walk. It no longer shadows anything, which is what kept the difference in cost between the two hidden. |
 | `IComputedExpression` | `IExpression` | `ErrorPropagation { get; set; }` — the `ErrorPropagationMethod` used when combining children |
 
 ### Expression node types (`Expressions/`)
@@ -63,7 +67,13 @@ Two consequences worth internalizing:
 | `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeError(eˣ) ≈ \|x\|·RelativeError(x)`. |
 | `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteError(ln x) ≈ RelativeError(x)`. Degenerate at `x = 1` (result 0 → relative error undefined; throws). |
 
-Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Value`/`Dimensionality`/`IsFullyDescribed`/`Children` itself.
+Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Dimensionality`/`IsFullyDescribed`/`Children`/`ComputeFrom` itself.
+
+### `ComputeFrom`: the node's arithmetic, without the walk
+
+`ComputeFrom(operands)` answers "given my children's values, what is mine?" — the node's own arithmetic and uncertainty propagation, with the traversal that produced those operands factored out. Operands arrive in `Children` order (for a quotient: numerator, then denominator). A leaf has no operands and answers with its stored value.
+
+`CalculateValueIfDetermined()` is that function applied to children which computed themselves recursively. An evaluator is the same function applied to operands it computed in dependency order and kept. That is the whole point of the split: **a node owns how values combine; a caller owns the order they are produced in and whether any are worth keeping.** Neither memoisation nor a trial-value override is expressible through `CalculateValueIfDetermined()` alone, because it reaches to the leaves every time.
 
 ### Traversal (`Traversal/ExpressionTraversal.cs`)
 
@@ -207,4 +217,4 @@ If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Seriali
 - Physical quantities, units, dimensional algebra, uncertainty types, error propagation math → `Measurement`
 - Serialization DTOs, wire formats, type-discriminator strings, and schema migration → `Calcusystem.Serialization`. The state records above are not an exception: a state record says *what data defines a node*, which only this assembly can answer; a DTO adds *how that data is labelled and encoded*, which is the persistence layer's business.
 - Deciding the order in which a graph is rebuilt, or what a dangling id reference means → whatever supplies the `INodeResolver`
-- Degrees of freedom for a *system*, the evaluation walk, constraint reporting, and solving → `Calcusystem.Analysis` (this layer provides `Value`, `IsFullyDescribed`, `Children`, and `FreeVariables()` as the primitives those build on, but performs no orchestration itself)
+- Degrees of freedom for a *system*, the evaluation walk, constraint reporting, and solving → `Calcusystem.Analysis` (this layer provides `ComputeFrom`, `IsFullyDescribed`, `Children`, and `FreeVariables()` as the primitives those build on, but performs no orchestration and keeps no cache itself)
