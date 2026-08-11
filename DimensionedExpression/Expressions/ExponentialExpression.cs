@@ -38,12 +38,11 @@ public class ExponentialExpression : IdBase, IExpression, IStatefulNode<Exponent
     public bool IsFullyDescribed => Argument.IsFullyDescribed;
     public Dimensionality Dimensionality => Dimensionality.Dimensionless;
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed ? ComputeFrom([Argument.CalculateValueIfDetermined()!]) : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands)
+    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known)
     {
-        var argument = operands[0];
+        var argument = known[Argument];
         var x = argument.KmsValue;
         var relativeError = Math.Abs(x) * argument.RelativeError;
 

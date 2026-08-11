@@ -30,12 +30,9 @@ public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<Reciproca
     public bool IsFullyDescribed => Reciprocand.IsFullyDescribed;
     public Dimensionality Dimensionality => Reciprocand.Dimensionality.Reciprocal();
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed
-        ? ComputeFrom([Reciprocand.CalculateValueIfDetermined()!])
-        : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => operands[0].Reciprocal();
+    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) => known[Reciprocand].Reciprocal();
 
     public override string ToString()
     {

@@ -1,5 +1,6 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.DimensionedExpression.Traversal;
 
@@ -9,7 +10,7 @@ namespace Calcusystem.DimensionedExpression.Traversal;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every walk here deduplicates by <c>Id</c>, because an expression graph is a <b>DAG, not a tree</b> — the same
+/// Every walk here deduplicates, because an expression graph is a <b>DAG, not a tree</b> — the same
 /// sub-expression may be referenced from several parents, which is the whole reason nodes refer to neighbours by
 /// id. Counting it once per reference is wrong for anything that asks "how many distinct things are there",
 /// which is exactly what degrees of freedom asks.
@@ -27,7 +28,7 @@ public static class ExpressionTraversal
     /// </summary>
     public static IEnumerable<IExpression> SelfAndDescendants(this IExpression root)
     {
-        var seen = new HashSet<string>();
+        var seen = new HashSet<IExpression>();
         var pending = new Stack<IExpression>();
         pending.Push(root);
 
@@ -37,7 +38,7 @@ public static class ExpressionTraversal
 
             // A repeat visit is a shared sub-expression, not a cycle: the graph is acyclic by construction,
             // since a node can only be given children that already exist.
-            if (!seen.Add(node.Id)) continue;
+            if (!seen.Add(node)) continue;
 
             yield return node;
 
@@ -46,6 +47,43 @@ public static class ExpressionTraversal
                 pending.Push(child);
             }
         }
+    }
+
+    /// <summary>
+    /// Computes <paramref name="root"/>'s value with propagated uncertainty, or returns <see langword="null"/>
+    /// if any leaf it depends on is still unbound.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Named for what it costs.</b> This walks the whole graph beneath the node on every call and caches
+    /// nothing, so a sub-expression shared by three parents is computed three times. It is a method, not a
+    /// property, because a property invites callers to treat it as field access and call it in a loop.
+    /// </para>
+    /// <para>
+    /// Nothing is memoised on purpose: a node has no way to learn that a leaf beneath it was reassigned, so a
+    /// cached answer would go stale silently. Caching belongs to a caller that knows over what scope the graph
+    /// is unchanged — <c>Calcusystem.Analysis</c>'s <c>Calculate</c> computes each node once per run. Prefer it
+    /// for anything beyond a one-off read.
+    /// </para>
+    /// <para>
+    /// One implementation rather than one per node type: each node contributes <see cref="IExpression.Children"/>
+    /// and <see cref="IExpression.ComputeFrom"/>, and this is the only way those two compose for a single node
+    /// standing alone.
+    /// </para>
+    /// </remarks>
+    public static Measurand? CalculateValueIfDetermined(this IExpression root)
+    {
+        var known = new Dictionary<IExpression, Measurand>();
+
+        foreach (var child in root.Children)
+        {
+            var value = child.CalculateValueIfDetermined();
+            if (value is null) return null;
+
+            known[child] = value;
+        }
+
+        return root.ComputeFrom(known);
     }
 
     /// <summary>
@@ -68,5 +106,5 @@ public static class ExpressionTraversal
     public static IEnumerable<Variable> FreeVariables(this IBinaryOperator relationship) =>
         relationship.Lhs.FreeVariables()
             .Concat(relationship.Rhs.FreeVariables())
-            .DistinctBy(v => v.Id);
+            .Distinct();
 }

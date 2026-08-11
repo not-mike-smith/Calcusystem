@@ -55,15 +55,14 @@ public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableS
     public IEnumerable<IExpression> Children => [];
 
     /// <inheritdoc/>
-    /// <remarks>A leaf has nothing to combine; its value is whatever was assigned, or null.</remarks>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => _value;
-
-    /// <inheritdoc/>
     /// <remarks>
-    /// Nothing to walk, so this is just <see cref="Value"/>. It exists because callers holding an
-    /// <c>IExpression</c> cannot see the leaf's property, and it costs a leaf nothing to answer.
+    /// A leaf has nothing to combine, so it answers with its own entry if one was supplied and its stored value
+    /// otherwise. That is the whole of the override mechanism: a caller seeds a trial value for this variable
+    /// and every node above it computes normally, with no special case anywhere in the walk.
     /// </remarks>
-    public Measurand? CalculateValueIfDetermined() => _value;
+    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
+        known.TryGetValue(this, out var supplied) ? supplied : _value;
+
 
     public Measurand? Value
     {

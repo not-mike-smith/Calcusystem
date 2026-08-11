@@ -1,6 +1,7 @@
 
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.Traversal;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 

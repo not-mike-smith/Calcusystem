@@ -92,16 +92,16 @@ Whether a whole system can be solved, and what it currently computes to, are ans
 ```csharp
 using Calcusystem.Analysis;
 
-var flat = SystemFlattener.Flatten(system);
+var flat = system.Flatten();
 flat.DegreesOfFreedom;  // unknowns − determining equations
 flat.Determination;     // Underdetermined / ExactlyDetermined / Overdetermined
 
-var result = SystemEvaluator.Evaluate(system);
-result.ValueOf(f);      // 6 kg·m·s⁻² — each node computed exactly once
-result.MissingValues;   // the unbound variables holding the rest back
+var calc = system.Calculate();
+calc.ValueOf(f);        // 6 kg·m·s⁻² — each node computed exactly once
+calc.MissingValues;     // the unbound variables holding the rest back
 ```
 
-`SystemEvaluator` is the way to compute over a whole system: a node's own `CalculateValueIfDetermined()` re-walks to the leaves on every call and caches nothing, by design.
+`Calculate` is the way to compute over a whole system: a node's own `CalculateValueIfDetermined()` re-walks to the leaves on every call and caches nothing, by design.
 
 See each assembly's README for the full surface.
 

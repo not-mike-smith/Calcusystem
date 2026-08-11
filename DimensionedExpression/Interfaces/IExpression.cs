@@ -34,26 +34,6 @@ public interface IExpression : IIdentified
     Dimensionality Dimensionality { get; }
 
     /// <summary>
-    /// Computes this node's value with propagated uncertainty, or returns <see langword="null"/> if any leaf it
-    /// depends on is still unbound.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <b>A method, and named for what it costs.</b> This walks the whole graph beneath the node on every call
-    /// and caches nothing, so a sub-expression shared by three parents is computed three times. A property would
-    /// invite callers to treat it as field access and to call it in a loop.
-    /// </para>
-    /// <para>
-    /// Nothing is memoised here on purpose: a node has no way to learn that a leaf beneath it was reassigned, so
-    /// a cached answer here could silently go stale. Caching belongs to a caller that knows the scope over which
-    /// the graph is unchanged — see <c>SystemEvaluator</c>, which computes each node once per run by walking in
-    /// dependency order and feeding results to <see cref="ComputeFrom"/>. Prefer it for anything beyond a
-    /// one-off read.
-    /// </para>
-    /// </remarks>
-    Measurand? CalculateValueIfDetermined();
-
-    /// <summary>
     /// The nodes this one is computed from, in operand order; empty for a leaf. The single accessor every graph
     /// walk goes through — free-variable collection, dependency ordering, and incidence are all one traversal
     /// over this rather than a switch over node types.
@@ -66,24 +46,29 @@ public interface IExpression : IIdentified
     IEnumerable<IExpression> Children { get; }
 
     /// <summary>
-    /// This node's value given its operands' values, supplied in <see cref="Children"/> order — the node's own
-    /// arithmetic and uncertainty propagation, with the walk that produced the operands factored out.
+    /// This node's value, looked up from <paramref name="known"/> — the node's own arithmetic and uncertainty
+    /// propagation, with the walk that produced its operands factored out.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <see cref="Value"/> is this applied to children that computed themselves recursively; an evaluator is the
-    /// same function applied to operands it computed in dependency order, remembering each result. That is the
-    /// point of the split: a node owns how it combines values, and a caller owns the order values are produced
-    /// in and whether any of them are worth keeping. Neither can be memoised or overridden through
-    /// <see cref="CalculateValueIfDetermined"/> alone, because it reaches all the way to the leaves on every call.
+    /// <b>Look up yourself and your own children, nothing else.</b> A composite reads its children's entries; a
+    /// leaf reads its own, falling back to its stored value when absent — which is what makes an override a
+    /// leaf's own business rather than something every caller has to special-case.
     /// </para>
     /// <para>
-    /// A leaf has no operands and answers with its stored value, which may be null. Computed nodes are called
-    /// only once every operand is present, so they may treat the list as complete.
+    /// Keyed rather than positional because position is a contract a caller can silently get wrong: handed a
+    /// list, a quotient cannot tell numerator from denominator except by trusting the order, and computing
+    /// <c>d/n</c> is not an error anything would catch. Looking children up by identity removes the question,
+    /// and a child referenced twice needs only one entry.
+    /// </para>
+    /// <para>
+    /// <c>CalculateValueIfDetermined()</c> is this applied to children that computed themselves recursively; an
+    /// evaluator is the same function applied to operands it computed in dependency order and kept. A node owns
+    /// how values combine, and a caller owns the order they are produced in and whether any are worth keeping.
     /// </para>
     /// </remarks>
-    /// <param name="operands">The children's values, in <see cref="Children"/> order.</param>
-    Measurand? ComputeFrom(IReadOnlyList<Measurand> operands);
+    /// <param name="known">Values already established, by node. Missing entries mean not yet computed.</param>
+    Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known);
 }
 
 /// <summary>

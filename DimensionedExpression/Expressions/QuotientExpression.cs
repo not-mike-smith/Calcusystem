@@ -22,14 +22,14 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     public bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed
-        ? ComputeFrom([Numerator.CalculateValueIfDetermined()!, Denominator.CalculateValueIfDetermined()!])
-        : null;
 
     /// <inheritdoc/>
-    /// <remarks>Operands arrive in <c>Children</c> order: numerator first, then denominator.</remarks>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) =>
-        operands[0].DividedBy(operands[1], ErrorPropagation);
+    /// <remarks>
+    /// The case the keyed lookup exists for: numerator and denominator are told apart by identity, not by
+    /// which slot a caller happened to put them in.
+    /// </remarks>
+    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
+        known[Numerator].DividedBy(known[Denominator], ErrorPropagation);
 
     public override string ToString()
     {

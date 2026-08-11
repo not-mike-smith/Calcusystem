@@ -1,5 +1,6 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement;
 using FluentAssertions;
@@ -7,7 +8,7 @@ using Xunit;
 
 namespace Calcusystem.Analysis.Test;
 
-public class SystemEvaluatorTests
+public class SystemCalculationTests
 {
     private static readonly Dimensionality Acceleration =
         Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
@@ -43,7 +44,7 @@ public class SystemEvaluatorTests
     {
         var system = NewtonsSecondLaw(out _, out _, out var f);
 
-        var result = SystemEvaluator.Evaluate(system);
+        var result = system.Calculate();
 
         result.IsComplete.Should().BeTrue();
         result.Unresolved.Should().BeEmpty();
@@ -53,12 +54,12 @@ public class SystemEvaluatorTests
     }
 
     [Fact]
-    public void AgreesWithTheNodesOwnLazyValue()
+    public void AgreesWithASingleNodesOwnWalk()
     {
         // The evaluator factors out the walk; it must not change the arithmetic.
         var system = NewtonsSecondLaw(out _, out _, out var f);
 
-        var result = SystemEvaluator.Evaluate(system);
+        var result = system.Calculate();
 
         result.ValueOf(f)!.KmsValue.Should().Be(f.CalculateValueIfDetermined()!.KmsValue);
         result.ValueOf(f)!.RelativeError.Should().Be(f.CalculateValueIfDetermined()!.RelativeError);
@@ -69,7 +70,7 @@ public class SystemEvaluatorTests
     {
         var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
 
-        var result = SystemEvaluator.Evaluate(system);
+        var result = system.Calculate();
 
         result.IsComplete.Should().BeFalse();
         result.Unresolved.Select(e => e.Id).Should().BeEquivalentTo("m", "f");
@@ -82,13 +83,12 @@ public class SystemEvaluatorTests
     }
 
     [Fact]
-    public void BindingsSupplyAValueWithoutTouchingTheModel()
+    public void OverridesSupplyAValueWithoutTouchingTheModel()
     {
         var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
 
-        var result = SystemEvaluator.Evaluate(
-            system,
-            new Dictionary<string, Measurand> { ["m"] = Value(5, Dimensionality.Mass) });
+        var result = system.Calculate(
+            new Dictionary<Variable, Measurand> { [m] = Value(5, Dimensionality.Mass) });
 
         result.IsComplete.Should().BeTrue();
         result.ValueOf(f)!.KmsValue.Should().BeApproximately(15, 1e-9);
@@ -96,17 +96,16 @@ public class SystemEvaluatorTests
 
         // The model is unchanged, so the next caller sees no trace of the trial value.
         m.Value.Should().BeNull();
-        SystemEvaluator.Evaluate(system).IsComplete.Should().BeFalse();
+        system.Calculate().IsComplete.Should().BeFalse();
     }
 
     [Fact]
-    public void BindingsOverrideAVariablesOwnValue()
+    public void AnOverrideTakesPrecedenceOverAVariablesStoredValue()
     {
         var system = NewtonsSecondLaw(out var m, out _, out var f);
 
-        var result = SystemEvaluator.Evaluate(
-            system,
-            new Dictionary<string, Measurand> { ["m"] = Value(10, Dimensionality.Mass) });
+        var result = system.Calculate(
+            new Dictionary<Variable, Measurand> { [m] = Value(10, Dimensionality.Mass) });
 
         result.ValueOf(f)!.KmsValue.Should().BeApproximately(30, 1e-9);
         m.Value!.KmsValue.Should().BeApproximately(2, 1e-9);
@@ -119,13 +118,46 @@ public class SystemEvaluatorTests
         var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
 
         var computed = new[] { 1.0, 2.0, 4.0 }
-            .Select(trial => SystemEvaluator.Evaluate(
-                system,
-                new Dictionary<string, Measurand> { ["m"] = Value(trial, Dimensionality.Mass) }))
+            .Select(trial => system.Calculate(
+                new Dictionary<Variable, Measurand> { [m] = Value(trial, Dimensionality.Mass) }))
             .Select(r => r.ValueOf(f)!.KmsValue)
             .ToList();
 
         computed.Should().Equal(3, 6, 12);
+        m.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public void TheCalculationCarriesTheOverridesThatProducedIt()
+    {
+        // A set of values is not reviewable without the assumptions behind it, so the inputs travel with the
+        // outputs — and two calculations of one system can then be compared on equal terms.
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var trial = Value(5, Dimensionality.Mass);
+
+        var result = system.Calculate(new Dictionary<Variable, Measurand> { [m] = trial });
+
+        result.Overrides.Should().ContainKey(m).WhoseValue.Should().Be(trial);
+        system.Calculate().Overrides.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void IndependentCalculationsAreSafeToRunInParallel()
+    {
+        // Why `Calculate` needs no async or internal parallelism: it is a pure function of (system, overrides)
+        // and mutates nothing, so a caller wanting many trial points already has the obvious way to get them.
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var trials = Enumerable.Range(1, 500).Select(i => (double)i).ToList();
+
+        var computed = trials
+            .AsParallel()
+            .AsOrdered()
+            .Select(trial => system
+                .Calculate(new Dictionary<Variable, Measurand> { [m] = Value(trial, Dimensionality.Mass) })
+                .ValueOf(f)!.KmsValue)
+            .ToList();
+
+        computed.Should().Equal(trials.Select(t => t * 3));
         m.Value.Should().BeNull();
     }
 
@@ -148,11 +180,12 @@ public class SystemEvaluatorTests
         system.DirectExpressions.Add(b);
         system.DerivedExpressions.Add(product);
 
-        var result = SystemEvaluator.Evaluate(system);
+        var result = system.Calculate();
 
         result.ValueOf(sum)!.KmsValue.Should().BeApproximately(5, 1e-9);
         result.ValueOf(product)!.KmsValue.Should().BeApproximately(25, 1e-9);
-        result.Values.Keys.Should().BeEquivalentTo("a", "b", "s", "p");
+        // Four distinct nodes, though `sum` is referenced twice — keys are nodes, deduplicated by identity.
+        result.Values.Keys.Select(k => k.Id).Should().BeEquivalentTo("a", "b", "s", "p");
     }
 
     [Fact]
@@ -168,10 +201,10 @@ public class SystemEvaluatorTests
         system.DirectExpressions.Add(leaf);
         system.DerivedExpressions.Add(nested);
 
-        var act = () => SystemEvaluator.Evaluate(system);
+        var act = () => system.Calculate();
 
         act.Should().NotThrow();
         // An even number of negations returns the original magnitude.
-        SystemEvaluator.Evaluate(system).ValueOf(nested)!.KmsValue.Should().BeApproximately(1, 1e-9);
+        system.Calculate().ValueOf(nested)!.KmsValue.Should().BeApproximately(1, 1e-9);
     }
 }

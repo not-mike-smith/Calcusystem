@@ -9,17 +9,22 @@ namespace Calcusystem.Analysis;
 /// Reduces an <see cref="ExpressionSystem"/> to the <see cref="FlatSystem"/> its degrees of freedom are computed
 /// from.
 /// </summary>
+/// <remarks>
+/// An extension rather than a method on <see cref="ExpressionSystem"/> so that it reads as one
+/// (<c>system.Flatten()</c>) without the expression layer having to know about this one — the same arrangement
+/// as <c>Calculate</c>, and for the same reason.
+/// </remarks>
 public static class SystemFlattener
 {
     /// <summary>
     /// Flattens <paramref name="system"/> into its unknowns and equations.
     /// </summary>
     /// <param name="system">The system to analyse.</param>
-    /// <param name="bindings">
-    /// Values supplied for the duration of this analysis, keyed by variable id — a variable named here is not an
-    /// unknown, whatever its own <c>Value</c> says. Only the keys affect degrees of freedom; the measurands
-    /// matter to an evaluator working from the same argument. This is how an over-determined system is
-    /// interrogated: pin different subsets and compare what each one resolves to.
+    /// <param name="overrides">
+    /// Values supplied for the duration of this analysis — a variable named here is not an unknown, whatever its
+    /// own <c>Value</c> says. Only the keys affect degrees of freedom; the measurands matter to <c>Calculate</c>
+    /// working from the same argument. This is how an over-determined system is interrogated: pin different
+    /// subsets and compare what each one resolves to.
     /// </param>
     /// <remarks>
     /// Unknowns are gathered from the leaves the system actually reaches — its declared variables, plus those
@@ -28,24 +33,24 @@ public static class SystemFlattener
     /// it is supplied.
     /// </remarks>
     public static FlatSystem Flatten(
-        ExpressionSystem system,
-        IReadOnlyDictionary<string, Measurand>? bindings = null)
+        this ExpressionSystem system,
+        IReadOnlyDictionary<Variable, Measurand>? overrides = null)
     {
-        bool IsUnknown(Variable v) => bindings is null || bindings.ContainsKey(v.Id) is false;
+        bool IsUnknown(Variable v) => overrides is null || overrides.ContainsKey(v) is false;
 
         var unknowns = system.DirectExpressions
             .Where(v => v.IsFullyDescribed is false)
             .Concat(system.DerivedExpressions.SelectMany(e => e.FreeVariables()))
             .Concat(system.Relationships.SelectMany(r => r.FreeVariables()))
             .Where(IsUnknown)
-            .DistinctBy(v => v.Id)
+            .Distinct()
             .ToList();
 
         // Only determining relationships are equations. A tolerance or ordering relation constrains a value to
         // an interval, which no solver can turn into a point, so counting one here would claim a degree of
         // freedom had been removed when it had not.
         var equations = system.Definitions
-            .Select(r => new Equation(r, r.FreeVariables().Where(IsUnknown).DistinctBy(v => v.Id).ToList()))
+            .Select(r => new Equation(r, r.FreeVariables().Where(IsUnknown).Distinct().ToList()))
             .ToList();
 
         return new FlatSystem(unknowns, equations);

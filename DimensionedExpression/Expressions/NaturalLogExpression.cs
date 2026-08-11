@@ -44,12 +44,11 @@ public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLo
     public bool IsFullyDescribed => Argument.IsFullyDescribed;
     public Dimensionality Dimensionality => Dimensionality.Dimensionless;
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed ? ComputeFrom([Argument.CalculateValueIfDetermined()!]) : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands)
+    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known)
     {
-        var argument = operands[0];
+        var argument = known[Argument];
         var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)
 
         return Dimensionality.Dimensionless

@@ -7,6 +7,7 @@ using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Units;
+using Calcusystem.DimensionedExpression.Traversal;
 
 namespace Calcusystem.Serialization.Test;
 

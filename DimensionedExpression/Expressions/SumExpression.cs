@@ -38,15 +38,13 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     public IReadOnlyList<IExpression> Addends => _addends;
     public bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed && _addends.Count > 0
-        ? ComputeFrom(_addends.Select(a => a.CalculateValueIfDetermined()!).ToList())
-        : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) =>
-        operands.Count == 0
+    /// <remarks>Addends are read in declaration order, so an addend listed twice contributes twice.</remarks>
+    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
+        _addends.Count == 0
             ? null
-            : operands.Skip(1).Aggregate(operands[0], (acc, a) => acc.Plus(a, ErrorPropagation));
+            : _addends.Select(a => known[a]).Aggregate((acc, a) => acc.Plus(a, ErrorPropagation));
 
     public void AddAddend(IExpression expression)
     {
