@@ -38,20 +38,18 @@ public class ExponentialExpression : IdBase, IExpression, IStatefulNode<Exponent
     public bool IsFullyDescribed => Argument.IsFullyDescribed;
     public Dimensionality Dimensionality => Dimensionality.Dimensionless;
 
-    public Measurand? Value
+    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed ? ComputeFrom([Argument.CalculateValueIfDetermined()!]) : null;
+
+    /// <inheritdoc/>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands)
     {
-        get
-        {
-            if (IsFullyDescribed is false) return null;
+        var argument = operands[0];
+        var x = argument.KmsValue;
+        var relativeError = Math.Abs(x) * argument.RelativeError;
 
-            var argument = Argument.Value!;
-            var x = argument.KmsValue;
-            var relativeError = Math.Abs(x) * argument.RelativeError;
-
-            return Dimensionality.Dimensionless
-                .Quantity(Math.Exp(x))
-                .Measurand(SymmetricUncertainty.FromRelErr(relativeError));
-        }
+        return Dimensionality.Dimensionless
+            .Quantity(Math.Exp(x))
+            .Measurand(SymmetricUncertainty.FromRelErr(relativeError));
     }
 
     public override string ToString()

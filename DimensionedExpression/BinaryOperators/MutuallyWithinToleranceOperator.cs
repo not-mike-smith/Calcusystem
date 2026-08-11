@@ -21,12 +21,13 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-        {
-            return null;
-        }
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        return IsWithinTolerance(Lhs.Value!, Rhs.Value!) && IsWithinTolerance(Rhs.Value!, Lhs.Value!);
+        return IsWithinTolerance(lhs, rhs) && IsWithinTolerance(rhs, lhs);
     }
 
     private bool IsWithinTolerance(Measurand x, Measurand y)

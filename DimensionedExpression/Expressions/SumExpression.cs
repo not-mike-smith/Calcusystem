@@ -38,10 +38,15 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     public IReadOnlyList<IExpression> Addends => _addends;
     public bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
 
-    public Measurand? Value => IsFullyDescribed && _addends.Count > 0
-        ? _addends.Select(a => a.Value!).Skip(1)
-            .Aggregate(_addends[0].Value!, (acc, a) => acc.Plus(a, ErrorPropagation))
+    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed && _addends.Count > 0
+        ? ComputeFrom(_addends.Select(a => a.CalculateValueIfDetermined()!).ToList())
         : null;
+
+    /// <inheritdoc/>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) =>
+        operands.Count == 0
+            ? null
+            : operands.Skip(1).Aggregate(operands[0], (acc, a) => acc.Plus(a, ErrorPropagation));
 
     public void AddAddend(IExpression expression)
     {

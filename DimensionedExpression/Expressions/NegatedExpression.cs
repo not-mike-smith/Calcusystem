@@ -29,7 +29,10 @@ public class NegatedExpression : IdBase, IExpression, IStatefulNode<NegatedExpre
     public bool IsDirectlyMutable => false;
     public bool IsFullyDescribed => Operand.IsFullyDescribed;
     public Dimensionality Dimensionality => Operand.Dimensionality;
-    public Measurand? Value => Operand.IsFullyDescribed ? -(Operand.Value!) : null;
+    public Measurand? CalculateValueIfDetermined() => Operand.IsFullyDescribed ? ComputeFrom([Operand.CalculateValueIfDetermined()!]) : null;
+
+    /// <inheritdoc/>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => -operands[0];
 
     /// <inheritdoc/>
     public IEnumerable<IExpression> Children => [Operand];

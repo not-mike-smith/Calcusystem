@@ -22,9 +22,14 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     public bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
 
-    public Measurand? Value => IsFullyDescribed
-        ? Numerator.Value!.DividedBy(Denominator.Value!, ErrorPropagation)
+    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed
+        ? ComputeFrom([Numerator.CalculateValueIfDetermined()!, Denominator.CalculateValueIfDetermined()!])
         : null;
+
+    /// <inheritdoc/>
+    /// <remarks>Operands arrive in <c>Children</c> order: numerator first, then denominator.</remarks>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) =>
+        operands[0].DividedBy(operands[1], ErrorPropagation);
 
     public override string ToString()
     {

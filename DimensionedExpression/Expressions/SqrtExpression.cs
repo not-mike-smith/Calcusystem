@@ -34,9 +34,12 @@ public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression,
     // Each exponent halved; throws NondiscreteDimensionalityException if any argument exponent is odd.
     public Dimensionality Dimensionality => Argument.Dimensionality / 2;
 
-    public Measurand? Value => IsFullyDescribed
-        ? Argument.Value!.ToRoot(2)
+    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed
+        ? ComputeFrom([Argument.CalculateValueIfDetermined()!])
         : null;
+
+    /// <inheritdoc/>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => operands[0].ToRoot(2);
 
     public override string ToString()
     {

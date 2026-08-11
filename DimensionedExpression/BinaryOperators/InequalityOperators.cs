@@ -20,11 +20,12 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var lhs = Lhs.Value!;
-        var rhs = Rhs.Value!;
         return lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue - rhs.KmsLowerAbsoluteError;
     }
 }
@@ -46,11 +47,12 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var lhs = Lhs.Value!;
-        var rhs = Rhs.Value!;
         return lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue + rhs.KmsUpperAbsoluteError;
     }
 }
@@ -71,10 +73,13 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        return Lhs.Value!.KmsValue < Rhs.Value!.KmsValue;
+        return lhs.KmsValue < rhs.KmsValue;
     }
 }
 
@@ -94,11 +99,12 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var lhs = Lhs.Value!;
-        var rhs = Rhs.Value!;
         return lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue + rhs.KmsUpperAbsoluteError;
     }
 }
@@ -120,11 +126,12 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var lhs = Lhs.Value!;
-        var rhs = Rhs.Value!;
         return lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue - rhs.KmsLowerAbsoluteError;
     }
 }
@@ -145,9 +152,12 @@ public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-            return null;
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        return Lhs.Value!.KmsValue > Rhs.Value!.KmsValue;
+        return lhs.KmsValue > rhs.KmsValue;
     }
 }

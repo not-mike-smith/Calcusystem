@@ -22,14 +22,15 @@ public class AnyToleranceOverlapOperator : CommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        if (Lhs.IsFullyDescribed is false || Rhs.IsFullyDescribed is false)
-        {
-            return null;
-        }
+        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.CalculateValueIfDetermined();
+        var rhs = Rhs.CalculateValueIfDetermined();
+        if (lhs is null || rhs is null) return null;
 
-        var (smallerValue, biggerValue) = Lhs.Value!.KmsValue < Rhs.Value!.KmsValue
-            ? (Lhs.Value!, Rhs.Value!)
-            : (Rhs.Value!, Lhs.Value!);
+        var (smallerValue, biggerValue) = lhs.KmsValue < rhs.KmsValue
+            ? (lhs, rhs)
+            : (rhs, lhs);
 
         var smallerValuePlusError = smallerValue.KmsValue + smallerValue.KmsUpperAbsoluteError;
         var biggerValueMinusError = biggerValue.KmsValue - biggerValue.KmsLowerAbsoluteError;

@@ -34,10 +34,24 @@ public interface IExpression : IIdentified
     Dimensionality Dimensionality { get; }
 
     /// <summary>
-    /// The computed value with propagated uncertainty, or <see langword="null"/> while
-    /// <see cref="IsFullyDescribed"/> is false. Recomputed from the current children on each access.
+    /// Computes this node's value with propagated uncertainty, or returns <see langword="null"/> if any leaf it
+    /// depends on is still unbound.
     /// </summary>
-    Measurand? Value { get; }
+    /// <remarks>
+    /// <para>
+    /// <b>A method, and named for what it costs.</b> This walks the whole graph beneath the node on every call
+    /// and caches nothing, so a sub-expression shared by three parents is computed three times. A property would
+    /// invite callers to treat it as field access and to call it in a loop.
+    /// </para>
+    /// <para>
+    /// Nothing is memoised here on purpose: a node has no way to learn that a leaf beneath it was reassigned, so
+    /// a cached answer here could silently go stale. Caching belongs to a caller that knows the scope over which
+    /// the graph is unchanged — see <c>SystemEvaluator</c>, which computes each node once per run by walking in
+    /// dependency order and feeding results to <see cref="ComputeFrom"/>. Prefer it for anything beyond a
+    /// one-off read.
+    /// </para>
+    /// </remarks>
+    Measurand? CalculateValueIfDetermined();
 
     /// <summary>
     /// The nodes this one is computed from, in operand order; empty for a leaf. The single accessor every graph
@@ -50,6 +64,26 @@ public interface IExpression : IIdentified
     /// <see cref="IIdentified.Id"/> — see <c>ExpressionTraversal</c>, which does.
     /// </remarks>
     IEnumerable<IExpression> Children { get; }
+
+    /// <summary>
+    /// This node's value given its operands' values, supplied in <see cref="Children"/> order — the node's own
+    /// arithmetic and uncertainty propagation, with the walk that produced the operands factored out.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Value"/> is this applied to children that computed themselves recursively; an evaluator is the
+    /// same function applied to operands it computed in dependency order, remembering each result. That is the
+    /// point of the split: a node owns how it combines values, and a caller owns the order values are produced
+    /// in and whether any of them are worth keeping. Neither can be memoised or overridden through
+    /// <see cref="CalculateValueIfDetermined"/> alone, because it reaches all the way to the leaves on every call.
+    /// </para>
+    /// <para>
+    /// A leaf has no operands and answers with its stored value, which may be null. Computed nodes are called
+    /// only once every operand is present, so they may treat the list as complete.
+    /// </para>
+    /// </remarks>
+    /// <param name="operands">The children's values, in <see cref="Children"/> order.</param>
+    Measurand? ComputeFrom(IReadOnlyList<Measurand> operands);
 }
 
 /// <summary>
@@ -66,15 +100,19 @@ public interface IComputedExpression : IExpression
 }
 
 /// <summary>
-/// An <see cref="IExpression"/> whose value is set directly rather than computed — a mutable leaf. Re-declares
-/// <see cref="Value"/> with a setter.
+/// An <see cref="IExpression"/> whose value is set directly rather than computed — a mutable leaf.
 /// </summary>
 public interface IDirectExpression : IExpression
 {
     /// <summary>
-    /// The leaf's value, settable. Assigning a <see cref="Measurand"/> whose dimensionality does not match this
-    /// node's throws <c>IncompatibleDimensionsException</c>; assigning <see langword="null"/> makes the leaf
-    /// unbound again.
+    /// The leaf's stored value, settable. Assigning a <see cref="Measurand"/> whose dimensionality does not
+    /// match this node's throws <c>IncompatibleDimensionsException</c>; assigning <see langword="null"/> makes
+    /// the leaf unbound again.
     /// </summary>
-    new Measurand? Value { get; set; }
+    /// <remarks>
+    /// A genuine property, unlike <see cref="IExpression.CalculateValueIfDetermined"/>: there is nothing beneath
+    /// a leaf to walk, so reading it really is field access. The two used to share a name, which forced this one
+    /// to shadow the other with <c>new</c> and hid the difference in cost between them.
+    /// </remarks>
+    Measurand? Value { get; set; }
 }

@@ -53,7 +53,7 @@ public class ExpressionStateRoundTripTests
         var root = restored.DerivedExpressions.Single();
         root.Should().BeOfType<SqrtExpression>();
         root.Id.Should().Be("root");
-        root.Value!.In(Length.Meter).Should().BeApproximately(3, 1e-12);
+        root.CalculateValueIfDetermined()!.In(Length.Meter).Should().BeApproximately(3, 1e-12);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class ExpressionStateRoundTripTests
         var exp = restored.DerivedExpressions.Single();
         exp.Should().BeOfType<ExponentialExpression>();
         exp.Id.Should().Be("exp");
-        exp.Value!.KmsValue.Should().BeApproximately(System.Math.E * System.Math.E, 1e-12);
+        exp.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(System.Math.E * System.Math.E, 1e-12);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class ExpressionStateRoundTripTests
         var ln = restored.DerivedExpressions.Single();
         ln.Should().BeOfType<NaturalLogExpression>();
         ln.Id.Should().Be("ln");
-        ln.Value!.KmsValue.Should().BeApproximately(1, 1e-12);
+        ln.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(1, 1e-12);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class ExpressionStateRoundTripTests
         var restored = (QuotientExpression)RoundTrip(system).DerivedExpressions.Single();
 
         restored.ErrorPropagation.Should().Be(ErrorPropagationMethod.Correlated);
-        restored.Value!.KmsValue.Should().BeApproximately(2, 1e-12);
+        restored.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class ExpressionStateRoundTripTests
         var restored = RoundTrip(system);
 
         var restoredRoot = restored.DerivedExpressions.OfType<SqrtExpression>().Single();
-        restoredRoot.Value!.KmsValue.Should().BeApproximately(2, 1e-12);
+        restoredRoot.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating

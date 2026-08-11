@@ -44,19 +44,17 @@ public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLo
     public bool IsFullyDescribed => Argument.IsFullyDescribed;
     public Dimensionality Dimensionality => Dimensionality.Dimensionless;
 
-    public Measurand? Value
+    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed ? ComputeFrom([Argument.CalculateValueIfDetermined()!]) : null;
+
+    /// <inheritdoc/>
+    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands)
     {
-        get
-        {
-            if (IsFullyDescribed is false) return null;
+        var argument = operands[0];
+        var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)
 
-            var argument = Argument.Value!;
-            var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)
-
-            return Dimensionality.Dimensionless
-                .Quantity(Math.Log(argument.KmsValue))
-                .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
-        }
+        return Dimensionality.Dimensionless
+            .Quantity(Math.Log(argument.KmsValue))
+            .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
     }
 
     public override string ToString()
