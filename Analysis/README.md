@@ -44,9 +44,31 @@ A corollary worth relying on: **valuing a leaf and asserting an equation against
 
 ---
 
+## Evaluating
+
+`SystemEvaluator.Evaluate` computes everything the system currently can, and reports what it could not and why.
+
+```csharp
+var result = SystemEvaluator.Evaluate(system, bindings);
+
+result.Values;         // every node that resolved, by id
+result.ValueOf(f);     // one node's value, or null
+result.Unresolved;     // the system's expressions that could not be computed
+result.MissingValues;  // the unbound variables responsible
+result.IsComplete;     // nothing outstanding
+```
+
+It never throws on an incomplete system. A model half-built is the normal case, and "which values are still missing" is the answer the caller wants.
+
+**Each node is computed once.** Nodes are visited in dependency order and handed operands already computed, via `IExpression.ComputeFrom`. Contrast `IExpression.CalculateValueIfDetermined()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here.
+
+`EvaluationResult` is a snapshot, not a live view: a pure function of the system and bindings, holding no reference into mutable node state. Later assignments do not change it; re-running is how you get a newer one. That is also what makes `Values` the natural home for caching — within a run it already deduplicates, and across runs it is what a staleness check would reuse. Nothing is cached on the nodes, so a node can always be asked directly without risking a stale answer.
+
+---
+
 ## `bindings`: probing without mutating
 
-Every entry point takes an optional `IReadOnlyDictionary<string, Measurand>` keyed by variable id. A variable named there is not an unknown, whatever its own `Value` says.
+Both entry points take an optional `IReadOnlyDictionary<string, Measurand>` keyed by variable id. A variable named there is not an unknown, and evaluates to the supplied value, whatever its own `Value` says.
 
 ```csharp
 var pinned = SystemFlattener.Flatten(system, new Dictionary<string, Measurand> { ["m"] = trial });

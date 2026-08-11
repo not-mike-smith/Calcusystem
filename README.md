@@ -84,10 +84,10 @@ f.AddFactor(a);
 
 f.Dimensionality;      // M·L·T⁻²  — known before any value is supplied
 f.FreeVariables();     // [m, a]  — the distinct unbound leaves
-f.IsFullyDescribed;    // false; f.Value is null until both leaves are set
+f.IsFullyDescribed;    // false until both leaves are set
 ```
 
-Whether a whole system can be solved is a different question, answered one layer up:
+Whether a whole system can be solved, and what it currently computes to, are answered one layer up:
 
 ```csharp
 using Calcusystem.Analysis;
@@ -95,7 +95,13 @@ using Calcusystem.Analysis;
 var flat = SystemFlattener.Flatten(system);
 flat.DegreesOfFreedom;  // unknowns − determining equations
 flat.Determination;     // Underdetermined / ExactlyDetermined / Overdetermined
+
+var result = SystemEvaluator.Evaluate(system);
+result.ValueOf(f);      // 6 kg·m·s⁻² — each node computed exactly once
+result.MissingValues;   // the unbound variables holding the rest back
 ```
+
+`SystemEvaluator` is the way to compute over a whole system: a node's own `CalculateValueIfDetermined()` re-walks to the leaves on every call and caches nothing, by design.
 
 See each assembly's README for the full surface.
 
