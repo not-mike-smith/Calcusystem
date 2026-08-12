@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -28,10 +29,12 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
 
     /// <inheritdoc/>
     /// <remarks>Factors are read in declaration order, so a factor listed twice contributes twice.</remarks>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
         _factors.Count == 0
             ? null
-            : _factors.Select(f => known[f]).Aggregate((acc, f) => acc.Times(f, ErrorPropagation));
+            : _factors.Select(f => known[f]).Aggregate((acc, f) => acc.Times(f, ErrorPropagation, propagator));
 
     public void AddFactor(IExpression expression)
     {

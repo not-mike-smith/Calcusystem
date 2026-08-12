@@ -4,6 +4,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
@@ -60,7 +61,9 @@ public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableS
     /// otherwise. That is the whole of the override mechanism: a caller seeds a trial value for this variable
     /// and every node above it computes normally, with no special case anywhere in the walk.
     /// </remarks>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
         known.TryGetValue(this, out var supplied) ? supplied : _value;
 
 

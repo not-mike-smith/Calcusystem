@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.Analysis;
 
@@ -17,9 +18,6 @@ namespace Calcusystem.Analysis;
 /// </remarks>
 public static class SystemCalculation
 {
-    private static readonly IReadOnlyDictionary<Variable, Measurand> NoOverrides =
-        new Dictionary<Variable, Measurand>();
-
     /// <summary>
     /// Calculates every expression in <paramref name="system"/>, resolving what it can and reporting what it
     /// could not.
@@ -29,6 +27,13 @@ public static class SystemCalculation
     /// Values supplied for this calculation only, taking precedence over a variable's own. This is how a caller
     /// calculates at trial values without writing them into the model — see the assembly README.
     /// </param>
+    /// <param name="propagator">
+    /// How uncertainties are combined, or null for the conservative Gaussian default. Orthogonal to a node's own
+    /// <c>ErrorPropagation</c>: that records whether particular operands are correlated, which is a fact about
+    /// the model and is not this calculation's to overrule, while this is the numerical method for combining
+    /// uncertainties at all. Supplying a Monte Carlo propagator therefore re-runs the same model under a
+    /// different uncertainty treatment rather than discarding what the model says.
+    /// </param>
     /// <remarks>
     /// Each node is computed once: nodes are visited in dependency order and handed the values already
     /// established, so a sub-expression shared by three parents is computed once rather than three times as
@@ -36,9 +41,10 @@ public static class SystemCalculation
     /// </remarks>
     public static Calculation Calculate(
         this ExpressionSystem system,
-        IReadOnlyDictionary<Variable, Measurand>? overrides = null)
+        IReadOnlyDictionary<Variable, Measurand>? overrides = null,
+        IErrorPropagator? propagator = null)
     {
-        overrides ??= NoOverrides;
+        overrides ??= new Dictionary<Variable, Measurand>();
 
         var listed = system.GetAllExpressions().ToList();
 
@@ -47,58 +53,24 @@ public static class SystemCalculation
         var values = new Dictionary<IExpression, Measurand>();
         foreach (var (variable, value) in overrides) values[variable] = value;
 
-        foreach (var node in InDependencyOrder(listed))
+        foreach (var node in ExpressionTraversal.InDependencyOrder(listed))
         {
             // Children come first in this ordering, so a missing one means an unbound leaf somewhere beneath
             // and this node simply does not resolve.
-            if (node.Children.Any(child => values.ContainsKey(child) is false)) continue;
-
-            if (node.ComputeFrom(values) is { } value) values[node] = value;
+            if (node.Children.All(values.ContainsKey) && node.ComputeFrom(values, propagator) is { } value)
+            {
+                values[node] = value;
+            }
         }
 
-        var unresolved = listed.Where(e => values.ContainsKey(e) is false).ToList();
+        var unresolved = listed.Where(e => ! values.ContainsKey(e)).ToList();
 
         var missing = listed
             .SelectMany(e => e.FreeVariables())
-            .Where(v => overrides.ContainsKey(v) is false)
             .Distinct()
+            .Where(v => ! overrides.ContainsKey(v))
             .ToList();
 
         return new Calculation(overrides, values, unresolved, missing);
-    }
-
-    /// <summary>
-    /// Every node reachable from <paramref name="roots"/>, each once, children before parents.
-    /// </summary>
-    /// <remarks>
-    /// Iterative post-order rather than recursion, for the same reason the traversal helpers are: nothing bounds
-    /// how deep a graph can be, and a stack frame per node is an avoidable way to fail. The visited set makes a
-    /// node shared by several parents appear once, positioned before the first of them.
-    /// </remarks>
-    private static IEnumerable<IExpression> InDependencyOrder(IEnumerable<IExpression> roots)
-    {
-        var order = new List<IExpression>();
-        var seen = new HashSet<IExpression>();
-        var pending = new Stack<(IExpression Node, bool ChildrenExpanded)>();
-
-        foreach (var root in roots) pending.Push((root, false));
-
-        while (pending.Count > 0)
-        {
-            var (node, childrenExpanded) = pending.Pop();
-
-            if (childrenExpanded)
-            {
-                order.Add(node);
-                continue;
-            }
-
-            if (seen.Add(node) is false) continue;
-
-            pending.Push((node, true));
-            foreach (var child in node.Children) pending.Push((child, false));
-        }
-
-        return order;
     }
 }

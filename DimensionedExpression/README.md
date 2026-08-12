@@ -90,10 +90,13 @@ public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known)
 | Extension | Yields |
 | --- | --- |
 | `CalculateValueIfDetermined()` | the node's value, walking to the leaves — one implementation over `Children` + `ComputeFrom`, for every node type |
+| `InDependencyOrder()` | every node reachable, children before parents — the order values can be computed in. **Throws `CyclicExpressionGraphException`** if the graph is not a DAG |
 | `SelfAndDescendants()` | the node and everything reachable from it, each exactly once |
 | `FreeVariables()` | the distinct unbound `Variable` leaves — on an `IExpression`, or on an `IBinaryOperator` across both its sides |
 
-All deduplicate by identity (`IdBase` defines equality and hashing on `Id`). This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
+All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and all are iterative — nothing bounds how deep a graph can be, and a stack frame per node is an avoidable way to fail.
+
+**Cycles are detected, not assumed away.** Ordinary construction cannot produce one, since a node is given children that already exist — but a child collection mutated afterwards can close a loop, and every walk here assumes a DAG. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `CalculateValueIfDetermined()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
 
 ### Binary operators (`BinaryOperators/`)
 

@@ -2,6 +2,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -31,7 +32,9 @@ public class NegatedExpression : IdBase, IExpression, IStatefulNode<NegatedExpre
     public Dimensionality Dimensionality => Operand.Dimensionality;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) => -known[Operand];
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) => -known[Operand];
 
     /// <inheritdoc/>
     public IEnumerable<IExpression> Children => [Operand];

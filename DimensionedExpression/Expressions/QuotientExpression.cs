@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -28,8 +29,10 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     /// The case the keyed lookup exists for: numerator and denominator are told apart by identity, not by
     /// which slot a caller happened to put them in.
     /// </remarks>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
-        known[Numerator].DividedBy(known[Denominator], ErrorPropagation);
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
+        known[Numerator].DividedBy(known[Denominator], ErrorPropagation, propagator);
 
     public override string ToString()
     {

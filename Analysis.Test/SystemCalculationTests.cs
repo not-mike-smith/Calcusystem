@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 using FluentAssertions;
 using Xunit;
 
@@ -159,6 +160,55 @@ public class SystemCalculationTests
 
         computed.Should().Equal(trials.Select(t => t * 3));
         m.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public void AnInjectedPropagatorReplacesTheDefaultUncertaintyTreatment()
+    {
+        var system = NewtonsSecondLaw(out _, out _, out var f);
+        var spy = new RecordingPropagator();
+
+        var calc = system.Calculate(propagator: spy);
+
+        // The nominal value is the propagator's business only for uncertainty, so it is unchanged.
+        calc.ValueOf(f)!.KmsValue.Should().BeApproximately(6, 1e-9);
+        calc.ValueOf(f)!.RelativeError.Should().BeApproximately(0.5, 1e-9);
+        spy.ProductCalls.Should().Be(1);
+    }
+
+    [Fact]
+    public void TheModelsCorrelationSurvivesAnInjectedPropagator()
+    {
+        // The two are different axes. Correlation is a statement about the model — whether these operands move
+        // together — and a calculation choosing a numerical method must not silently overrule it.
+        var system = NewtonsSecondLaw(out _, out _, out var f);
+        f.ErrorPropagation = ErrorPropagationMethod.Correlated;
+        var spy = new RecordingPropagator();
+
+        system.Calculate(propagator: spy);
+
+        spy.LastMethod.Should().Be(ErrorPropagationMethod.Correlated);
+    }
+
+    private sealed class RecordingPropagator : IErrorPropagator
+    {
+        public int ProductCalls { get; private set; }
+        public ErrorPropagationMethod? LastMethod { get; private set; }
+
+        public IUncertainty PropagateErrorThroughProduct(
+            ErrorPropagationMethod method, params Measurand[] measurands)
+        {
+            ProductCalls++;
+            LastMethod = method;
+            return SymmetricUncertainty.FromRelErr(0.5);
+        }
+
+        public IUncertainty PropagateErrorThroughSum(
+            ErrorPropagationMethod method, params Measurand[] measurands)
+        {
+            LastMethod = method;
+            return SymmetricUncertainty.FromRelErr(0.5);
+        }
     }
 
     [Fact]

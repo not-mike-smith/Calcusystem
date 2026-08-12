@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
@@ -41,10 +42,12 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
 
     /// <inheritdoc/>
     /// <remarks>Addends are read in declaration order, so an addend listed twice contributes twice.</remarks>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) =>
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
         _addends.Count == 0
             ? null
-            : _addends.Select(a => known[a]).Aggregate((acc, a) => acc.Plus(a, ErrorPropagation));
+            : _addends.Select(a => known[a]).Aggregate((acc, a) => acc.Plus(a, ErrorPropagation, propagator));
 
     public void AddAddend(IExpression expression)
     {

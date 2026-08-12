@@ -63,9 +63,24 @@ calc.IsComplete;     // nothing outstanding
 
 It never throws on an incomplete system. A model half-built is the normal case, and "which values are still missing" is the answer the caller wants.
 
+It *does* throw on a **cyclic** graph — `CyclicExpressionGraphException`. That is not an incomplete model but a malformed one, and reporting it as unresolved would produce a calculation claiming nodes could not be computed while listing nothing as missing, which reads as an absent value and sends the reader looking for one that does not exist.
+
 **Each node is computed once.** Nodes are visited in dependency order and handed the values already established, via `IExpression.ComputeFrom`. Contrast `CalculateValueIfDetermined()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here. This is the caching a node deliberately cannot do for itself: a node has no way to learn that a leaf beneath it was reassigned, whereas `Calculate` knows the graph is unchanged for the duration of a run.
 
 `Calculation` is a snapshot, not a live view: a pure function of the system and its overrides, holding immutable `Measurand`s. Later assignments do not change it; re-running is how you get a newer one. `Values` covers every node reached, which is what makes it the natural home for caching across runs too.
+
+### Uncertainty treatment
+
+`Calculate` also takes an optional `IErrorPropagator`, defaulting to the conservative Gaussian one. This is the seam for an alternative uncertainty model — Monte Carlo, correlation-aware — applied to a whole calculation.
+
+It is deliberately a *different axis* from a computed node's `ErrorPropagation`:
+
+| | Says | Belongs to |
+| --- | --- | --- |
+| `IComputedExpression.ErrorPropagation` | are *these* operands correlated? | the **model** — a physical fact about the quantities |
+| `IErrorPropagator` | how do uncertainties combine at all? | the **calculation** — a numerical method |
+
+Both are passed through together, so choosing a propagator never discards what the model records about correlation. A global switch that flattened everything to "assume correlated" would be the opposite: it would silently throw away modelling knowledge, e.g. a node marked correlated because both its inputs come off the same instrument. There is a test that an injected propagator still sees `Correlated` where the model said so.
 
 ### Why it is not async, and does not parallelise internally
 

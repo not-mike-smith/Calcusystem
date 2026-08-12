@@ -109,12 +109,20 @@ public class Measurand : IStateful<Measurand, MeasurandState>
         return $"{Quantity} {Uncertainty}";
     }
 
-    private IErrorPropagator ResolveErrorPropagator()
-    {
-        return ConservativeGaussianPropagator.Instance;
-    }
+    /// <summary>
+    /// The propagator to combine uncertainties with: the one supplied, or the conservative Gaussian default.
+    /// </summary>
+    /// <remarks>
+    /// Which propagator is used and whether operands are <i>correlated</i> are different questions on different
+    /// axes. Correlation is a statement about the model — whether these two quantities move together — and rides
+    /// on the operation as an <see cref="ErrorPropagationMethod"/>. The propagator is the numerical method for
+    /// combining uncertainties at all, and is a property of the calculation. Swapping it therefore does not
+    /// discard what the model says about correlation; both are passed through together.
+    /// </remarks>
+    private static IErrorPropagator ResolveErrorPropagator(IErrorPropagator? supplied) =>
+        supplied ?? ConservativeGaussianPropagator.Instance;
 
-    private Measurand Sum(ErrorPropagationMethod method, params Measurand[] measurands)
+    private Measurand Sum(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] measurands)
     {
         if (measurands.Length == 0) return new Measurand();
 
@@ -123,10 +131,10 @@ public class Measurand : IStateful<Measurand, MeasurandState>
 
         var kmsValue = measurands.Sum(q => q.Quantity.KmsValue);
         var quantity = new Quantity(kmsValue, measurands[0].Quantity.Dimensionality);
-        return new Measurand(quantity, ResolveErrorPropagator().PropagateErrorThroughSum(method, measurands));
+        return new Measurand(quantity, ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, measurands));
     }
 
-    private Measurand Product(ErrorPropagationMethod method, params Measurand[] quantities)
+    private Measurand Product(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] quantities)
     {
         if (quantities.Length == 0) return new Measurand();
 
@@ -134,7 +142,7 @@ public class Measurand : IStateful<Measurand, MeasurandState>
             Quantity.One,
             (prod, q) => prod * q);
 
-        return new Measurand(product, ResolveErrorPropagator().PropagateErrorThroughProduct(method, quantities));
+        return new Measurand(product, ResolveErrorPropagator(propagator).PropagateErrorThroughProduct(method, quantities));
     }
 
     public static Measurand operator -(Measurand quantity)
@@ -161,44 +169,62 @@ public class Measurand : IStateful<Measurand, MeasurandState>
             Uncertainty.Exponentiated(KmsValue, 1, root));
     }
 
-    public Measurand TryAdd(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
+    public Measurand TryAdd(
+        Measurand other,
+        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
+        IErrorPropagator? propagator = null)
     {
         var quantity = Quantity.TryAdd(other.Quantity);
         var uncertainty = quantity.IsNaN()
             ? SymmetricUncertainty.FromRelErr(0)
-            : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, other]);
+            : ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, [this, other]);
 
         return new Measurand(quantity, uncertainty);
     }
 
-    public Measurand TrySubtract(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
+    public Measurand TrySubtract(
+        Measurand other,
+        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
+        IErrorPropagator? propagator = null)
     {
         var quantity = Quantity.TrySubtract(other.Quantity);
         var uncertainty = quantity.IsNaN()
             ? SymmetricUncertainty.FromRelErr(0)
-            : ResolveErrorPropagator().PropagateErrorThroughSum(method, [this, -other]);
+            : ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, [this, -other]);
 
         return new Measurand(quantity, uncertainty);
     }
 
-    public Measurand Plus(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
+    public Measurand Plus(
+        Measurand other,
+        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
+        IErrorPropagator? propagator = null)
     {
-        return Sum(method, this, other);
+        return Sum(method, propagator, this, other);
     }
 
-    public Measurand Minus(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
+    public Measurand Minus(
+        Measurand other,
+        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
+        IErrorPropagator? propagator = null)
     {
-        return Sum(method, this, -other);
+        return Sum(method, propagator, this, -other);
     }
 
-    public Measurand Times(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
+    public Measurand Times(
+        Measurand other,
+        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
+        IErrorPropagator? propagator = null)
     {
-        return Product(method, this, other);
+        return Product(method, propagator, this, other);
     }
 
-    public Measurand DividedBy(Measurand other, ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated)
+    public Measurand DividedBy(
+        Measurand other,
+        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
+        IErrorPropagator? propagator = null)
     {
-        return Product(method, this, other.Reciprocal());
+        return Product(method, propagator, this, other.Reciprocal());
     }
 
     /// <inheritdoc/>

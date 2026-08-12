@@ -1,6 +1,8 @@
+using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Traversal;
 
@@ -71,19 +73,86 @@ public static class ExpressionTraversal
     /// standing alone.
     /// </para>
     /// </remarks>
-    public static Measurand? CalculateValueIfDetermined(this IExpression root)
+    public static Measurand? CalculateValueIfDetermined(
+        this IExpression root,
+        IErrorPropagator? propagator = null)
     {
         var known = new Dictionary<IExpression, Measurand>();
 
-        foreach (var child in root.Children)
+        foreach (var node in root.InDependencyOrder())
         {
-            var value = child.CalculateValueIfDetermined();
-            if (value is null) return null;
-
-            known[child] = value;
+            if (node.Children.All(known.ContainsKey) && node.ComputeFrom(known, propagator) is { } value)
+            {
+                known[node] = value;
+            }
         }
 
-        return root.ComputeFrom(known);
+        return known.TryGetValue(root, out var result) ? result : null;
+    }
+
+    /// <summary>
+    /// <paramref name="root"/> and every node reachable from it, each once, children before parents — the order
+    /// a value can be computed in without ever needing one that has not been produced yet.
+    /// </summary>
+    /// <exception cref="CyclicExpressionGraphException">The graph contains a cycle.</exception>
+    public static IEnumerable<IExpression> InDependencyOrder(this IExpression root) =>
+        InDependencyOrder([root]);
+
+    /// <summary>
+    /// Every node reachable from <paramref name="roots"/>, each once, children before parents.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Iterative post-order rather than recursion, for the reason the other walks here are: nothing bounds how
+    /// deep a graph can be, and a stack frame per node is an avoidable way to fail. The visited set makes a node
+    /// shared by several parents appear once, positioned before the first of them.
+    /// </para>
+    /// <para>
+    /// The visited set also stops a cycle from descending forever, but it does not make the answer meaningful —
+    /// a cycle leaves some node emitted before an operand it depends on, and a caller folding over the order
+    /// would silently find that operand absent. So the order is checked before it is handed out: every node must
+    /// follow all of its own children.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="CyclicExpressionGraphException">The graph contains a cycle.</exception>
+    public static IReadOnlyList<IExpression> InDependencyOrder(IEnumerable<IExpression> roots)
+    {
+        var order = new List<IExpression>();
+        var seen = new HashSet<IExpression>();
+        var pending = new Stack<(IExpression Node, bool ChildrenExpanded)>();
+
+        foreach (var root in roots) pending.Push((root, false));
+
+        while (pending.Count > 0)
+        {
+            var (node, childrenExpanded) = pending.Pop();
+
+            if (childrenExpanded)
+            {
+                order.Add(node);
+                continue;
+            }
+
+            if (!seen.Add(node)) continue;
+
+            pending.Push((node, true));
+            foreach (var child in node.Children) pending.Push((child, false));
+        }
+
+        var position = new Dictionary<IExpression, int>(order.Count);
+        for (var i = 0; i < order.Count; i++) position[order[i]] = i;
+
+        foreach (var node in order)
+        {
+            foreach (var child in node.Children)
+            {
+                // `>=`, not `>`: a node that is its own operand shares its position with itself, and two
+                // distinct nodes never share one, so equality catches the self-loop and nothing else.
+                if (position[child] >= position[node]) throw new CyclicExpressionGraphException(node, child);
+            }
+        }
+
+        return order;
     }
 
     /// <summary>

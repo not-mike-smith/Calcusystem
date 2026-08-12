@@ -2,6 +2,7 @@
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -32,7 +33,9 @@ public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<Reciproca
 
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) => known[Reciprocand].Reciprocal();
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) => known[Reciprocand].Reciprocal();
 
     public override string ToString()
     {

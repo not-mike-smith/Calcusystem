@@ -1,5 +1,6 @@
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;
 
@@ -68,7 +69,15 @@ public interface IExpression : IIdentified
     /// </para>
     /// </remarks>
     /// <param name="known">Values already established, by node. Missing entries mean not yet computed.</param>
-    Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known);
+    /// <param name="propagator">
+    /// How uncertainties are combined, or null for the conservative Gaussian default. A different axis from a
+    /// computed node's <c>ErrorPropagation</c>: that says whether <i>these</i> operands are correlated, which is
+    /// a statement about the model, while this is the numerical method and belongs to the calculation. Both are
+    /// passed on together, so supplying one never discards the other.
+    /// </param>
+    Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null);
 }
 
 /// <summary>

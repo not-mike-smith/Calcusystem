@@ -3,6 +3,7 @@ using Calcusystem.Core;
 using System;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
@@ -46,7 +47,9 @@ public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLo
 
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known)
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null)
     {
         var argument = known[Argument];
         var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)

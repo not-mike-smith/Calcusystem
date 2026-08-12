@@ -2,6 +2,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -36,7 +37,9 @@ public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression,
 
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known) => known[Argument].ToRoot(2);
+    public Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) => known[Argument].ToRoot(2);
 
     public override string ToString()
     {
