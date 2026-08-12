@@ -36,10 +36,10 @@ public static class SystemFlattener
         this ExpressionSystem system,
         IReadOnlyDictionary<Variable, Measurand>? overrides = null)
     {
-        bool IsUnknown(Variable v) => overrides is null || overrides.ContainsKey(v) is false;
+        bool IsUnknown(Variable v) => overrides is null || ! overrides.ContainsKey(v);
 
         var unknowns = system.DirectExpressions
-            .Where(v => v.IsFullyDescribed is false)
+            .Where(v => ! v.IsFullyDescribed)
             .Concat(system.DerivedExpressions.SelectMany(e => e.FreeVariables()))
             .Concat(system.Relationships.SelectMany(r => r.FreeVariables()))
             .Where(IsUnknown)

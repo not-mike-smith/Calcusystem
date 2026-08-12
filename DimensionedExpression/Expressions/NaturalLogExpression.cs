@@ -52,7 +52,7 @@ public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<N
         IReadOnlyDictionary<IExpression, Measurand> known,
         IErrorPropagator? propagator = null)
     {
-        if (known.TryGetValue(Argument, out var argument) is false) return null;
+        if (! known.TryGetValue(Argument, out var argument)) return null;
 
         var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)
 

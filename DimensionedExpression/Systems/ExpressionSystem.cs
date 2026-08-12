@@ -48,7 +48,7 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// The relationships that only check values — every relationship that is not a definition. A view over
     /// <see cref="Relationships"/>; add through that.
     /// </summary>
-    public IEnumerable<IBinaryOperator> Constraints => Relationships.Where(r => r.IsDetermining is false);
+    public IEnumerable<IBinaryOperator> Constraints => Relationships.Where(r => ! r.IsDetermining);
 
     public IEnumerable<IExpression> GetAllExpressions()
     {

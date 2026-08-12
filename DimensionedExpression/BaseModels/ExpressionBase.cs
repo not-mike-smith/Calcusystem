@@ -78,7 +78,7 @@ public abstract class ExpressionBase : IdBase, IExpression
 
             // A repeat visit is a shared sub-expression, which is legitimate; a cycle is caught by
             // InDependencyOrder, which is the only walk whose answer a cycle would corrupt.
-            if (!seen.Add(node)) continue;
+            if (! seen.Add(node)) continue;
 
             yield return node;
 
@@ -88,7 +88,7 @@ public abstract class ExpressionBase : IdBase, IExpression
 
     /// <inheritdoc/>
     public IEnumerable<Variable> FreeVariables() =>
-        SelfAndDescendants().OfType<Variable>().Where(v => v.IsFullyDescribed is false);
+        SelfAndDescendants().OfType<Variable>().Where(v => ! v.IsFullyDescribed);
 
     /// <inheritdoc/>
     public IReadOnlyList<IExpression> InDependencyOrder() => InDependencyOrder([this]);
@@ -133,7 +133,7 @@ public abstract class ExpressionBase : IdBase, IExpression
                 continue;
             }
 
-            if (!seen.Add(node)) continue;
+            if (! seen.Add(node)) continue;
 
             pending.Push((node, true));
             foreach (var child in node.Children) pending.Push((child, false));

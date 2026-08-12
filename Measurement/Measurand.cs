@@ -51,7 +51,7 @@ public class Measurand : IStateful<Measurand, MeasurandState>
 
     public bool IsValid()
     {
-        return IsNaN() is false && IsFinite();
+        return ! IsNaN() && IsFinite();
     }
 
     public bool IsNegative()

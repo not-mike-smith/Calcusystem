@@ -28,7 +28,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     public SumExpression(IEnumerable<IExpression> addends)
     {
         _addends = addends.ToList();
-        if (_addends.Any() is false) return;
+        if (! _addends.Any()) return;
 
         _dimensionality = _addends[0].Dimensionality;
         if (_addends.Any(a => a.Dimensionality != Dimensionality))
@@ -50,7 +50,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
         IReadOnlyDictionary<IExpression, Measurand> known,
         IErrorPropagator? propagator = null)
     {
-        if (_addends.Count == 0 || _addends.Any(a => known.ContainsKey(a) is false)) return null;
+        if (_addends.Count == 0 || _addends.Any(a => ! known.ContainsKey(a))) return null;
 
         // One n-ary call rather than folding pairwise: the propagator combines all the errors at once instead
         // of building an intermediate Measurand per addend.

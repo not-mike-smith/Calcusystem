@@ -33,7 +33,7 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
         IReadOnlyDictionary<IExpression, Measurand> known,
         IErrorPropagator? propagator = null)
     {
-        if (_factors.Count == 0 || _factors.Any(f => known.ContainsKey(f) is false)) return null;
+        if (_factors.Count == 0 || _factors.Any(f => ! known.ContainsKey(f))) return null;
 
         // One n-ary call rather than folding pairwise: the propagator combines all the relative errors at once
         // instead of building an intermediate Measurand per factor.

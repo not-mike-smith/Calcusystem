@@ -46,7 +46,7 @@ public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<
         IReadOnlyDictionary<IExpression, Measurand> known,
         IErrorPropagator? propagator = null)
     {
-        if (known.TryGetValue(Argument, out var argument) is false) return null;
+        if (! known.TryGetValue(Argument, out var argument)) return null;
 
         var x = argument.KmsValue;
         var relativeError = Math.Abs(x) * argument.RelativeError;
