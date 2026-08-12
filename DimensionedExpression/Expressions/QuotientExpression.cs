@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -19,17 +20,21 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
 
     public required IExpression Denominator { get; set; }
 
-    public bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
-    public Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
+    public override bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
+    public override Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed
-        ? ComputeFrom([Numerator.CalculateValueIfDetermined()!, Denominator.CalculateValueIfDetermined()!])
-        : null;
 
     /// <inheritdoc/>
-    /// <remarks>Operands arrive in <c>Children</c> order: numerator first, then denominator.</remarks>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) =>
-        operands[0].DividedBy(operands[1], ErrorPropagation);
+    /// <remarks>
+    /// The case the keyed lookup exists for: numerator and denominator are told apart by identity, not by
+    /// which slot a caller happened to put them in.
+    /// </remarks>
+    public override Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
+        known.TryGetValue(Numerator, out var numerator) && known.TryGetValue(Denominator, out var denominator)
+            ? numerator.DividedBy(denominator, ErrorPropagation, propagator)
+            : null;
 
     public override string ToString()
     {
@@ -37,7 +42,7 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => [Numerator, Denominator];
+    public override IEnumerable<IExpression> Children => [Numerator, Denominator];
 
     /// <inheritdoc/>
     public BinaryExpressionState GetState() =>

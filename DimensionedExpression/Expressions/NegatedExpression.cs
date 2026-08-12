@@ -1,7 +1,9 @@
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -11,7 +13,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <br/>
 /// Not directly mutable; <see cref="Value"/> is null until the operand is fully described.
 /// </summary>
-public class NegatedExpression : IdBase, IExpression, IStatefulNode<NegatedExpression, UnaryExpressionState>
+public class NegatedExpression : ExpressionBase, IExpression, IStatefulNode<NegatedExpression, UnaryExpressionState>
 {
     public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW_ID) : base(id)
     {
@@ -26,16 +28,18 @@ public class NegatedExpression : IdBase, IExpression, IStatefulNode<NegatedExpre
         set => _operand = value;
     }
 
-    public bool IsDirectlyMutable => false;
-    public bool IsFullyDescribed => Operand.IsFullyDescribed;
-    public Dimensionality Dimensionality => Operand.Dimensionality;
-    public Measurand? CalculateValueIfDetermined() => Operand.IsFullyDescribed ? ComputeFrom([Operand.CalculateValueIfDetermined()!]) : null;
+    public override bool IsDirectlyMutable => false;
+    public override bool IsFullyDescribed => Operand.IsFullyDescribed;
+    public override Dimensionality Dimensionality => Operand.Dimensionality;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => -operands[0];
+    public override Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
+        known.TryGetValue(Operand, out var operand) ? -operand : null;
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => [Operand];
+    public override IEnumerable<IExpression> Children => [Operand];
 
     public override string ToString()
     {

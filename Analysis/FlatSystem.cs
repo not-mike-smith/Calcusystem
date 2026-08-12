@@ -77,8 +77,8 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
     {
         get
         {
-            var incident = Equations.SelectMany(e => e.Unknowns).Select(v => v.Id).ToHashSet();
-            return Unknowns.Where(u => incident.Contains(u.Id) is false);
+            var incident = Equations.SelectMany(e => e.Unknowns).ToHashSet();
+            return Unknowns.Where(u => ! incident.Contains(u));
         }
     }
 }

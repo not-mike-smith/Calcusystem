@@ -44,17 +44,74 @@ A corollary worth relying on: **valuing a leaf and asserting an equation against
 
 ---
 
-## `bindings`: probing without mutating
+## Calculating
 
-Every entry point takes an optional `IReadOnlyDictionary<string, Measurand>` keyed by variable id. A variable named there is not an unknown, whatever its own `Value` says.
+`Calculate` works out everything the system's current values and relationships determine, and reports what it could not and why.
 
 ```csharp
-var pinned = SystemFlattener.Flatten(system, new Dictionary<string, Measurand> { ["m"] = trial });
+var calc = system.Calculate(overrides);
+
+calc.Overrides;      // the values supplied — the assumptions this calculation rests on
+calc.Values;         // every node that resolved
+calc.ValueOf(f);     // one node's value, or null
+calc.Unresolved;     // the system's expressions that could not be computed
+calc.MissingValues;  // the unbound variables responsible
+calc.IsComplete;     // nothing outstanding
 ```
+
+**Named for the engineering artefact, not the operation.** A calculation is a thing an engineer produces, keeps, and hands to a reviewer — and it is defined as much by its inputs as its outputs, which is why `Overrides` rides on the record. A bare set of values is not reproducible or reviewable without the assumptions that produced it, and carrying both is what lets two calculations of the same system be compared on equal terms.
+
+It never throws on an incomplete system. A model half-built is the normal case, and "which values are still missing" is the answer the caller wants.
+
+It *does* throw on a **cyclic** graph — `CyclicExpressionGraphException`. That is not an incomplete model but a malformed one, and reporting it as unresolved would produce a calculation claiming nodes could not be computed while listing nothing as missing, which reads as an absent value and sends the reader looking for one that does not exist.
+
+**Each node is computed once.** Nodes are visited in dependency order and handed the values already established, via `IExpression.ComputeFrom`. Contrast `CalculateValueIfDetermined()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here. This is the caching a node deliberately cannot do for itself: a node has no way to learn that a leaf beneath it was reassigned, whereas `Calculate` knows the graph is unchanged for the duration of a run.
+
+`Calculation` is a snapshot, not a live view: a pure function of the system and its overrides, holding immutable `Measurand`s. Later assignments do not change it; re-running is how you get a newer one. `Values` covers every node reached, which is what makes it the natural home for caching across runs too.
+
+### Uncertainty treatment
+
+`Calculate` also takes an optional `IErrorPropagator`, defaulting to the conservative Gaussian one. This is the seam for an alternative uncertainty model — Monte Carlo, correlation-aware — applied to a whole calculation.
+
+It is deliberately a *different axis* from a computed node's `ErrorPropagation`:
+
+| | Says | Belongs to |
+| --- | --- | --- |
+| `IComputedExpression.ErrorPropagation` | are *these* operands correlated? | the **model** — a physical fact about the quantities |
+| `IErrorPropagator` | how do uncertainties combine at all? | the **calculation** — a numerical method |
+
+Both are passed through together, so choosing a propagator never discards what the model records about correlation. A global switch that flattened everything to "assume correlated" would be the opposite: it would silently throw away modelling knowledge, e.g. a node marked correlated because both its inputs come off the same instrument. There is a test that an injected propagator still sees `Correlated` where the model said so.
+
+### Why it is not async, and does not parallelise internally
+
+`Calculate` is CPU-bound with no I/O, so `async` would buy nothing and cost every caller an `await` up their whole stack. Parallelising *within* one system is possible in principle but unpromising: the dependency graph is largely sequential, and the work per node — a handful of floating-point operations on a `Measurand` — is far smaller than the coordination overhead.
+
+The parallelism worth having is across *independent* calculations, and purity already provides it with no API at all:
+
+```csharp
+var curve = trials
+    .AsParallel()
+    .Select(t => system.Calculate(new Dictionary<Variable, Measurand> { [x] = t }))
+    .ToList();
+```
+
+Nothing is mutated and nothing is shared but immutable reads, so this is safe today; a test runs 500 of them in parallel. That is the payoff for keeping the memo outside the graph rather than caching on nodes. If intra-system parallelism ever does become worth it, the block-triangular ordering from Milestone 4's structural analysis is what would identify the independent blocks — and it would be an internal change, not a signature one.
+
+---
+
+## `overrides`: probing without mutating
+
+Both entry points take an optional `IReadOnlyDictionary<Variable, Measurand>`. A variable named there is not an unknown, and calculates to the supplied value, whatever its own `Value` says.
+
+```csharp
+var pinned = system.Flatten(new Dictionary<Variable, Measurand> { [m] = trial });
+```
+
+Keyed by the variable itself rather than by its id: an id that matches no variable in the system is a silent no-op, whereas the typed key means you must have the variable in hand. (`IdBase` defines equality and hashing on `Id`, so a rebuilt-from-state instance still matches.)
 
 This exists because the model must not be scratch space. A solver evaluates the same system at many trial values, and an ODE integrator does so several times per step; with values living only on nodes, each of those has to assign and restore, and a restore missed on an exception path leaves the caller's model holding a solver's intermediate. Passing bindings instead keeps analysis a pure function of `(system, bindings)`.
 
-It is also how an over-determined system is interrogated — pin different subsets, solve each, and compare. Consistent answers corroborate; inconsistent ones are the finding.
+It is also how an over-determined system is interrogated — pin different subsets, calculate each, and compare. Consistent answers corroborate; inconsistent ones are the finding. Because each `Calculation` carries the `Overrides` that produced it, the comparison is self-describing.
 
 ---
 
@@ -84,7 +141,9 @@ Flattening first makes that mistake unavailable. A forty-stage distillation colu
 
 ## Scope boundaries
 
-**What belongs here:** reducing a system to unknowns and equations, degrees of freedom and classification, and — as they arrive — the evaluation walk, constraint reporting, structural analysis (bipartite matching / Dulmage–Mendelsohn), and the solver abstraction.
+**What belongs here:** reducing a system to unknowns and equations, degrees of freedom and classification, calculating a system's values, and — as they arrive — constraint reporting, structural analysis (bipartite matching / Dulmage–Mendelsohn), and the solver abstraction.
+
+Both entry points are extension methods on `ExpressionSystem`, so they read as `system.Flatten()` and `system.Calculate()` without the expression layer knowing this one exists. That direction is deliberate: it is what lets a second strategy — a solver, an interval evaluator — sit beside these rather than inside the domain type.
 
 **What does NOT belong here:**
 

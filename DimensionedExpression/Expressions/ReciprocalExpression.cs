@@ -1,7 +1,9 @@
-﻿using Calcusystem.DimensionedExpression.Interfaces;
+﻿using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -11,7 +13,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <br/>
 /// Not directly mutable; <see cref="Value"/> is null until the reciprocand is fully described.
 /// </summary>
-public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<ReciprocalExpression, UnaryExpressionState>
+public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<ReciprocalExpression, UnaryExpressionState>
 {
     private IExpression _reciprocand;
 
@@ -26,16 +28,16 @@ public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<Reciproca
         set => _reciprocand = value;
     }
 
-    public bool IsDirectlyMutable => false;
-    public bool IsFullyDescribed => Reciprocand.IsFullyDescribed;
-    public Dimensionality Dimensionality => Reciprocand.Dimensionality.Reciprocal();
+    public override bool IsDirectlyMutable => false;
+    public override bool IsFullyDescribed => Reciprocand.IsFullyDescribed;
+    public override Dimensionality Dimensionality => Reciprocand.Dimensionality.Reciprocal();
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed
-        ? ComputeFrom([Reciprocand.CalculateValueIfDetermined()!])
-        : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands) => operands[0].Reciprocal();
+    public override Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null) =>
+        known.TryGetValue(Reciprocand, out var operand) ? operand.Reciprocal() : null;
 
     public override string ToString()
     {
@@ -43,7 +45,7 @@ public class ReciprocalExpression : IdBase, IExpression, IStatefulNode<Reciproca
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => [Reciprocand];
+    public override IEnumerable<IExpression> Children => [Reciprocand];
 
 
     /// <inheritdoc/>

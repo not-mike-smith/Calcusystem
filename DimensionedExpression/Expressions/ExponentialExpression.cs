@@ -1,8 +1,10 @@
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using System;
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
@@ -14,7 +16,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
 /// RelativeError(eˣ) ≈ |x|·RelativeError(x) (i.e. the absolute error of x).
 /// </summary>
-public class ExponentialExpression : IdBase, IExpression, IStatefulNode<ExponentialExpression, UnaryExpressionState>
+public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<ExponentialExpression, UnaryExpressionState>
 {
     private IExpression _argument;
 
@@ -34,16 +36,18 @@ public class ExponentialExpression : IdBase, IExpression, IStatefulNode<Exponent
         }
     }
 
-    public bool IsDirectlyMutable => false;
-    public bool IsFullyDescribed => Argument.IsFullyDescribed;
-    public Dimensionality Dimensionality => Dimensionality.Dimensionless;
+    public override bool IsDirectlyMutable => false;
+    public override bool IsFullyDescribed => Argument.IsFullyDescribed;
+    public override Dimensionality Dimensionality => Dimensionality.Dimensionless;
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed ? ComputeFrom([Argument.CalculateValueIfDetermined()!]) : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands)
+    public override Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null)
     {
-        var argument = operands[0];
+        if (! known.TryGetValue(Argument, out var argument)) return null;
+
         var x = argument.KmsValue;
         var relativeError = Math.Abs(x) * argument.RelativeError;
 
@@ -58,7 +62,7 @@ public class ExponentialExpression : IdBase, IExpression, IStatefulNode<Exponent
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => [Argument];
+    public override IEnumerable<IExpression> Children => [Argument];
 
     private static void RequireDimensionless(IExpression argument)
     {

@@ -64,6 +64,8 @@ public class PairDerivedVariable : ExpressionBase
     /// simply lack it, and <see cref="ErrorPropagationMethod.Uncorrelated"/> — the default both here and on the
     /// expression itself — is what they meant.
     /// </summary>
+    // TODO: renaming `ErrorPropagationMethod`/`ErrorPropagation` (see the note on the enum) changes this
+    // property name, which is on the wire — the one part of that rename that breaks stored payloads.
     public ErrorPropagationMethod ErrorPropagation { get; init; }
 }
 

@@ -45,7 +45,7 @@ public class FlatSystemTests
         system.Relationships.Add(Equation("b==c", b, c));
         system.Relationships.Add(Equation("c==2s", c, twoSeconds));
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.Unknowns.Select(u => u.Id).Should().BeEquivalentTo("a", "c");
         flat.Equations.Should().HaveCount(2);
@@ -74,7 +74,7 @@ public class FlatSystemTests
         system.DerivedExpressions.Add(b);
         system.Relationships.Add(Equation("b==c", b, c));
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.Unknowns.Select(u => u.Id).Should().Equal("a");
         flat.Equations.Should().HaveCount(1);
@@ -92,7 +92,7 @@ public class FlatSystemTests
         var system = ExpressionSystem.Create("derived only", "");
         system.DerivedExpressions.Add(product);
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.Unknowns.Select(u => u.Id).Should().BeEquivalentTo("m", "a");
         flat.Equations.Should().BeEmpty();
@@ -111,7 +111,7 @@ public class FlatSystemTests
         system.DerivedExpressions.Add(negated);
         system.Relationships.Add(Equation("eq", m, negated));
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.Unknowns.Select(u => u.Id).Should().Equal("m");
         flat.Equations.Single().Unknowns.Select(u => u.Id).Should().Equal("m");
@@ -136,7 +136,7 @@ public class FlatSystemTests
             Id = "check", Lhs = m, Rhs = spec
         });
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         // Three relationships, none of which can determine a value: m stays unknown.
         flat.Equations.Should().BeEmpty();
@@ -165,7 +165,7 @@ public class FlatSystemTests
         system.DirectExpressions.Add(limit);
         system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<3m", Lhs = length, Rhs = limit });
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.Equations.Should().BeEmpty();
 
@@ -197,7 +197,7 @@ public class FlatSystemTests
         system.Relationships.Add(Equation("m==a", m, a));
         system.Relationships.Add(Equation("m==b", m, b));
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.DegreesOfFreedom.Should().Be(-1);
         flat.Determination.Should().Be(Determination.Overdetermined);
@@ -219,7 +219,7 @@ public class FlatSystemTests
         system.Relationships.Add(Equation("m==a", m, a));
         system.Relationships.Add(Equation("m==b", m, b));
 
-        var flat = SystemFlattener.Flatten(system);
+        var flat = system.Flatten();
 
         flat.DegreesOfFreedom.Should().Be(0);
         flat.Determination.Should().Be(Determination.ExactlyDetermined);
@@ -242,14 +242,13 @@ public class FlatSystemTests
         system.DirectExpressions.Add(a);
         system.DerivedExpressions.Add(product);
 
-        var unpinned = SystemFlattener.Flatten(system);
+        var unpinned = system.Flatten();
         unpinned.Unknowns.Should().HaveCount(2);
 
-        var pinned = SystemFlattener.Flatten(
-            system,
-            new Dictionary<string, Measurand>
+        var pinned = system.Flatten(
+            new Dictionary<Variable, Measurand>
             {
-                ["m"] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+                [m] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
             });
 
         pinned.Unknowns.Select(u => u.Id).Should().Equal("a");
@@ -262,17 +261,16 @@ public class FlatSystemTests
         var system = ExpressionSystem.Create("no mutation", "");
         system.DirectExpressions.Add(m);
 
-        SystemFlattener.Flatten(
-            system,
-            new Dictionary<string, Measurand>
+        system.Flatten(
+            new Dictionary<Variable, Measurand>
             {
-                ["m"] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+                [m] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
             });
 
         // The whole point of passing bindings rather than assigning: a solver can probe a system at trial values
         // without leaving scratch values behind in the caller's model.
         m.Value.Should().BeNull();
-        SystemFlattener.Flatten(system).Unknowns.Should().Equal(m);
+        system.Flatten().Unknowns.Should().Equal(m);
     }
 
     [Fact]
@@ -289,13 +287,12 @@ public class FlatSystemTests
         system.Relationships.Add(Equation("m==a", m, a));
         system.Relationships.Add(Equation("m==b", m, b));
 
-        SystemFlattener.Flatten(system).Determination.Should().Be(Determination.Overdetermined);
+        system.Flatten().Determination.Should().Be(Determination.Overdetermined);
 
-        var pinned = SystemFlattener.Flatten(
-            system,
-            new Dictionary<string, Measurand>
+        var pinned = system.Flatten(
+            new Dictionary<Variable, Measurand>
             {
-                ["m"] = new Quantity(5, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+                [m] = new Quantity(5, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
             });
 
         pinned.Unknowns.Should().BeEmpty();

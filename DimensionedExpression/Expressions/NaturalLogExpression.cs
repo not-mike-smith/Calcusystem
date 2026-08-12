@@ -1,8 +1,10 @@
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using System;
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
@@ -20,7 +22,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// the result is 0; its <em>relative</em> error is undefined, but the absolute error is retained and
 /// <c>RelativeError</c> reports <c>+∞</c> rather than throwing.
 /// </remarks>
-public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLogExpression, UnaryExpressionState>
+public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<NaturalLogExpression, UnaryExpressionState>
 {
     private IExpression _argument;
 
@@ -40,16 +42,18 @@ public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLo
         }
     }
 
-    public bool IsDirectlyMutable => false;
-    public bool IsFullyDescribed => Argument.IsFullyDescribed;
-    public Dimensionality Dimensionality => Dimensionality.Dimensionless;
+    public override bool IsDirectlyMutable => false;
+    public override bool IsFullyDescribed => Argument.IsFullyDescribed;
+    public override Dimensionality Dimensionality => Dimensionality.Dimensionless;
 
-    public Measurand? CalculateValueIfDetermined() => IsFullyDescribed ? ComputeFrom([Argument.CalculateValueIfDetermined()!]) : null;
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(IReadOnlyList<Measurand> operands)
+    public override Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null)
     {
-        var argument = operands[0];
+        if (! known.TryGetValue(Argument, out var argument)) return null;
+
         var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)
 
         return Dimensionality.Dimensionless
@@ -63,7 +67,7 @@ public class NaturalLogExpression : IdBase, IExpression, IStatefulNode<NaturalLo
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => [Argument];
+    public override IEnumerable<IExpression> Children => [Argument];
 
     private static void RequireDimensionless(IExpression argument)
     {

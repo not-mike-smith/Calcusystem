@@ -2,7 +2,6 @@ using System;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
-using Calcusystem.DimensionedExpression.Traversal;
 using FluentAssertions;
 using Calcusystem.Measurement;
 using Xunit;

@@ -1,3 +1,4 @@
+using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 namespace Calcusystem.DimensionedExpression.Interfaces;
@@ -47,6 +48,12 @@ public interface IBinaryOperator : IIdentified
 
     /// <summary>Whether both operands have values, so <see cref="IsSatisfied"/> can return a definite result.</summary>
     bool AreBothSidesFullyDescribed { get; }
+
+    /// <summary>
+    /// The distinct unbound variables reachable from either side — the unknowns this relationship is incident
+    /// on, and its row of the incidence structure a structural analysis matches over.
+    /// </summary>
+    IEnumerable<Variable> FreeVariables();
 
     /// <summary>
     /// Optional audit annotation describing where this relationship came from (e.g. a citation for a

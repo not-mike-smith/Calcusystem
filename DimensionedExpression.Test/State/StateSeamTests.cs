@@ -1,4 +1,3 @@
-using Calcusystem.DimensionedExpression.Traversal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,7 +85,7 @@ public class StateSeamTests
         var restored = ProductExpression.FromState(state, new StubResolver().With("a", a).With("b", b));
 
         restored.Id.Should().Be("p");
-        restored.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(12, 1e-12);
+        restored.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(12, 1e-12);
     }
 
     [Theory]

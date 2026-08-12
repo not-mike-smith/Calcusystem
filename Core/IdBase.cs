@@ -13,7 +13,7 @@ public abstract class IdBase : IIdentified
     private readonly string _id = null!;
 
     /// <summary>Stable identity, preserved across serialization.</summary>
-    public string Id // TODO make this required?
+    public string Id
     {
         get => _id;
         init
@@ -32,5 +32,15 @@ public abstract class IdBase : IIdentified
     protected IdBase(string id)
     {
         Id = id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is IdBase other && Id == other.Id;
     }
 }

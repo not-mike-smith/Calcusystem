@@ -1,4 +1,5 @@
-﻿using Calcusystem.DimensionedExpression.Expressions;
+﻿using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.Interfaces;
@@ -48,12 +49,25 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// The relationships that only check values — every relationship that is not a definition. A view over
     /// <see cref="Relationships"/>; add through that.
     /// </summary>
-    public IEnumerable<IBinaryOperator> Constraints => Relationships.Where(r => r.IsDetermining is false);
+    public IEnumerable<IBinaryOperator> Constraints => Relationships.Where(r => ! r.IsDetermining);
 
     public IEnumerable<IExpression> GetAllExpressions()
     {
         return DirectExpressions.Concat(DerivedExpressions);
     }
+
+    /// <summary>
+    /// Every node this system reaches, each once, children before parents — the order values can be computed in
+    /// without ever needing one that has not been produced yet.
+    /// </summary>
+    /// <remarks>
+    /// A question about the system's own structure, like <see cref="GetAllExpressions"/>, and the only form of
+    /// the walk that ranges over several roots at once. Ordering is structural rather than orchestration: it
+    /// says what depends on what, and decides nothing about whether or when anything is computed.
+    /// </remarks>
+    /// <exception cref="Exceptions.CyclicExpressionGraphException">The system's graph contains a cycle.</exception>
+    public IReadOnlyList<IExpression> InDependencyOrder() =>
+        ExpressionGraph.InDependencyOrder(GetAllExpressions());
 
     /// <inheritdoc/>
     public ExpressionSystemState GetState() => new(

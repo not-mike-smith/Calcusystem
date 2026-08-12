@@ -1,5 +1,7 @@
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;
 
@@ -34,26 +36,6 @@ public interface IExpression : IIdentified
     Dimensionality Dimensionality { get; }
 
     /// <summary>
-    /// Computes this node's value with propagated uncertainty, or returns <see langword="null"/> if any leaf it
-    /// depends on is still unbound.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <b>A method, and named for what it costs.</b> This walks the whole graph beneath the node on every call
-    /// and caches nothing, so a sub-expression shared by three parents is computed three times. A property would
-    /// invite callers to treat it as field access and to call it in a loop.
-    /// </para>
-    /// <para>
-    /// Nothing is memoised here on purpose: a node has no way to learn that a leaf beneath it was reassigned, so
-    /// a cached answer here could silently go stale. Caching belongs to a caller that knows the scope over which
-    /// the graph is unchanged — see <c>SystemEvaluator</c>, which computes each node once per run by walking in
-    /// dependency order and feeding results to <see cref="ComputeFrom"/>. Prefer it for anything beyond a
-    /// one-off read.
-    /// </para>
-    /// </remarks>
-    Measurand? CalculateValueIfDetermined();
-
-    /// <summary>
     /// The nodes this one is computed from, in operand order; empty for a leaf. The single accessor every graph
     /// walk goes through — free-variable collection, dependency ordering, and incidence are all one traversal
     /// over this rather than a switch over node types.
@@ -66,24 +48,88 @@ public interface IExpression : IIdentified
     IEnumerable<IExpression> Children { get; }
 
     /// <summary>
-    /// This node's value given its operands' values, supplied in <see cref="Children"/> order — the node's own
-    /// arithmetic and uncertainty propagation, with the walk that produced the operands factored out.
+    /// This node's value, looked up from <paramref name="known"/> — the node's own arithmetic and uncertainty
+    /// propagation, with the walk that produced its operands factored out.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <see cref="Value"/> is this applied to children that computed themselves recursively; an evaluator is the
-    /// same function applied to operands it computed in dependency order, remembering each result. That is the
-    /// point of the split: a node owns how it combines values, and a caller owns the order values are produced
-    /// in and whether any of them are worth keeping. Neither can be memoised or overridden through
-    /// <see cref="CalculateValueIfDetermined"/> alone, because it reaches all the way to the leaves on every call.
+    /// <b>Look up yourself and your own children, nothing else.</b> A composite reads its children's entries; a
+    /// leaf reads its own, falling back to its stored value when absent — which is what makes an override a
+    /// leaf's own business rather than something every caller has to special-case.
     /// </para>
     /// <para>
-    /// A leaf has no operands and answers with its stored value, which may be null. Computed nodes are called
-    /// only once every operand is present, so they may treat the list as complete.
+    /// Keyed rather than positional because position is a contract a caller can silently get wrong: handed a
+    /// list, a quotient cannot tell numerator from denominator except by trusting the order, and computing
+    /// <c>d/n</c> is not an error anything would catch. Looking children up by identity removes the question,
+    /// and a child referenced twice needs only one entry.
+    /// </para>
+    /// <para>
+    /// <c>ComputeIfDetermined()</c> is this applied to children that computed themselves recursively; an
+    /// evaluator is the same function applied to operands it computed in dependency order and kept. A node owns
+    /// how values combine, and a caller owns the order they are produced in and whether any are worth keeping.
     /// </para>
     /// </remarks>
-    /// <param name="operands">The children's values, in <see cref="Children"/> order.</param>
-    Measurand? ComputeFrom(IReadOnlyList<Measurand> operands);
+    /// <param name="known">Values already established, by node. Missing entries mean not yet computed.</param>
+    /// <param name="propagator">
+    /// How uncertainties are combined, or null for the conservative Gaussian default. A different axis from a
+    /// computed node's <c>ErrorPropagation</c>: that says whether <i>these</i> operands are correlated, which is
+    /// a statement about the model, while this is the numerical method and belongs to the calculation. Both are
+    /// passed on together, so supplying one never discards the other.
+    /// </param>
+    Measurand? ComputeFrom(
+        IReadOnlyDictionary<IExpression, Measurand> known,
+        IErrorPropagator? propagator = null);
+
+    /// <summary>
+    /// Computes this node's value with propagated uncertainty, or returns <see langword="null"/> if any leaf it
+    /// depends on is still unbound.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Named for what it costs.</b> This walks the whole graph beneath the node on every call and caches
+    /// nothing, so a sub-expression shared by three parents is computed three times. It is a method, not a
+    /// property, because a property invites callers to treat it as field access and call it in a loop.
+    /// </para>
+    /// <para>
+    /// Nothing is memoised on purpose: a node has no way to learn that a leaf beneath it was reassigned, so a
+    /// cached answer would go stale silently. Caching belongs to a caller that knows over what scope the graph is
+    /// unchanged — <c>Calcusystem.Analysis</c>'s <c>system.Calculate()</c> computes each node once per run and
+    /// reports what is missing besides. Prefer it for anything beyond a single node.
+    /// </para>
+    /// </remarks>
+    /// <param name="overrides">
+    /// Values supplied for this computation only, taking precedence over a variable's own — the same mechanism
+    /// <c>Calculate</c> offers, for a caller working on one sub-expression rather than a whole system.
+    /// </param>
+    /// <param name="propagator">How uncertainties are combined, or null for the conservative Gaussian default.</param>
+    /// <exception cref="Exceptions.CyclicExpressionGraphException">The graph beneath this node has a cycle.</exception>
+    Measurand? ComputeIfDetermined(
+        IReadOnlyDictionary<Variable, Measurand>? overrides = null,
+        IErrorPropagator? propagator = null);
+
+    /// <summary>
+    /// This node and every node reachable from it, each yielded exactly once however many parents reference it.
+    /// Order is unspecified.
+    /// </summary>
+    IEnumerable<IExpression> SelfAndDescendants();
+
+    /// <summary>
+    /// The distinct unbound leaf variables reachable from this node — the values that must be supplied before it
+    /// can produce one, and the unknowns it contributes to a system's degrees of freedom.
+    /// </summary>
+    /// <remarks>
+    /// Only a <see cref="Expressions.Variable"/> can be free: it is the sole node whose value is assigned rather
+    /// than computed, so it is the only thing a solver could be asked to determine. A computed node with unbound
+    /// leaves beneath it is not itself an unknown — it is the path by which those leaves are reached.
+    /// </remarks>
+    IEnumerable<Variable> FreeVariables();
+
+    /// <summary>
+    /// This node and everything reachable from it, each once, children before parents — the order values can be
+    /// computed in without ever needing one that has not been produced yet.
+    /// </summary>
+    /// <exception cref="Exceptions.CyclicExpressionGraphException">The graph beneath this node has a cycle.</exception>
+    IReadOnlyList<IExpression> InDependencyOrder();
 }
 
 /// <summary>
@@ -93,9 +139,17 @@ public interface IExpression : IIdentified
 public interface IComputedExpression : IExpression
 {
     /// <summary>
-    /// Whether child errors are treated as correlated or uncorrelated when their uncertainties are combined
-    /// into this node's value.
+    /// Whether this node's children are treated as having correlated or uncorrelated errors when their
+    /// uncertainties are combined into its value.
     /// </summary>
+    /// <remarks>
+    /// Part of the model: it records something known about where the children's values came from. Distinct from
+    /// the <see cref="IErrorPropagator"/> a calculation supplies, which is the numerical method for combining
+    /// uncertainties — see the remarks on <see cref="IExpression.ComputeFrom"/>, which passes both.
+    /// </remarks>
+    // TODO: rename to `ErrorCorrelation`, with `ErrorPropagationMethod`. The current name says "propagation
+    // method", which is now what `IErrorPropagator` is; this is the correlation assumption. See the note on
+    // `ErrorPropagationMethod` for everything a rename touches, including a wire-format break.
     ErrorPropagationMethod ErrorPropagation { get; set; }
 }
 
