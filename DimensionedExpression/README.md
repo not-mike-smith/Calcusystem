@@ -92,13 +92,15 @@ A node type contributes exactly two things: **what its operands are** (`Children
 | `ComputeIfDetermined(overrides?, propagator?)` | the node's value, walking to the leaves. Named to match `ComputeFrom`, and takes the same overrides `Calculate` does, for a caller working on one sub-expression |
 | `SelfAndDescendants()` | the node and everything reachable from it, each exactly once |
 | `InDependencyOrder()` | children before parents — the order values can be computed in |
+
+`ExpressionSystem.InDependencyOrder()` is the same walk over a whole system, which is the only form ranging over several roots at once — there is no single node to ask, so it sits on the system beside `GetAllExpressions()`. Both delegate to an internal `ExpressionGraph`; neither callers nor node types touch it.
 | `FreeVariables()` | the distinct unbound `Variable` leaves — on an `IExpression`, or on an `IBinaryOperator` across both its sides |
 
 They are **declared on `IExpression` and implemented on `ExpressionBase`** rather than being extension methods, so they are part of the contract and visible on the interface. The cost is that a type implementing `IExpression` without deriving from `ExpressionBase` must supply all of them; deriving is the expected path, and the test doubles do.
 
 All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and all are iterative — nothing bounds how deep a graph can be, and a stack frame per node is an avoidable way to fail.
 
-**Cycles are detected, not assumed away.** Ordinary construction cannot produce one, since a node is given children that already exist — but a child collection mutated afterwards can close a loop, and every walk here assumes a DAG. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `CalculateValueIfDetermined()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
+**Cycles are detected, not assumed away.** Ordinary construction cannot produce one, since a node is given children that already exist — but a child collection mutated afterwards can close a loop, and every walk here assumes a DAG. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `ComputeIfDetermined()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
 
 ### Binary operators (`BinaryOperators/`)
 

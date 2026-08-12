@@ -1,4 +1,3 @@
-using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
@@ -55,7 +54,7 @@ public static class SystemCalculation
         var values = new Dictionary<IExpression, Measurand>();
         foreach (var (variable, value) in overrides) values[variable] = value;
 
-        foreach (var node in ExpressionBase.InDependencyOrder(listed))
+        foreach (var node in system.InDependencyOrder())
         {
             // Children come first in this ordering, so anything absent from `values` is beneath an unbound
             // leaf. `ComputeFrom` answers null in that case rather than throwing, so no pre-check is needed.
