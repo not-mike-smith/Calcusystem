@@ -5,6 +5,7 @@ using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
+using Calcusystem.DimensionedExpression.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -21,7 +22,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
 
     public SumExpression(Dimensionality dimensionality)
     {
-        Dimensionality = dimensionality;
+        _dimensionality = dimensionality;
     }
 
     public SumExpression(IEnumerable<IExpression> addends)
@@ -29,25 +30,33 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
         _addends = addends.ToList();
         if (_addends.Any() is false) return;
 
-        Dimensionality = _addends[0].Dimensionality;
+        _dimensionality = _addends[0].Dimensionality;
         if (_addends.Any(a => a.Dimensionality != Dimensionality))
             throw new IncompatibleDimensionsException("SumExpression addends must all have same dimensionaltiy");
     }
 
 
-    public Dimensionality Dimensionality { get; private set; }
+    private Dimensionality _dimensionality;
+
+    /// <inheritdoc/>
+    public override Dimensionality Dimensionality => _dimensionality;
     public IReadOnlyList<IExpression> Addends => _addends;
-    public bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
+    public override bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
 
 
     /// <inheritdoc/>
     /// <remarks>Addends are read in declaration order, so an addend listed twice contributes twice.</remarks>
-    public Measurand? ComputeFrom(
+    public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null) =>
-        _addends.Count == 0
-            ? null
-            : _addends.Select(a => known[a]).Aggregate((acc, a) => acc.Plus(a, ErrorPropagation, propagator));
+        IErrorPropagator? propagator = null)
+    {
+        if (_addends.Count == 0 || _addends.Any(a => known.ContainsKey(a) is false)) return null;
+
+        // One n-ary call rather than folding pairwise: the propagator combines all the errors at once instead
+        // of building an intermediate Measurand per addend.
+        return Measurand.Sum(ErrorPropagation, propagator, _addends.Select(a => known[a]));
+    }
+
 
     public void AddAddend(IExpression expression)
     {
@@ -58,7 +67,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
         }
         else
         {
-            Dimensionality = expression.Dimensionality;
+            _dimensionality = expression.Dimensionality;
         }
         _addends.Add(expression);
     }
@@ -74,7 +83,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => _addends;
+    public override IEnumerable<IExpression> Children => _addends;
 
     /// <inheritdoc/>
     public NaryExpressionState GetState() =>

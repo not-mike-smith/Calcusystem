@@ -1,4 +1,5 @@
-﻿using Calcusystem.DimensionedExpression.Interfaces;
+﻿using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
 
@@ -35,6 +36,10 @@ public abstract class BinaryOperatorBase : IBinaryOperator
         new(Kind, Id, Lhs.Id, Rhs.Id, IsDetermining, Name, Description, Provenance?.GetState());
 
     public bool AreBothSidesFullyDescribed => Lhs.IsFullyDescribed && Rhs.IsFullyDescribed;
+
+    /// <inheritdoc/>
+    public IEnumerable<Variable> FreeVariables() =>
+        Lhs.FreeVariables().Concat(Rhs.FreeVariables()).Distinct();
     public override string ToString()
     {
         return $"{Lhs} {Symbol} {Rhs}";

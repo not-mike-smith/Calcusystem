@@ -1,5 +1,6 @@
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;
@@ -63,7 +64,7 @@ public interface IExpression : IIdentified
     /// and a child referenced twice needs only one entry.
     /// </para>
     /// <para>
-    /// <c>CalculateValueIfDetermined()</c> is this applied to children that computed themselves recursively; an
+    /// <c>ComputeIfDetermined()</c> is this applied to children that computed themselves recursively; an
     /// evaluator is the same function applied to operands it computed in dependency order and kept. A node owns
     /// how values combine, and a caller owns the order they are produced in and whether any are worth keeping.
     /// </para>
@@ -78,6 +79,57 @@ public interface IExpression : IIdentified
     Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
         IErrorPropagator? propagator = null);
+
+    /// <summary>
+    /// Computes this node's value with propagated uncertainty, or returns <see langword="null"/> if any leaf it
+    /// depends on is still unbound.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Named for what it costs.</b> This walks the whole graph beneath the node on every call and caches
+    /// nothing, so a sub-expression shared by three parents is computed three times. It is a method, not a
+    /// property, because a property invites callers to treat it as field access and call it in a loop.
+    /// </para>
+    /// <para>
+    /// Nothing is memoised on purpose: a node has no way to learn that a leaf beneath it was reassigned, so a
+    /// cached answer would go stale silently. Caching belongs to a caller that knows over what scope the graph is
+    /// unchanged — <c>Calcusystem.Analysis</c>'s <c>system.Calculate()</c> computes each node once per run and
+    /// reports what is missing besides. Prefer it for anything beyond a single node.
+    /// </para>
+    /// </remarks>
+    /// <param name="overrides">
+    /// Values supplied for this computation only, taking precedence over a variable's own — the same mechanism
+    /// <c>Calculate</c> offers, for a caller working on one sub-expression rather than a whole system.
+    /// </param>
+    /// <param name="propagator">How uncertainties are combined, or null for the conservative Gaussian default.</param>
+    /// <exception cref="Exceptions.CyclicExpressionGraphException">The graph beneath this node has a cycle.</exception>
+    Measurand? ComputeIfDetermined(
+        IReadOnlyDictionary<Variable, Measurand>? overrides = null,
+        IErrorPropagator? propagator = null);
+
+    /// <summary>
+    /// This node and every node reachable from it, each yielded exactly once however many parents reference it.
+    /// Order is unspecified.
+    /// </summary>
+    IEnumerable<IExpression> SelfAndDescendants();
+
+    /// <summary>
+    /// The distinct unbound leaf variables reachable from this node — the values that must be supplied before it
+    /// can produce one, and the unknowns it contributes to a system's degrees of freedom.
+    /// </summary>
+    /// <remarks>
+    /// Only a <see cref="Expressions.Variable"/> can be free: it is the sole node whose value is assigned rather
+    /// than computed, so it is the only thing a solver could be asked to determine. A computed node with unbound
+    /// leaves beneath it is not itself an unknown — it is the path by which those leaves are reached.
+    /// </remarks>
+    IEnumerable<Variable> FreeVariables();
+
+    /// <summary>
+    /// This node and everything reachable from it, each once, children before parents — the order values can be
+    /// computed in without ever needing one that has not been produced yet.
+    /// </summary>
+    /// <exception cref="Exceptions.CyclicExpressionGraphException">The graph beneath this node has a cycle.</exception>
+    IReadOnlyList<IExpression> InDependencyOrder();
 }
 
 /// <summary>

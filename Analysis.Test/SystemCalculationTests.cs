@@ -1,6 +1,5 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
@@ -62,8 +61,8 @@ public class SystemCalculationTests
 
         var result = system.Calculate();
 
-        result.ValueOf(f)!.KmsValue.Should().Be(f.CalculateValueIfDetermined()!.KmsValue);
-        result.ValueOf(f)!.RelativeError.Should().Be(f.CalculateValueIfDetermined()!.RelativeError);
+        result.ValueOf(f)!.KmsValue.Should().Be(f.ComputeIfDetermined()!.KmsValue);
+        result.ValueOf(f)!.RelativeError.Should().Be(f.ComputeIfDetermined()!.RelativeError);
     }
 
     [Fact]

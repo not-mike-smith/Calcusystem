@@ -2,7 +2,6 @@
 
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
-using Calcusystem.DimensionedExpression.Traversal;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -24,10 +23,10 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 
     public override bool? IsSatisfied()
     {
-        // One walk per side. `CalculateValueIfDetermined` is not free, and a null answer is exactly the
+        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
         // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.CalculateValueIfDetermined();
-        var rhs = Rhs.CalculateValueIfDetermined();
+        var lhs = Lhs.ComputeIfDetermined();
+        var rhs = Rhs.ComputeIfDetermined();
         if (lhs is null || rhs is null) return null;
 
         var testValue = lhs;

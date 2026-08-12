@@ -83,16 +83,18 @@ public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known)
 
 `CalculateValueIfDetermined()` (an extension in `Traversal/`, written once for every node type) is that function applied to children which computed themselves recursively. `Calculate` is the same function applied to operands it computed in dependency order and kept. That is the whole point of the split: **a node owns how values combine; a caller owns the order they are produced in and whether any are worth keeping.**
 
-### Traversal (`Traversal/ExpressionTraversal.cs`)
+### The derived walks (`BaseModels/ExpressionBase.cs`)
 
-`Children` is the one accessor every graph walk goes through, so the walks are written **once** as extension methods rather than once per node type:
+A node type contributes exactly two things: **what its operands are** (`Children`) and **how their values combine** (`ComputeFrom`). Everything else a node can be asked follows from those, has one sensible implementation, and lives on `ExpressionBase` — so adding a node type never means rewriting any of it:
 
 | Extension | Yields |
 | --- | --- |
-| `CalculateValueIfDetermined()` | the node's value, walking to the leaves — one implementation over `Children` + `ComputeFrom`, for every node type |
-| `InDependencyOrder()` | every node reachable, children before parents — the order values can be computed in. **Throws `CyclicExpressionGraphException`** if the graph is not a DAG |
+| `ComputeIfDetermined(overrides?, propagator?)` | the node's value, walking to the leaves. Named to match `ComputeFrom`, and takes the same overrides `Calculate` does, for a caller working on one sub-expression |
 | `SelfAndDescendants()` | the node and everything reachable from it, each exactly once |
+| `InDependencyOrder()` | children before parents — the order values can be computed in |
 | `FreeVariables()` | the distinct unbound `Variable` leaves — on an `IExpression`, or on an `IBinaryOperator` across both its sides |
+
+They are **declared on `IExpression` and implemented on `ExpressionBase`** rather than being extension methods, so they are part of the contract and visible on the interface. The cost is that a type implementing `IExpression` without deriving from `ExpressionBase` must supply all of them; deriving is the expected path, and the test doubles do.
 
 All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and all are iterative — nothing bounds how deep a graph can be, and a stack frame per node is an avoidable way to fail.
 

@@ -20,21 +20,25 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
     private readonly List<IExpression> _factors = new();
 
     public IReadOnlyList<IExpression> Factors => _factors;
-    public bool IsFullyDescribed => Factors.All(f => f.IsFullyDescribed);
+    public override bool IsFullyDescribed => Factors.All(f => f.IsFullyDescribed);
 
-    public Dimensionality Dimensionality => Factors.Aggregate(
+    public override Dimensionality Dimensionality => Factors.Aggregate(
         Dimensionality.Dimensionless,
         (productDimensions, current) => productDimensions * current.Dimensionality);
 
 
     /// <inheritdoc/>
     /// <remarks>Factors are read in declaration order, so a factor listed twice contributes twice.</remarks>
-    public Measurand? ComputeFrom(
+    public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null) =>
-        _factors.Count == 0
-            ? null
-            : _factors.Select(f => known[f]).Aggregate((acc, f) => acc.Times(f, ErrorPropagation, propagator));
+        IErrorPropagator? propagator = null)
+    {
+        if (_factors.Count == 0 || _factors.Any(f => known.ContainsKey(f) is false)) return null;
+
+        // One n-ary call rather than folding pairwise: the propagator combines all the relative errors at once
+        // instead of building an intermediate Measurand per factor.
+        return Measurand.Product(ErrorPropagation, propagator, _factors.Select(f => known[f]).ToArray());
+    }
 
     public void AddFactor(IExpression expression)
     {
@@ -52,7 +56,7 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => _factors;
+    public override IEnumerable<IExpression> Children => _factors;
 
     /// <inheritdoc/>
     public NaryExpressionState GetState() =>

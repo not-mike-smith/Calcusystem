@@ -3,9 +3,10 @@ using Calcusystem.Measurement;
 
 namespace Calcusystem.DimensionedExpression.BaseModels;
 
-public abstract class ComputedExpressionBase : IdBase
+public abstract class ComputedExpressionBase : ExpressionBase
 {
-    public bool IsDirectlyMutable => false;
+    /// <inheritdoc/>
+    public override bool IsDirectlyMutable => false;
 
     // TODO: rename to `ErrorCorrelation`, with `ErrorPropagationMethod`. This says whether this node's operands
     // are correlated, not how error is propagated — the propagator is the `IErrorPropagator` a calculation

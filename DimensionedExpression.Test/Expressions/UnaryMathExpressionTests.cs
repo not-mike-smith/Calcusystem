@@ -1,6 +1,5 @@
 using System;
 using Calcusystem.DimensionedExpression.Expressions;
-using Calcusystem.DimensionedExpression.Traversal;
 using FluentAssertions;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Exceptions;
@@ -32,7 +31,7 @@ public class UnaryMathExpressionTests
     [Fact]
     public void Sqrt_ComputesRootAndHalvesRelativeError()
     {
-        var root = new SqrtExpression(BoundArea(9, 0.02)).CalculateValueIfDetermined()!;
+        var root = new SqrtExpression(BoundArea(9, 0.02)).ComputeIfDetermined()!;
         root.KmsValue.Should().BeApproximately(3, 1E-9);
         root.RelativeError.Should().BeApproximately(0.01, 1E-9);
     }
@@ -50,7 +49,7 @@ public class UnaryMathExpressionTests
     {
         var sqrt = new SqrtExpression(new Variable("a", Area));
         sqrt.IsFullyDescribed.Should().BeFalse();
-        sqrt.CalculateValueIfDetermined().Should().BeNull();
+        sqrt.ComputeIfDetermined().Should().BeNull();
         sqrt.FreeVariables().Should().HaveCount(1);
     }
 
@@ -65,7 +64,7 @@ public class UnaryMathExpressionTests
     [Fact]
     public void Exp_ComputesExpAndPropagatesRelativeError()
     {
-        var result = new ExponentialExpression(Dimensionless(2, 0.01)).CalculateValueIfDetermined()!;
+        var result = new ExponentialExpression(Dimensionless(2, 0.01)).ComputeIfDetermined()!;
         result.KmsValue.Should().BeApproximately(Math.Exp(2), 1E-9);
         result.RelativeError.Should().BeApproximately(0.02, 1E-9); // |x| * relErr(x)
     }
@@ -81,7 +80,7 @@ public class UnaryMathExpressionTests
     public void Exp_Unbound_IsNullAndPropagatesDoF()
     {
         var exp = new ExponentialExpression(UnboundDimensionless());
-        exp.CalculateValueIfDetermined().Should().BeNull();
+        exp.ComputeIfDetermined().Should().BeNull();
         exp.FreeVariables().Should().HaveCount(1);
     }
 
@@ -97,7 +96,7 @@ public class UnaryMathExpressionTests
     public void Ln_ComputesLogWithAbsoluteError()
     {
         // ln(e) = 1, AbsoluteError(ln x) ≈ RelativeError(x) = 0.1 → result RelativeError = 0.1 / |1|
-        var result = new NaturalLogExpression(Dimensionless(Math.E, 0.1)).CalculateValueIfDetermined()!;
+        var result = new NaturalLogExpression(Dimensionless(Math.E, 0.1)).ComputeIfDetermined()!;
         result.KmsValue.Should().BeApproximately(1, 1E-9);
         result.RelativeError.Should().BeApproximately(0.1, 1E-9);
     }
@@ -106,7 +105,7 @@ public class UnaryMathExpressionTests
     public void Ln_AbsoluteErrorScalesInverselyWithResult()
     {
         // ln(e²) = 2, absolute error 0.1 → relative error 0.1 / 2
-        var result = new NaturalLogExpression(Dimensionless(Math.Exp(2), 0.1)).CalculateValueIfDetermined()!;
+        var result = new NaturalLogExpression(Dimensionless(Math.Exp(2), 0.1)).ComputeIfDetermined()!;
         result.KmsValue.Should().BeApproximately(2, 1E-9);
         result.RelativeError.Should().BeApproximately(0.05, 1E-9);
     }
@@ -123,7 +122,7 @@ public class UnaryMathExpressionTests
     {
         // ln(1) = 0. The absolute error (= RelativeError(x) = 0.05) is preserved as an absolute error; the
         // relative error of a zero-valued result is undefined (+inf) but no longer throws.
-        var result = new NaturalLogExpression(Dimensionless(1, 0.05)).CalculateValueIfDetermined()!;
+        var result = new NaturalLogExpression(Dimensionless(1, 0.05)).ComputeIfDetermined()!;
         result.KmsValue.Should().Be(0);
         result.KmsAbsoluteError.Should().BeApproximately(0.05, 1E-9);
         double.IsPositiveInfinity(result.RelativeError).Should().BeTrue();
@@ -133,7 +132,7 @@ public class UnaryMathExpressionTests
     public void Ln_Unbound_IsNullAndPropagatesDoF()
     {
         var ln = new NaturalLogExpression(UnboundDimensionless());
-        ln.CalculateValueIfDetermined().Should().BeNull();
+        ln.ComputeIfDetermined().Should().BeNull();
         ln.FreeVariables().Should().HaveCount(1);
     }
 }

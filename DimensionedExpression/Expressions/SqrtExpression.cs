@@ -1,5 +1,6 @@
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
@@ -14,7 +15,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <br/>
 /// Uncertainty follows the power rule: RelativeError(√x) = ½·RelativeError(x).
 /// </summary>
-public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression, UnaryExpressionState>
+public class SqrtExpression : ExpressionBase, IExpression, IStatefulNode<SqrtExpression, UnaryExpressionState>
 {
     private IExpression _argument;
 
@@ -29,17 +30,18 @@ public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression,
         set => _argument = value;
     }
 
-    public bool IsDirectlyMutable => false;
-    public bool IsFullyDescribed => Argument.IsFullyDescribed;
+    public override bool IsDirectlyMutable => false;
+    public override bool IsFullyDescribed => Argument.IsFullyDescribed;
 
     // Each exponent halved; throws NondiscreteDimensionalityException if any argument exponent is odd.
-    public Dimensionality Dimensionality => Argument.Dimensionality / 2;
+    public override Dimensionality Dimensionality => Argument.Dimensionality / 2;
 
 
     /// <inheritdoc/>
-    public Measurand? ComputeFrom(
+    public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null) => known[Argument].ToRoot(2);
+        IErrorPropagator? propagator = null) =>
+        known.TryGetValue(Argument, out var operand) ? operand.ToRoot(2) : null;
 
     public override string ToString()
     {
@@ -47,7 +49,7 @@ public class SqrtExpression : IdBase, IExpression, IStatefulNode<SqrtExpression,
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IExpression> Children => [Argument];
+    public override IEnumerable<IExpression> Children => [Argument];
 
     /// <inheritdoc/>
     public UnaryExpressionState GetState() =>

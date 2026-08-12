@@ -7,7 +7,6 @@ using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Units;
-using Calcusystem.DimensionedExpression.Traversal;
 
 namespace Calcusystem.Serialization.Test;
 
@@ -54,7 +53,7 @@ public class ExpressionStateRoundTripTests
         var root = restored.DerivedExpressions.Single();
         root.Should().BeOfType<SqrtExpression>();
         root.Id.Should().Be("root");
-        root.CalculateValueIfDetermined()!.In(Length.Meter).Should().BeApproximately(3, 1e-12);
+        root.ComputeIfDetermined()!.In(Length.Meter).Should().BeApproximately(3, 1e-12);
     }
 
     [Fact]
@@ -67,7 +66,7 @@ public class ExpressionStateRoundTripTests
         var exp = restored.DerivedExpressions.Single();
         exp.Should().BeOfType<ExponentialExpression>();
         exp.Id.Should().Be("exp");
-        exp.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(System.Math.E * System.Math.E, 1e-12);
+        exp.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(System.Math.E * System.Math.E, 1e-12);
     }
 
     [Fact]
@@ -80,7 +79,7 @@ public class ExpressionStateRoundTripTests
         var ln = restored.DerivedExpressions.Single();
         ln.Should().BeOfType<NaturalLogExpression>();
         ln.Id.Should().Be("ln");
-        ln.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(1, 1e-12);
+        ln.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(1, 1e-12);
     }
 
     [Fact]
@@ -105,7 +104,7 @@ public class ExpressionStateRoundTripTests
         var restored = (QuotientExpression)RoundTrip(system).DerivedExpressions.Single();
 
         restored.ErrorPropagation.Should().Be(ErrorPropagationMethod.Correlated);
-        restored.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
+        restored.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 
     [Fact]
@@ -150,7 +149,7 @@ public class ExpressionStateRoundTripTests
         var restored = RoundTrip(system);
 
         var restoredRoot = restored.DerivedExpressions.OfType<SqrtExpression>().Single();
-        restoredRoot.CalculateValueIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
+        restoredRoot.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating

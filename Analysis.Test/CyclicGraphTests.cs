@@ -1,8 +1,7 @@
-using Calcusystem.Core;
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 using FluentAssertions;
@@ -48,11 +47,11 @@ public class CyclicGraphTests
     [Fact]
     public void ASingleNodesOwnWalkIsProtectedToo()
     {
-        // `CalculateValueIfDetermined` shares the ordering, so it reports the cycle instead of recursing until
+        // `ComputeIfDetermined` shares the ordering, so it reports the cycle instead of recursing until
         // the stack dies — a StackOverflowException cannot be caught and would take the process with it.
         var (_, a, _) = TwoNodeCycle();
 
-        var act = () => a.CalculateValueIfDetermined();
+        var act = () => a.ComputeIfDetermined();
 
         act.Should().Throw<CyclicExpressionGraphException>();
     }
@@ -109,16 +108,20 @@ public class CyclicGraphTests
         return (system, a, b);
     }
 
-    /// <summary>A node whose operands stay mutable, so a test can close a loop the real types cannot.</summary>
-    private sealed class Knot(string id) : IdBase(id), IExpression
+    /// <summary>
+    /// A node whose operands stay mutable, so a test can close a loop the real types cannot. Derives from
+    /// <see cref="ExpressionBase"/> like every real node: the walks are declared on <c>IExpression</c> and
+    /// implemented once there, so implementing the interface directly would mean reimplementing all of them.
+    /// </summary>
+    private sealed class Knot(string id) : ExpressionBase(id)
     {
         public List<IExpression> Operands { get; } = [];
-        public bool IsDirectlyMutable => false;
-        public bool IsFullyDescribed => true;
-        public Dimensionality Dimensionality => Dimensionality.Dimensionless;
-        public IEnumerable<IExpression> Children => Operands;
+        public override bool IsDirectlyMutable => false;
+        public override bool IsFullyDescribed => true;
+        public override Dimensionality Dimensionality => Dimensionality.Dimensionless;
+        public override IEnumerable<IExpression> Children => Operands;
 
-        public Measurand? ComputeFrom(
+        public override Measurand? ComputeFrom(
             IReadOnlyDictionary<IExpression, Measurand> known,
             IErrorPropagator? propagator = null) =>
             Dimensionality.Dimensionless.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0));

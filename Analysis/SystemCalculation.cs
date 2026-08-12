@@ -1,7 +1,7 @@
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 
@@ -39,7 +39,7 @@ public static class SystemCalculation
     /// <remarks>
     /// Each node is computed once: nodes are visited in dependency order and handed the values already
     /// established, so a sub-expression shared by three parents is computed once rather than three times as
-    /// <c>CalculateValueIfDetermined()</c> would.
+    /// <c>ComputeIfDetermined()</c> would.
     /// </remarks>
     public static Calculation Calculate(
         this ExpressionSystem system,
@@ -55,11 +55,11 @@ public static class SystemCalculation
         var values = new Dictionary<IExpression, Measurand>();
         foreach (var (variable, value) in overrides) values[variable] = value;
 
-        foreach (var node in ExpressionTraversal.InDependencyOrder(listed))
+        foreach (var node in ExpressionBase.InDependencyOrder(listed))
         {
-            // Children come first in this ordering, so a missing one means an unbound leaf somewhere beneath
-            // and this node simply does not resolve.
-            if (node.Children.All(values.ContainsKey) && node.ComputeFrom(values, propagator) is { } value)
+            // Children come first in this ordering, so anything absent from `values` is beneath an unbound
+            // leaf. `ComputeFrom` answers null in that case rather than throwing, so no pre-check is needed.
+            if (node.ComputeFrom(values, propagator) is { } value)
             {
                 values[node] = value;
             }

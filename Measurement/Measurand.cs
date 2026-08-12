@@ -122,7 +122,12 @@ public class Measurand : IStateful<Measurand, MeasurandState>
     private static IErrorPropagator ResolveErrorPropagator(IErrorPropagator? supplied) =>
         supplied ?? ConservativeGaussianPropagator.Instance;
 
-    private Measurand Sum(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] measurands)
+    public static Measurand Sum(
+        ErrorPropagationMethod method,
+        IErrorPropagator? propagator,
+        IEnumerable<Measurand> measurands) => Sum(method, propagator, measurands.ToArray());
+
+    public static Measurand Sum(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] measurands)
     {
         if (measurands.Length == 0) return new Measurand();
 
@@ -134,7 +139,7 @@ public class Measurand : IStateful<Measurand, MeasurandState>
         return new Measurand(quantity, ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, measurands));
     }
 
-    private Measurand Product(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] quantities)
+    public static Measurand Product(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] quantities)
     {
         if (quantities.Length == 0) return new Measurand();
 

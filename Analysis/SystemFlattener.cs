@@ -1,6 +1,6 @@
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.DimensionedExpression.Traversal;
 using Calcusystem.Measurement;
 
 namespace Calcusystem.Analysis;

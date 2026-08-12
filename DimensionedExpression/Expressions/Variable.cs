@@ -1,4 +1,5 @@
-﻿using Calcusystem.DimensionedExpression.Interfaces;
+﻿using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement.State;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.Provenance;
@@ -18,7 +19,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// Optionally carries an <see cref="IProvenance"/> recording where its value came from; purely descriptive, it
 /// never affects evaluation.
 /// </summary>
-public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableState>
+public class Variable : ExpressionBase, IDirectExpression, IStateful<Variable, VariableState>
 {
     // ReSharper disable once InconsistentNaming
     protected Measurand? _value;
@@ -47,13 +48,13 @@ public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableS
         _symbol = symbol;
     }
 
-    public bool IsDirectlyMutable => true;
-    public bool IsFullyDescribed => Value != null;
-    public Dimensionality Dimensionality { get; }
+    public override bool IsDirectlyMutable => true;
+    public override bool IsFullyDescribed => Value != null;
+    public override Dimensionality Dimensionality { get; }
 
     /// <inheritdoc/>
     /// <remarks>A leaf: a variable is computed from nothing, so it has no children.</remarks>
-    public IEnumerable<IExpression> Children => [];
+    public override IEnumerable<IExpression> Children => [];
 
     /// <inheritdoc/>
     /// <remarks>
@@ -61,7 +62,7 @@ public class Variable : IdBase, IDirectExpression, IStateful<Variable, VariableS
     /// otherwise. That is the whole of the override mechanism: a caller seeds a trial value for this variable
     /// and every node above it computes normally, with no special case anywhere in the walk.
     /// </remarks>
-    public Measurand? ComputeFrom(
+    public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
         IErrorPropagator? propagator = null) =>
         known.TryGetValue(this, out var supplied) ? supplied : _value;

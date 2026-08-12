@@ -20,16 +20,28 @@ namespace Calcusystem.DimensionedExpression.Exceptions;
 public class CyclicExpressionGraphException : InvalidOperationException
 {
     internal CyclicExpressionGraphException(IExpression node, IExpression operand)
-        : base($"Expression graph contains a cycle: '{node.Id}' depends on operand '{operand.Id}', which " +
-               $"depends on '{node.Id}' in turn. An expression graph must be acyclic.")
+        : base(BuildMessage(node.Id, node.GetType().Name, operand.Id, operand.GetType().Name))
     {
         NodeId = node.Id;
+        NodeType = node.GetType().Name;
         OperandId = operand.Id;
+        OperandType = operand.GetType().Name;
+    }
+
+    private static string BuildMessage(string nodeId, string nodeType, string operandId, string operandType)
+    {
+        return $"Expression graph contains a cycle: {nodeType} node with ID '{nodeId}' depends on " + 
+            $"{operandType} operand with ID '{operandId}', which depends on '{nodeId}' in turn. " +
+            "An expression graph must be acyclic.";
     }
 
     /// <summary>Id of the node found to depend on itself.</summary>
     public string NodeId { get; }
+    /// <summary>Runtime type name of that node, since an id alone rarely says what it is.</summary>
+    public string NodeType { get; }
 
     /// <summary>Id of the operand through which the cycle closes.</summary>
     public string OperandId { get; }
+    /// <summary>Runtime type name of that operand.</summary>
+    public string OperandType { get; }
 }
