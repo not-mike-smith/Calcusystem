@@ -18,6 +18,8 @@ namespace Calcusystem.Analysis;
 /// </remarks>
 public static class SystemCalculation
 {
+    private static readonly IReadOnlyDictionary<Variable, Measurand> _emptyOverrides = new Dictionary<Variable, Measurand>();
+
     /// <summary>
     /// Calculates every expression in <paramref name="system"/>, resolving what it can and reporting what it
     /// could not.
@@ -44,7 +46,7 @@ public static class SystemCalculation
         IReadOnlyDictionary<Variable, Measurand>? overrides = null,
         IErrorPropagator? propagator = null)
     {
-        overrides ??= new Dictionary<Variable, Measurand>();
+        overrides ??= _emptyOverrides;
 
         var listed = system.GetAllExpressions().ToList();
 
