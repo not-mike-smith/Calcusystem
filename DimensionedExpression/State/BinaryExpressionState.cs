@@ -20,7 +20,7 @@ public enum BinaryExpressionKind
 /// <param name="Id">Stable identity.</param>
 /// <param name="InnerId1">Id of the first child (a quotient's numerator).</param>
 /// <param name="InnerId2">Id of the second child (a quotient's denominator).</param>
-/// <param name="ErrorPropagation">How child uncertainties are combined.</param>
+/// <param name="ErrorPropagation">Whether the children's errors are treated as correlated. Renamed to <c>ErrorCorrelation</c> in a pending TODO — see <c>ErrorPropagationMethod</c>.</param>
 public readonly record struct BinaryExpressionState(
     BinaryExpressionKind Kind,
     string Id,

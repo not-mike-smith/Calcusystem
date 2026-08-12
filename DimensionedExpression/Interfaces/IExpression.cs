@@ -87,9 +87,17 @@ public interface IExpression : IIdentified
 public interface IComputedExpression : IExpression
 {
     /// <summary>
-    /// Whether child errors are treated as correlated or uncorrelated when their uncertainties are combined
-    /// into this node's value.
+    /// Whether this node's children are treated as having correlated or uncorrelated errors when their
+    /// uncertainties are combined into its value.
     /// </summary>
+    /// <remarks>
+    /// Part of the model: it records something known about where the children's values came from. Distinct from
+    /// the <see cref="IErrorPropagator"/> a calculation supplies, which is the numerical method for combining
+    /// uncertainties — see the remarks on <see cref="IExpression.ComputeFrom"/>, which passes both.
+    /// </remarks>
+    // TODO: rename to `ErrorCorrelation`, with `ErrorPropagationMethod`. The current name says "propagation
+    // method", which is now what `IErrorPropagator` is; this is the correlation assumption. See the note on
+    // `ErrorPropagationMethod` for everything a rename touches, including a wire-format break.
     ErrorPropagationMethod ErrorPropagation { get; set; }
 }
 
