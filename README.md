@@ -78,9 +78,7 @@ using Calcusystem.Measurement;
 var m = new Variable("m", Dimensionality.Mass);
 var a = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));
 
-var f = new ProductExpression();
-f.AddFactor(m);
-f.AddFactor(a);
+var f = new ProductExpression([m, a]);
 
 f.Dimensionality;      // M·L·T⁻²  — known before any value is supplied
 f.FreeVariables();     // [m, a]  — the distinct unbound leaves

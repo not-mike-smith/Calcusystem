@@ -17,7 +17,12 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </summary>
 public class ProductExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<ProductExpression, NaryExpressionState>
 {
-    private readonly List<IExpression> _factors = new();
+    private readonly List<IExpression> _factors;
+
+    public ProductExpression(IEnumerable<IExpression> factors)
+    {
+        _factors = factors.ToList();
+    }
 
     public IReadOnlyList<IExpression> Factors => _factors;
     public override bool IsFullyDescribed => Factors.All(f => f.IsFullyDescribed);
@@ -40,16 +45,6 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
         return Measurand.Product(ErrorPropagation, propagator, _factors.Select(f => known[f]).ToArray());
     }
 
-    public void AddFactor(IExpression expression)
-    {
-        _factors.Add(expression);
-    }
-
-    public bool RemoveFactor(IExpression expression)
-    {
-        return _factors.Remove(expression);
-    }
-
     public override string ToString()
     {
         return $"({string.Join('·', Factors.Select(f => f.ToString()))})";
@@ -63,14 +58,10 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
         new(NaryExpressionKind.Product, Id, Factors.Select(f => f.Id).ToList(), ErrorPropagation);
 
     /// <inheritdoc/>
-    public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve)
-    {
-        var product = new ProductExpression { Id = state.Id, ErrorPropagation = state.ErrorPropagation };
-        foreach (var id in state.InnerIds)
+    public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve) =>
+        new(state.InnerIds.Select(resolve.Resolve<IExpression>))
         {
-            product.AddFactor(resolve.Resolve<IExpression>(id));
-        }
-
-        return product;
-    }
+            Id = state.Id,
+            ErrorPropagation = state.ErrorPropagation,
+        };
 }

@@ -14,9 +14,7 @@ Every node in the tree is an `IExpression`. A node knows its `Dimensionality` *s
 var mass  = new Variable("m", Dimensionality.Mass);
 var accel = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));
 
-var force = new ProductExpression();
-force.AddFactor(mass);
-force.AddFactor(accel);
+var force = new ProductExpression([mass, accel]);
 
 force.Dimensionality;      // M·L·T⁻²  — known immediately
 force.IsFullyDescribed;    // false
@@ -36,7 +34,17 @@ Nothing is memoised on the node deliberately: a node cannot learn that a leaf be
 
 Arithmetic and uncertainty propagation are delegated entirely to `Measurand` (see the Measurement README); this layer only assembles the graph and walks it.
 
-Two consequences worth internalizing:
+### Structure is immutable; values are not
+
+**What an expression is built *from* is fixed at construction. What a leaf is *worth* can change.** Operands are constructor arguments — `new ProductExpression([m, a])` — and there is no `AddFactor`, no operand setter, and no way to re-point a relationship's `Lhs`. `Variable.Value` stays settable, because supplying and revising values is the entire point of a leaf.
+
+The split is what makes the rest of the layer safe to reason about:
+
+- **The staleness question shrinks to one axis.** A cache can only be invalidated by a value change, never by the graph rearranging underneath it. That is why `Calculate` can memoise for the duration of a run, and why nothing needs to detect structural edits.
+- **Cycles become unconstructible** through these types, since a node's operands must exist before it does.
+- **Validation happens once, where the operand arrives.** `SumExpression` checks that its addends share a dimensionality in its constructor and nowhere else; the unary types check dimensionlessness there and nowhere else. There is no second path to keep in agreement.
+
+Two further consequences worth internalizing:
 
 - **Dimensionality is total; value is partial.** Ask for `Dimensionality` any time. A null result from `CalculateValueIfDetermined()` *is* the "not fully described" answer, so prefer checking the result over calling `IsFullyDescribed` first — the latter is itself a walk, and asking both walks the graph twice.
 - **`FreeVariables()` names the unbound leaves.** A fully-described tree has none. It is set-valued rather than a count because the graph is a **DAG, not a tree** — a shared sub-expression is reachable by several paths, and anything that asks "how many distinct unknowns" must deduplicate. It is also what the caller needs: a report has to name the missing values, not just tally them. Whether a whole *system* is solvable is a different question — see `Calcusystem.Analysis`.
@@ -58,7 +66,7 @@ Two consequences worth internalizing:
 | Class | Implements | Role |
 | --- | --- | --- |
 | `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. A leaf: `Children` is empty, and it is the only node type that can be a free variable. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
-| `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`. All addends must share a dimensionality (enforced on `AddAddend`); constructor can seed a fixed dimensionality for an empty sum. |
+| `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`, supplied at construction. All addends must share a dimensionality, enforced there. |
 | `ProductExpression` | `IComputedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
 | `NegatedExpression` | `IExpression` | Unary negation wrapper over any `IExpression` (its `Operand`). Not directly mutable. |
@@ -100,7 +108,7 @@ They are **declared on `IExpression` and implemented on `ExpressionBase`** rathe
 
 All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and all are iterative — nothing bounds how deep a graph can be, and a stack frame per node is an avoidable way to fail.
 
-**Cycles are detected, not assumed away.** Ordinary construction cannot produce one, since a node is given children that already exist — but a child collection mutated afterwards can close a loop, and every walk here assumes a DAG. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `ComputeIfDetermined()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
+**Cycles are detected, not assumed away.** They are now unconstructible through this assembly's own types — a node's operands are supplied at construction and never change, so a node's children always predate it — but `IExpression` is a public interface, and an implementation outside this assembly can present whatever `Children` it likes. Every walk here assumes a DAG, so the check stays. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `ComputeIfDetermined()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
 
 ### Binary operators (`BinaryOperators/`)
 
@@ -202,12 +210,12 @@ Grouped by **arity, not by type** — the kinds within a group differ in what th
 `Variable` rebuilds from its own state alone, so it uses `IStateful<Variable, VariableState>` (from `Calcusystem.Core`). Every other node references neighbours **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `IStatefulNode<TSelf, TState>`, whose `FromState` also takes an `INodeResolver` to turn those ids back into nodes:
 
 ```csharp
-public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve)
-{
-    var product = new ProductExpression { Id = state.Id, ErrorPropagation = state.ErrorPropagation };
-    foreach (var id in state.InnerIds) product.AddFactor(resolve.Resolve<IExpression>(id));
-    return product;
-}
+public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve) =>
+    new(state.InnerIds.Select(resolve.Resolve<IExpression>))
+    {
+        Id = state.Id,
+        ErrorPropagation = state.ErrorPropagation,
+    };
 ```
 
 The axis is *does rebuilding need outside help*, not where a node sits in the tree — `Variable` is a genuine leaf, but that is incidental.

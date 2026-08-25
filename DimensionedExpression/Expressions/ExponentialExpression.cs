@@ -11,14 +11,14 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary <c>e^x</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless (enforced
-/// on construction and assignment) and the result is dimensionless.
+/// on construction, which is the only point it can be supplied) and the result is dimensionless.
 /// <br/>
 /// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
 /// RelativeError(eˣ) ≈ |x|·RelativeError(x) (i.e. the absolute error of x).
 /// </summary>
 public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<ExponentialExpression, UnaryExpressionState>
 {
-    private IExpression _argument;
+    private readonly IExpression _argument;
 
     public ExponentialExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
@@ -26,15 +26,7 @@ public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<
         _argument = argument;
     }
 
-    public IExpression Argument
-    {
-        get => _argument;
-        set
-        {
-            RequireDimensionless(value);
-            _argument = value;
-        }
-    }
+    public IExpression Argument => _argument;
 
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Argument.IsFullyDescribed;

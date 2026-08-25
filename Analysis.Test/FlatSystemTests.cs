@@ -85,10 +85,7 @@ public class FlatSystemTests
     public void VariablesReachableOnlyThroughDerivedExpressionsAreStillUnknowns()
     {
         var m = Unbound("m");
-        var product = new ProductExpression { Id = "p" };
-        product.AddFactor(m);
-        product.AddFactor(Unbound("a"));
-
+        var product = new ProductExpression([m, Unbound("a")]) { Id = "p" };
         var system = ExpressionSystem.Create("derived only", "");
         system.DerivedExpressions.Add(product);
 
@@ -233,10 +230,7 @@ public class FlatSystemTests
     {
         var m = Unbound("m");
         var a = Unbound("a");
-        var product = new ProductExpression { Id = "p" };
-        product.AddFactor(m);
-        product.AddFactor(a);
-
+        var product = new ProductExpression([m, a]) { Id = "p" };
         var system = ExpressionSystem.Create("bindings", "");
         system.DirectExpressions.Add(m);
         system.DirectExpressions.Add(a);

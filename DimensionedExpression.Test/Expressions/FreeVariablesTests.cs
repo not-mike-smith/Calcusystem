@@ -61,18 +61,14 @@ public class FreeVariablesTests
     [Fact]
     public void ProductExpression_TwoUnboundFactors_HasTwoFreeVariables()
     {
-        var product = new ProductExpression();
-        product.AddFactor(Unbound(Mass));
-        product.AddFactor(Unbound(Length));
+        var product = new ProductExpression([Unbound(Mass), Unbound(Length)]);
         product.FreeVariables().Should().HaveCount(2);
     }
 
     [Fact]
     public void ProductExpression_AllBound_HasNoFreeVariables()
     {
-        var product = new ProductExpression();
-        product.AddFactor(Bound(5));
-        product.AddFactor(Bound(3));
+        var product = new ProductExpression([Bound(5), Bound(3)]);
         product.FreeVariables().Should().BeEmpty();
     }
 
@@ -80,27 +76,21 @@ public class FreeVariablesTests
     public void ProductExpression_MixedBoundedness_YieldsOnlyUnbound()
     {
         var unbound = Unbound(Length);
-        var product = new ProductExpression();
-        product.AddFactor(Bound(5));
-        product.AddFactor(unbound);
+        var product = new ProductExpression([Bound(5), unbound]);
         product.FreeVariables().Should().Equal(unbound);
     }
 
     [Fact]
     public void SumExpression_TwoUnbound_HasTwoFreeVariables()
     {
-        var sum = new SumExpression(Mass);
-        sum.AddAddend(Unbound(Mass));
-        sum.AddAddend(Unbound(Mass));
+        var sum = new SumExpression([Unbound(Mass), Unbound(Mass)]);
         sum.FreeVariables().Should().HaveCount(2);
     }
 
     [Fact]
     public void SumExpression_OneBoundOneUnbound_HasOneFreeVariable()
     {
-        var sum = new SumExpression(Mass);
-        sum.AddAddend(Bound(3));
-        sum.AddAddend(Unbound(Mass));
+        var sum = new SumExpression([Bound(3), Unbound(Mass)]);
         sum.FreeVariables().Should().HaveCount(1);
     }
 
@@ -144,14 +134,8 @@ public class FreeVariablesTests
     public void NestedProductExpression_RecursivelyCollectsAllUnbound()
     {
         // (a * b) * c → three unknowns
-        var inner = new ProductExpression();
-        inner.AddFactor(Unbound(Mass));
-        inner.AddFactor(Unbound(Mass));
-
-        var outer = new ProductExpression();
-        outer.AddFactor(inner);
-        outer.AddFactor(Unbound(Mass));
-
+        var inner = new ProductExpression([Unbound(Mass), Unbound(Mass)]);
+        var outer = new ProductExpression([inner, Unbound(Mass)]);
         outer.FreeVariables().Should().HaveCount(3);
     }
 
@@ -159,10 +143,7 @@ public class FreeVariablesTests
     public void NestedExpression_PartiallyBound_CollectsCorrectly()
     {
         // (a * 5kg) / b, where a is unbound → two unknowns
-        var numerator = new ProductExpression();
-        numerator.AddFactor(Unbound(Mass));
-        numerator.AddFactor(Bound(5));
-
+        var numerator = new ProductExpression([Unbound(Mass), Bound(5)]);
         var quotient = new QuotientExpression
         {
             Id = "test",
@@ -183,10 +164,7 @@ public class FreeVariablesTests
     {
         // m * m — one unknown, referenced twice.
         var m = Unbound(Mass);
-        var product = new ProductExpression();
-        product.AddFactor(m);
-        product.AddFactor(m);
-
+        var product = new ProductExpression([m, m]);
         product.FreeVariables().Should().Equal(m);
     }
 
@@ -198,14 +176,8 @@ public class FreeVariablesTests
         var a = Unbound(Mass);
         var b = Unbound(Mass);
 
-        var numerator = new ProductExpression();
-        numerator.AddFactor(m);
-        numerator.AddFactor(a);
-
-        var denominator = new SumExpression(Mass);
-        denominator.AddAddend(m);
-        denominator.AddAddend(b);
-
+        var numerator = new ProductExpression([m, a]);
+        var denominator = new SumExpression([m, b]);
         var quotient = new QuotientExpression
         {
             Id = "test", Numerator = numerator, Denominator = denominator
@@ -221,14 +193,8 @@ public class FreeVariablesTests
         // s = (a + b); s * s → still just two unknowns.
         var a = Unbound(Mass);
         var b = Unbound(Mass);
-        var sum = new SumExpression(Mass);
-        sum.AddAddend(a);
-        sum.AddAddend(b);
-
-        var product = new ProductExpression();
-        product.AddFactor(sum);
-        product.AddFactor(sum);
-
+        var sum = new SumExpression([a, b]);
+        var product = new ProductExpression([sum, sum]);
         product.FreeVariables().Should().HaveCount(2);
         product.SelfAndDescendants().Should().HaveCount(4); // product, sum, a, b
     }

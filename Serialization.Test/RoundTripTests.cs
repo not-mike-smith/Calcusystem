@@ -81,9 +81,7 @@ public class RoundTripTests
         system.DirectExpressions.Add(a);
 
         // ListDerivedVariable: Product and Sum
-        var force = new ProductExpression { Id = "force" };
-        force.AddFactor(m);
-        force.AddFactor(a);
+        var force = new ProductExpression([m, a]) { Id = "force" };
         var totalMass = new SumExpression(new IExpression[] { m, m2 }) { Id = "totalMass" };
 
         // PairDerivedVariable: Quotient

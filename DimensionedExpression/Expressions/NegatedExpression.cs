@@ -20,13 +20,9 @@ public class NegatedExpression : ExpressionBase, IExpression, IStatefulNode<Nega
         _operand = operand;
     }
 
-    private IExpression _operand;
+    private readonly IExpression _operand;
 
-    public IExpression Operand
-    {
-        get => _operand;
-        set => _operand = value;
-    }
+    public IExpression Operand => _operand;
 
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Operand.IsFullyDescribed;
