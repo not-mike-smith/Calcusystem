@@ -158,16 +158,16 @@ public class StateSeamTests
         var op = new WhollyWithinToleranceOperator { Id = "op", Lhs = a, Rhs = b };
 
         var original = ExpressionSystem.Create("sys", "two node types");
-        original.DirectExpressions.Add(a);
-        original.DirectExpressions.Add(b);
-        original.DerivedExpressions.Add(sum);
-        original.Relationships.Add(op);
+        original.Add(a);
+        original.Add(b);
+        original.Add(sum);
+        original.Add(op);
 
         var resolver = new StubResolver().With("a", a).With("b", b).With("s", sum).With("op", op);
         var restored = ExpressionSystem.FromState(original.GetState(), resolver);
 
         restored.Name.Should().Be("sys");
-        restored.DirectExpressions.Should().HaveCount(2);
+        restored.Variables.Should().HaveCount(2);
         restored.DerivedExpressions.Single().Should().BeSameAs(sum);
         restored.Constraints.Single().Should().BeSameAs(op);
     }

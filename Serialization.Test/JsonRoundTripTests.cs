@@ -35,11 +35,11 @@ public class JsonRoundTripTests
         var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 
         var system = ExpressionSystem.Create("json", "dimensionality through a real serializer");
-        system.DirectExpressions.Add(new Variable("F", force));
+        system.Add(new Variable("F", force));
 
         var restored = RoundTripThroughJson(system);
 
-        var variable = restored.DirectExpressions.Single();
+        var variable = restored.Variables.Single();
         variable.Symbol.Should().Be("F");
         variable.Dimensionality.Should().Be(force);
         variable.Dimensionality.Should().NotBe(Dimensionality.Dimensionless);
@@ -49,13 +49,13 @@ public class JsonRoundTripTests
     public void ValueAndUncertaintySurviveJson()
     {
         var system = ExpressionSystem.Create("json", "value and uncertainty through a real serializer");
-        system.DirectExpressions.Add(new Variable(
+        system.Add(new Variable(
             "m",
             Mass.Kilogram.Quantity(2).Measurand(AsymmetricUncertainty.FromRelErr(0.05, 0.01))));
 
         var restored = RoundTripThroughJson(system);
 
-        var value = restored.DirectExpressions.Single().Value!;
+        var value = restored.Variables.Single().Value!;
         value.In(Mass.Kilogram).Should().Be(2);
         value.UpperRelativeError.Should().Be(0.05);
         value.LowerRelativeError.Should().Be(0.01);
@@ -67,14 +67,14 @@ public class JsonRoundTripTests
         // An absolute error is the only form that stays meaningful at zero; if JSON silently converted it to a
         // relative one, RelativeError(0) would be the only symptom.
         var system = ExpressionSystem.Create("json", "absolute error at zero");
-        system.DirectExpressions.Add(new Variable(
+        system.Add(new Variable(
             "x",
             Dimensionality.Length.Quantity(0).Measurand(SymmetricUncertainty.FromAbsErr(
                 Length.Meter.Quantity(0.5)))));
 
         var restored = RoundTripThroughJson(system);
 
-        var value = restored.DirectExpressions.Single().Value!;
+        var value = restored.Variables.Single().Value!;
         value.KmsAbsoluteError.Should().Be(0.5);
         value.RelativeError.Should().Be(double.PositiveInfinity);
     }
@@ -83,11 +83,11 @@ public class JsonRoundTripTests
     public void DimensionlessVariableSurvivesJson()
     {
         var system = ExpressionSystem.Create("json", "dimensionless encodes as empty");
-        system.DirectExpressions.Add(new Variable("ratio", Dimensionality.Dimensionless));
+        system.Add(new Variable("ratio", Dimensionality.Dimensionless));
 
         var restored = RoundTripThroughJson(system);
 
-        restored.DirectExpressions.Single().Dimensionality.Should().Be(Dimensionality.Dimensionless);
+        restored.Variables.Single().Dimensionality.Should().Be(Dimensionality.Dimensionless);
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating

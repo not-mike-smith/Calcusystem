@@ -9,7 +9,7 @@ namespace Calcusystem.Analysis.Test;
 
 /// <summary>
 /// A node can be reachable from a system only through a relationship's operands — a limit compared against but
-/// never filed under <c>DirectExpressions</c>, or an expression built for the comparison and never added to
+/// never filed under <c>Variables</c>, or an expression built for the comparison and never added to
 /// <c>DerivedExpressions</c>. Nothing stops a modeller writing that, and <c>Flatten</c> already gathers unknowns
 /// through <c>Relationships</c>, so <c>Calculate</c> must reach the same nodes or the two analyses disagree about
 /// what the same model contains.
@@ -28,9 +28,9 @@ public class RelationshipReachabilityTests
         var limit = Bound("l_max", 3);
 
         var system = ExpressionSystem.Create("beam", "");
-        system.DirectExpressions.Add(length);
+        system.Add(length);
         // `limit` is deliberately not added — it enters the system only as the relationship's right-hand side.
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
+        system.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
 
         var result = system.Calculate();
 
@@ -49,8 +49,8 @@ public class RelationshipReachabilityTests
         var limit = new SumExpression([nominal, clearance]) { Id = "l_max" };
 
         var system = ExpressionSystem.Create("beam", "");
-        system.DirectExpressions.Add(length);
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
+        system.Add(length);
+        system.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
 
         var result = system.Calculate();
 
@@ -65,8 +65,8 @@ public class RelationshipReachabilityTests
         var limit = new Variable("l_max", Dimensionality.Length, "l_max");   // unbound
 
         var system = ExpressionSystem.Create("beam", "");
-        system.DirectExpressions.Add(length);
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
+        system.Add(length);
+        system.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
 
         var flat = system.Flatten();
         var result = system.Calculate();
@@ -88,8 +88,8 @@ public class RelationshipReachabilityTests
         var limit = new Variable("l_max", Dimensionality.Length, "l_max");   // unbound
 
         var system = ExpressionSystem.Create("beam", "");
-        system.DirectExpressions.Add(length);
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
+        system.Add(length);
+        system.Add(new DefinitelyLessThanOperator { Id = "l<l_max", Lhs = length, Rhs = limit });
 
         var result = system.Calculate();
 

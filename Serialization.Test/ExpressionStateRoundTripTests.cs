@@ -29,8 +29,8 @@ public class ExpressionStateRoundTripTests
     private static ExpressionSystem SystemWith(Variable leaf, IExpression derived, string name)
     {
         var system = ExpressionSystem.Create(name, "");
-        system.DirectExpressions.Add(leaf);
-        system.DerivedExpressions.Add(derived);
+        system.Add(leaf);
+        system.Add(derived);
         return system;
     }
 
@@ -91,9 +91,9 @@ public class ExpressionStateRoundTripTests
         var denominator = Dimensionless("d", 3);
 
         var system = ExpressionSystem.Create("quotient", "");
-        system.DirectExpressions.Add(numerator);
-        system.DirectExpressions.Add(denominator);
-        system.DerivedExpressions.Add(new QuotientExpression
+        system.Add(numerator);
+        system.Add(denominator);
+        system.Add(new QuotientExpression
         {
             Id = "q",
             Numerator = numerator,
@@ -115,17 +115,17 @@ public class ExpressionStateRoundTripTests
         var shared = Dimensionless("shared", 4);
 
         var system = ExpressionSystem.Create("sharing", "");
-        system.DirectExpressions.Add(shared);
+        system.Add(shared);
 
         var product = new ProductExpression([shared, shared]) { Id = "p" };
-        system.DerivedExpressions.Add(product);
+        system.Add(product);
 
         var restored = RoundTrip(system);
 
         var factors = ((ProductExpression)restored.DerivedExpressions.Single()).Factors;
         factors.Should().HaveCount(2);
         factors[0].Should().BeSameAs(factors[1]);
-        factors[0].Should().BeSameAs(restored.DirectExpressions.Single());
+        factors[0].Should().BeSameAs(restored.Variables.Single());
     }
 
     [Fact]
@@ -139,10 +139,10 @@ public class ExpressionStateRoundTripTests
         var root = new SqrtExpression(quotient, "root");
 
         var system = ExpressionSystem.Create("nested", "");
-        system.DirectExpressions.Add(x);
-        system.DirectExpressions.Add(y);
-        system.DerivedExpressions.Add(root);
-        system.DerivedExpressions.Add(quotient);
+        system.Add(x);
+        system.Add(y);
+        system.Add(root);
+        system.Add(quotient);
 
         var restored = RoundTrip(system);
 

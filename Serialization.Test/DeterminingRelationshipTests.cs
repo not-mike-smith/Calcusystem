@@ -29,8 +29,8 @@ public class DeterminingRelationshipTests
         var system = ExpressionSystem.Create("determining", "");
         lhs = Bound("x", 10);
         rhs = Bound("y", 10);
-        system.DirectExpressions.Add(lhs);
-        system.DirectExpressions.Add(rhs);
+        system.Add(lhs);
+        system.Add(rhs);
         return system;
     }
 
@@ -49,7 +49,7 @@ public class DeterminingRelationshipTests
     public void EqualityKeepsItsDeterminingFlagThroughJson(bool isDetermining)
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Relationships.Add(new EqualityOperator(new AlwaysEqual(), isDetermining)
+        system.Add(new EqualityOperator(new AlwaysEqual(), isDetermining)
         {
             Id = "eq", Lhs = lhs, Rhs = rhs
         });
@@ -63,15 +63,15 @@ public class DeterminingRelationshipTests
     public void ViewsPartitionRelationshipsByTheFlag()
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Relationships.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: true)
+        system.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: true)
         {
             Id = "defn", Lhs = lhs, Rhs = rhs
         });
-        system.Relationships.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: false)
+        system.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: false)
         {
             Id = "check", Lhs = lhs, Rhs = rhs
         });
-        system.Relationships.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = lhs, Rhs = rhs });
+        system.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = lhs, Rhs = rhs });
 
         // Same operator type on both sides of the split — the flag is doing the partitioning, not the type.
         system.Definitions.Select(d => d.Id).Should().Equal("defn");
@@ -82,8 +82,8 @@ public class DeterminingRelationshipTests
     public void NonEqualityOperatorsAreNeverDetermining()
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Relationships.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = lhs, Rhs = rhs });
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = lhs, Rhs = rhs });
+        system.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = lhs, Rhs = rhs });
+        system.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = lhs, Rhs = rhs });
 
         system.Relationships.Should().OnlyContain(r => r.IsDetermining == false);
         system.Definitions.Should().BeEmpty();
@@ -98,7 +98,7 @@ public class DeterminingRelationshipTests
     public void NonEqualityOperatorsStayNonDeterminingThroughJson()
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Relationships.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = lhs, Rhs = rhs });
+        system.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = lhs, Rhs = rhs });
 
         var json = ToJson(system).Replace("\"IsDetermining\":false", "\"IsDetermining\":true");
         var restored = FromJson(json);

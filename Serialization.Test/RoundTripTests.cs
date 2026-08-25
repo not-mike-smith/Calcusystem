@@ -33,8 +33,8 @@ public class RoundTripTests
     public void LeafVariables_RoundTrip()
     {
         var system = ExpressionSystem.Create("leaves", "just direct variables");
-        system.DirectExpressions.Add(Bound("m", Dimensionality.Mass, 2, 0.01));
-        system.DirectExpressions.Add(new Variable("u", Dimensionality.Time, "u")); // intentionally unbound
+        system.Add(Bound("m", Dimensionality.Mass, 2, 0.01));
+        system.Add(new Variable("u", Dimensionality.Time, "u")); // intentionally unbound
 
         var restored = RoundTrip(system);
 
@@ -56,7 +56,7 @@ public class RoundTripTests
     {
         var system = ExpressionSystem.Create("abs-unc", "absolute-error uncertainty on a zero value");
         // value 0 carrying an absolute error — the case relative-only storage could not represent
-        system.DirectExpressions.Add(new Variable(
+        system.Add(new Variable(
             "z",
             new Quantity(0, Dimensionality.Length).Measurand(SymmetricUncertainty.FromAbsErr(new Quantity(0.5, Dimensionality.Length))),
             "z"));
@@ -76,9 +76,9 @@ public class RoundTripTests
         var m = Bound("m", Dimensionality.Mass, 2, 0.01);
         var m2 = Bound("m2", Dimensionality.Mass, 5, 0.0);
         var a = Bound("a", Acceleration, 3, 0.02);
-        system.DirectExpressions.Add(m);
-        system.DirectExpressions.Add(m2);
-        system.DirectExpressions.Add(a);
+        system.Add(m);
+        system.Add(m2);
+        system.Add(a);
 
         // ListDerivedVariable: Product and Sum
         var force = new ProductExpression([m, a]) { Id = "force" };
@@ -91,11 +91,11 @@ public class RoundTripTests
         var reciprocal = new ReciprocalExpression(m, "recip");
         var negated = new NegatedExpression(a, "neg");
 
-        system.DerivedExpressions.Add(force);
-        system.DerivedExpressions.Add(totalMass);
-        system.DerivedExpressions.Add(quotient);
-        system.DerivedExpressions.Add(reciprocal);
-        system.DerivedExpressions.Add(negated);
+        system.Add(force);
+        system.Add(totalMass);
+        system.Add(quotient);
+        system.Add(reciprocal);
+        system.Add(negated);
 
         var restored = RoundTrip(system);
 
@@ -118,8 +118,8 @@ public class RoundTripTests
 
         var lhs = Bound("x", Dimensionality.Length, 10, 0.01);
         var rhs = Bound("y", Dimensionality.Length, 10, 0.02);
-        system.DirectExpressions.Add(lhs);
-        system.DirectExpressions.Add(rhs);
+        system.Add(lhs);
+        system.Add(rhs);
 
         var equality = new EqualityOperator(new AlwaysEqual(), isDetermining: true)
         {
@@ -131,8 +131,8 @@ public class RoundTripTests
         };
         // Both go into the one list; which of them is a definition and which a constraint is carried by the
         // operator, so the Definitions/Constraints views below are asserting that the flag survived the trip.
-        system.Relationships.Add(equality);
-        system.Relationships.Add(tolerance);
+        system.Add(equality);
+        system.Add(tolerance);
 
         var restored = RoundTrip(system);
 
@@ -149,6 +149,34 @@ public class RoundTripTests
         tol.Id.Should().Be("tol");
         tol.Lhs.Id.Should().Be("x");
         tol.Rhs.Id.Should().Be("y");
+    }
+
+    /// <remarks>
+    /// The mapper writes one DTO per node the system lists and does not recurse, so a node nested inside another
+    /// used to be referenced by id in its parent's payload without ever being written itself — a dangling
+    /// reference that failed on load. Nothing has changed in the mapper: the system now contains the nested node
+    /// because adding the outer one absorbs it, and being contained is what gets a node written.
+    /// </remarks>
+    [Fact]
+    public void ANodeNestedInsideAnotherRoundTripsWithoutBeingAddedSeparately()
+    {
+        var a = Bound("a", Dimensionality.Mass, 1, 0);
+        var b = Bound("b", Dimensionality.Mass, 2, 0);
+        var c = Bound("c", Dimensionality.Mass, 3, 0);
+
+        var inner = new SumExpression([a, b]) { Id = "inner" };
+        var outer = new ProductExpression([inner, c]) { Id = "outer" };
+
+        var system = ExpressionSystem.Create("nested", "only the outer node is added");
+        system.Add(outer);
+
+        var restored = RoundTrip(system);
+
+        restored.DerivedExpressions.Select(e => e.Id).Should().BeEquivalentTo("inner", "outer");
+        ((ProductExpression)ById(restored, "outer")).Factors.Select(f => f.Id)
+            .Should().Equal("inner", "c");
+        ((SumExpression)ById(restored, "inner")).Addends.Select(x => x.Id)
+            .Should().Equal("a", "b");
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating

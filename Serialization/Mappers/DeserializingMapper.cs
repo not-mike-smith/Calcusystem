@@ -39,9 +39,9 @@ public class DeserializingMapper
     /// </remarks>
     public ExpressionSystem Map(Dtos.ExpressionSystem x)
     {
-        foreach (var dto in x.DirectExpressions)
+        foreach (var dto in x.Variables)
         {
-            _context.AddLoadedNode(MapDirectExpressionByPattern(dto));
+            _context.AddLoadedNode(MapVariableByPattern(dto));
         }
 
         MapAllDerivedExpressions(x);
@@ -57,7 +57,7 @@ public class DeserializingMapper
                 x.Id,
                 x.Name,
                 x.Description,
-                x.DirectExpressions.Select(d => d.Id).ToList(),
+                x.Variables.Select(d => d.Id).ToList(),
                 x.SingleDerivedVariables.Select(d => d.Id)
                     .Concat(x.ListDerivedVariables.Select(d => d.Id))
                     .Concat(x.PairDerivedVariables.Select(d => d.Id))
@@ -135,7 +135,7 @@ public class DeserializingMapper
         List<PendingExpression> pending,
         Dtos.ExpressionSystem x)
     {
-        var idsInPayload = x.DirectExpressions.Select(d => d.Id)
+        var idsInPayload = x.Variables.Select(d => d.Id)
             .Concat(x.SingleDerivedVariables.Select(d => d.Id))
             .Concat(x.ListDerivedVariables.Select(d => d.Id))
             .Concat(x.PairDerivedVariables.Select(d => d.Id))
@@ -159,7 +159,7 @@ public class DeserializingMapper
         IReadOnlyList<string> DependsOn,
         Func<IExpression?> Build);
 
-    public Variable MapDirectExpressionByPattern(Dtos.SingleVariable x) => x.Type switch
+    public Variable MapVariableByPattern(Dtos.SingleVariable x) => x.Type switch
     {
         nameof(Variable) => MapVariable(x),
         _ => throw new NotImplementedException(
