@@ -116,7 +116,7 @@ public class SerializingMapper
             Description = state.Description,
             LhsId = state.LhsId,
             RhsId = state.RhsId,
-            IsDetermining = state.IsDetermining,
+            SolvingRole = state.SolvingRole,
             Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
         };
     }

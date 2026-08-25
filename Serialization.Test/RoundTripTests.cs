@@ -1,5 +1,6 @@
 using System.Linq;
 using Calcusystem.Serialization;
+using Calcusystem.DimensionedExpression;
 using Calcusystem.Serialization.Mappers;
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
@@ -121,7 +122,7 @@ public class RoundTripTests
         system.Add(lhs);
         system.Add(rhs);
 
-        var equality = new EqualityOperator(new AlwaysEqual(), isDetermining: true)
+        var equality = new EqualityOperator(new AlwaysEqual(), SolvingRole.Equation)
         {
             Id = "eq", Name = "x equals y", Description = "defn", Lhs = lhs, Rhs = rhs
         };
@@ -129,14 +130,14 @@ public class RoundTripTests
         {
             Id = "tol", Name = "x within y", Description = "constraint", Lhs = lhs, Rhs = rhs
         };
-        // Both go into the one list; which of them is a definition and which a constraint is carried by the
-        // operator, so the Definitions/Constraints views below are asserting that the flag survived the trip.
+        // Both go into the one list; what each one does to the problem is carried by the operator, so the
+        // views below are asserting that the role survived the trip.
         system.Add(equality);
         system.Add(tolerance);
 
         var restored = RoundTrip(system);
 
-        var eq = restored.Definitions.Single();
+        var eq = restored.Equations.Single();
         eq.Should().BeOfType<EqualityOperator>();
         eq.Id.Should().Be("eq");
         eq.Name.Should().Be("x equals y");
@@ -144,7 +145,7 @@ public class RoundTripTests
         eq.Rhs.Id.Should().Be("y");
         eq.IsSatisfied().Should().BeTrue(); // AlwaysEqual estimator was injected on deserialize
 
-        var tol = restored.Constraints.Single();
+        var tol = restored.Requirements.Single();
         tol.Should().BeOfType<WithinBindingToleranceOperator>();
         tol.Id.Should().Be("tol");
         tol.Lhs.Id.Should().Be("x");

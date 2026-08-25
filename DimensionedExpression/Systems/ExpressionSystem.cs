@@ -35,7 +35,7 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// Not merely the ones handed to <see cref="Add(IExpression)"/> directly. A variable reached through a
     /// derived expression or through a relationship's operand is just as much a part of this system, and saying
     /// so is what stops membership and reachability being two answers to one question — the same reasoning that
-    /// made <see cref="Definitions"/> and <see cref="Constraints"/> views rather than lists.
+    /// made <see cref="Equations"/>, <see cref="CoherenceChecks"/> and <see cref="Requirements"/> views.
     /// </remarks>
     public IReadOnlyList<Variable> Variables => _variables;
 
@@ -46,10 +46,11 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// Every relationship asserted over this system's expressions — definitions and constraints alike.
     /// </summary>
     /// <remarks>
-    /// Definitions and constraints are one list because the distinction belongs to the operator, not to where it
-    /// was filed. <see cref="IBinaryOperator.IsDetermining"/> is what the degrees-of-freedom calculation reads;
-    /// keeping a parallel pair of lists would make membership a second, silently divergent answer to the same
-    /// question. <see cref="Definitions"/> and <see cref="Constraints"/> remain as views over this list.
+    /// One list, because what a relationship does to the problem belongs to the operator, not to where it was
+    /// filed. <see cref="IBinaryOperator.SolvingRole"/> carries it and
+    /// <see cref="IBinaryOperator.IsDetermining"/> is what degrees-of-freedom code reads;
+    /// keeping parallel lists would make membership a second, silently divergent answer to the same
+    /// question. <see cref="Equations"/>, <see cref="CoherenceChecks"/> and <see cref="Requirements"/> are views.
     /// </remarks>
     public IReadOnlyList<IBinaryOperator> Relationships => _relationships;
 
@@ -84,17 +85,20 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
         }
     }
 
-    /// <summary>
-    /// The relationships that determine values — the equations counted against the unknowns when computing
-    /// degrees of freedom. A view over <see cref="Relationships"/>; add through that.
-    /// </summary>
-    public IEnumerable<IBinaryOperator> Definitions => Relationships.Where(r => r.IsDetermining);
+    /// <summary>Relationships that define a quantity — <see cref="SolvingRole.Equation"/>.</summary>
+    public IEnumerable<IBinaryOperator> Equations =>
+        Relationships.Where(r => r.SolvingRole is SolvingRole.Equation);
 
     /// <summary>
-    /// The relationships that only check values — every relationship that is not a definition. A view over
-    /// <see cref="Relationships"/>; add through that.
+    /// Relationships asserting that separately computed routes to one quantity agree —
+    /// <see cref="SolvingRole.Coherence"/>.
     /// </summary>
-    public IEnumerable<IBinaryOperator> Constraints => Relationships.Where(r => ! r.IsDetermining);
+    public IEnumerable<IBinaryOperator> CoherenceChecks =>
+        Relationships.Where(r => r.SolvingRole is SolvingRole.Coherence);
+
+    /// <summary>Relationships that bound a value without producing one — <see cref="SolvingRole.Requirement"/>.</summary>
+    public IEnumerable<IBinaryOperator> Requirements =>
+        Relationships.Where(r => r.SolvingRole is SolvingRole.Requirement);
 
     /// <summary>Every expression this system contains: its variables and its computed nodes.</summary>
     /// <remarks>

@@ -1,4 +1,5 @@
 using Calcusystem.Analysis;
+using Calcusystem.DimensionedExpression;
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
@@ -20,7 +21,7 @@ public class FlatSystemTests
             symbol);
 
     private static EqualityOperator Equation(string id, IExpression lhs, IExpression rhs) =>
-        new(new AlwaysEqual(), isDetermining: true) { Id = id, Lhs = lhs, Rhs = rhs };
+        new(new AlwaysEqual(), SolvingRole.Equation) { Id = id, Lhs = lhs, Rhs = rhs };
 
     // ── What lands in the flat system ────────────────────────────────────────
 
@@ -128,7 +129,7 @@ public class FlatSystemTests
         system.Add(spec);
         system.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = m, Rhs = spec });
         system.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = m, Rhs = spec });
-        system.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: false)
+        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement)
         {
             Id = "check", Lhs = m, Rhs = spec
         });

@@ -10,7 +10,7 @@ namespace Calcusystem.DimensionedExpression.Test.Systems;
 /// <summary>
 /// What a system <i>contains</i> and what it <i>reaches</i> are the same set, by construction. Adding anything
 /// absorbs the whole subgraph beneath it, so membership can never disagree with reachability — the same reason
-/// <c>Definitions</c> and <c>Constraints</c> are views rather than lists.
+/// the role-based views are views rather than lists.
 /// </summary>
 public class ExpressionSystemMembershipTests
 {

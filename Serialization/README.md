@@ -96,7 +96,7 @@ The DTOs are format-agnostic, but not serializer-*indifferent* — a POCO can be
 
 There is no schema version field and **no back-compatibility machinery**: the mappers read exactly the shape they write. A DTO change invalidates payloads written before it, and that is currently an acceptable cost — there is no stored corpus to protect. Revisit when there is.
 
-The most recent such break: `Dtos.ExpressionSystem.Relationships` replaced a `Definitions`/`Constraints` pair, and `BinaryOperator` gained `IsDetermining`. Whether a relationship defines a value or checks one used to be recorded as *which array the operator sat in*; it now rides on the operator itself.
+The most recent such break: `Dtos.BinaryOperator.IsDetermining` became `SolvingRole`. A boolean flattened *defines a quantity* and *asserts two routes agree* into one `true`, and they could not be told apart again on load. Before that, `Dtos.ExpressionSystem.Relationships` replaced a `Definitions`/`Constraints` pair — what a relationship does used to be recorded as *which array the operator sat in*, and now rides on the operator itself.
 
 ---
 

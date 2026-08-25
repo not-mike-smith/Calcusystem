@@ -16,7 +16,7 @@ namespace Calcusystem.DimensionedExpression.State;
 /// <param name="DerivedExpressionIds">Ids of the computed expressions, including nodes nested inside others.</param>
 /// <param name="RelationshipIds">
 /// Ids of every asserted relationship, definitions and constraints alike. They share one list because which one
-/// a relationship is, is carried by the operator's own <c>IsDetermining</c> — storing it as list membership too
+/// a relationship is, is carried by the operator's own <c>SolvingRole</c> — storing it as list membership too
 /// would let the two disagree.
 /// </param>
 public readonly record struct ExpressionSystemState(
