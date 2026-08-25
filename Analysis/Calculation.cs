@@ -29,7 +29,10 @@ namespace Calcusystem.Analysis;
 /// </remarks>
 /// <param name="Overrides">The values supplied for this calculation, which took precedence over stored ones.</param>
 /// <param name="Values">Every node that resolved.</param>
-/// <param name="Unresolved">The system's own expressions that could not be computed.</param>
+/// <param name="Unresolved">
+/// The expressions the system references that could not be computed — its two lists plus both operands of every
+/// relationship, since a check whose bound cannot be evaluated is as outstanding as a value that will not resolve.
+/// </param>
 /// <param name="MissingValues">The unbound variables responsible — supply these and more will resolve.</param>
 public sealed record Calculation(
     IReadOnlyDictionary<Variable, Measurand> Overrides,
@@ -37,7 +40,7 @@ public sealed record Calculation(
     IReadOnlyList<IExpression> Unresolved,
     IReadOnlyList<Variable> MissingValues)
 {
-    /// <summary>Whether every expression the system lists produced a value.</summary>
+    /// <summary>Whether every expression the system references produced a value.</summary>
     public bool IsComplete => Unresolved.Count == 0;
 
     /// <summary>The value computed for <paramref name="expression"/>, or null if it did not resolve.</summary>

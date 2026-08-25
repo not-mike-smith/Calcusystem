@@ -154,7 +154,9 @@ plus two read-only views over that third list:
 | `Definitions` | relationships where `IsDetermining` — always-true relationships used to *compute* unknowns (conservation laws, constitutive equations) |
 | `Constraints` | everything else — tolerance/ordering checks evaluated against values (pass / fail / unknown) |
 
-`GetAllExpressions()` returns direct + derived. The scope of one `ExpressionSystem` is a single model (one equation of state, one heat exchanger); composing multiple systems into a flowsheet is a future (Milestone 5) concern.
+`GetAllExpressions()` returns direct + derived — the system's own inventory, and what persistence writes out. `GetReferencedExpressions()` is wider: those two lists plus both operands of every relationship, which are the roots a walk over the system starts from. The two are deliberately separate questions, because nothing requires them to coincide — a limit compared against, or an expression assembled for a comparison, is referenced by a relationship without being filed under either list. Analysis wants the second; `InDependencyOrder()` uses it.
+
+The scope of one `ExpressionSystem` is a single model (one equation of state, one heat exchanger); composing multiple systems into a flowsheet is a future (Milestone 5) concern.
 
 **Add through `Relationships`.** Definitions and constraints share one list because which one a relationship is belongs to the operator — its `IsDetermining` — not to where it was filed. Two parallel lists would encode the same fact twice and let the two answers diverge; as views they cannot.
 
