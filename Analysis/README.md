@@ -54,7 +54,7 @@ var calc = system.Calculate(overrides);
 calc.Overrides;      // the values supplied — the assumptions this calculation rests on
 calc.Values;         // every node that resolved
 calc.ValueOf(f);     // one node's value, or null
-calc.Unresolved;     // the system's expressions that could not be computed
+calc.Unresolved;     // the expressions it references that could not be computed
 calc.MissingValues;  // the unbound variables responsible
 calc.IsComplete;     // nothing outstanding
 ```
@@ -64,6 +64,8 @@ calc.IsComplete;     // nothing outstanding
 It never throws on an incomplete system. A model half-built is the normal case, and "which values are still missing" is the answer the caller wants.
 
 It *does* throw on a **cyclic** graph — `CyclicExpressionGraphException`. That is not an incomplete model but a malformed one, and reporting it as unresolved would produce a calculation claiming nodes could not be computed while listing nothing as missing, which reads as an absent value and sends the reader looking for one that does not exist.
+
+**It covers what the system *references*, not only what it lists.** A relationship's operands are reachable from the system without appearing in `DirectExpressions` or `DerivedExpressions` — a limit compared against, or an expression assembled purely for the comparison — so `Calculate` roots its walk at `GetReferencedExpressions()`. Narrowing to the two lists left such a node uncomputed and absent from `MissingValues`, which surfaced as a `null` value indistinguishable from "you have not supplied enough", and put `Calculate` at odds with `Flatten`, which has always gathered unknowns through `Relationships`.
 
 **Each node is computed once.** Nodes are visited in dependency order and handed the values already established, via `IExpression.ComputeFrom`. Contrast `CalculateValueIfDetermined()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here. This is the caching a node deliberately cannot do for itself: a node has no way to learn that a leaf beneath it was reassigned, whereas `Calculate` knows the graph is unchanged for the duration of a run.
 

@@ -57,6 +57,22 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     }
 
     /// <summary>
+    /// Every expression this system refers to directly: <see cref="GetAllExpressions"/> plus both operands of
+    /// every relationship. These are the roots a walk over the system starts from.
+    /// </summary>
+    /// <remarks>
+    /// Wider than <see cref="GetAllExpressions"/>, and deliberately a separate question. That one is the system's
+    /// own <i>inventory</i> — what it lists, and what persistence writes out. This is what it <i>reaches</i>, and
+    /// nothing requires the two to coincide: a limit compared against, or an expression assembled for a
+    /// comparison, is referenced by a relationship without ever being filed under either list. Analysis must
+    /// cover those or it reports a value as unavailable when every leaf beneath it is supplied.
+    /// </remarks>
+    public IEnumerable<IExpression> GetReferencedExpressions() =>
+        GetAllExpressions()
+            .Concat(Relationships.SelectMany(r => new[] { r.Lhs, r.Rhs }))
+            .Distinct();
+
+    /// <summary>
     /// Every node this system reaches, each once, children before parents — the order values can be computed in
     /// without ever needing one that has not been produced yet.
     /// </summary>
@@ -67,7 +83,7 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// </remarks>
     /// <exception cref="Exceptions.CyclicExpressionGraphException">The system's graph contains a cycle.</exception>
     public IReadOnlyList<IExpression> InDependencyOrder() =>
-        ExpressionGraph.InDependencyOrder(GetAllExpressions());
+        ExpressionGraph.InDependencyOrder(GetReferencedExpressions());
 
     /// <inheritdoc/>
     public ExpressionSystemState GetState() => new(
