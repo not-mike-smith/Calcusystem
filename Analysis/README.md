@@ -16,6 +16,8 @@ Degrees of freedom is the classic process-engineering quantity:
 DoF = unknowns − determining equations
 ```
 
+with one refinement: an equation counts only if some unknown is *incident* on it. One whose sides are all already known determines nothing, and subtracting for it used to report a system as square while a variable in it sat untouched.
+
 Computing it means reducing a system to exactly those two things. `SystemFlattener.Flatten` produces a `FlatSystem` holding them, and everything else is read off that.
 
 ```csharp
@@ -23,8 +25,9 @@ var flat = SystemFlattener.Flatten(system);
 
 flat.Unknowns;             // the distinct unbound Variables
 flat.Equations;            // determining relationships, each with its incident unknowns
-flat.DegreesOfFreedom;     // Unknowns.Count - Equations.Count
+flat.DegreesOfFreedom;     // unknowns − equations that touch at least one of them
 flat.Determination;        // Underdetermined / ExactlyDetermined / Overdetermined
+flat.RedundantEquations;   // equations no unknown touches — checks, not determinations
 flat.UnknownsWithNoEquation; // unknowns no equation touches (a constraint is not an equation)
 ```
 
@@ -35,7 +38,8 @@ flat.UnknownsWithNoEquation; // unknowns no equation touches (a constraint is no
 | unbound `Variable` | an **unknown** (a column) |
 | bound `Variable` | nothing — it is already known |
 | computed node (`Product`, `Reciprocal`, …) | **nothing** — it is the *path* by which an equation reaches a leaf |
-| relationship where `IsDetermining` | an **equation** (a row) |
+| relationship where `IsDetermining`, with an unknown incident | an **equation** (a row) |
+| relationship where `IsDetermining`, with no unknown incident | a **redundancy check** — still an `Equation`, but not counted; see `RedundantEquations` |
 | relationship where not | nothing — a check removes no degree of freedom |
 
 The third row is the one worth internalising. Given `a`, `b = 1/a`, and the equation `b == c`, the flat system has columns `a` and `c` and one row; `b` appears only as incidence, putting a mark in column `a`. Admitting `b` as an unknown would add a column *and* force a compensating row (`b = 1/a`), leaving DoF unchanged while doubling the size of the problem. Only a `Variable` can be assigned, so only a `Variable` can be an unknown.
@@ -128,6 +132,17 @@ It is also how an over-determined system is interrogated — pin different subse
 | `Overdetermined` | DoF < 0 | report redundancy — this is a finding, not an error |
 
 **Over-determined systems are never refused.** Redundant equations either agree, in which case they corroborate a result, or disagree, in which case the model or the measurements are inconsistent and the engineer needs to know. Refusing to look would discard the more interesting of the two outcomes.
+
+**`Determination` is a verdict on the solve, not on how much redundancy the model carries.** Those are orthogonal, which is easy to miss. A *vacuous* equation — one whose sides are all already known — touches no unknown, so the same redundancy check appended to an under-, exactly-, or over-determined system leaves each of them exactly as it was:
+
+| System | Unknowns | Live equations | Vacuous | DoF | `Determination` |
+| --- | --- | --- | --- | --- | --- |
+| `x` free; bound `a`,`b`; `a==b` | 1 | 0 | 1 | 1 | `Underdetermined` |
+| `m`; `m==spec`; bound `a`,`b`; `a==b` | 1 | 1 | 1 | 0 | `ExactlyDetermined` |
+| `m`; `m==a`, `m==b`; bound `c`,`d`; `c==d` | 1 | 2 | 1 | −1 | `Overdetermined` |
+| everything pinned; `a==b`, `c==d` | 0 | 0 | 2 | 0 | `ExactlyDetermined` |
+
+Weighing vacuity into the classification would report the second row as over-determined — false, since its solve is square and the check concerns values that were already known. So redundancy is reported by `RedundantEquations` instead, and whether those checks actually *hold* belongs to a calculation's relationship outcomes, not to a count. The last row is not a special case: it is simply a system with no unknowns that happens to carry two checks.
 
 **`ExactlyDetermined` is necessary, not sufficient.** The count does not check that the equations are independent. Two equations asserting the same thing, alongside a genuinely free variable, also lands on zero — and no count can tell that apart from a well-posed square system. `UnknownsWithNoEquation` catches the cheapest slice of this (a column no row touches), but the general case needs a matching over the incidence structure. Treat DoF as a gate that can *reject*, never as a promise that solving will succeed.
 
