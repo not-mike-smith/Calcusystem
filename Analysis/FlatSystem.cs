@@ -37,25 +37,52 @@ public sealed record Equation(IBinaryOperator Relationship, IReadOnlyList<Variab
 public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<Equation> Equations)
 {
     /// <summary>
-    /// Unknowns minus equations: positive when values are missing, zero when the system is square, negative when
-    /// it carries redundancy.
+    /// Unknowns minus the equations able to determine any of them: positive when values are missing, zero when
+    /// the system is square, negative when the unknowns are over-specified.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Only equations with an incident unknown count. One with none determines nothing, so subtracting for it
+    /// claimed a degree of freedom had been removed when none had — enough to report a system as square while a
+    /// variable in it sat untouched. Those rows are still worth having, as <see cref="RedundantEquations"/>.
+    /// </para>
+    /// <para>
     /// <b>This counts equations; it does not check that they are independent.</b> Zero is therefore a necessary
     /// but not sufficient condition for solvability — two equations asserting the same thing alongside a
     /// genuinely free variable also lands on zero, and no count can tell the difference. Distinguishing them
     /// needs a matching over <see cref="Equation.Unknowns"/>, which is the Milestone 4 structural analysis.
     /// Treat this as a gate that can reject, not as a promise that solving will succeed.
+    /// </para>
     /// </remarks>
-    public int DegreesOfFreedom => Unknowns.Count - Equations.Count;
+    public int DegreesOfFreedom => Unknowns.Count - Equations.Count(e => e.Unknowns.Count > 0);
 
     /// <summary>How <see cref="DegreesOfFreedom"/> classifies this system.</summary>
+    /// <remarks>
+    /// A verdict on the <i>solve</i>, and a pure function of the count — deliberately not also a verdict on how
+    /// much redundancy the model carries. The two are orthogonal: a vacuous equation touches no unknown, so it
+    /// can sit on an under-, exactly-, or over-determined system alike without changing any of them. Folding it
+    /// in here would report a square system with one redundant check as over-determined, which is false — its
+    /// solve is square, and the check is about values that were already known. Redundancy is reported by
+    /// <see cref="RedundantEquations"/>, and its pass/fail belongs to a calculation's relationship outcomes.
+    /// </remarks>
     public Determination Determination => DegreesOfFreedom switch
     {
         > 0 => Determination.Underdetermined,
         0 => Determination.ExactlyDetermined,
         _ => Determination.Overdetermined,
     };
+
+    /// <summary>
+    /// Equations no unknown is incident on — both sides are already determined, so they check rather than
+    /// determine.
+    /// </summary>
+    /// <remarks>
+    /// Not a defect in the model, and not a degree of freedom either way. A determining equality over values
+    /// that are all known is a redundancy check, and redundancy is the interesting case: agreeing sides
+    /// corroborate a result, disagreeing sides mean the model or the measurements are inconsistent. Surfaced
+    /// separately because their verdicts are findings, not because they affect the count.
+    /// </remarks>
+    public IEnumerable<Equation> RedundantEquations => Equations.Where(e => e.Unknowns.Count == 0);
 
     /// <summary>
     /// Unknowns that no equation is incident on — referenced by the system, but with nothing in it able to

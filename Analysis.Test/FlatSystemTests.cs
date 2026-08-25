@@ -270,8 +270,10 @@ public class FlatSystemTests
     [Fact]
     public void PinningDifferentSubsetsRepositionsWhichEquationsAreLeftOver()
     {
-        // The over-determined interrogation the design calls for: pin one measurement, and the other becomes a
-        // spare equation over a now-square system.
+        // The over-determined interrogation the design calls for. Unpinned, two equations compete to determine
+        // one unknown. Pinning that unknown leaves nothing to determine, so *both* equations become redundancy
+        // checks — they still hold values to compare, which is the entry point for reconciliation, but neither
+        // removes a degree of freedom from a system that has none left.
         var m = Unbound("m");
         var a = Bound("a", 5);
         var b = Bound("b", 5);
@@ -290,9 +292,70 @@ public class FlatSystemTests
             });
 
         pinned.Unknowns.Should().BeEmpty();
-        pinned.Equations.Should().HaveCount(2);
-        pinned.Equations.Should().OnlyContain(e => e.Unknowns.Count == 0);
-        pinned.DegreesOfFreedom.Should().Be(-2);
+        pinned.Equations.Should().HaveCount(2, "both are still equations of the model");
+        pinned.RedundantEquations.Select(e => e.Relationship.Id).Should().Equal("m==a", "m==b");
+        pinned.DegreesOfFreedom.Should().Be(0, "neither equation can determine anything now");
+        pinned.Determination.Should().Be(Determination.ExactlyDetermined);
+    }
+
+    // ── Vacuous equations ────────────────────────────────────────────────────
+
+    /// <remarks>
+    /// An equation over values that are all already known determines nothing, so it must not be subtracted.
+    /// Counting it reported this system — one genuinely free variable, plus a redundancy check over two bound
+    /// values — as square, which is the one classification that would let a solver gate wave it through.
+    /// </remarks>
+    [Fact]
+    public void AnEquationWithNoIncidentUnknownsRemovesNoDegreeOfFreedom()
+    {
+        var x = Unbound("x");
+        var a = Bound("a", 5);
+        var b = Bound("b", 5);
+
+        var system = ExpressionSystem.Create("redundant check beside a free variable", "");
+        system.Add(x);
+        system.Add(Equation("a==b", a, b));
+
+        var flat = system.Flatten();
+
+        flat.Unknowns.Should().Equal(x);
+        flat.DegreesOfFreedom.Should().Be(1);
+        flat.Determination.Should().Be(Determination.Underdetermined);
+        flat.RedundantEquations.Select(e => e.Relationship.Id).Should().Equal("a==b");
+    }
+
+    /// <remarks>
+    /// Why <c>Determination</c> reads the count alone rather than also weighing redundancy: the two are
+    /// orthogonal. A vacuous equation touches no unknown, so the same redundancy check appended to an under-,
+    /// exactly-, or over-determined system leaves each of them exactly as it was. Folding vacuity into the
+    /// classification would report the middle case as over-determined, when its solve is square and the check
+    /// concerns values that were already known.
+    /// </remarks>
+    [Theory]
+    [InlineData(0, 1, Determination.Underdetermined)]
+    [InlineData(1, 0, Determination.ExactlyDetermined)]
+    [InlineData(2, -1, Determination.Overdetermined)]
+    public void ARedundantCheckDoesNotChangeDeterminationWhateverTheSystem(
+        int liveEquations, int expectedDoF, Determination expected)
+    {
+        var m = Unbound("m");
+        var system = ExpressionSystem.Create("orthogonality", "");
+        system.Add(m);
+
+        // 0, 1, or 2 equations competing to determine the single unknown.
+        for (var i = 0; i < liveEquations; i++)
+            system.Add(Equation($"m==spec{i}", m, Bound($"spec{i}", 5)));
+
+        var withoutCheck = system.Flatten();
+
+        // The same redundancy check, over values that were already known, appended to each.
+        system.Add(Equation("a==b", Bound("a", 5), Bound("b", 5)));
+        var withCheck = system.Flatten();
+
+        withoutCheck.DegreesOfFreedom.Should().Be(expectedDoF);
+        withCheck.DegreesOfFreedom.Should().Be(expectedDoF, "a vacuous equation determines nothing");
+        withCheck.Determination.Should().Be(expected);
+        withCheck.RedundantEquations.Select(e => e.Relationship.Id).Should().Equal("a==b");
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating
