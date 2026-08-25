@@ -24,12 +24,26 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
 
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
-    public List<Variable> DirectExpressions { get; } = new();
-    public List<IExpression> DerivedExpressions { get; } = new();
+
+    private readonly List<Variable> _variables = new();
+    private readonly List<IExpression> _derivedExpressions = new();
+    private readonly List<IBinaryOperator> _relationships = new();
+    private readonly HashSet<IExpression> _absorbed = new();
+
+    /// <summary>Every <see cref="Variable"/> this system contains — the leaves values are supplied to.</summary>
+    /// <remarks>
+    /// Not merely the ones handed to <see cref="Add(IExpression)"/> directly. A variable reached through a
+    /// derived expression or through a relationship's operand is just as much a part of this system, and saying
+    /// so is what stops membership and reachability being two answers to one question — the same reasoning that
+    /// made <see cref="Definitions"/> and <see cref="Constraints"/> views rather than lists.
+    /// </remarks>
+    public IReadOnlyList<Variable> Variables => _variables;
+
+    /// <summary>Every computed node this system contains, including nodes nested inside others.</summary>
+    public IReadOnlyList<IExpression> DerivedExpressions => _derivedExpressions;
 
     /// <summary>
-    /// Every relationship asserted over this system's expressions — definitions and constraints alike. The one
-    /// list callers add to.
+    /// Every relationship asserted over this system's expressions — definitions and constraints alike.
     /// </summary>
     /// <remarks>
     /// Definitions and constraints are one list because the distinction belongs to the operator, not to where it
@@ -37,7 +51,38 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// keeping a parallel pair of lists would make membership a second, silently divergent answer to the same
     /// question. <see cref="Definitions"/> and <see cref="Constraints"/> remain as views over this list.
     /// </remarks>
-    public List<IBinaryOperator> Relationships { get; } = new();
+    public IReadOnlyList<IBinaryOperator> Relationships => _relationships;
+
+    /// <summary>
+    /// Adds <paramref name="expression"/> and everything beneath it.
+    /// </summary>
+    /// <remarks>
+    /// Absorbing the whole subgraph is what makes the collections above truthful. A composite assembled from
+    /// nodes the caller never mentioned separately still puts those nodes in this system — they are computed by
+    /// <c>Calculate</c>, they are written by persistence, and a report that omitted them would be describing a
+    /// different model than the one being evaluated. Absorbing eagerly is safe because an expression's operands
+    /// are fixed at construction, so what is captured here cannot later drift from what the graph holds.
+    /// </remarks>
+    public void Add(IExpression expression) => Absorb(expression);
+
+    /// <summary>Adds <paramref name="relationship"/>, and both of its operands with everything beneath them.</summary>
+    public void Add(IBinaryOperator relationship)
+    {
+        Absorb(relationship.Lhs);
+        Absorb(relationship.Rhs);
+        _relationships.Add(relationship);
+    }
+
+    private void Absorb(IExpression expression)
+    {
+        foreach (var node in expression.SelfAndDescendants())
+        {
+            if (! _absorbed.Add(node)) continue;
+
+            if (node is Variable variable) _variables.Add(variable);
+            else _derivedExpressions.Add(node);
+        }
+    }
 
     /// <summary>
     /// The relationships that determine values — the equations counted against the unknowns when computing
@@ -51,26 +96,12 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// </summary>
     public IEnumerable<IBinaryOperator> Constraints => Relationships.Where(r => ! r.IsDetermining);
 
-    public IEnumerable<IExpression> GetAllExpressions()
-    {
-        return DirectExpressions.Concat(DerivedExpressions);
-    }
-
-    /// <summary>
-    /// Every expression this system refers to directly: <see cref="GetAllExpressions"/> plus both operands of
-    /// every relationship. These are the roots a walk over the system starts from.
-    /// </summary>
+    /// <summary>Every expression this system contains: its variables and its computed nodes.</summary>
     /// <remarks>
-    /// Wider than <see cref="GetAllExpressions"/>, and deliberately a separate question. That one is the system's
-    /// own <i>inventory</i> — what it lists, and what persistence writes out. This is what it <i>reaches</i>, and
-    /// nothing requires the two to coincide: a limit compared against, or an expression assembled for a
-    /// comparison, is referenced by a relationship without ever being filed under either list. Analysis must
-    /// cover those or it reports a value as unavailable when every leaf beneath it is supplied.
+    /// Complete, because <see cref="Add(IExpression)"/> absorbs whole subgraphs. There is no wider set to ask
+    /// for — what the system lists and what it reaches are the same thing by construction.
     /// </remarks>
-    public IEnumerable<IExpression> GetReferencedExpressions() =>
-        GetAllExpressions()
-            .Concat(Relationships.SelectMany(r => new[] { r.Lhs, r.Rhs }))
-            .Distinct();
+    public IEnumerable<IExpression> GetAllExpressions() => _variables.Concat<IExpression>(_derivedExpressions);
 
     /// <summary>
     /// Every node this system reaches, each once, children before parents — the order values can be computed in
@@ -83,16 +114,16 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// </remarks>
     /// <exception cref="Exceptions.CyclicExpressionGraphException">The system's graph contains a cycle.</exception>
     public IReadOnlyList<IExpression> InDependencyOrder() =>
-        ExpressionGraph.InDependencyOrder(GetReferencedExpressions());
+        ExpressionGraph.InDependencyOrder(GetAllExpressions());
 
     /// <inheritdoc/>
     public ExpressionSystemState GetState() => new(
         Id,
         Name,
         Description,
-        DirectExpressions.Select(x => x.Id).ToList(),
-        DerivedExpressions.Select(x => x.Id).ToList(),
-        Relationships.Select(x => x.Id).ToList());
+        _variables.Select(x => x.Id).ToList(),
+        _derivedExpressions.Select(x => x.Id).ToList(),
+        _relationships.Select(x => x.Id).ToList());
 
     /// <inheritdoc/>
     /// <remarks>
@@ -107,9 +138,9 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
             Description = state.Description,
         };
 
-        system.DirectExpressions.AddRange(state.DirectExpressionIds.Select(resolve.Resolve<Variable>));
-        system.DerivedExpressions.AddRange(state.DerivedExpressionIds.Select(resolve.Resolve<IExpression>));
-        system.Relationships.AddRange(state.RelationshipIds.Select(resolve.Resolve<IBinaryOperator>));
+        foreach (var id in state.VariableIds) system.Add(resolve.Resolve<Variable>(id));
+        foreach (var id in state.DerivedExpressionIds) system.Add(resolve.Resolve<IExpression>(id));
+        foreach (var id in state.RelationshipIds) system.Add(resolve.Resolve<IBinaryOperator>(id));
         return system;
     }
 }

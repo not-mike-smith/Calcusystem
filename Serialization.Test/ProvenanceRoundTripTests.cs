@@ -33,7 +33,7 @@ public class ProvenanceRoundTripTests
             Provenance = ProvenanceFactory.FromState(
                 ProvenanceState.Measured("prov-m", "SN-42", new DateOnly(2026, 1, 15)))
         };
-        system.DirectExpressions.Add(measured);
+        system.Add(measured);
 
         var restored = (Variable)RoundTrip(system).GetAllExpressions().Single(e => e.Id == "m");
 
@@ -50,7 +50,7 @@ public class ProvenanceRoundTripTests
     public void Variable_WithoutProvenance_RoundTripsAsNull()
     {
         var system = ExpressionSystem.Create("no-prov", "");
-        system.DirectExpressions.Add(new Variable("x", Dimensionality.Length, "x"));
+        system.Add(new Variable("x", Dimensionality.Length, "x"));
 
         var restored = (Variable)RoundTrip(system).GetAllExpressions().Single(e => e.Id == "x");
         restored.Provenance.Should().BeNull();
@@ -62,10 +62,10 @@ public class ProvenanceRoundTripTests
         var system = ExpressionSystem.Create("operator-provenance", "");
         var lhs = new Variable("x", Dimensionality.Length, "x");
         var rhs = new Variable("y", Dimensionality.Length, "y");
-        system.DirectExpressions.Add(lhs);
-        system.DirectExpressions.Add(rhs);
+        system.Add(lhs);
+        system.Add(rhs);
 
-        system.Relationships.Add(new WithinBindingToleranceOperator
+        system.Add(new WithinBindingToleranceOperator
         {
             Id = "op",
             Lhs = lhs,

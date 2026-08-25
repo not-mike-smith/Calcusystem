@@ -12,8 +12,8 @@ namespace Calcusystem.DimensionedExpression.State;
 /// <param name="Id">Stable identity.</param>
 /// <param name="Name">Human-readable name.</param>
 /// <param name="Description">Human-readable description.</param>
-/// <param name="DirectExpressionIds">Ids of the mutable leaf variables.</param>
-/// <param name="DerivedExpressionIds">Ids of the computed expressions.</param>
+/// <param name="VariableIds">Ids of the leaf variables, including any reached through the other two lists.</param>
+/// <param name="DerivedExpressionIds">Ids of the computed expressions, including nodes nested inside others.</param>
 /// <param name="RelationshipIds">
 /// Ids of every asserted relationship, definitions and constraints alike. They share one list because which one
 /// a relationship is, is carried by the operator's own <c>IsDetermining</c> — storing it as list membership too
@@ -23,6 +23,6 @@ public readonly record struct ExpressionSystemState(
     string Id,
     string Name,
     string Description,
-    IReadOnlyList<string> DirectExpressionIds,
+    IReadOnlyList<string> VariableIds,
     IReadOnlyList<string> DerivedExpressionIds,
     IReadOnlyList<string> RelationshipIds);

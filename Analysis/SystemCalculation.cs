@@ -47,10 +47,7 @@ public static class SystemCalculation
     {
         overrides ??= _emptyOverrides;
 
-        // Referenced, not listed: a relationship's operands are reachable from the system without appearing in
-        // either expression list, and a caller who asks whether a check holds is owed the same answer about them
-        // as about anything else. Narrowing to the lists here reported a fully determined node as unavailable.
-        var referenced = system.GetReferencedExpressions().ToList();
+        var contained = system.GetAllExpressions().ToList();
 
         // Seeded with the overrides, so a variable that has one finds itself already answered. Nothing here
         // needs to know a leaf from a composite — `ComputeFrom` is where that distinction lives.
@@ -67,12 +64,13 @@ public static class SystemCalculation
             }
         }
 
-        var unresolved = referenced.Where(e => ! values.ContainsKey(e)).ToList();
+        var unresolved = contained.Where(e => ! values.ContainsKey(e)).ToList();
 
-        var missing = referenced
-            .SelectMany(e => e.FreeVariables())
-            .Distinct()
-            .Where(v => ! overrides.ContainsKey(v))
+        // Read straight off the system's variables rather than re-deriving them per node. `Variables` already
+        // holds every variable the system reaches, so asking each expression for its free variables would walk
+        // the same subgraphs again — once per node, which is quadratic on a deep graph.
+        var missing = system.Variables
+            .Where(v => ! v.IsFullyDescribed && ! overrides.ContainsKey(v))
             .ToList();
 
         return new Calculation(overrides, values, unresolved, missing);

@@ -38,12 +38,12 @@ public class FlatSystemTests
         var twoSeconds = Bound("two_s", 2, Dimensionality.Time);
 
         var system = ExpressionSystem.Create("worked example", "");
-        system.DirectExpressions.Add(a);
-        system.DirectExpressions.Add(c);
-        system.DirectExpressions.Add(twoSeconds);
-        system.DerivedExpressions.Add(b);
-        system.Relationships.Add(Equation("b==c", b, c));
-        system.Relationships.Add(Equation("c==2s", c, twoSeconds));
+        system.Add(a);
+        system.Add(c);
+        system.Add(twoSeconds);
+        system.Add(b);
+        system.Add(Equation("b==c", b, c));
+        system.Add(Equation("c==2s", c, twoSeconds));
 
         var flat = system.Flatten();
 
@@ -69,10 +69,10 @@ public class FlatSystemTests
         var c = Bound("c", 2, Dimensionality.Time);
 
         var system = ExpressionSystem.Create("bound leaf", "");
-        system.DirectExpressions.Add(a);
-        system.DirectExpressions.Add(c);
-        system.DerivedExpressions.Add(b);
-        system.Relationships.Add(Equation("b==c", b, c));
+        system.Add(a);
+        system.Add(c);
+        system.Add(b);
+        system.Add(Equation("b==c", b, c));
 
         var flat = system.Flatten();
 
@@ -87,7 +87,7 @@ public class FlatSystemTests
         var m = Unbound("m");
         var product = new ProductExpression([m, Unbound("a")]) { Id = "p" };
         var system = ExpressionSystem.Create("derived only", "");
-        system.DerivedExpressions.Add(product);
+        system.Add(product);
 
         var flat = system.Flatten();
 
@@ -104,9 +104,9 @@ public class FlatSystemTests
         var negated = new NegatedExpression(m) { Id = "neg" };
 
         var system = ExpressionSystem.Create("shared", "");
-        system.DirectExpressions.Add(m);
-        system.DerivedExpressions.Add(negated);
-        system.Relationships.Add(Equation("eq", m, negated));
+        system.Add(m);
+        system.Add(negated);
+        system.Add(Equation("eq", m, negated));
 
         var flat = system.Flatten();
 
@@ -124,11 +124,11 @@ public class FlatSystemTests
         var spec = Bound("spec", 5);
 
         var system = ExpressionSystem.Create("checks only", "");
-        system.DirectExpressions.Add(m);
-        system.DirectExpressions.Add(spec);
-        system.Relationships.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = m, Rhs = spec });
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = m, Rhs = spec });
-        system.Relationships.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: false)
+        system.Add(m);
+        system.Add(spec);
+        system.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = m, Rhs = spec });
+        system.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = m, Rhs = spec });
+        system.Add(new EqualityOperator(new AlwaysEqual(), isDetermining: false)
         {
             Id = "check", Lhs = m, Rhs = spec
         });
@@ -158,9 +158,9 @@ public class FlatSystemTests
         var limit = Bound("3m", 3, Dimensionality.Length);
 
         var system = ExpressionSystem.Create("bounded length", "");
-        system.DirectExpressions.Add(length);
-        system.DirectExpressions.Add(limit);
-        system.Relationships.Add(new DefinitelyLessThanOperator { Id = "l<3m", Lhs = length, Rhs = limit });
+        system.Add(length);
+        system.Add(limit);
+        system.Add(new DefinitelyLessThanOperator { Id = "l<3m", Lhs = length, Rhs = limit });
 
         var flat = system.Flatten();
 
@@ -190,9 +190,9 @@ public class FlatSystemTests
         var b = Bound("b", 5);
 
         var system = ExpressionSystem.Create("redundant", "");
-        system.DirectExpressions.Add(m);
-        system.Relationships.Add(Equation("m==a", m, a));
-        system.Relationships.Add(Equation("m==b", m, b));
+        system.Add(m);
+        system.Add(Equation("m==a", m, a));
+        system.Add(Equation("m==b", m, b));
 
         var flat = system.Flatten();
 
@@ -211,10 +211,10 @@ public class FlatSystemTests
         var b = Bound("b", 5);
 
         var system = ExpressionSystem.Create("hidden singularity", "");
-        system.DirectExpressions.Add(m);
-        system.DirectExpressions.Add(orphan);
-        system.Relationships.Add(Equation("m==a", m, a));
-        system.Relationships.Add(Equation("m==b", m, b));
+        system.Add(m);
+        system.Add(orphan);
+        system.Add(Equation("m==a", m, a));
+        system.Add(Equation("m==b", m, b));
 
         var flat = system.Flatten();
 
@@ -232,9 +232,9 @@ public class FlatSystemTests
         var a = Unbound("a");
         var product = new ProductExpression([m, a]) { Id = "p" };
         var system = ExpressionSystem.Create("bindings", "");
-        system.DirectExpressions.Add(m);
-        system.DirectExpressions.Add(a);
-        system.DerivedExpressions.Add(product);
+        system.Add(m);
+        system.Add(a);
+        system.Add(product);
 
         var unpinned = system.Flatten();
         unpinned.Unknowns.Should().HaveCount(2);
@@ -253,7 +253,7 @@ public class FlatSystemTests
     {
         var m = Unbound("m");
         var system = ExpressionSystem.Create("no mutation", "");
-        system.DirectExpressions.Add(m);
+        system.Add(m);
 
         system.Flatten(
             new Dictionary<Variable, Measurand>
@@ -277,9 +277,9 @@ public class FlatSystemTests
         var b = Bound("b", 5);
 
         var system = ExpressionSystem.Create("reconciliation shape", "");
-        system.DirectExpressions.Add(m);
-        system.Relationships.Add(Equation("m==a", m, a));
-        system.Relationships.Add(Equation("m==b", m, b));
+        system.Add(m);
+        system.Add(Equation("m==a", m, a));
+        system.Add(Equation("m==b", m, b));
 
         system.Flatten().Determination.Should().Be(Determination.Overdetermined);
 

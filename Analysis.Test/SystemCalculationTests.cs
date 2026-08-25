@@ -31,9 +31,9 @@ public class SystemCalculationTests
         f = new ProductExpression([m, a]) { Id = "f" };
 
         var system = ExpressionSystem.Create("F = m·a", "");
-        system.DirectExpressions.Add(m);
-        system.DirectExpressions.Add(a);
-        system.DerivedExpressions.Add(f);
+        system.Add(m);
+        system.Add(a);
+        system.Add(f);
         return system;
     }
 
@@ -76,7 +76,7 @@ public class SystemCalculationTests
         result.ValueOf(f).Should().BeNull();
 
         // The half that could be computed still was.
-        result.ValueOf(system.DirectExpressions.Single(v => v.Id == "a"))!.KmsValue
+        result.ValueOf(system.Variables.Single(v => v.Id == "a"))!.KmsValue
             .Should().BeApproximately(3, 1e-9);
     }
 
@@ -217,9 +217,9 @@ public class SystemCalculationTests
         var sum = new SumExpression([a, b]) { Id = "s" };
         var product = new ProductExpression([sum, sum]) { Id = "p" };
         var system = ExpressionSystem.Create("shared", "");
-        system.DirectExpressions.Add(a);
-        system.DirectExpressions.Add(b);
-        system.DerivedExpressions.Add(product);
+        system.Add(a);
+        system.Add(b);
+        system.Add(product);
 
         var result = system.Calculate();
 
@@ -239,8 +239,8 @@ public class SystemCalculationTests
         for (var i = 0; i < 20_000; i++) nested = new NegatedExpression(nested);
 
         var system = ExpressionSystem.Create("deep", "");
-        system.DirectExpressions.Add(leaf);
-        system.DerivedExpressions.Add(nested);
+        system.Add(leaf);
+        system.Add(nested);
 
         var act = () => system.Calculate();
 

@@ -30,7 +30,7 @@ public class SerializingMapper
             Description = state.Description,
         };
 
-        value.DirectExpressions.AddRange(system.DirectExpressions.Select(MapVariable));
+        value.Variables.AddRange(system.Variables.Select(MapVariable));
 
         foreach (var dto in system.DerivedExpressions.Select(MapDerivedExpression))
         {

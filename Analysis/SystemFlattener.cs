@@ -26,10 +26,10 @@ public static class SystemFlattener
     /// subsets and compare what each one resolves to.
     /// </param>
     /// <remarks>
-    /// Unknowns are gathered from the leaves the system actually reaches — its declared variables, plus those
-    /// reachable through its derived expressions and through both sides of its relationships. A variable
-    /// referenced only by a derived expression still counts: nothing can produce that expression's value until
-    /// it is supplied.
+    /// Unknowns are simply the system's unvalued variables. That is a complete answer because
+    /// <c>ExpressionSystem.Variables</c> already holds every variable the system reaches, including ones only a
+    /// derived expression or a relationship's operand refers to — this used to gather from three places and
+    /// deduplicate, which was the same question asked three times.
     /// </remarks>
     public static FlatSystem Flatten(
         this ExpressionSystem system,
@@ -37,12 +37,9 @@ public static class SystemFlattener
     {
         bool IsUnknown(Variable v) => overrides is null || ! overrides.ContainsKey(v);
 
-        var unknowns = system.DirectExpressions
+        var unknowns = system.Variables
             .Where(v => ! v.IsFullyDescribed)
-            .Concat(system.DerivedExpressions.SelectMany(e => e.FreeVariables()))
-            .Concat(system.Relationships.SelectMany(r => r.FreeVariables()))
             .Where(IsUnknown)
-            .Distinct()
             .ToList();
 
         // Only determining relationships are equations. A tolerance or ordering relation constrains a value to

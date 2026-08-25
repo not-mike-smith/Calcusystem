@@ -100,7 +100,7 @@ public class UnresolvableGraphTests
         // Guards against an over-eager counter: a chain written in exactly reverse dependency order defers on
         // almost every attempt, but does make progress each pass and must not be rejected.
         var dto = Payload();
-        dto.DirectExpressions.Add(Leaf("x"));
+        dto.Variables.Add(Leaf("x"));
         dto.SingleDerivedVariables.Add(Negated("n4", "n3"));
         dto.SingleDerivedVariables.Add(Negated("n3", "n2"));
         dto.SingleDerivedVariables.Add(Negated("n2", "n1"));
@@ -116,7 +116,7 @@ public class UnresolvableGraphTests
     public async Task OneUnbuildableEntryDoesNotHideTheRestBeingFine()
     {
         var dto = Payload();
-        dto.DirectExpressions.Add(Leaf("x"));
+        dto.Variables.Add(Leaf("x"));
         dto.SingleDerivedVariables.Add(Negated("good", "x"));
         dto.SingleDerivedVariables.Add(Negated("bad", "nowhere"));
 

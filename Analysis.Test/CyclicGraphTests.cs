@@ -63,7 +63,7 @@ public class CyclicGraphTests
         self.Operands.Add(self);
 
         var system = ExpressionSystem.Create("self", "");
-        system.DerivedExpressions.Add(self);
+        system.Add(self);
 
         var act = () => system.Calculate();
 
@@ -87,7 +87,7 @@ public class CyclicGraphTests
         top.Operands.Add(right);
 
         var system = ExpressionSystem.Create("diamond", "");
-        system.DerivedExpressions.Add(top);
+        system.Add(top);
 
         var act = () => system.Calculate();
 
@@ -103,8 +103,8 @@ public class CyclicGraphTests
         b.Operands.Add(a);
 
         var system = ExpressionSystem.Create("cycle", "");
-        system.DerivedExpressions.Add(a);
-        system.DerivedExpressions.Add(b);
+        system.Add(a);
+        system.Add(b);
         return (system, a, b);
     }
 

@@ -147,26 +147,36 @@ The container for one coherent model. Create it via the factory (auto-generated 
 var system = ExpressionSystem.Create("Newton's second law", "F = m·a");
 ```
 
-It holds three lists plus a `Name`/`Description`:
+**Everything goes in through `Add`**, and the collections are read-only:
 
-| Member | Type | Purpose |
-| --- | --- | --- |
-| `DirectExpressions` | `List<Variable>` | the mutable leaf variables |
-| `DerivedExpressions` | `List<IExpression>` | computed nodes built over those leaves |
-| `Relationships` | `List<IBinaryOperator>` | every asserted relationship — definitions and constraints alike |
+```csharp
+system.Add(mass);                                            // a variable
+system.Add(force);                                           // a composite, and everything beneath it
+system.Add(new DefinitelyLessThanOperator { … });            // a relationship, and both of its operands
+```
 
-plus two read-only views over that third list:
+| Member | Contents |
+| --- | --- |
+| `Variables` | every `Variable` the system contains |
+| `DerivedExpressions` | every computed node it contains, including nodes nested inside others |
+| `Relationships` | every asserted relationship — definitions and constraints alike |
+
+plus two read-only views over that third one:
 
 | View | Contents |
 | --- | --- |
 | `Definitions` | relationships where `IsDetermining` — always-true relationships used to *compute* unknowns (conservation laws, constitutive equations) |
 | `Constraints` | everything else — tolerance/ordering checks evaluated against values (pass / fail / unknown) |
 
-`GetAllExpressions()` returns direct + derived — the system's own inventory, and what persistence writes out. `GetReferencedExpressions()` is wider: those two lists plus both operands of every relationship, which are the roots a walk over the system starts from. The two are deliberately separate questions, because nothing requires them to coincide — a limit compared against, or an expression assembled for a comparison, is referenced by a relationship without being filed under either list. Analysis wants the second; `InDependencyOrder()` uses it.
+### Membership is reachability
+
+**`Add` absorbs the whole subgraph beneath what it is given.** Hand it a product and its factors join the system; hand it a relationship and both operands do, along with anything beneath them. So `Variables` is not "the variables you mentioned by name" — it is every variable the system reaches, and `GetAllExpressions()` is complete rather than a subset.
+
+This is the same rule that made `Definitions` and `Constraints` views rather than lists. *What the system contains* and *what the system reaches* are two ways of asking one question, and any design that answers them separately eventually answers them differently. Concretely, it did: a limit compared against but never filed was invisible to `Calculate` while `Flatten` counted it, and a node nested inside another was referenced by id on the wire without ever being written.
+
+Absorbing **eagerly** is safe only because an expression's operands are fixed at construction — see [Structure is immutable](#structure-is-immutable-values-are-not). Were the graph able to change afterwards, a set captured at `Add` time could drift from what the graph holds, and the collections would need re-deriving on every read.
 
 The scope of one `ExpressionSystem` is a single model (one equation of state, one heat exchanger); composing multiple systems into a flowsheet is a future (Milestone 5) concern.
-
-**Add through `Relationships`.** Definitions and constraints share one list because which one a relationship is belongs to the operator — its `IsDetermining` — not to where it was filed. Two parallel lists would encode the same fact twice and let the two answers diverge; as views they cannot.
 
 ---
 
