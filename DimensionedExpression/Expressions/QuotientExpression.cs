@@ -16,9 +16,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </summary>
 public class QuotientExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<QuotientExpression, BinaryExpressionState>
 {
-    public required IExpression Numerator { get; set; }
+    public required IExpression Numerator { get; init; }
 
-    public required IExpression Denominator { get; set; }
+    public required IExpression Denominator { get; init; }
 
     public override bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public override Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;

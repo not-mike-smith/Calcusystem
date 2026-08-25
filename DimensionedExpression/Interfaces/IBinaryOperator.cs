@@ -17,11 +17,18 @@ public interface IBinaryOperator : IIdentified
     /// <summary>Optional human-readable description.</summary>
     public string? Description { get; set; }
 
-    /// <summary>The left-hand operand. For non-commutative operators this is the value under test.</summary>
-    IExpression Lhs { get; set; }
+    /// <summary>
+    /// The left-hand operand. For non-commutative operators this is the value under test.
+    /// </summary>
+    /// <remarks>
+    /// Fixed at construction. A relationship's operands are structure, and structure is immutable — see
+    /// <see cref="IExpression"/>. Values still change; what a relationship is asserted <i>between</i> does not.
+    /// </remarks>
+    IExpression Lhs { get; }
 
     /// <summary>The right-hand operand. For non-commutative operators this is the bound or reference.</summary>
-    IExpression Rhs { get; set; }
+    /// <remarks>Fixed at construction, as <see cref="Lhs"/> is.</remarks>
+    IExpression Rhs { get; }
 
     /// <summary>Whether swapping <see cref="Lhs"/> and <see cref="Rhs"/> leaves the result unchanged.</summary>
     bool IsCommutative { get; }

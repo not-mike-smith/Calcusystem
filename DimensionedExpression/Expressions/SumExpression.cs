@@ -20,11 +20,6 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
 {
     private readonly List<IExpression> _addends = new();
 
-    public SumExpression(Dimensionality dimensionality)
-    {
-        _dimensionality = dimensionality;
-    }
-
     public SumExpression(IEnumerable<IExpression> addends)
     {
         _addends = addends.ToList();
@@ -36,7 +31,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     }
 
 
-    private Dimensionality _dimensionality;
+    private readonly Dimensionality _dimensionality;
 
     /// <inheritdoc/>
     public override Dimensionality Dimensionality => _dimensionality;
@@ -57,25 +52,6 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
         return Measurand.Sum(ErrorPropagation, propagator, _addends.Select(a => known[a]));
     }
 
-
-    public void AddAddend(IExpression expression)
-    {
-        if (Addends.Any())
-        {
-            if (expression.Dimensionality != Dimensionality)
-                throw new IncompatibleDimensionsException("Addends must match dimensionality of SumExpression");
-        }
-        else
-        {
-            _dimensionality = expression.Dimensionality;
-        }
-        _addends.Add(expression);
-    }
-
-    public bool RemoveAddend(IExpression expression)
-    {
-        return _addends.Remove(expression);
-    }
 
     public override string ToString()
     {

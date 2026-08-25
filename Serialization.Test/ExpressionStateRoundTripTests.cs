@@ -117,9 +117,7 @@ public class ExpressionStateRoundTripTests
         var system = ExpressionSystem.Create("sharing", "");
         system.DirectExpressions.Add(shared);
 
-        var product = new ProductExpression { Id = "p" };
-        product.AddFactor(shared);
-        product.AddFactor(shared);
+        var product = new ProductExpression([shared, shared]) { Id = "p" };
         system.DerivedExpressions.Add(product);
 
         var restored = RoundTrip(system);

@@ -74,10 +74,7 @@ public class StateSeamTests
         var a = Leaf("a", 3);
         var b = Leaf("b", 4);
 
-        var product = new ProductExpression { Id = "p" };
-        product.AddFactor(a);
-        product.AddFactor(b);
-
+        var product = new ProductExpression([a, b]) { Id = "p" };
         var state = product.GetState();
         state.Kind.Should().Be(NaryExpressionKind.Product);
         state.InnerIds.Should().Equal("a", "b");

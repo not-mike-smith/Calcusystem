@@ -24,14 +24,8 @@ public class ComputeFromTests
         var a = Bound("a", 2);
         var b = Bound("b", 3);
 
-        var product = new ProductExpression { Id = "p" };
-        product.AddFactor(a);
-        product.AddFactor(b);
-
-        var sum = new SumExpression(Dimensionality.Mass) { Id = "s" };
-        sum.AddAddend(a);
-        sum.AddAddend(b);
-
+        var product = new ProductExpression([a, b]) { Id = "p" };
+        var sum = new SumExpression([a, b]) { Id = "s" };
         return new TheoryData<string, IExpression>
         {
             { "product", product },

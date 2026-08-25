@@ -28,9 +28,7 @@ public class SystemCalculationTests
             : new Variable("m", Dimensionality.Mass, "m");
         a = Bound("a", 3, Acceleration);
 
-        f = new ProductExpression { Id = "f" };
-        f.AddFactor(m);
-        f.AddFactor(a);
+        f = new ProductExpression([m, a]) { Id = "f" };
 
         var system = ExpressionSystem.Create("F = m·a", "");
         system.DirectExpressions.Add(m);
@@ -216,14 +214,8 @@ public class SystemCalculationTests
         // s = a + b, used as both factors of a product. The DAG has 4 distinct nodes, not 5.
         var a = Bound("a", 2, Dimensionality.Mass);
         var b = Bound("b", 3, Dimensionality.Mass);
-        var sum = new SumExpression(Dimensionality.Mass) { Id = "s" };
-        sum.AddAddend(a);
-        sum.AddAddend(b);
-
-        var product = new ProductExpression { Id = "p" };
-        product.AddFactor(sum);
-        product.AddFactor(sum);
-
+        var sum = new SumExpression([a, b]) { Id = "s" };
+        var product = new ProductExpression([sum, sum]) { Id = "p" };
         var system = ExpressionSystem.Create("shared", "");
         system.DirectExpressions.Add(a);
         system.DirectExpressions.Add(b);
@@ -255,5 +247,23 @@ public class SystemCalculationTests
         act.Should().NotThrow();
         // An even number of negations returns the original magnitude.
         system.Calculate().ValueOf(nested)!.KmsValue.Should().BeApproximately(1, 1e-9);
+    }
+
+    /// <remarks>
+    /// Structure is immutable, so a leaf's value is the only thing that can differ between two calculations of
+    /// one system — which makes this the whole of the staleness question. Nothing may be memoised across runs:
+    /// a second calculation must see the new value, not the one the first computed with. The compiler now
+    /// covers the other half, since no operand can be reassigned after construction.
+    /// </remarks>
+    [Fact]
+    public void AReassignedLeafValueIsVisibleToTheNextCalculation()
+    {
+        var system = NewtonsSecondLaw(out var m, out _, out var f);
+
+        system.Calculate().ValueOf(f)!.KmsValue.Should().BeApproximately(6, 1e-9);
+
+        m.Value = Value(4, Dimensionality.Mass);
+
+        system.Calculate().ValueOf(f)!.KmsValue.Should().BeApproximately(12, 1e-9);
     }
 }

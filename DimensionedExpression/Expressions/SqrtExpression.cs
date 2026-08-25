@@ -17,18 +17,14 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </summary>
 public class SqrtExpression : ExpressionBase, IExpression, IStatefulNode<SqrtExpression, UnaryExpressionState>
 {
-    private IExpression _argument;
+    private readonly IExpression _argument;
 
     public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _argument = argument;
     }
 
-    public IExpression Argument
-    {
-        get => _argument;
-        set => _argument = value;
-    }
+    public IExpression Argument => _argument;
 
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Argument.IsFullyDescribed;

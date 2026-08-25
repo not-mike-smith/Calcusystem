@@ -11,7 +11,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary <c>ln(x)</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless
-/// (enforced on construction and assignment) and, to be meaningful, positive; a non-positive value yields a
+/// (enforced on construction, the only point it can be supplied) and, to be meaningful, positive; a non-positive value yields a
 /// NaN or negative-infinity result. The result is dimensionless.
 /// <br/>
 /// Uncertainty: because <c>d(ln x) = dx/x</c>,
@@ -24,7 +24,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </remarks>
 public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<NaturalLogExpression, UnaryExpressionState>
 {
-    private IExpression _argument;
+    private readonly IExpression _argument;
 
     public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
     {
@@ -32,15 +32,7 @@ public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<N
         _argument = argument;
     }
 
-    public IExpression Argument
-    {
-        get => _argument;
-        set
-        {
-            RequireDimensionless(value);
-            _argument = value;
-        }
-    }
+    public IExpression Argument => _argument;
 
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Argument.IsFullyDescribed;

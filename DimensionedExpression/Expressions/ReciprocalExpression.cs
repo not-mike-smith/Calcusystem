@@ -15,18 +15,14 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </summary>
 public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<ReciprocalExpression, UnaryExpressionState>
 {
-    private IExpression _reciprocand;
+    private readonly IExpression _reciprocand;
 
     public ReciprocalExpression(IExpression reciprocand, string id = Constants.CREATE_NEW_ID) : base(id)
     {
         _reciprocand = reciprocand;
     }
 
-    public IExpression Reciprocand
-    {
-        get => _reciprocand;
-        set => _reciprocand = value;
-    }
+    public IExpression Reciprocand => _reciprocand;
 
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Reciprocand.IsFullyDescribed;
