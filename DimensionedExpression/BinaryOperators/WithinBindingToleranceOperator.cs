@@ -17,14 +17,8 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.WithinBindingTolerance;
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        var testValue = lhs;
-        var bindingValue = rhs;
-        var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
-        var bindingUpperBound = bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
-        return testValue.KmsValue >= bindingLowerBound && testValue.KmsValue <= bindingUpperBound;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ContainmentLadder.Evaluate(lhs, rhs).NominalWithin;
 
     public override string Symbol => "=}";
 }
@@ -43,16 +37,8 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndUpperBoundWithinTolerance;
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        var testValue = lhs;
-        var bindingValue = rhs;
-        var isAboveLowerBound = testValue.KmsValue >= bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
-        var upperBoundNotExceeded =
-            testValue.KmsValue + testValue.KmsUpperAbsoluteError <=
-            bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
-        return isAboveLowerBound && upperBoundNotExceeded;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ContainmentLadder.Evaluate(lhs, rhs).NominalAndUpperWithin;
 
     public override string Symbol => "[≓}";
 }
@@ -71,16 +57,8 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndLowerBoundWithinTolerance;
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        var testValue = lhs;
-        var bindingValue = rhs;
-        var isBelowUpperBound = testValue.KmsValue <= bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
-        var lowerBoundNotViolated =
-            testValue.KmsValue - testValue.KmsLowerAbsoluteError >=
-            bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
-        return isBelowUpperBound && lowerBoundNotViolated;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ContainmentLadder.Evaluate(lhs, rhs).NominalAndLowerWithin;
 
     public override string Symbol => "[≒}";
 }

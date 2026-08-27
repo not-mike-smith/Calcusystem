@@ -19,14 +19,11 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     public override string Symbol => "≃";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return IsWithinTolerance(lhs, rhs) && IsWithinTolerance(rhs, lhs);
-    }
-
-    private bool IsWithinTolerance(Measurand x, Measurand y)
-    {
-        return x.KmsValue >= y.KmsValue - y.KmsLowerAbsoluteError &&
-               x.KmsValue <= y.KmsValue + y.KmsUpperAbsoluteError;
-    }
+    /// <remarks>
+    /// The nominal containment rung applied in both directions — a quantifier variation on the ladder rather
+    /// than a rung of its own, which is why this operator has no unique arithmetic left.
+    /// </remarks>
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ContainmentLadder.Evaluate(lhs, rhs).NominalWithin &&
+        ContainmentLadder.Evaluate(rhs, lhs).NominalWithin;
 }
