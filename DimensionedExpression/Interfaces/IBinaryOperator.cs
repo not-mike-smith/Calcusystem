@@ -1,6 +1,8 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
@@ -34,6 +36,18 @@ public interface IBinaryOperator : IIdentified
     bool IsCommutative { get; }
 
     /// <summary>
+    /// The operator's notation — <c>&lt;&lt;</c>, <c>=}</c>, <c>==</c>. Unique across the operators, and the
+    /// name they are documented under in <c>BinaryOperators/OPERATORS.md</c>.
+    /// </summary>
+    /// <remarks>
+    /// On the interface because it is how a relationship identifies itself to a reader — <c>ToString()</c> is
+    /// <c>{Lhs} {Symbol} {Rhs}</c> — so anything holding an <see cref="IBinaryOperator"/> and reporting on it
+    /// needs it. Presentation only: nothing dispatches on it, and <c>BinaryOperatorKind</c> is what the wire
+    /// carries.
+    /// </remarks>
+    string Symbol { get; }
+
+    /// <summary>
     /// What this relationship does to the problem — see <see cref="DimensionedExpression.SolvingRole"/>.
     /// </summary>
     /// <remarks>
@@ -58,10 +72,66 @@ public interface IBinaryOperator : IIdentified
     bool IsDetermining { get; }
 
     /// <summary>
-    /// Whether the relationship holds: three-valued — <see langword="true"/> / <see langword="false"/>, or
-    /// <see langword="null"/> when <see cref="AreBothSidesFullyDescribed"/> is false and the answer is unknown.
+    /// Which side is being judged, or <see langword="null"/> where the relationship draws no such distinction.
     /// </summary>
-    bool? IsSatisfied();
+    /// <remarks>
+    /// <para>
+    /// Derived from <see cref="SolvingRole"/> and the operand positions, never stored. A
+    /// <see cref="DimensionedExpression.SolvingRole.Requirement"/> tests one thing against another, and by
+    /// construction the thing under test is <see cref="Lhs"/>; an
+    /// <see cref="DimensionedExpression.SolvingRole.Equation"/> or
+    /// <see cref="DimensionedExpression.SolvingRole.Coherence"/> has no such asymmetry — neither side of
+    /// <c>T_eos == T_path</c> is the one being judged — so both are null there.
+    /// </para>
+    /// <para>
+    /// Deriving rather than storing is what keeps this from going stale: there is nothing beside the operands
+    /// that a later change could leave pointing at the wrong one.
+    /// </para>
+    /// </remarks>
+    IExpression? Subject { get; }
+
+    /// <summary>
+    /// What <see cref="Subject"/> is being judged against, or <see langword="null"/> where the relationship
+    /// draws no such distinction. Non-null exactly when <see cref="Subject"/> is.
+    /// </summary>
+    /// <remarks>
+    /// "Criterion" rather than "reference", which is already spoken for by <c>ProvenanceFactory.Reference</c>,
+    /// and rather than "expected", which lies about corroboration — where two peers are compared and neither
+    /// was expected — and about a failed equation, where neither side is the authority.
+    /// </remarks>
+    IExpression? Criterion { get; }
+
+    /// <summary>
+    /// Whether the relationship holds for the two values supplied — the predicate alone, with no reading of the
+    /// model and no traversal.
+    /// </summary>
+    /// <remarks>
+    /// The counterpart of <see cref="IExpression.ComputeFrom"/> for relationships, and the reason it exists is
+    /// the same: a verdict must be a function of the values it was handed, not of a fresh read of the model.
+    /// Without this seam a check evaluated during a calculation-at-trial-values would silently report on the
+    /// <i>stored</i> values instead, and would re-walk both subgraphs the calculation had just finished walking.
+    /// </remarks>
+    /// <param name="lhs">The value of <see cref="Lhs"/>.</param>
+    /// <param name="rhs">The value of <see cref="Rhs"/>.</param>
+    bool IsSatisfiedGiven(Measurand lhs, Measurand rhs);
+
+    /// <summary>
+    /// Whether the relationship holds: three-valued — <see langword="true"/> / <see langword="false"/>, or
+    /// <see langword="null"/> when either side does not resolve and the answer is unknown.
+    /// </summary>
+    /// <remarks>
+    /// Computes both sides and delegates to <see cref="IsSatisfiedGiven"/>. Convenient for asking about one
+    /// relationship in isolation; a caller checking a whole system should use <c>Calculate</c>, which resolves
+    /// every node once and reads the operands out of what it already computed.
+    /// </remarks>
+    /// <param name="overrides">
+    /// Values supplied for this evaluation only, taking precedence over a variable's own — the same bindings
+    /// <see cref="IExpression.ComputeIfDetermined"/> takes.
+    /// </param>
+    /// <param name="propagator">How uncertainties are combined, or null for the conservative default.</param>
+    bool? IsSatisfied(
+        IReadOnlyDictionary<Variable, Measurand>? overrides = null,
+        IErrorPropagator? propagator = null);
 
     /// <summary>Whether both operands have values, so <see cref="IsSatisfied"/> can return a definite result.</summary>
     bool AreBothSidesFullyDescribed { get; }

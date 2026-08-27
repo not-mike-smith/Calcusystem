@@ -1,9 +1,11 @@
 # Binary Operator Taxonomy
 
-All operators evaluate `IsSatisfied()` → `bool?` (returns `null` when either side is unbound).
+Every operator supplies one predicate, `IsSatisfiedGiven(lhs, rhs)` → `bool` — the **Condition** column below, and nothing else. Resolving the two sides is the base class's job: `IsSatisfied(overrides?, propagator?)` → `bool?` computes both operands and delegates, answering `null` when either does not resolve.
 
 Interval notation: for a `Measurand` *v*, its uncertainty interval is
 `[v.KmsValue − v.KmsLowerAbsoluteError, v.KmsValue + v.KmsUpperAbsoluteError]`.
+
+Where the Commutative column says ✗, **`Lhs` is the value under test and `Rhs` is the bound**. That convention is what `IBinaryOperator.Subject` / `Criterion` report — see the [assembly README](../README.md).
 
 ---
 

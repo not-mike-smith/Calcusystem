@@ -73,6 +73,35 @@ public static class SystemCalculation
             .Where(v => ! v.IsFullyDescribed && ! overrides.ContainsKey(v))
             .ToList();
 
-        return new Calculation(overrides, values, unresolved, missing);
+        var outcomes = system.Relationships.Select(r => Judge(r, values)).ToList();
+
+        return new Calculation(overrides, values, unresolved, missing, outcomes);
+    }
+
+    /// <summary>
+    /// Reads a relationship's two operands out of what has already been computed and asks the operator's
+    /// predicate about them.
+    /// </summary>
+    /// <remarks>
+    /// The reason verdicts are produced here rather than by calling <c>relationship.IsSatisfied()</c>. That
+    /// would re-walk both subgraphs this calculation has just finished walking, twice per relationship, and —
+    /// worse — it would resolve them against the <i>stored</i> model, so a calculation run at trial values would
+    /// quietly report checks against values it was told to ignore. Both problems disappear by handing the
+    /// operator the values instead of letting it fetch them.
+    /// </remarks>
+    private static RelationshipOutcome Judge(
+        IBinaryOperator relationship,
+        IReadOnlyDictionary<IExpression, Measurand> values)
+    {
+        var lhs = values.GetValueOrDefault(relationship.Lhs);
+        var rhs = values.GetValueOrDefault(relationship.Rhs);
+
+        // Undetermined rather than failed. A check whose operands did not resolve has not been run, and
+        // reporting it as false would manufacture a finding out of a missing value.
+        var verdict = lhs is not null && rhs is not null
+            ? relationship.IsSatisfiedGiven(lhs, rhs)
+            : (bool?)null;
+
+        return new RelationshipOutcome(relationship, verdict, lhs, rhs);
     }
 }

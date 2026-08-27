@@ -112,15 +112,28 @@ All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and
 
 ### Binary operators (`BinaryOperators/`)
 
-All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutative`, `bool? IsSatisfied()`, `AreBothSidesFullyDescribed`) via `BinaryOperatorBase` and its `CommutativeOperatorBase` / `NonCommutativeOperatorBase` splits. **`IsSatisfied()` returns `null` when either side is not fully described** — a three-valued result (`true` / `false` / `unknown`), not a bare bool.
+All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutative`, `Symbol`, `AreBothSidesFullyDescribed`) via `BinaryOperatorBase` and its `CommutativeOperatorBase` / `NonCommutativeOperatorBase` splits.
+
+**A verdict comes in two halves**, mirroring `ComputeFrom` / `ComputeIfDetermined` on expressions:
+
+| | Answers | Reads |
+| --- | --- | --- |
+| `bool IsSatisfiedGiven(lhs, rhs)` | the predicate over two supplied values | nothing — a pure function |
+| `bool? IsSatisfied(overrides?, propagator?)` | the same, having resolved both sides first | the model, plus any `overrides` |
+
+**`IsSatisfied()` returns `null` when either side does not resolve** — a three-valued result (`true` / `false` / `unknown`), not a bare bool. Each operator supplies only the predicate; resolving both sides and answering `null` if either is missing is identical for all thirteen, so it lives on the base class rather than being copied thirteen times.
+
+The split exists because **a verdict must be a function of the values it was handed.** `Calculate` has already computed every node; if it asked each operator instead, the operator would re-walk both subgraphs — twice per relationship — and, worse, would resolve them against the *stored* model, so a calculation run at trial values would quietly report checks against values it was told to ignore. See `Calcusystem.Analysis` for the outcomes it produces.
 
 There are three families — equality, tolerance (compatibility within uncertainty), and inequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
 
-One construction wrinkle: **`EqualityOperator` is the only operator with constructor arguments** — an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) and `isDetermining` (below). Every other operator is constructed purely through `required` init properties:
+One construction wrinkle: **`EqualityOperator` is the only operator with constructor arguments** — an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) and a `SolvingRole` (below). Every other operator is constructed purely through `required` init properties:
 
 ```csharp
-var op = new WhollyWithinToleranceOperator      { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = spec };
-var eq = new EqualityOperator(estimator, true)  { Id = Constants.CREATE_NEW, Lhs = a,        Rhs = b   };
+var op = new WhollyWithinToleranceOperator { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = spec };
+
+var eq = new EqualityOperator(estimator, SolvingRole.Equation)
+    { Id = Constants.CREATE_NEW, Lhs = a, Rhs = b };
 ```
 
 ### `SolvingRole` — what a relationship does to the problem
@@ -142,6 +155,22 @@ var eq = new EqualityOperator(estimator, true)  { Id = Constants.CREATE_NEW, Lhs
 **Only `EqualityOperator` can be anything but `Requirement`.** Ordering and tolerance relations confine a value to an interval rather than producing a point, so nothing can be derived from them: `BinaryOperatorBase.SolvingRole` returns `Requirement` and the other twelve offer no constructor parameter to say otherwise. Nothing to validate, nothing to throw — an operator that cannot determine cannot be built claiming it does.
 
 `solvingRole` has **no default** on `EqualityOperator`, because all three readings are common and none is safe to assume. Every construction states its intent.
+
+### `Subject` and `Criterion` — the roles of the two *sides*
+
+A different axis from `SolvingRole`, and the reason that enum is named for the axis rather than the carrier: this is about presenting a result and says nothing about the shape of the problem. `IExpression? Subject` and `IExpression? Criterion` say whether a relationship distinguishes its operands at all.
+
+| `SolvingRole` | `Subject` | `Criterion` |
+| --- | --- | --- |
+| `Requirement` | `Lhs` — the value under test | `Rhs` — what it is tested against |
+| `Equation` | `null` | `null` |
+| `Coherence` | `null` | `null` |
+
+Twelve of the thirteen operators are always requirements, and their `Lhs` is the value under test by construction — which is what the table in [`OPERATORS.md`](BinaryOperators/OPERATORS.md) has always documented. An `Equation` or `Coherence` has no such asymmetry: neither side of `T_eos == T_path` is the one being judged, and labelling one would invent an authority the model never asserted.
+
+"Criterion" rather than "reference", which is already spoken for by `ProvenanceFactory.Reference`, and rather than "expected", which lies about corroboration — two peers compared, neither expected — and about a failed equation, where neither side is the authority.
+
+**Derived, never stored.** There is deliberately no side-labelling enum, so nothing sits beside the operands that a later change could leave pointing at the wrong one. The consequence worth knowing: `Criterion is not null` is *exactly* `SolvingRole is Requirement`, which is also what separates a **violation** from an **inconsistency** in a calculation's outcomes. The role structure and the finding taxonomy turn out to be one distinction viewed twice.
 
 Note `SolvingRole` has **no zero member** — none of the three means "no role", so an unsupplied value is detectably invalid rather than silently a `Requirement`.
 

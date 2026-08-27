@@ -1,6 +1,7 @@
 
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -18,14 +19,8 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "<<";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue - rhs.KmsLowerAbsoluteError;
     }
 }
@@ -45,14 +40,8 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "<^";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue + rhs.KmsUpperAbsoluteError;
     }
 }
@@ -71,14 +60,8 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "<~";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return lhs.KmsValue < rhs.KmsValue;
     }
 }
@@ -97,14 +80,8 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => ">>";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue + rhs.KmsUpperAbsoluteError;
     }
 }
@@ -124,14 +101,8 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => ">v";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue - rhs.KmsLowerAbsoluteError;
     }
 }
@@ -150,14 +121,8 @@ public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => ">~";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return lhs.KmsValue > rhs.KmsValue;
     }
 }

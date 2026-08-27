@@ -61,6 +61,11 @@ calc.ValueOf(f);     // one node's value, or null
 calc.Unresolved;     // the expressions it references that could not be computed
 calc.MissingValues;  // the unbound variables responsible
 calc.IsComplete;     // nothing outstanding
+
+calc.Outcomes;       // what each relationship did — one entry per relationship
+calc.Violations;     // requirements that did not hold
+calc.Inconsistencies;// equations and coherence assertions that did not hold
+calc.Undetermined;   // relationships a missing value left unjudged
 ```
 
 **Named for the engineering artefact, not the operation.** A calculation is a thing an engineer produces, keeps, and hands to a reviewer — and it is defined as much by its inputs as its outputs, which is why `Overrides` rides on the record. A bare set of values is not reproducible or reviewable without the assumptions that produced it, and carrying both is what lets two calculations of the same system be compared on equal terms.
@@ -76,6 +81,35 @@ That also makes both cheap: `MissingValues` and `Flatten`'s unknowns are the sys
 **Each node is computed once.** Nodes are visited in dependency order and handed the values already established, via `IExpression.ComputeFrom`. Contrast `CalculateValueIfDetermined()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here. This is the caching a node deliberately cannot do for itself: a node has no way to learn that a leaf beneath it was reassigned, whereas `Calculate` knows the graph is unchanged for the duration of a run.
 
 `Calculation` is a snapshot, not a live view: a pure function of the system and its overrides, holding immutable `Measurand`s. Later assignments do not change it; re-running is how you get a newer one. `Values` covers every node reached, which is what makes it the natural home for caching across runs too.
+
+### Relationship outcomes
+
+A calculation reports on the model's **relationships** as well as its values. Every relationship yields one `RelationshipOutcome` — the verdict, plus the two values it was reached on.
+
+```csharp
+public sealed record RelationshipOutcome(
+    IBinaryOperator Relationship, bool? IsSatisfied, Measurand? Lhs, Measurand? Rhs);
+```
+
+**Every relationship appears exactly once, including the ones that could not be judged.** A relationship missing from the report is indistinguishable from one that passed, and that is the reading error worth designing against: an engineer scanning a clean result must be able to tell "the check passed" from "the check never ran". A side that did not resolve gives `IsSatisfied == null` — outstanding, not passing, and not failing either. Manufacturing a `false` out of a missing value would invent a finding.
+
+| View | Contains | Says |
+| --- | --- | --- |
+| `Violations` | unsatisfied, **has a criterion** | a value fell outside a bound it was tested against — the model is coherent, the design or the measurement is out of spec |
+| `Inconsistencies` | unsatisfied, **no criterion** | a failing `Equation` or `Coherence`. Nothing identifies a side at fault, so the finding is against the model or its inputs |
+| `Undetermined` | verdict `null` | a side did not resolve; the check is still outstanding |
+
+The split is `Relationship.Criterion is not null`, which is exactly `SolvingRole is Requirement`. That the labelling of a relationship's two *sides* and the taxonomy of its *findings* turn out to be one distinction viewed twice is the best evidence the model is right.
+
+**`IsComplete` stays about values.** A calculation with a violated requirement is complete and has a finding; a half-built model can already have a violation worth reporting. Folding the two together would leave a caller unable to ask either question. `AllRelationshipsHold` is the separate one.
+
+**Definitions are checked too, not just constraints.** A determining equality whose sides are both already known determines nothing — it is the redundancy `RedundantEquations` reports — but whether the redundant routes *agree* is precisely the finding an over-determined system exists to produce. This is where degrees of freedom and the calculation meet, and it is the seed of data reconciliation.
+
+#### Why the verdict is computed here rather than by asking the operator
+
+`IBinaryOperator` splits a verdict in two: `IsSatisfiedGiven(lhs, rhs)` is the predicate over two supplied values, and `IsSatisfied(overrides?, propagator?)` resolves both sides first and delegates. `Calculate` reads the operands out of `Values` — already computed — and calls the first.
+
+Calling the second instead would be wrong twice. It re-walks both subgraphs this calculation has just finished walking, twice per relationship. And it resolves them against the **stored** model, so a calculation run at trial values would quietly report verdicts about values it was explicitly told to ignore — wrong in a way nothing catches, which is why verdicts were left out of `Calculation` when the walk first shipped rather than added conditionally correct. Handing the operator its values instead of letting it fetch them removes both.
 
 ### Uncertainty treatment
 
@@ -160,7 +194,7 @@ Flattening first makes that mistake unavailable. A forty-stage distillation colu
 
 ## Scope boundaries
 
-**What belongs here:** reducing a system to unknowns and equations, degrees of freedom and classification, calculating a system's values, and — as they arrive — constraint reporting, structural analysis (bipartite matching / Dulmage–Mendelsohn), and the solver abstraction.
+**What belongs here:** reducing a system to unknowns and equations, degrees of freedom and classification, calculating a system's values, judging its relationships and reporting the findings, and — as they arrive — structural analysis (bipartite matching / Dulmage–Mendelsohn) and the solver abstraction.
 
 Both entry points are extension methods on `ExpressionSystem`, so they read as `system.Flatten()` and `system.Calculate()` without the expression layer knowing this one exists. That direction is deliberate: it is what lets a second strategy — a solver, an interval evaluator — sit beside these rather than inside the domain type.
 
