@@ -1,6 +1,7 @@
 ﻿
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -20,14 +21,8 @@ public class AnyToleranceOverlapOperator : CommutativeOperatorBase
 
     public override string Symbol => "≈";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         var (smallerValue, biggerValue) = lhs.KmsValue < rhs.KmsValue
             ? (lhs, rhs)
             : (rhs, lhs);

@@ -19,14 +19,8 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     public override string Symbol => "≃";
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         return IsWithinTolerance(lhs, rhs) && IsWithinTolerance(rhs, lhs);
     }
 

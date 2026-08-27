@@ -2,6 +2,8 @@
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
+using Calcusystem.Measurement;
+using Calcusystem.Measurement.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.BaseModels;
 
@@ -14,8 +16,30 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public required IExpression Rhs { get; init; }
     public IProvenance? Provenance { get; set; }
     public abstract bool IsCommutative { get; }
-    public abstract bool? IsSatisfied(); // TODO? move to extension?
     public abstract string Symbol { get; }
+
+    /// <inheritdoc/>
+    public abstract bool IsSatisfiedGiven(Measurand lhs, Measurand rhs);
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Implemented once here rather than on each operator: resolving both sides and answering null if either is
+    /// missing is identical for all thirteen, and only the comparison below the guard differs. That comparison is
+    /// <see cref="IsSatisfiedGiven"/>, which is also what a calculation calls directly with values it has
+    /// already computed.
+    /// </remarks>
+    public bool? IsSatisfied(
+        IReadOnlyDictionary<Variable, Measurand>? overrides = null,
+        IErrorPropagator? propagator = null)
+    {
+        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
+        // "not fully described" case the guard used to ask for separately.
+        var lhs = Lhs.ComputeIfDetermined(overrides, propagator);
+        var rhs = Rhs.ComputeIfDetermined(overrides, propagator);
+        if (lhs is null || rhs is null) return null;
+
+        return IsSatisfiedGiven(lhs, rhs);
+    }
 
     /// <inheritdoc/>
     /// <remarks>
@@ -27,6 +51,12 @@ public abstract class BinaryOperatorBase : IBinaryOperator
 
     /// <inheritdoc/>
     public bool IsDetermining => SolvingRole is SolvingRole.Equation or SolvingRole.Coherence;
+
+    /// <inheritdoc/>
+    public IExpression? Subject => SolvingRole is SolvingRole.Requirement ? Lhs : null;
+
+    /// <inheritdoc/>
+    public IExpression? Criterion => SolvingRole is SolvingRole.Requirement ? Rhs : null;
 
     /// <summary>Which operator this is, for state capture. Declared alongside <see cref="Symbol"/>.</summary>
     protected abstract BinaryOperatorKind Kind { get; }

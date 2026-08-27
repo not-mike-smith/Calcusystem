@@ -1,6 +1,7 @@
 
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -16,14 +17,8 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.WithinBindingTolerance;
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         var testValue = lhs;
         var bindingValue = rhs;
         var bindingLowerBound = bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
@@ -48,14 +43,8 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndUpperBoundWithinTolerance;
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         var testValue = lhs;
         var bindingValue = rhs;
         var isAboveLowerBound = testValue.KmsValue >= bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
@@ -82,14 +71,8 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndLowerBoundWithinTolerance;
 
-    public override bool? IsSatisfied()
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
-        // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined();
-        var rhs = Rhs.ComputeIfDetermined();
-        if (lhs is null || rhs is null) return null;
-
         var testValue = lhs;
         var bindingValue = rhs;
         var isBelowUpperBound = testValue.KmsValue <= bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
