@@ -34,16 +34,26 @@ public interface IBinaryOperator : IIdentified
     bool IsCommutative { get; }
 
     /// <summary>
-    /// Whether this relationship <i>determines</i> a value — an equation the solver may use to compute an
-    /// unknown — rather than merely <i>checking</i> one. Determining relationships are the equations counted
-    /// against the unknowns when a system's degrees of freedom are calculated; every other relationship is a
-    /// check and reduces degrees of freedom by nothing.
+    /// What this relationship does to the problem — see <see cref="DimensionedExpression.SolvingRole"/>.
     /// </summary>
     /// <remarks>
-    /// Read-only, and settable only where it can meaningfully be true. Ordering and tolerance relations yield an
-    /// interval rather than a point, so no value can be derived from them; their implementations return
-    /// <see langword="false"/> unconditionally and their constructors offer no way to say otherwise. This is why
-    /// the property needs no validation — an operator that cannot determine cannot be built claiming it does.
+    /// Read-only, and settable only where it can meaningfully be anything else. Ordering and tolerance relations
+    /// confine a value to an interval rather than producing a point, so nothing can be derived from them: their
+    /// implementations return <see cref="DimensionedExpression.SolvingRole.Requirement"/> unconditionally and
+    /// their constructors offer no way to say otherwise. This is why the property needs no validation — an
+    /// operator that cannot determine cannot be built claiming it does.
+    /// </remarks>
+    SolvingRole SolvingRole { get; }
+
+    /// <summary>
+    /// Whether this relationship contributes a residual, and so is counted against the unknowns when degrees of
+    /// freedom are calculated. True for <see cref="DimensionedExpression.SolvingRole.Equation"/> and
+    /// <see cref="DimensionedExpression.SolvingRole.Coherence"/> alike.
+    /// </summary>
+    /// <remarks>
+    /// Derived from <see cref="SolvingRole"/> rather than stored beside it, so the two cannot disagree. It stays
+    /// as a named property because "does this affect the count" is the question degrees-of-freedom code actually
+    /// asks, and re-deriving it at each call site would spread one decision across several.
     /// </remarks>
     bool IsDetermining { get; }
 

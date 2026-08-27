@@ -45,7 +45,7 @@ public static class SystemFlattener
         // Only determining relationships are equations. A tolerance or ordering relation constrains a value to
         // an interval, which no solver can turn into a point, so counting one here would claim a degree of
         // freedom had been removed when it had not.
-        var equations = system.Definitions
+        var equations = system.Relationships.Where(r => r.IsDetermining)
             .Select(r => new Equation(r, r.FreeVariables().Where(IsUnknown).Distinct().ToList()))
             .ToList();
 

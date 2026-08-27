@@ -35,7 +35,7 @@ public static class BinaryOperatorFactory
         BinaryOperatorBase op = state.Kind switch
         {
             BinaryOperatorKind.Equality =>
-                new EqualityOperator(equalityEstimator, state.IsDetermining) { Id = state.Id, Lhs = lhs, Rhs = rhs },
+                new EqualityOperator(equalityEstimator, state.SolvingRole) { Id = state.Id, Lhs = lhs, Rhs = rhs },
             BinaryOperatorKind.AnyToleranceOverlap =>
                 new AnyToleranceOverlapOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
             BinaryOperatorKind.MutuallyWithinTolerance =>

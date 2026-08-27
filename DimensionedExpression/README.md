@@ -123,13 +123,27 @@ var op = new WhollyWithinToleranceOperator      { Id = Constants.CREATE_NEW, Lhs
 var eq = new EqualityOperator(estimator, true)  { Id = Constants.CREATE_NEW, Lhs = a,        Rhs = b   };
 ```
 
-### `IsDetermining` — equations vs. checks
+### `SolvingRole` — what a relationship does to the problem
 
-`IBinaryOperator.IsDetermining` says whether a relationship *determines* a value (an equation a solver may use to compute an unknown) or merely *checks* one. It is what the degrees-of-freedom calculation counts against the unknowns; a non-determining relationship reduces DoF by nothing.
+`IBinaryOperator.SolvingRole` says what a relationship contributes:
 
-**Only `EqualityOperator` can be determining.** Ordering and tolerance relations yield an interval rather than a point, so no value can be derived from them: `BinaryOperatorBase.IsDetermining` returns `false` and the other twelve operators offer no constructor parameter to say otherwise. There is nothing to validate and nothing to throw — an operator that cannot determine cannot be built claiming it does.
+| Role | Meaning | Effect on DoF |
+| --- | --- | --- |
+| `Equation` | contributes a residual a solver drives to zero — `mass_in == mass_out` | removes one |
+| `Coherence` | asserts that separately computed routes to one quantity agree — `T_eos == T_path` | removes one |
+| `Requirement` | bounds a value without producing one — `T_out < T_max` | removes none |
 
-`isDetermining` has **no default** on `EqualityOperator`, because both readings are common and neither is safe to assume: `mass_in == mass_out` is an equation to solve, `measured_T == design_T` is an assertion to check. Every construction states its intent.
+`IsDetermining` remains, **derived** as `Equation or Coherence` — that's the question degrees-of-freedom code actually asks, and deriving it means it can't disagree with the role.
+
+**Why three and not a boolean.** "Not an equation" was doing two jobs. And the `Equation`/`Coherence` split is *not recoverable from the predicate* — both assert equality, and only the modeller knows whether one side defines a quantity or the two are independent routes to it. A solver wants that intent: any route is a usable initial estimate for the others, and a coherence group is where to relax an over-determined system. It's also why the **wire stores the role, not `IsDetermining`** — a boolean writes `true` for both and they can't be told apart again on load.
+
+**Not** in here: whether a requirement is *enforced or merely reported*. That's a search policy belonging to whoever asks for a solve, while this is structure the model owns.
+
+**Only `EqualityOperator` can be anything but `Requirement`.** Ordering and tolerance relations confine a value to an interval rather than producing a point, so nothing can be derived from them: `BinaryOperatorBase.SolvingRole` returns `Requirement` and the other twelve offer no constructor parameter to say otherwise. Nothing to validate, nothing to throw — an operator that cannot determine cannot be built claiming it does.
+
+`solvingRole` has **no default** on `EqualityOperator`, because all three readings are common and none is safe to assume. Every construction states its intent.
+
+Note `SolvingRole` has **no zero member** — none of the three means "no role", so an unsupplied value is detectably invalid rather than silently a `Requirement`.
 
 ---
 
@@ -161,18 +175,19 @@ system.Add(new DefinitelyLessThanOperator { … });            // a relationship
 | `DerivedExpressions` | every computed node it contains, including nodes nested inside others |
 | `Relationships` | every asserted relationship — definitions and constraints alike |
 
-plus two read-only views over that third one:
+plus three read-only views over that third one, one per [`SolvingRole`](#solvingrole--what-a-relationship-does-to-the-problem):
 
 | View | Contents |
 | --- | --- |
-| `Definitions` | relationships where `IsDetermining` — always-true relationships used to *compute* unknowns (conservation laws, constitutive equations) |
-| `Constraints` | everything else — tolerance/ordering checks evaluated against values (pass / fail / unknown) |
+| `Equations` | relationships that define a quantity — conservation laws, constitutive equations |
+| `CoherenceChecks` | relationships asserting that separately computed routes to one quantity agree |
+| `Requirements` | everything else — tolerance/ordering checks evaluated against values (pass / fail / unknown) |
 
 ### Membership is reachability
 
 **`Add` absorbs the whole subgraph beneath what it is given.** Hand it a product and its factors join the system; hand it a relationship and both operands do, along with anything beneath them. So `Variables` is not "the variables you mentioned by name" — it is every variable the system reaches, and `GetAllExpressions()` is complete rather than a subset.
 
-This is the same rule that made `Definitions` and `Constraints` views rather than lists. *What the system contains* and *what the system reaches* are two ways of asking one question, and any design that answers them separately eventually answers them differently. Concretely, it did: a limit compared against but never filed was invisible to `Calculate` while `Flatten` counted it, and a node nested inside another was referenced by id on the wire without ever being written.
+This is the same rule that made those three views rather than lists. *What the system contains* and *what the system reaches* are two ways of asking one question, and any design that answers them separately eventually answers them differently. Concretely, it did: a limit compared against but never filed was invisible to `Calculate` while `Flatten` counted it, and a node nested inside another was referenced by id on the wire without ever being written.
 
 Absorbing **eagerly** is safe only because an expression's operands are fixed at construction — see [Structure is immutable](#structure-is-immutable-values-are-not). Were the graph able to change afterwards, a set captured at `Add` time could drift from what the graph holds, and the collections would need re-deriving on every read.
 
@@ -237,7 +252,7 @@ The axis is *does rebuilding need outside help*, not where a node sits in the tr
 Where a state carries a discriminator, the concrete type is chosen by inspecting it, so reconstruction is a static gateway over the closed set rather than a `static abstract` on each type — the same treatment `IUncertainty` and `IProvenance` get:
 
 - `ExpressionFactory.FromState(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromState`, which is where per-type construction actually lives.
-- `BinaryOperatorFactory.FromState(state, resolve, equalityEstimator)` — a gateway rather than per-type implementations, because construction is identical across all thirteen apart from which type is instantiated, and because `EqualityOperator` needs an `IEqualityEstimating` that a two-argument seam has nowhere to accept. `BinaryOperatorState.IsDetermining` is read only for the equality kind; the other twelve have no way to represent it, so reconstruction drops it rather than inventing an equation.
+- `BinaryOperatorFactory.FromState(state, resolve, equalityEstimator)` — a gateway rather than per-type implementations, because construction is identical across all thirteen apart from which type is instantiated, and because `EqualityOperator` needs an `IEqualityEstimating` that a two-argument seam has nowhere to accept. `BinaryOperatorState.SolvingRole` is read only for the equality kind; the other twelve have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation.
 - `ProvenanceFactory.FromState(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
 
 If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Serialization` is still the assembly to reach for; it consumes these seams.

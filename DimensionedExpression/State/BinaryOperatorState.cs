@@ -55,10 +55,12 @@ public enum BinaryOperatorKind
 /// <param name="Id">Stable identity.</param>
 /// <param name="LhsId">Id of the left-hand expression.</param>
 /// <param name="RhsId">Id of the right-hand expression.</param>
-/// <param name="IsDetermining">
-/// Whether this relationship is an equation the solver may use to compute an unknown, rather than a check over
-/// values already determined. Only the equality kind can store <see langword="true"/> here; for every other kind
-/// reconstruction ignores it, because those types have no way to represent it.
+/// <param name="SolvingRole">
+/// What this relationship does to the problem. Stored as the role rather than as the derived
+/// <c>IsDetermining</c> boolean, because that flattens <c>Equation</c> and <c>Coherence</c> together and they
+/// cannot be told apart again on load. Only the equality kind can store anything but
+/// <see cref="DimensionedExpression.SolvingRole.Requirement"/>; for every other kind reconstruction ignores it,
+/// because those types have no way to represent it.
 /// </param>
 /// <param name="Name">Optional human-readable name.</param>
 /// <param name="Description">Optional human-readable description.</param>
@@ -68,7 +70,7 @@ public readonly record struct BinaryOperatorState(
     string Id,
     string LhsId,
     string RhsId,
-    bool IsDetermining,
+    SolvingRole SolvingRole,
     string? Name,
     string? Description,
     ProvenanceState? Provenance);

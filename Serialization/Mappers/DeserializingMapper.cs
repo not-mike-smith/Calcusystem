@@ -206,7 +206,7 @@ public class DeserializingMapper
                 x.Id,
                 x.LhsId,
                 x.RhsId,
-                x.IsDetermining,
+                x.SolvingRole,
                 x.Name,
                 x.Description,
                 MapProvenance(x.Provenance)),

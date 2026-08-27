@@ -140,7 +140,7 @@ public class StateSeamTests
         var rhs = Leaf("r", 2);
 
         var restored = BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(BinaryOperatorKind.Equality, "eq", "l", "r", false, null, null, null),
+            new BinaryOperatorState(BinaryOperatorKind.Equality, "eq", "l", "r", SolvingRole.Requirement, null, null, null),
             new StubResolver().With("l", lhs).With("r", rhs),
             new AlwaysEqual());
 
@@ -169,7 +169,7 @@ public class StateSeamTests
         restored.Name.Should().Be("sys");
         restored.Variables.Should().HaveCount(2);
         restored.DerivedExpressions.Single().Should().BeSameAs(sum);
-        restored.Constraints.Single().Should().BeSameAs(op);
+        restored.Requirements.Single().Should().BeSameAs(op);
     }
 
     private sealed class AlwaysEqual : IEqualityEstimating

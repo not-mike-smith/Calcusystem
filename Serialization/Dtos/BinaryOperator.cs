@@ -1,3 +1,5 @@
+using Calcusystem.DimensionedExpression;
+
 ﻿using Calcusystem.Serialization.Interfaces;
 
 namespace Calcusystem.Serialization.Dtos;
@@ -12,7 +14,7 @@ public class BinaryOperator : ISerializedObject
     public required string RhsId { get; init; }
 
     /// <summary>Whether this relationship determines a value rather than merely checking one.</summary>
-    public bool IsDetermining { get; init; }
+    public SolvingRole SolvingRole { get; init; }
 
     public Provenance? Provenance { get; init; }
 }
