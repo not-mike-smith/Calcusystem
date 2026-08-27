@@ -112,7 +112,7 @@ All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and
 
 ### Binary operators (`BinaryOperators/`)
 
-All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutative`, `AreBothSidesFullyDescribed`) via `BinaryOperatorBase` and its `CommutativeOperatorBase` / `NonCommutativeOperatorBase` splits.
+All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutative`, `Symbol`, `AreBothSidesFullyDescribed`) via `BinaryOperatorBase` and its `CommutativeOperatorBase` / `NonCommutativeOperatorBase` splits.
 
 **A verdict comes in two halves**, mirroring `ComputeFrom` / `ComputeIfDetermined` on expressions:
 

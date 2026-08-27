@@ -56,6 +56,19 @@ public class VerdictSeamTests
     }
 
     /// <remarks>
+    /// `Symbol` is how a relationship identifies itself to a reader, and `OPERATORS.md` documents each operator
+    /// under its symbol — both of which quietly assume no two share one.
+    /// </remarks>
+    [Fact]
+    public void EveryOperatorHasItsOwnSymbol()
+    {
+        var symbols = AllOperators(Bound(1), Bound(1)).Select(o => o.Symbol).ToList();
+
+        symbols.Should().OnlyHaveUniqueItems();
+        symbols.Should().NotContain(s => string.IsNullOrWhiteSpace(s));
+    }
+
+    /// <remarks>
     /// The predicate takes values, so it cannot consult the model — which is what lets a calculation judge a
     /// relationship at trial values, and what stops it re-walking subgraphs it has already computed.
     /// </remarks>
@@ -77,7 +90,7 @@ public class VerdictSeamTests
         {
             reference.IsSatisfied()
                 .Should().Be(decoy.IsSatisfiedGiven(Kg(lhsValue, lhsErr), Kg(rhsValue, rhsErr)),
-                             decoy.GetType().Name);
+                             decoy.Symbol);
         }
     }
 
@@ -95,7 +108,7 @@ public class VerdictSeamTests
 
         foreach (var op in AllOperators(lhs, rhs))
         {
-            op.IsSatisfied().Should().BeNull($"{op.GetType().Name} cannot judge an unresolved side");
+            op.IsSatisfied().Should().BeNull($"{op.Symbol} cannot judge an unresolved side");
         }
     }
 
@@ -143,8 +156,8 @@ public class VerdictSeamTests
 
         foreach (var op in AllOperators(lhs, rhs).Where(o => o.SolvingRole is SolvingRole.Requirement))
         {
-            op.Subject.Should().Be(lhs, $"{op.GetType().Name} tests its left operand");
-            op.Criterion.Should().Be(rhs, $"{op.GetType().Name} tests against its right operand");
+            op.Subject.Should().Be(lhs, $"{op.Symbol} tests its left operand");
+            op.Criterion.Should().Be(rhs, $"{op.Symbol} tests against its right operand");
         }
     }
 
@@ -199,8 +212,8 @@ public class VerdictSeamTests
 
         foreach (var op in AllOperators(Bound(1), Bound(1)))
         {
-            (op.Criterion is not null).Should().Be(op.SolvingRole is SolvingRole.Requirement, op.GetType().Name);
-            (op.Criterion is not null).Should().Be(! op.IsDetermining, op.GetType().Name);
+            (op.Criterion is not null).Should().Be(op.SolvingRole is SolvingRole.Requirement, op.Symbol);
+            (op.Criterion is not null).Should().Be(! op.IsDetermining, op.Symbol);
         }
     }
 

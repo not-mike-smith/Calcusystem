@@ -16,6 +16,8 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public required IExpression Rhs { get; init; }
     public IProvenance? Provenance { get; set; }
     public abstract bool IsCommutative { get; }
+
+    /// <inheritdoc/>
     public abstract string Symbol { get; }
 
     /// <inheritdoc/>

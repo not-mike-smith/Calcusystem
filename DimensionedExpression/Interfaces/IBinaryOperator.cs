@@ -36,6 +36,18 @@ public interface IBinaryOperator : IIdentified
     bool IsCommutative { get; }
 
     /// <summary>
+    /// The operator's notation — <c>&lt;&lt;</c>, <c>=}</c>, <c>==</c>. Unique across the operators, and the
+    /// name they are documented under in <c>BinaryOperators/OPERATORS.md</c>.
+    /// </summary>
+    /// <remarks>
+    /// On the interface because it is how a relationship identifies itself to a reader — <c>ToString()</c> is
+    /// <c>{Lhs} {Symbol} {Rhs}</c> — so anything holding an <see cref="IBinaryOperator"/> and reporting on it
+    /// needs it. Presentation only: nothing dispatches on it, and <c>BinaryOperatorKind</c> is what the wire
+    /// carries.
+    /// </remarks>
+    string Symbol { get; }
+
+    /// <summary>
     /// What this relationship does to the problem — see <see cref="DimensionedExpression.SolvingRole"/>.
     /// </summary>
     /// <remarks>
