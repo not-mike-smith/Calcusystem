@@ -127,6 +127,17 @@ The split exists because **a verdict must be a function of the values it was han
 
 There are three families — equality, tolerance (compatibility within uncertainty), and inequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
 
+### The confidence ladder
+
+Under uncertainty a comparison has several nested answers, and the arithmetic producing any of them produces all of them. Ten of the thirteen operators are therefore **fixed-tier queries over two shared evaluations** rather than independent implementations:
+
+- **`OrderingLadder`** — `Possible` / `Nominal` / `Certain`, a clean chain, with `Achieved` reporting the strongest tier reached. The greater-than family is this ladder read with the operands swapped, so one evaluator serves four operators.
+- **`ContainmentLadder`** — `Overlaps` / `NominalWithin` / `NominalAndUpperWithin` / `NominalAndLowerWithin` / `WhollyWithin`. The middle rungs form a **lattice, not a chain**, because upper and lower bounds are independently checkable — so there is deliberately no single ordered `Achieved` here.
+
+`EqualityOperator` sits outside because its predicate is an injected strategy with no fixed interval condition to tier. `UpperBoundsLessThan` and `LowerBoundsGreaterThan` sit outside because they compare a derived *statistic* of each side — ceiling against ceiling, floor against floor — rather than asking how the quantities stand to one another.
+
+The named operators are kept as vocabulary: `AnyToleranceOverlap` says what it means better than "the bottom rung of the containment ladder". What changed is that the arithmetic happens once. The modeller also gets back more than they asked for — author "do these overlap at all", get `true`, and be able to learn the achieved rung was "wholly contained".
+
 One construction wrinkle: **`EqualityOperator` is the only operator with constructor arguments** — an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) and a `SolvingRole` (below). Every other operator is constructed purely through `required` init properties:
 
 ```csharp

@@ -19,10 +19,8 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "<<";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue - rhs.KmsLowerAbsoluteError;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        OrderingLadder.Evaluate(lhs, rhs).Certain;
 }
 
 /// <summary>
@@ -33,6 +31,11 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 /// Symbol: <b>&lt;^</b>
 /// <br/>
 /// Use when you need to know that Lhs's worst-case high value is bounded by Rhs's worst-case high value.
+/// <br/>
+/// <b>Off the confidence ladder, deliberately.</b> This compares a derived <i>statistic</i> of each side —
+/// ceiling against ceiling — rather than asking how the two quantities stand to one another, so it is not a
+/// tier of <see cref="OrderingLadder"/> and cannot be reached by strengthening or weakening one. It keeps its
+/// own single comparison.
 /// </summary>
 public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 {
@@ -40,10 +43,11 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "<^";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue + rhs.KmsUpperAbsoluteError;
-    }
+    /// <remarks>
+    /// Off the ladder deliberately — see the class summary. One comparison, written directly.
+    /// </remarks>
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue + rhs.KmsUpperAbsoluteError;
 }
 
 /// <summary>
@@ -60,10 +64,8 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "<~";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return lhs.KmsValue < rhs.KmsValue;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        OrderingLadder.Evaluate(lhs, rhs).Nominal;
 }
 
 /// <summary>
@@ -80,10 +82,9 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => ">>";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue + rhs.KmsUpperAbsoluteError;
-    }
+    /// <remarks>Greater-than is the ordering ladder read with the operands swapped.</remarks>
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        OrderingLadder.Evaluate(rhs, lhs).Certain;
 }
 
 /// <summary>
@@ -94,6 +95,11 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 /// Symbol: <b>&gt;v</b>
 /// <br/>
 /// Use when you need to know that Lhs's worst-case low value is above Rhs's worst-case low value.
+/// <br/>
+/// <b>Off the confidence ladder, deliberately</b>, for the same reason as
+/// <see cref="UpperBoundsLessThanOperator"/>: it compares floors, which is a statistic of each side rather than
+/// a claim about their ordering. Note it is not that operator's mirror image — one compares ceilings and the
+/// other floors, so neither is the other read with the operands swapped.
 /// </summary>
 public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 {
@@ -101,10 +107,11 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => ">v";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue - rhs.KmsLowerAbsoluteError;
-    }
+    /// <remarks>
+    /// Off the ladder deliberately — see the class summary. One comparison, written directly.
+    /// </remarks>
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        lhs.KmsValue - lhs.KmsLowerAbsoluteError > rhs.KmsValue - rhs.KmsLowerAbsoluteError;
 }
 
 /// <summary>
@@ -121,8 +128,7 @@ public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => ">~";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        return lhs.KmsValue > rhs.KmsValue;
-    }
+    /// <remarks>Greater-than is the ordering ladder read with the operands swapped.</remarks>
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        OrderingLadder.Evaluate(rhs, lhs).Nominal;
 }

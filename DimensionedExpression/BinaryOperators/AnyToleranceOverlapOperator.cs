@@ -21,14 +21,6 @@ public class AnyToleranceOverlapOperator : CommutativeOperatorBase
 
     public override string Symbol => "≈";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        var (smallerValue, biggerValue) = lhs.KmsValue < rhs.KmsValue
-            ? (lhs, rhs)
-            : (rhs, lhs);
-
-        var smallerValuePlusError = smallerValue.KmsValue + smallerValue.KmsUpperAbsoluteError;
-        var biggerValueMinusError = biggerValue.KmsValue - biggerValue.KmsLowerAbsoluteError;
-        return smallerValuePlusError >= biggerValueMinusError;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ContainmentLadder.Evaluate(lhs, rhs).Overlaps;
 }

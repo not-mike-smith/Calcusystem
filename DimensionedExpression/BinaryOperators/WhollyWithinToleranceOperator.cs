@@ -22,16 +22,6 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "[=}";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs)
-    {
-        var testValue = lhs;
-        var bindingValue = rhs;
-        var lowerBoundWithinTolerance = testValue.KmsValue - testValue.KmsLowerAbsoluteError >
-                                        bindingValue.KmsValue - bindingValue.KmsLowerAbsoluteError;
-
-        var upperBoundWithinTolerance = testValue.KmsValue + testValue.KmsUpperAbsoluteError <
-                                        bindingValue.KmsValue + bindingValue.KmsUpperAbsoluteError;
-
-        return lowerBoundWithinTolerance && upperBoundWithinTolerance;
-    }
+    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ContainmentLadder.Evaluate(lhs, rhs).WhollyWithin;
 }
