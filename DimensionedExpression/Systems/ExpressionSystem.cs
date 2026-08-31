@@ -3,6 +3,7 @@ using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Systems;
 
@@ -67,8 +68,25 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     public void Add(IExpression expression) => Absorb(expression);
 
     /// <summary>Adds <paramref name="relationship"/>, and both of its operands with everything beneath them.</summary>
+    /// <remarks>
+    /// The fail-fast gate for authoring. Comparing quantities that share no scale is a modelling mistake, not a
+    /// verdict — <c>10 kg ⌜&lt;⌟ 20 m</c> is not false, it is meaningless — and until now nothing said so,
+    /// though <c>Quantity</c> has always refused to add a mass to a length. Evaluation stays defensive anyway:
+    /// <c>MeasurandComparer</c> answers <c>Incomparable</c>, so a document assembled elsewhere still yields an
+    /// undetermined verdict rather than a confident wrong one.
+    /// </remarks>
+    /// <exception cref="IncompatibleDimensionsException">The two operands carry different dimensions.</exception>
     public void Add(IBinaryOperator relationship)
     {
+        // Dimensionality is known for every expression, bound or not, so this needs no values and holds for a
+        // relationship over unknowns.
+        if (relationship.Lhs.Dimensionality != relationship.Rhs.Dimensionality)
+        {
+            throw new IncompatibleDimensionsException(
+                $"Relationship '{relationship.Id}' compares {relationship.Lhs.Dimensionality} with " +
+                $"{relationship.Rhs.Dimensionality}.");
+        }
+
         Absorb(relationship.Lhs);
         Absorb(relationship.Rhs);
         _relationships.Add(relationship);
