@@ -102,7 +102,7 @@ public static class MeasurandComparer
     }
 
     /// <summary>
-    /// The smallest error bar either measurand actually has, or zero if neither has one.
+    /// The smallest finite error bar either measurand actually has, or zero if neither has one.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -116,6 +116,13 @@ public static class MeasurandComparer
     /// limit of zero is ordinary: with the zero counted, <c>1e-20 ± 1e-9</c> reports as strictly less than an
     /// exact <c>0</c>, though nothing about that measurement can tell the two apart.
     /// </para>
+    /// <para>
+    /// Infinite error bars are skipped for the opposite reason, and the omission was a real defect: an infinite
+    /// bar made the threshold infinite, so <i>every</i> pair of finite values came back
+    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreed with 10 kg. An unbounded uncertainty says the
+    /// measurement resolves nothing, which is not the same as saying two values are the same, and it must not be
+    /// allowed to set a scale for anything.
+    /// </para>
     /// </remarks>
     private static double FinestNonZeroError(Measurand l, Measurand r)
     {
@@ -128,7 +135,7 @@ public static class MeasurandComparer
         var finest = 0d;
         foreach (var error in errors)
         {
-            if (error > 0 && (finest == 0 || error < finest)) finest = error;
+            if (error > 0 && double.IsFinite(error) && (finest == 0 || error < finest)) finest = error;
         }
 
         return finest;
