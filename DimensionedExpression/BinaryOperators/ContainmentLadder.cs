@@ -1,4 +1,5 @@
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -12,6 +13,11 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// independently checkable, so <see cref="NominalAndUpperWithin"/> and <see cref="NominalAndLowerWithin"/> are
 /// incomparable: either can hold without the other. That is why there is no single ordered <c>Achieved</c> here
 /// as there is for ordering; asking for one would force a total order onto rungs that genuinely lack it.
+/// </para>
+/// <para>
+/// Each rung is declared below as the <see cref="ComparisonRule"/>s it consists of, and the containment
+/// operators point at those declarations rather than restating them — so a rung and the operator named after it
+/// cannot drift apart.
 /// </para>
 /// <para>
 /// The implications that <i>do</i> hold all run downward, which is what makes the ladder sound:
@@ -43,31 +49,66 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// the band's edge.
 /// </param>
 public readonly record struct ContainmentLadder(
-    bool Overlaps,
-    bool NominalWithin,
-    bool NominalAndUpperWithin,
-    bool NominalAndLowerWithin,
-    bool WhollyWithin)
+    bool? Overlaps,
+    bool? NominalWithin,
+    bool? NominalAndUpperWithin,
+    bool? NominalAndLowerWithin,
+    bool? WhollyWithin)
 {
+    /// <summary>The subject's reported value is at or above the band's floor.</summary>
+    public static readonly ComparisonRule AboveFloor =
+        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound);
+
+    /// <summary>The subject's reported value is at or below the band's ceiling.</summary>
+    public static readonly ComparisonRule BelowCeiling =
+        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound);
+
+    /// <summary>The rungs of this ladder, as the rules each one asserts.</summary>
+    /// <remarks>
+    /// <see cref="OverlapsRules"/> is stated as "neither interval ends before the other begins" rather than as
+    /// two containments, which is what makes its symmetry visible: mirroring either rule gives the other.
+    /// </remarks>
+    public static readonly IReadOnlyList<ComparisonRule> OverlapsRules =
+    [
+        new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+    ];
+
+    /// <inheritdoc cref="OverlapsRules"/>
+    public static readonly IReadOnlyList<ComparisonRule> NominalWithinRules = [AboveFloor, BelowCeiling];
+
+    /// <inheritdoc cref="OverlapsRules"/>
+    public static readonly IReadOnlyList<ComparisonRule> NominalAndUpperWithinRules =
+    [
+        AboveFloor,
+        new(Landmark.UpperBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+    ];
+
+    /// <inheritdoc cref="OverlapsRules"/>
+    public static readonly IReadOnlyList<ComparisonRule> NominalAndLowerWithinRules =
+    [
+        BelowCeiling,
+        new(Landmark.LowerBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+    ];
+
+    /// <inheritdoc cref="OverlapsRules"/>
+    public static readonly IReadOnlyList<ComparisonRule> WhollyWithinRules =
+    [
+        new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.LowerBound),
+        new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.UpperBound),
+    ];
+
     /// <summary>Evaluates every rung of "<paramref name="lhs"/> is within <paramref name="rhs"/>".</summary>
-    public static ContainmentLadder Evaluate(Measurand lhs, Measurand rhs)
-    {
-        var subjectFloor = lhs.KmsValue - lhs.KmsLowerAbsoluteError;
-        var subjectCeiling = lhs.KmsValue + lhs.KmsUpperAbsoluteError;
-        var bandFloor = rhs.KmsValue - rhs.KmsLowerAbsoluteError;
-        var bandCeiling = rhs.KmsValue + rhs.KmsUpperAbsoluteError;
-
-        var aboveFloor = lhs.KmsValue >= bandFloor;
-        var belowCeiling = lhs.KmsValue <= bandCeiling;
-
-        // `aboveFloor` is implied by a ceiling that fits, and `belowCeiling` by a floor that fits, since a
-        // nominal value always lies between its own bounds. Both are still written out: relying on the
-        // implication would make each rung's condition depend on reasoning done somewhere else.
-        return new ContainmentLadder(
-            Overlaps: subjectCeiling >= bandFloor && bandCeiling >= subjectFloor,
-            NominalWithin: aboveFloor && belowCeiling,
-            NominalAndUpperWithin: aboveFloor && subjectCeiling <= bandCeiling,
-            NominalAndLowerWithin: belowCeiling && subjectFloor >= bandFloor,
-            WhollyWithin: subjectFloor > bandFloor && subjectCeiling < bandCeiling);
-    }
+    /// <remarks>
+    /// The middle rungs restate <see cref="AboveFloor"/> and <see cref="BelowCeiling"/> even though each is
+    /// implied by the bound test beside it — a nominal value always lies between its own bounds. Relying on that
+    /// implication would make a rung's condition depend on reasoning done elsewhere, and the implication is one
+    /// tolerance-aware comparison away from being only nearly true.
+    /// </remarks>
+    public static ContainmentLadder Evaluate(Measurand lhs, Measurand rhs) =>
+        new(Overlaps: ComparisonRule.AllSatisfied(OverlapsRules, lhs, rhs),
+            NominalWithin: ComparisonRule.AllSatisfied(NominalWithinRules, lhs, rhs),
+            NominalAndUpperWithin: ComparisonRule.AllSatisfied(NominalAndUpperWithinRules, lhs, rhs),
+            NominalAndLowerWithin: ComparisonRule.AllSatisfied(NominalAndLowerWithinRules, lhs, rhs),
+            WhollyWithin: ComparisonRule.AllSatisfied(WhollyWithinRules, lhs, rhs));
 }

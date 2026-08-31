@@ -262,9 +262,9 @@ public class ToleranceOperatorTests
     // ── EqualityOperator (==) ────────────────────────────────────────────────
 
     [Fact]
-    public void EqualityOperator_DelegatesToInjectedEstimator_WhenTrue()
+    public void EqualityOperator_HoldsWhenTheValuesAgree()
     {
-        var op = new EqualityOperator(new AlwaysTrueEstimator(), SolvingRole.Requirement)
+        var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "test",
             Lhs = Symmetric(10.0),
@@ -274,36 +274,46 @@ public class ToleranceOperatorTests
     }
 
     [Fact]
-    public void EqualityOperator_DelegatesToInjectedEstimator_WhenFalse()
+    public void EqualityOperator_FailsWhenTheValuesDiffer()
     {
-        var op = new EqualityOperator(new AlwaysFalseEstimator(), SolvingRole.Requirement)
+        var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "test",
             Lhs = Symmetric(10.0),
-            Rhs = Symmetric(10.0)
+            Rhs = Symmetric(12.0)
         };
         op.IsSatisfied().Should().BeFalse();
+    }
+
+    /// <remarks>
+    /// The three readings on the same pair. 10 ± 1 and 12 ± 1 report different values, their bands do not
+    /// contain each other's centres, but they do touch at 11 — so each rung answers differently, which is why
+    /// the reading is the modeller's to state.
+    /// </remarks>
+    [Theory]
+    [InlineData(AgreementRule.Nominal, false)]
+    [InlineData(AgreementRule.Mutual, false)]
+    [InlineData(AgreementRule.Overlapping, true)]
+    public void EqualityOperator_ReadsAgreementAsStrictlyAsItsRuleSays(AgreementRule rule, bool expected)
+    {
+        var op = new EqualityOperator(rule, SolvingRole.Requirement)
+        {
+            Id = "test",
+            Lhs = Symmetric(10.0, 0.1),
+            Rhs = Symmetric(12.0, 1.0 / 12.0)
+        };
+        op.IsSatisfied().Should().Be(expected);
     }
 
     [Fact]
     public void EqualityOperator_ReturnsNull_WhenNotFullyDescribed()
     {
-        var op = new EqualityOperator(new AlwaysTrueEstimator(), SolvingRole.Requirement)
+        var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "test",
             Lhs = Unbound(),
             Rhs = Symmetric(10.0)
         };
         op.IsSatisfied().Should().BeNull();
-    }
-
-    private class AlwaysTrueEstimator : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
-    }
-
-    private class AlwaysFalseEstimator : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => false;
     }
 }

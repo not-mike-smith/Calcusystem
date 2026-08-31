@@ -51,7 +51,7 @@ public class UnresolvableGraphTests
     /// on the test thread and hang the run rather than failing it.
     /// </remarks>
     private static Task<ExpressionSystem> Deserialize(Dtos.ExpressionSystem dto) =>
-        Task.Run(() => new DeserializingMapper(new DeserializationContext(), new AlwaysEqual()).Map(dto));
+        Task.Run(() => new DeserializingMapper(new DeserializationContext()).Map(dto));
 
     [Fact(Timeout = 10000)]
     public async Task DanglingReferenceIsReportedAsMissing()
@@ -124,10 +124,5 @@ public class UnresolvableGraphTests
             .Should().ThrowAsync<UnresolvableGraphException>()).Which;
         thrown.UnbuiltIds.Should().Equal("bad");
         thrown.MissingIds.Should().Equal("nowhere");
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

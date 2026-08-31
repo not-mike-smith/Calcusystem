@@ -113,11 +113,17 @@ public interface IBinaryOperator : IIdentified
     /// </remarks>
     /// <param name="lhs">The value of <see cref="Lhs"/>.</param>
     /// <param name="rhs">The value of <see cref="Rhs"/>.</param>
-    bool IsSatisfiedGiven(Measurand lhs, Measurand rhs);
+    /// <returns>
+    /// <see langword="null"/> when the comparison has no answer — the two values carry different dimensions, or
+    /// one of the landmarks under test is not a number. Distinct from <see langword="false"/>, which says the
+    /// relationship was evaluated and does not hold.
+    /// </returns>
+    bool? IsSatisfiedGiven(Measurand lhs, Measurand rhs);
 
     /// <summary>
     /// Whether the relationship holds: three-valued — <see langword="true"/> / <see langword="false"/>, or
-    /// <see langword="null"/> when either side does not resolve and the answer is unknown.
+    /// <see langword="null"/> when the answer is unknown, either because a side did not resolve or because the
+    /// values it produced cannot be compared.
     /// </summary>
     /// <remarks>
     /// Computes both sides and delegates to <see cref="IsSatisfiedGiven"/>. Convenient for asking about one

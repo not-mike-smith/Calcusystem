@@ -97,9 +97,19 @@ public class ConfidenceLadderTests
     };
 
     /// <remarks>
+    /// <para>
     /// The real proof the ladder changed nothing. The pre-existing suite is 65 hand-picked cases; this is every
     /// operator against its original formula over 2,025 pairs built to land on exact boundary coincidences,
     /// which is where a rewrite of interval comparisons would actually go wrong.
+    /// </para>
+    /// <para>
+    /// It has since survived a second rewrite, onto declared <c>ComparisonRule</c>s evaluated by
+    /// <c>MeasurandComparer</c>, and that was not a foregone conclusion — comparison became tolerance-aware,
+    /// which is a genuine behaviour change. It does not show up here because the grid's values are separated by
+    /// far more than any measurement resolves. Where it does show up is pinned separately, in
+    /// <c>UnboundedUncertaintyTests</c>. Keep both: this one guards everything the change was <i>not</i> meant
+    /// to touch, which is almost all of it.
+    /// </para>
     /// </remarks>
     [Theory]
     [InlineData("<<")]
@@ -140,8 +150,8 @@ public class ConfidenceLadderTests
         {
             var ladder = OrderingLadder.Evaluate(lhs, rhs);
 
-            if (ladder.Certain) ladder.Nominal.Should().BeTrue($"certain implies nominal for {Describe(lhs)}/{Describe(rhs)}");
-            if (ladder.Nominal) ladder.Possible.Should().BeTrue($"nominal implies possible for {Describe(lhs)}/{Describe(rhs)}");
+            if (ladder.Certain is true) ladder.Nominal.Should().BeTrue($"certain implies nominal for {Describe(lhs)}/{Describe(rhs)}");
+            if (ladder.Nominal is true) ladder.Possible.Should().BeTrue($"nominal implies possible for {Describe(lhs)}/{Describe(rhs)}");
         }
     }
 
@@ -200,15 +210,15 @@ public class ConfidenceLadderTests
             var ladder = ContainmentLadder.Evaluate(lhs, rhs);
             var because = $"{Describe(lhs)} within {Describe(rhs)}";
 
-            if (ladder.WhollyWithin)
+            if (ladder.WhollyWithin is true)
             {
                 ladder.NominalAndUpperWithin.Should().BeTrue(because);
                 ladder.NominalAndLowerWithin.Should().BeTrue(because);
             }
 
-            if (ladder.NominalAndUpperWithin) ladder.NominalWithin.Should().BeTrue(because);
-            if (ladder.NominalAndLowerWithin) ladder.NominalWithin.Should().BeTrue(because);
-            if (ladder.NominalWithin) ladder.Overlaps.Should().BeTrue(because);
+            if (ladder.NominalAndUpperWithin is true) ladder.NominalWithin.Should().BeTrue(because);
+            if (ladder.NominalAndLowerWithin is true) ladder.NominalWithin.Should().BeTrue(because);
+            if (ladder.NominalWithin is true) ladder.Overlaps.Should().BeTrue(because);
         }
     }
 

@@ -17,7 +17,7 @@ public class ProvenanceRoundTripTests
     private static ExpressionSystem RoundTrip(ExpressionSystem system)
     {
         var dto = new SerializingMapper().Map(system);
-        var mapper = new DeserializingMapper(new DeserializationContext(), new AlwaysEqual());
+        var mapper = new DeserializingMapper(new DeserializationContext());
         return mapper.Map(dto);
     }
 
@@ -83,10 +83,5 @@ public class ProvenanceRoundTripTests
         state.Citation.Should().Be("NIST SP 811");
         state.Url.Should().Be("https://nist.gov");
         state.Year.Should().Be(2008);
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

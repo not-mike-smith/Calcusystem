@@ -23,7 +23,7 @@ public class RoundTripTests
     private static ExpressionSystem RoundTrip(ExpressionSystem system)
     {
         var dto = new SerializingMapper().Map(system);
-        var mapper = new DeserializingMapper(new DeserializationContext(), new AlwaysEqual());
+        var mapper = new DeserializingMapper(new DeserializationContext());
         return mapper.Map(dto);
     }
 
@@ -122,7 +122,7 @@ public class RoundTripTests
         system.Add(lhs);
         system.Add(rhs);
 
-        var equality = new EqualityOperator(new AlwaysEqual(), SolvingRole.Equation)
+        var equality = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
             Id = "eq", Name = "x equals y", Description = "defn", Lhs = lhs, Rhs = rhs
         };
@@ -143,7 +143,10 @@ public class RoundTripTests
         eq.Name.Should().Be("x equals y");
         eq.Lhs.Id.Should().Be("x");
         eq.Rhs.Id.Should().Be("y");
-        eq.IsSatisfied().Should().BeTrue(); // AlwaysEqual estimator was injected on deserialize
+        // Both sides read 10, so nominal agreement holds — and the reading itself came off the wire rather
+        // than from whoever happened to be deserializing.
+        eq.Should().BeOfType<EqualityOperator>().Which.Agreement.Should().Be(AgreementRule.Nominal);
+        eq.IsSatisfied().Should().BeTrue();
 
         var tol = restored.Requirements.Single();
         tol.Should().BeOfType<WithinBindingToleranceOperator>();
@@ -178,10 +181,5 @@ public class RoundTripTests
             .Should().Equal("inner", "c");
         ((SumExpression)ById(restored, "inner")).Addends.Select(x => x.Id)
             .Should().Equal("a", "b");
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

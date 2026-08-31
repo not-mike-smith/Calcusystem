@@ -1,4 +1,5 @@
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -34,13 +35,24 @@ public enum OrderingConfidence : byte
 /// the ladder computes the lot and each operator becomes a fixed-tier read.
 /// </para>
 /// <para>
-/// Writing <c>a &gt; b</c> is asking this ladder about <c>(b, a)</c>. That is why four operators need one
-/// evaluator: the greater-than family is the less-than family with the operands swapped.
+/// <b>The tiers are declared here, as <see cref="ComparisonRule"/>s, and the operators point at them.</b> That
+/// is what keeps a tier and the operator named after it from being two descriptions that could drift: there is
+/// one triple per tier, in one place, and <c>DefinitelyLessThanOperator</c> is literally
+/// <see cref="Certainly"/>. The greater-than family reaches the same triples through
+/// <see cref="ComparisonRule.Mirrored"/>, so a swapped reading needs no second declaration either.
 /// </para>
 /// <para>
 /// Strictly ordered, and the implications are worth stating because the containment ladder's are not:
 /// <see cref="Certain"/> ⟹ <see cref="Nominal"/> ⟹ <see cref="Possible"/>. Each follows from a nominal value
 /// lying inside its own interval.
+/// </para>
+/// <para>
+/// Every rung is three-valued, because a comparison that cannot be answered must not read as a denial. For
+/// <i>this</i> ladder the rungs go unknown together in practice — its comparisons pit a ceiling against a floor,
+/// and infinities of opposite sign are perfectly well ordered, so only a value that is not a number silences it,
+/// and that silences all three at once. <see cref="ContainmentLadder"/> is where a single rung genuinely drops
+/// out on its own: it compares ceiling against ceiling, which two unbounded uncertainties leave undecidable
+/// while the reported values still answer.
 /// </para>
 /// </remarks>
 /// <param name="Possible">
@@ -52,26 +64,67 @@ public enum OrderingConfidence : byte
 /// Every point of <c>lhs</c> lies below every point of <c>rhs</c>, so no uncertainty in either could reverse it.
 /// <c>lhs.Upper &lt; rhs.Lower</c>.
 /// </param>
-public readonly record struct OrderingLadder(bool Possible, bool Nominal, bool Certain)
+public readonly record struct OrderingLadder(bool? Possible, bool? Nominal, bool? Certain)
 {
-    /// <summary>The strongest tier this comparison reaches.</summary>
-    public OrderingConfidence Achieved =>
-        Certain ? OrderingConfidence.Certain
-        : Nominal ? OrderingConfidence.Nominal
-        : Possible ? OrderingConfidence.Possible
-        : OrderingConfidence.Contradicted;
+    /// <summary>The <see cref="OrderingConfidence.Possible"/> tier: <c>lhs.Lower &lt; rhs.Upper</c>.</summary>
+    public static readonly ComparisonRule Possibly =
+        new(Landmark.LowerBound, ComparisonType.LessThan, Landmark.UpperBound);
+
+    /// <summary>The <see cref="OrderingConfidence.Nominal"/> tier: <c>lhs.Value &lt; rhs.Value</c>.</summary>
+    public static readonly ComparisonRule Nominally =
+        new(Landmark.Nominal, ComparisonType.LessThan, Landmark.Nominal);
+
+    /// <summary>The <see cref="OrderingConfidence.Certain"/> tier: <c>lhs.Upper &lt; rhs.Lower</c>.</summary>
+    public static readonly ComparisonRule Certainly =
+        new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.LowerBound);
+
+    /// <summary>The strongest tier this comparison reaches, or null where that cannot be settled.</summary>
+    /// <remarks>
+    /// Read from the top down, so an unanswered rung only obscures the tiers at or above it: a comparison that
+    /// is certainly ordered is certainly ordered whatever the weaker rungs say, but one whose strongest rung is
+    /// unknown might belong to any tier from there up.
+    /// </remarks>
+    public OrderingConfidence? Achieved => Certain switch
+    {
+        true => OrderingConfidence.Certain,
+        null => null,
+        false => Nominal switch
+        {
+            true => OrderingConfidence.Nominal,
+            null => null,
+            false => Possible switch
+            {
+                true => OrderingConfidence.Possible,
+                null => null,
+                false => OrderingConfidence.Contradicted,
+            },
+        },
+    };
 
     /// <summary>Whether this comparison reaches at least <paramref name="tier"/>.</summary>
-    public bool Reaches(OrderingConfidence tier) => Achieved >= tier;
+    /// <remarks>
+    /// Each tier is exactly one rung, so this reads the rung rather than deriving it from
+    /// <see cref="Achieved"/> — which would needlessly answer "unknown" for a tier that is settled just because
+    /// a stronger one is not.
+    /// </remarks>
+    public bool? Reaches(OrderingConfidence tier) => tier switch
+    {
+        OrderingConfidence.Contradicted => true,
+        OrderingConfidence.Possible => Possible,
+        OrderingConfidence.Nominal => Nominal,
+        OrderingConfidence.Certain => Certain,
+        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown ordering tier."),
+    };
 
     /// <summary>Evaluates every tier of "<paramref name="lhs"/> is below <paramref name="rhs"/>".</summary>
     /// <remarks>
-    /// All three comparisons are strict, matching the named operators. <c>OPERATORS.md</c> records why there are
-    /// no <c>≤</c> / <c>≥</c> variants: exact floating-point coincidence is unreachable in practice, so a
-    /// non-strict ordering would differ from a strict one only on inputs that do not arise.
+    /// Every comparison runs through <see cref="MeasurandComparer"/>, so "below" here means below by more than
+    /// the measurements can resolve. Two values that differ only by floating-point drift are not ordered by any
+    /// tier, which is the point: an ordering conjured out of the last bits of a mantissa is not one an engineer
+    /// asked for. <c>OPERATORS.md</c> records why there are no <c>≤</c> / <c>≥</c> variants of these tiers.
     /// </remarks>
     public static OrderingLadder Evaluate(Measurand lhs, Measurand rhs) =>
-        new(Possible: lhs.KmsValue - lhs.KmsLowerAbsoluteError < rhs.KmsValue + rhs.KmsUpperAbsoluteError,
-            Nominal: lhs.KmsValue < rhs.KmsValue,
-            Certain: lhs.KmsValue + lhs.KmsUpperAbsoluteError < rhs.KmsValue - rhs.KmsLowerAbsoluteError);
+        new(Possible: Possibly.IsSatisfiedGiven(lhs, rhs),
+            Nominal: Nominally.IsSatisfiedGiven(lhs, rhs),
+            Certain: Certainly.IsSatisfiedGiven(lhs, rhs));
 }

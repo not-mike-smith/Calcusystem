@@ -1,8 +1,7 @@
-﻿using Calcusystem.DimensionedExpression.Interfaces;
 
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -16,12 +15,17 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// Use for worst-case bilateral conformance checks where no part of the measurement's uncertainty range
 /// may fall outside the specification.
 /// </summary>
+/// <remarks>
+/// The only containment operator with a bracket rather than a dot on the left, and the only strict one. Its
+/// siblings place a <i>point</i> in a closed band; this places an <i>interval</i> inside an open one, which is a
+/// different claim — an interval is not strictly inside a copy of itself.
+/// </remarks>
 public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.WhollyWithinTolerance;
 
     public override string Symbol => "[=}";
 
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
-        ContainmentLadder.Evaluate(lhs, rhs).WhollyWithin;
+    /// <inheritdoc/>
+    public override IReadOnlyList<ComparisonRule> Rules { get; } = ContainmentLadder.WhollyWithinRules;
 }

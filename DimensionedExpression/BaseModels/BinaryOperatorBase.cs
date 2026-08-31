@@ -1,4 +1,5 @@
-﻿using Calcusystem.DimensionedExpression.Expressions;
+﻿using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
@@ -20,8 +21,31 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// <inheritdoc/>
     public abstract string Symbol { get; }
 
+    /// <summary>
+    /// The comparisons this operator asserts, taken together. Every one must hold for the operator to be
+    /// satisfied.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// What each operator <i>declares</i> in place of the interval arithmetic it used to write. All thirteen
+    /// turned out to be conjunctions of landmark comparisons, so the conjunction is stated once here and the
+    /// operators state only their own terms — which also makes the assertion readable without following it into
+    /// an implementation.
+    /// </para>
+    /// <para>
+    /// Exposed rather than private because it is the operator's own account of what it checks, and a report that
+    /// wants to say <i>which</i> comparison failed needs the terms, not just the verdict.
+    /// </para>
+    /// </remarks>
+    public abstract IReadOnlyList<ComparisonRule> Rules { get; }
+
     /// <inheritdoc/>
-    public abstract bool IsSatisfiedGiven(Measurand lhs, Measurand rhs);
+    /// <remarks>
+    /// Implemented once over <see cref="Rules"/>. Kleene conjunction, so a rule that cannot be answered leaves
+    /// the verdict unknown rather than failing it — see <see cref="ComparisonRule.AllSatisfied"/>.
+    /// </remarks>
+    public virtual bool? IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
+        ComparisonRule.AllSatisfied(Rules, lhs, rhs);
 
     /// <inheritdoc/>
     /// <remarks>
@@ -67,8 +91,13 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// Returns this operator's complete stored state. Every operator has the same shape — two operand
     /// references plus annotations — so this is implemented once here rather than thirteen times.
     /// </summary>
-    public BinaryOperatorState GetState() =>
-        new(Kind, Id, Lhs.Id, Rhs.Id, SolvingRole, Name, Description, Provenance?.GetState());
+    /// <remarks>
+    /// Virtual for the one operator that carries state of its own: <see cref="EqualityOperator"/> adds its
+    /// agreement rule on top of what is captured here. Overriding beats a hook on this class, which would put a
+    /// member for equality's semantics on the twelve operators that have none.
+    /// </remarks>
+    public virtual BinaryOperatorState GetState() =>
+        new(Kind, Id, Lhs.Id, Rhs.Id, SolvingRole, null, null, Name, Description, Provenance?.GetState());
 
     public bool AreBothSidesFullyDescribed => Lhs.IsFullyDescribed && Rhs.IsFullyDescribed;
 

@@ -40,7 +40,7 @@ public class DeterminingRelationshipTests
     private static ExpressionSystem FromJson(string json)
     {
         var dto = JsonSerializer.Deserialize<Dtos.ExpressionSystem>(json, Options)!;
-        return new DeserializingMapper(new DeserializationContext(), new AlwaysEqual()).Map(dto);
+        return new DeserializingMapper(new DeserializationContext()).Map(dto);
     }
 
     [Theory]
@@ -50,7 +50,7 @@ public class DeterminingRelationshipTests
     public void EqualityKeepsItsSolvingRoleThroughJson(SolvingRole role)
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Add(new EqualityOperator(new AlwaysEqual(), role) { Id = "eq", Lhs = lhs, Rhs = rhs });
+        system.Add(new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = lhs, Rhs = rhs });
 
         var restored = FromJson(ToJson(system));
 
@@ -66,11 +66,11 @@ public class DeterminingRelationshipTests
     public void EquationAndCoherenceStayDistinctThroughJson()
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Equation)
+        system.Add(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
             Id = "defines", Lhs = lhs, Rhs = rhs
         });
-        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Coherence)
+        system.Add(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Coherence)
         {
             Id = "agrees", Lhs = lhs, Rhs = rhs
         });
@@ -86,15 +86,15 @@ public class DeterminingRelationshipTests
     public void ViewsPartitionRelationshipsByRole()
     {
         var system = TwoLeafSystem(out var lhs, out var rhs);
-        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Equation)
+        system.Add(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
             Id = "defn", Lhs = lhs, Rhs = rhs
         });
-        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Coherence)
+        system.Add(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Coherence)
         {
             Id = "cohere", Lhs = lhs, Rhs = rhs
         });
-        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement)
+        system.Add(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "check", Lhs = lhs, Rhs = rhs
         });
@@ -141,10 +141,5 @@ public class DeterminingRelationshipTests
         restored.Relationships.Single().IsDetermining.Should().BeFalse();
         restored.Equations.Should().BeEmpty();
         restored.Requirements.Should().HaveCount(1);
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

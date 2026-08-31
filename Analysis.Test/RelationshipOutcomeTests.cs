@@ -21,6 +21,15 @@ public class RelationshipOutcomeTests
             new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelErr(relErr)),
             symbol);
 
+    /// <summary>A length whose uncertainty is unbounded upward, so its ceiling has no comparable value.</summary>
+    private static Variable NoCeiling(string symbol, double kmsValue) =>
+        new(symbol,
+            new Quantity(kmsValue, Dimensionality.Length).Measurand(
+                AsymmetricUncertainty.FromAbsErr(
+                    new Quantity(double.PositiveInfinity, Dimensionality.Length),
+                    new Quantity(0, Dimensionality.Length))),
+            symbol);
+
     private static Variable Unbound(string symbol) =>
         new(symbol, Dimensionality.Length, symbol);
 
@@ -113,7 +122,7 @@ public class RelationshipOutcomeTests
     {
         var measured = Bound("measured", 50);
         var limit = Bound("limit", 10);
-        var equation = new EqualityOperator(new NeverEqual(), SolvingRole.Equation)
+        var equation = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
             Id = "eq", Lhs = measured, Rhs = limit
         };
@@ -134,7 +143,7 @@ public class RelationshipOutcomeTests
     [Fact]
     public void AFailedCoherenceAssertionIsAnInconsistency()
     {
-        var system = SystemOf(new EqualityOperator(new NeverEqual(), SolvingRole.Coherence)
+        var system = SystemOf(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Coherence)
         {
             Id = "routes-agree", Lhs = Bound("t_eos", 300), Rhs = Bound("t_path", 305)
         });
@@ -152,9 +161,9 @@ public class RelationshipOutcomeTests
     [Fact]
     public void AFailedEqualityActingAsARequirementIsAViolation()
     {
-        var system = SystemOf(new EqualityOperator(new NeverEqual(), SolvingRole.Requirement)
+        var system = SystemOf(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
-            Id = "as-designed", Lhs = Bound("measured", 5), Rhs = Bound("design", 5)
+            Id = "as-designed", Lhs = Bound("measured", 5), Rhs = Bound("design", 6)
         });
 
         var calc = system.Calculate();
@@ -239,7 +248,7 @@ public class RelationshipOutcomeTests
     [Fact]
     public void ARedundantEquationIsStillCheckedAndAFailingOneIsReported()
     {
-        var system = SystemOf(new EqualityOperator(new NeverEqual(), SolvingRole.Equation)
+        var system = SystemOf(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
             Id = "redundant", Lhs = Bound("a", 10), Rhs = Bound("b", 12)
         });
@@ -297,7 +306,7 @@ public class RelationshipOutcomeTests
         var limit = Bound("limit", 10);
         var system = SystemOf(
             new DefinitelyLessThanOperator { Id = "requirement", Lhs = measured, Rhs = limit },
-            new EqualityOperator(new NeverEqual(), SolvingRole.Equation)
+            new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
             {
                 Id = "equation", Lhs = measured, Rhs = limit
             });
@@ -315,6 +324,30 @@ public class RelationshipOutcomeTests
         equation.Criterion.Should().BeNull();
         equation.Lhs!.KmsValue.Should().BeApproximately(50, 1e-9);
         equation.Rhs!.KmsValue.Should().BeApproximately(10, 1e-9);
+    }
+
+    /// <remarks>
+    /// The third way a verdict can be unknown, and the one the seam had to widen to carry. The operands both
+    /// resolved — nothing is missing — but the comparison the relationship asks for has no answer, because two
+    /// unbounded ceilings say nothing about which is lower. That must reach the report as <i>undetermined</i>
+    /// and not as a violation: an engineer told a requirement failed goes looking for a design problem, when
+    /// what is actually wrong is that the check could not be run.
+    /// </remarks>
+    [Fact]
+    public void AVerdictWhoseComparisonHasNoAnswerIsUndeterminedRatherThanAViolation()
+    {
+        var system = SystemOf(new UpperBoundsLessThanOperator
+        {
+            Id = "ceilings", Lhs = NoCeiling("a", 5), Rhs = NoCeiling("b", 10),
+        });
+
+        var outcome = system.Calculate().Outcomes.Single();
+
+        outcome.IsUndetermined.Should().BeTrue();
+        outcome.IsViolation.Should().BeFalse();
+        outcome.IsInconsistency.Should().BeFalse();
+        outcome.Lhs.Should().NotBeNull("both operands resolved; it is the comparison that has no answer");
+        outcome.Rhs.Should().NotBeNull();
     }
 
     /// <remarks>
@@ -338,10 +371,5 @@ public class RelationshipOutcomeTests
 
         calc.Outcomes.Single().IsSatisfied.Should().BeTrue();
         system.Calculate().Outcomes.Single().IsSatisfied.Should().BeFalse();
-    }
-
-    private sealed class NeverEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => false;
     }
 }

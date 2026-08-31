@@ -122,14 +122,16 @@ The exception separates the two causes, which is worth having because they mean 
 
 `SerializingMapper` is stateless — construct and call `Map(system)`.
 
-`DeserializingMapper` needs two things: a fresh `DeserializationContext` (one per deserialization run — it accumulates state) and an `IEqualityEstimating` strategy. The latter is required because `EqualityOperator` is the one operator with a dependency (it cannot decide equality without a strategy); the mapper injects it into every `EqualityOperator` it rebuilds.
+`DeserializingMapper` needs one thing: a fresh `DeserializationContext` (one per deserialization run — it accumulates state).
 
 ```csharp
 var dto = new SerializingMapper().Map(system);
 // … hand `dto` to your JSON serializer, persist, later reload into `dto` …
-var mapper = new DeserializingMapper(new DeserializationContext(), myEqualityEstimator);
+var mapper = new DeserializingMapper(new DeserializationContext());
 ExpressionSystem restored = mapper.Map(dto);
 ```
+
+It used to need an `IEqualityEstimating` as well, and that was a defect rather than a convenience: the wire carried "this is an equality" and nothing about what equality *meant*, so the **reader** decided the semantics and two readers could reach opposite verdicts from identical bytes. Equality now carries an `AgreementRule` in its state, and a document that names an equality without one is refused rather than guessed at.
 
 ---
 

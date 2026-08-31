@@ -2,6 +2,7 @@ using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
@@ -11,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 /// <summary>
 /// The seam separating <i>what a relationship asserts</i> from <i>where its values came from</i>. Every operator
 /// implements the predicate over two supplied values; the base class implements resolving both sides once, so
-/// the thirteen agree on the null case by construction rather than by thirteen copies of one guard.
+/// the fourteen agree on the null case by construction rather than by fourteen copies of one guard.
 /// </summary>
 public class VerdictSeamTests
 {
@@ -38,13 +39,15 @@ public class VerdictSeamTests
         new MutuallyWithinToleranceOperator { Id = "j", Lhs = lhs, Rhs = rhs },
         new AnyToleranceOverlapOperator { Id = "k", Lhs = lhs, Rhs = rhs },
         new WhollyWithinToleranceOperator { Id = "l", Lhs = lhs, Rhs = rhs },
-        new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement) { Id = "m", Lhs = lhs, Rhs = rhs },
+        new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement) { Id = "m", Lhs = lhs, Rhs = rhs },
+        new SimpleComparison(new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+            { Id = "n", Lhs = lhs, Rhs = rhs },
     ];
 
     [Fact]
-    public void ThereAreThirteenOperatorsAndTheListIsComplete()
+    public void ThereAreFourteenOperatorsAndTheListIsComplete()
     {
-        // Guards the sweeps below: a fourteenth operator that skipped this list would be silently untested.
+        // Guards the sweeps below: a fifteenth operator that skipped this list would be silently untested.
         var covered = AllOperators(Bound(1), Bound(1)).Select(o => o.GetType()).ToHashSet();
 
         var declared = typeof(DefinitelyLessThanOperator).Assembly.GetTypes()
@@ -52,17 +55,28 @@ public class VerdictSeamTests
             .ToHashSet();
 
         covered.Should().BeEquivalentTo(declared);
-        covered.Should().HaveCount(13);
+        covered.Should().HaveCount(14);
     }
 
     /// <remarks>
+    /// <para>
     /// `Symbol` is how a relationship identifies itself to a reader, and `OPERATORS.md` documents each operator
     /// under its symbol — both of which quietly assume no two share one.
+    /// </para>
+    /// <para>
+    /// <see cref="SimpleComparison"/> is excepted, and has to be: it can be configured to spell any of the nine
+    /// landmark comparisons, six of which have named types. Its symbol coinciding with one of theirs is not a
+    /// collision but an identity — the two assert the same rule — so nothing is lost by a report that cannot
+    /// tell them apart.
+    /// </para>
     /// </remarks>
     [Fact]
-    public void EveryOperatorHasItsOwnSymbol()
+    public void EveryNamedOperatorHasItsOwnSymbol()
     {
-        var symbols = AllOperators(Bound(1), Bound(1)).Select(o => o.Symbol).ToList();
+        var symbols = AllOperators(Bound(1), Bound(1))
+            .Where(o => o is not SimpleComparison)
+            .Select(o => o.Symbol)
+            .ToList();
 
         symbols.Should().OnlyHaveUniqueItems();
         symbols.Should().NotContain(s => string.IsNullOrWhiteSpace(s));
@@ -171,7 +185,7 @@ public class VerdictSeamTests
     [InlineData(SolvingRole.Coherence)]
     public void ADeterminingRelationshipHasNeitherASubjectNorACriterion(SolvingRole role)
     {
-        var op = new EqualityOperator(new AlwaysEqual(), role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var op = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
 
         op.Subject.Should().BeNull();
         op.Criterion.Should().BeNull();
@@ -186,7 +200,7 @@ public class VerdictSeamTests
     {
         var lhs = Bound(1);
         var rhs = Bound(1);
-        var op = new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement)
+        var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "eq", Lhs = lhs, Rhs = rhs
         };
@@ -205,7 +219,7 @@ public class VerdictSeamTests
     [InlineData(SolvingRole.Coherence)]
     public void HavingACriterionIsExactlyBeingARequirement(SolvingRole role)
     {
-        var equality = new EqualityOperator(new AlwaysEqual(), role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var equality = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
 
         (equality.Criterion is not null).Should().Be(role is SolvingRole.Requirement);
         (equality.Subject is not null).Should().Be(equality.Criterion is not null);
@@ -215,10 +229,5 @@ public class VerdictSeamTests
             (op.Criterion is not null).Should().Be(op.SolvingRole is SolvingRole.Requirement, op.Symbol);
             (op.Criterion is not null).Should().Be(! op.IsDetermining, op.Symbol);
         }
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

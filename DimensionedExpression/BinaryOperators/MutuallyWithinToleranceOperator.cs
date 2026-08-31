@@ -1,7 +1,7 @@
-﻿using Calcusystem.Measurement;
 
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -19,11 +19,15 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     public override string Symbol => "≃";
 
+    /// <inheritdoc/>
     /// <remarks>
-    /// The nominal containment rung applied in both directions — a quantifier variation on the ladder rather
-    /// than a rung of its own, which is why this operator has no unique arithmetic left.
+    /// Nominal containment stated in both directions. Because a rule names the landmark on each side
+    /// independently, the reverse direction is written directly — the band's reported value against the
+    /// subject's bounds — rather than by evaluating the operator a second time with the operands swapped.
     /// </remarks>
-    public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
-        ContainmentLadder.Evaluate(lhs, rhs).NominalWithin &&
-        ContainmentLadder.Evaluate(rhs, lhs).NominalWithin;
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+    [
+        .. ContainmentLadder.NominalWithinRules,
+        .. ContainmentLadder.NominalWithinRules.Select(rule => rule.Mirrored),
+    ];
 }

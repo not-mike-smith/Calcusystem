@@ -127,24 +127,36 @@ The split exists because **a verdict must be a function of the values it was han
 
 There are three families — equality, tolerance (compatibility within uncertainty), and inequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
 
+### Operators declare, they do not compare
+
+Each operator supplies `IReadOnlyList<ComparisonRule> Rules` — a landmark of the subject against a landmark of the criterion, at a stated strictness — and the base class ANDs them. Every one of the fourteen turned out to be such a conjunction, so none of them writes interval arithmetic and none of them decides what "less than" means. That happens in exactly one place, `MeasurandComparer`, which is also where tolerance, dimensional mismatch and non-finite values are handled.
+
+The verdict is therefore **three-valued**: `IsSatisfiedGiven` returns `bool?`, and `null` means the comparison has no answer rather than that the relationship failed. `ExpressionSystem.Add` refuses a cross-dimensional relationship outright, so in practice this arises from non-finite values.
+
 ### The confidence ladder
 
-Under uncertainty a comparison has several nested answers, and the arithmetic producing any of them produces all of them. Ten of the thirteen operators are therefore **fixed-tier queries over two shared evaluations** rather than independent implementations:
+Under uncertainty a comparison has several nested answers, and the arithmetic producing any of them produces all of them. The ladders **declare** those answers as rules, and the operators named after a tier point at the declaration rather than restating it:
 
-- **`OrderingLadder`** — `Possible` / `Nominal` / `Certain`, a clean chain, with `Achieved` reporting the strongest tier reached. The greater-than family is this ladder read with the operands swapped, so one evaluator serves four operators.
+- **`OrderingLadder`** — `Possible` / `Nominal` / `Certain`, a clean chain, with `Achieved` reporting the strongest tier reached. The greater-than family is this ladder *mirrored* (`ComparisonRule.Mirrored` swaps both landmarks and reverses the relation), so one declaration serves four operators.
 - **`ContainmentLadder`** — `Overlaps` / `NominalWithin` / `NominalAndUpperWithin` / `NominalAndLowerWithin` / `WhollyWithin`. The middle rungs form a **lattice, not a chain**, because upper and lower bounds are independently checkable — so there is deliberately no single ordered `Achieved` here.
 
-`EqualityOperator` sits outside because its predicate is an injected strategy with no fixed interval condition to tier. `UpperBoundsLessThan` and `LowerBoundsGreaterThan` sit outside because they compare a derived *statistic* of each side — ceiling against ceiling, floor against floor — rather than asking how the quantities stand to one another.
+`UpperBoundsLessThan` and `LowerBoundsGreaterThan` sit outside both because they compare a derived *statistic* of each side — ceiling against ceiling, floor against floor — rather than asking how the quantities stand to one another.
 
-The named operators are kept as vocabulary: `AnyToleranceOverlap` says what it means better than "the bottom rung of the containment ladder". What changed is that the arithmetic happens once. The modeller also gets back more than they asked for — author "do these overlap at all", get `true`, and be able to learn the achieved rung was "wholly contained".
+The named operators are kept as vocabulary: `AnyToleranceOverlap` says what it means better than "the bottom rung of the containment ladder". The modeller also gets back more than they asked for — author "do these overlap at all", get `true`, and be able to learn the achieved rung was "wholly contained".
 
-One construction wrinkle: **`EqualityOperator` is the only operator with constructor arguments** — an `IEqualityEstimating` (the strategy deciding when two `Measurand`s count as equal) and a `SolvingRole` (below). Every other operator is constructed purely through `required` init properties:
+Two operators take constructor arguments; every other is constructed purely through `required` init properties:
 
 ```csharp
 var op = new WhollyWithinToleranceOperator { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = spec };
 
-var eq = new EqualityOperator(estimator, SolvingRole.Equation)
+// How strictly "equal" is read is the modeller's call, and part of the model — not a strategy the reader supplies.
+var eq = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
     { Id = Constants.CREATE_NEW, Lhs = a, Rhs = b };
+
+// The general form: any of the 63 rules, including the ones with no named operator.
+var conservative = new SimpleComparison(
+        new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+    { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = guarantee };
 ```
 
 ### `SolvingRole` — what a relationship does to the problem
@@ -292,7 +304,7 @@ The axis is *does rebuilding need outside help*, not where a node sits in the tr
 Where a state carries a discriminator, the concrete type is chosen by inspecting it, so reconstruction is a static gateway over the closed set rather than a `static abstract` on each type — the same treatment `IUncertainty` and `IProvenance` get:
 
 - `ExpressionFactory.FromState(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromState`, which is where per-type construction actually lives.
-- `BinaryOperatorFactory.FromState(state, resolve, equalityEstimator)` — a gateway rather than per-type implementations, because construction is identical across all thirteen apart from which type is instantiated, and because `EqualityOperator` needs an `IEqualityEstimating` that a two-argument seam has nowhere to accept. `BinaryOperatorState.SolvingRole` is read only for the equality kind; the other twelve have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation.
+- `BinaryOperatorFactory.FromState(state, resolve)` — a gateway rather than per-type implementations, because construction is identical across all fourteen apart from which type is instantiated. `BinaryOperatorState.SolvingRole` is read only for the equality kind; the others have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation. Two kinds carry state of their own — an equality's `AgreementRule` and a simple comparison's `ComparisonRule` — and reconstruction *refuses* a state missing either rather than guessing, since a guessed reading is exactly the ambiguity storing them removed.
 - `ProvenanceFactory.FromState(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
 
 If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Serialization` is still the assembly to reach for; it consumes these seams.
