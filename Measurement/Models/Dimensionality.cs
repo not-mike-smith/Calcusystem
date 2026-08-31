@@ -3,6 +3,7 @@ using Calcusystem.Core;
 using Calcusystem.Measurement.Extensions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.State;
+using Calcusystem.Measurement;
 using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Calcusystem.Measurement.FundamentalDimension, int>;
 
 namespace Calcusystem.Measurement;
@@ -56,9 +57,29 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
     private readonly ExponentDict? _fundamentalDimensions;
     private ExponentDict FundamentalDimensions => _fundamentalDimensions ?? new Dictionary<FundamentalDimension, int>();
 
+    /// <summary>
+    /// The smallest magnitude meaningful for this dimension — below it, a value is indistinguishable from zero
+    /// on physical grounds alone. Composed from each fundamental dimension's quantum, so a velocity's floor
+    /// falls out of length's and time's.
+    /// </summary>
+    /// <remarks>
+    /// A last-resort scale, used only where the measurands supply none of their own. It is far coarser than any
+    /// engineering tolerance — the Planck length is some twenty-five orders below a machinist's zero — so it
+    /// catches the physically absurd rather than the practically negligible. Uncertainty answers the latter.
+    /// </remarks>
+    internal readonly double Epsilon;
+
+    /// <summary>
+    /// The largest magnitude meaningful for this dimension, composed the same way. The counterpart to
+    /// <see cref="Epsilon"/>: past it a value is not large, it is wrong.
+    /// </summary>
+    internal readonly double MaxValue;
+
     private Dimensionality(ExponentDict fundamentalDimensions)
     {
         _fundamentalDimensions = Reduce(fundamentalDimensions);
+        Epsilon = CalculateEpsilon();
+        MaxValue = CalculateMaxValue();
     }
 
     private Dimensionality(FundamentalDimension fundamentalDimension)
@@ -67,6 +88,9 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
         {
             {fundamentalDimension, 1}
         };
+
+        Epsilon = CalculateEpsilon();
+        MaxValue = CalculateMaxValue();
     }
 
     private Dimensionality(IEnumerable<KeyValuePair<FundamentalDimension, int>> pairs)
@@ -88,6 +112,33 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
             });
 
         _fundamentalDimensions = Reduce(dictionary);
+
+        Epsilon = CalculateEpsilon();
+        MaxValue = CalculateMaxValue();
+    }
+
+    private double CalculateEpsilon()
+    {
+        if (! FundamentalDimensions.Any()) return double.Epsilon;
+
+        return FundamentalDimensions.Aggregate(
+            1d,
+            (double x, KeyValuePair<FundamentalDimension, int> pair) =>
+                pair.Value < 0
+                    ? x / Math.Pow(pair.Key.MaxValue, -pair.Value)
+                    : x * Math.Pow(pair.Key.QuantumValue, pair.Value));
+    }
+
+    private double CalculateMaxValue()
+    {
+        if (! FundamentalDimensions.Any()) return double.MaxValue;
+
+        return FundamentalDimensions.Aggregate(
+            1d,
+            (double x, KeyValuePair<FundamentalDimension, int> pair) =>
+                pair.Value < 0
+                    ? x / Math.Pow(pair.Key.QuantumValue, -pair.Value)
+                    : x * Math.Pow(pair.Key.MaxValue, pair.Value));
     }
 
     /// <inheritdoc/>

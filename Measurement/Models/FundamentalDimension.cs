@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Calcusystem.Core;
+using Calcusystem.Measurement.Units;
+using Calcusystem.Measurement;
 
 namespace Calcusystem.Measurement;
 
@@ -21,39 +24,83 @@ public class FundamentalDimension : IComparable<FundamentalDimension>
 
     /// <summary>Short symbol used when formatting a dimensionality (e.g. "M", "L", "t").</summary>
     public string Symbol { get; }
+    internal double QuantumValue { get; }
+    internal double MaxValue { get; }
 
-    private FundamentalDimension(string name, string symbol)
+    private FundamentalDimension(
+        string name,
+        string symbol,
+        double quantumValue,
+        double maxValue)
     {
         Name = name;
         Symbol = symbol;
+        QuantumValue = quantumValue;
+        MaxValue = maxValue;
     }
 
     /// <summary>Mass (symbol M).</summary>
-    public static readonly FundamentalDimension Mass = new ("Mass", "M");
+    public static readonly FundamentalDimension Mass = new (
+        "Mass",
+        "M",
+        Limits.NeutrinoMass_kg,
+        Limits.Universe.Mass_kg);
 
     /// <summary>Length (symbol L).</summary>
-    public static readonly FundamentalDimension Length = new ("Length", "L");
+    public static readonly FundamentalDimension Length = new (
+        "Length",
+        "L",
+        Limits.Planck.Length_m,
+        Limits.Universe.Diameter_m);
 
     /// <summary>Thermodynamic temperature (symbol Θ, capital theta).</summary>
-    public static readonly FundamentalDimension Temperature = new ("Temperature", "Θ");
+    public static readonly FundamentalDimension Temperature = new (
+        "Temperature",
+        "Θ",
+        1e-9, // TODO: put a real guess
+        Limits.Planck.Temperature_K);
 
     /// <summary>Electric current (symbol I).</summary>
-    public static readonly FundamentalDimension ElectricCurrent = new ("Electric Current", "I");
+    public static readonly FundamentalDimension ElectricCurrent = new (
+        "Electric Current",
+        "I",
+        1 / ElectricCharge.ElectronsInCoulomb, // TODO put a real guess
+        ElectricCharge.ElectronsInCoulomb); // TODO put a real guess
 
     /// <summary>Plane angle (symbol A) — a base dimension here so torque stays distinct from energy.</summary>
-    public static readonly FundamentalDimension Angle = new ("Angle", "A");
+    public static readonly FundamentalDimension Angle = new (
+        "Angle",
+        "A",
+        Limits.Planck.Length_m / Limits.Universe.Diameter_m,
+        Limits.Universe.Diameter_m / Limits.Planck.Length_m); // TODO put a real guess
 
     /// <summary>Time (symbol T).</summary>
-    public static readonly FundamentalDimension Time = new ("Time", "T");
+    public static readonly FundamentalDimension Time = new (
+        "Time",
+        "T",
+        Limits.Planck.Time_s,
+        Limits.Universe.Age_s);
 
     /// <summary>Amount of substance (symbol N).</summary>
-    public static readonly FundamentalDimension AmountOfMatter = new ("Amount of Matter", "N");
+    public static readonly FundamentalDimension AmountOfMatter = new (
+        "Amount of Matter",
+        "N",
+        0.5 / Limits.AvogadrosNumber,
+        Limits.Universe.MovingParts);
 
     /// <summary>Luminous intensity (symbol J).</summary>
-    public static readonly FundamentalDimension LuminousIntensity = new ("Luminous Intensity", "J");
+    public static readonly FundamentalDimension LuminousIntensity = new (
+        "Luminous Intensity",
+        "J",
+        1e-100, // TODO put a real guess
+        1e100); // TODO put a real guess
 
     /// <summary>Monetary value (symbol C) — non-physical, supported for engineering-economics use.</summary>
-    public static readonly FundamentalDimension Currency = new ("Currency", "C");
+    public static readonly FundamentalDimension Currency = new (
+        "Currency",
+        "C",
+        1 / Limits.ZimbabweDenomination,
+        Limits.Universe.Wealth_USD * Limits.ZimbabweDenomination);
 
     /// <summary>Canonical sort position of each dimension, used to lay out symbols consistently.</summary>
     internal static readonly IReadOnlyDictionary<FundamentalDimension, int> Order = new Dictionary<FundamentalDimension, int>
