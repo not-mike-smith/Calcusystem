@@ -58,9 +58,9 @@ public class ConfidenceLadderTests
         (">~", (a, b) => a.KmsValue > b.KmsValue),
         ("=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
                          a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError),
-        ("[≓}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
+        ("⌈=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
                           a.KmsValue + a.KmsUpperAbsoluteError <= b.KmsValue + b.KmsUpperAbsoluteError),
-        ("[≒}", (a, b) => a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError &&
+        ("⌊=}", (a, b) => a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError &&
                           a.KmsValue - a.KmsLowerAbsoluteError >= b.KmsValue - b.KmsLowerAbsoluteError),
         ("[=}", (a, b) => a.KmsValue - a.KmsLowerAbsoluteError > b.KmsValue - b.KmsLowerAbsoluteError &&
                           a.KmsValue + a.KmsUpperAbsoluteError < b.KmsValue + b.KmsUpperAbsoluteError),
@@ -88,8 +88,8 @@ public class ConfidenceLadderTests
         ">v" => new LowerBoundsGreaterThanOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         ">~" => new NominallyGreaterThanOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "=}" => new WithinBindingToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
-        "[≓}" => new PointAndUpperBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
-        "[≒}" => new PointAndLowerBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
+        "⌈=}" => new PointAndUpperBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
+        "⌊=}" => new PointAndLowerBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "[=}" => new WhollyWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "≈" => new AnyToleranceOverlapOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "≃" => new MutuallyWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
@@ -109,8 +109,8 @@ public class ConfidenceLadderTests
     [InlineData(">v")]
     [InlineData(">~")]
     [InlineData("=}")]
-    [InlineData("[≓}")]
-    [InlineData("[≒}")]
+    [InlineData("⌈=}")]
+    [InlineData("⌊=}")]
     [InlineData("[=}")]
     [InlineData("≈")]
     [InlineData("≃")]

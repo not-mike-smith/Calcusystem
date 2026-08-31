@@ -199,7 +199,7 @@ public class ToleranceOperatorTests
             .IsSatisfied().Should().BeTrue();
     }
 
-    // ── PointAndUpperBoundWithinToleranceOperator ([≓}) ──────────────────────
+    // ── PointAndUpperBoundWithinToleranceOperator (⌈=}) ──────────────────────
     // test point >= binding lower AND test upper <= binding upper
 
     [Fact]
@@ -229,7 +229,7 @@ public class ToleranceOperatorTests
             .IsSatisfied().Should().BeFalse();
     }
 
-    // ── PointAndLowerBoundWithinToleranceOperator ([≒}) ──────────────────────
+    // ── PointAndLowerBoundWithinToleranceOperator (⌊=}) ──────────────────────
     // test point <= binding upper AND test lower >= binding lower
 
     [Fact]

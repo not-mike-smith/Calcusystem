@@ -28,7 +28,7 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 /// bound does not exceed the Rhs upper bound. In other words, the test value is in range and cannot
 /// overshoot the upper limit even in the worst case.
 /// <br/>
-/// Symbol: <b>[≓}</b>
+/// Symbol: <b>⌈=}</b>
 /// <br/>
 /// Use for maximum-value constraints where the measurement's uncertainty must not push it over the limit
 /// (e.g. a maximum current or temperature rating).
@@ -40,7 +40,7 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
     public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         ContainmentLadder.Evaluate(lhs, rhs).NominalAndUpperWithin;
 
-    public override string Symbol => "[≓}";
+    public override string Symbol => "⌈=}";
 }
 
 /// <summary>
@@ -48,7 +48,7 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 /// bound does not go below the Rhs lower bound. In other words, the test value is in range and cannot
 /// undershoot the lower limit even in the worst case.
 /// <br/>
-/// Symbol: <b>[≒}</b>
+/// Symbol: <b>⌊=}</b>
 /// <br/>
 /// Use for minimum-value constraints where the measurement's uncertainty must not pull it below the floor
 /// (e.g. a minimum flow rate or yield strength).
@@ -60,5 +60,5 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
     public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         ContainmentLadder.Evaluate(lhs, rhs).NominalAndLowerWithin;
 
-    public override string Symbol => "[≒}";
+    public override string Symbol => "⌊=}";
 }

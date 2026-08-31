@@ -38,8 +38,8 @@ The same idea, but the middle rungs form a **lattice, not a chain**: a value's u
 | --- | --- | --- |
 | `Overlaps` | `aU ≥ bL ∧ bU ≥ aL` — the values are not incompatible | `AnyToleranceOverlap` `≈` |
 | `NominalWithin` | `bL ≤ a ≤ bU` | `WithinBindingTolerance` `=}` |
-| `NominalAndUpperWithin` | …and `aU ≤ bU` | `PointAndUpperBoundWithinTolerance` `[≓}` |
-| `NominalAndLowerWithin` | …and `aL ≥ bL` | `PointAndLowerBoundWithinTolerance` `[≒}` |
+| `NominalAndUpperWithin` | …and `aU ≤ bU` | `PointAndUpperBoundWithinTolerance` `⌈=}` |
+| `NominalAndLowerWithin` | …and `aL ≥ bL` | `PointAndLowerBoundWithinTolerance` `⌊=}` |
 | `WhollyWithin` | `aL > bL ∧ aU < bU` | `WhollyWithinTolerance` `[=}` |
 
 Implications run downward: `WhollyWithin` ⟹ both middle rungs ⟹ `NominalWithin` ⟹ `Overlaps`.
@@ -71,8 +71,8 @@ The last two compare a derived **statistic** of each side rather than asking how
 | `AnyToleranceOverlapOperator` | `≈` | ✓ | `Overlaps` |
 | `WhollyWithinToleranceOperator` | `[=}` | ✗ | `WhollyWithin` |
 | `WithinBindingToleranceOperator` | `=}` | ✗ | `NominalWithin` |
-| `PointAndUpperBoundWithinToleranceOperator` | `[≓}` | ✗ | `NominalAndUpperWithin` |
-| `PointAndLowerBoundWithinToleranceOperator` | `[≒}` | ✗ | `NominalAndLowerWithin` |
+| `PointAndUpperBoundWithinToleranceOperator` | `⌈=}` | ✗ | `NominalAndUpperWithin` |
+| `PointAndLowerBoundWithinToleranceOperator` | `⌊=}` | ✗ | `NominalAndLowerWithin` |
 | `DefinitelyLessThanOperator` | `<<` | ✗ | ordering `Certain` |
 | `NominallyLessThanOperator` | `<~` | ✗ | ordering `Nominal` |
 | `DefinitelyGreaterThanOperator` | `>>` | ✗ | ordering `Certain`, swapped |

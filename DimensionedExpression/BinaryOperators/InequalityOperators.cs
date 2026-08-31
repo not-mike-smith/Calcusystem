@@ -2,6 +2,9 @@
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Core.Extensions;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
@@ -9,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// Satisfied when the entire Lhs uncertainty interval lies strictly below the entire Rhs uncertainty
 /// interval — i.e. Lhs.Upper &lt; Rhs.Lower. No overlap between the two intervals is permitted.
 /// <br/>
-/// Symbol: <b>&lt;&lt;</b>
+/// Symbol: <b>⌜&lt;⌟</b>
 /// <br/>
 /// Use for definitive less-than checks where even worst-case Lhs must remain below best-case Rhs.
 /// </summary>
@@ -17,7 +20,7 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.DefinitelyLessThan;
 
-    public override string Symbol => "<<";
+    public override string Symbol => "⌜<⌟";
 
     public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         OrderingLadder.Evaluate(lhs, rhs).Certain;
@@ -28,7 +31,7 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 /// Lhs.Upper &lt; Rhs.Upper. The intervals may overlap; this is a weaker check than
 /// <see cref="DefinitelyLessThanOperator"/>.
 /// <br/>
-/// Symbol: <b>&lt;^</b>
+/// Symbol: <b>⌜&lt;⌝</b>
 /// <br/>
 /// Use when you need to know that Lhs's worst-case high value is bounded by Rhs's worst-case high value.
 /// <br/>
@@ -41,7 +44,7 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.UpperBoundsLessThan;
 
-    public override string Symbol => "<^";
+    public override string Symbol => "⌜<⌝";
 
     /// <remarks>
     /// Off the ladder deliberately — see the class summary. One comparison, written directly.
@@ -54,7 +57,7 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 /// Satisfied when the nominal (center) Lhs value is strictly less than the nominal Rhs value.
 /// Uncertainty is ignored entirely.
 /// <br/>
-/// Symbol: <b>&lt;~</b>
+/// Symbol: <b>·&lt;·</b>
 /// <br/>
 /// Use when only the reported values matter and measurement uncertainty is not part of the check.
 /// </summary>
@@ -62,7 +65,7 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.NominallyLessThan;
 
-    public override string Symbol => "<~";
+    public override string Symbol => "·<·";
 
     public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         OrderingLadder.Evaluate(lhs, rhs).Nominal;
@@ -72,7 +75,7 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 /// Satisfied when the entire Lhs uncertainty interval lies strictly above the entire Rhs uncertainty
 /// interval — i.e. Lhs.Lower &gt; Rhs.Upper. No overlap between the two intervals is permitted.
 /// <br/>
-/// Symbol: <b>&gt;&gt;</b>
+/// Symbol: <b>⌞&gt;⌝</b>
 /// <br/>
 /// Use for definitive greater-than checks where even worst-case Lhs must remain above best-case Rhs.
 /// </summary>
@@ -80,7 +83,7 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.DefinitelyGreaterThan;
 
-    public override string Symbol => ">>";
+    public override string Symbol => "⌞>⌝";
 
     /// <remarks>Greater-than is the ordering ladder read with the operands swapped.</remarks>
     public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
@@ -92,7 +95,7 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 /// Lhs.Lower &gt; Rhs.Lower. The intervals may overlap; this is a weaker check than
 /// <see cref="DefinitelyGreaterThanOperator"/>.
 /// <br/>
-/// Symbol: <b>&gt;v</b>
+/// Symbol: <b>⌞&gt;⌟</b>
 /// <br/>
 /// Use when you need to know that Lhs's worst-case low value is above Rhs's worst-case low value.
 /// <br/>
@@ -105,7 +108,7 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.LowerBoundsGreaterThan;
 
-    public override string Symbol => ">v";
+    public override string Symbol => "⌞>⌟";
 
     /// <remarks>
     /// Off the ladder deliberately — see the class summary. One comparison, written directly.
@@ -118,7 +121,7 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 /// Satisfied when the nominal (center) Lhs value is strictly greater than the nominal Rhs value.
 /// Uncertainty is ignored entirely.
 /// <br/>
-/// Symbol: <b>&gt;~</b>
+/// Symbol: <b>·&gt;·</b>
 /// <br/>
 /// Use when only the reported values matter and measurement uncertainty is not part of the check.
 /// </summary>
@@ -126,9 +129,10 @@ public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.NominallyGreaterThan;
 
-    public override string Symbol => ">~";
+    public override string Symbol => "·>·";
 
     /// <remarks>Greater-than is the ordering ladder read with the operands swapped.</remarks>
     public override bool IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         OrderingLadder.Evaluate(rhs, lhs).Nominal;
 }
+
