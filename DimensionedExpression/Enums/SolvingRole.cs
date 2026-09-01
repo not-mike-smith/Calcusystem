@@ -1,4 +1,4 @@
-namespace Calcusystem.DimensionedExpression;
+namespace Calcusystem.DimensionedExpression.Enums;
 
 /// <summary>
 /// What a relationship does to the problem: whether it produces a value, asserts that separately-computed values

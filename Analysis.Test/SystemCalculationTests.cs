@@ -5,6 +5,7 @@ using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 using FluentAssertions;
 using Xunit;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Analysis.Test;
 

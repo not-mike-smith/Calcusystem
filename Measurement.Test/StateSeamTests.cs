@@ -7,6 +7,7 @@ using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.State;
 using Calcusystem.Measurement.Units;
 using Xunit;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Measurement.Test;
 

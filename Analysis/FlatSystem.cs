@@ -1,5 +1,6 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.Analysis.Enums;
 
 namespace Calcusystem.Analysis;
 

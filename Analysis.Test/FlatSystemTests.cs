@@ -7,6 +7,8 @@ using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
 using Calcusystem.Measurement;
 using Xunit;
+using Calcusystem.Analysis.Enums;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.Analysis.Test;
 

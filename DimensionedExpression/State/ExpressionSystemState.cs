@@ -1,3 +1,4 @@
+
 namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>
