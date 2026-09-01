@@ -20,8 +20,9 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
     public override string Symbol => "⌜<⌟";
 
     /// <inheritdoc/>
-    /// <remarks>The ordering ladder's top tier, named.</remarks>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = [OrderingLadder.Certainly];
+    /// <remarks>The ordering ladder's <c>Below</c>/<c>Certain</c> rung, though it is stated here as itself.</remarks>
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+        [new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.LowerBound)];
 }
 
 /// <summary>
@@ -62,8 +63,9 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
     public override string Symbol => "·<·";
 
     /// <inheritdoc/>
-    /// <remarks>The ordering ladder's nominal tier, named.</remarks>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = [OrderingLadder.Nominally];
+    /// <remarks>The ordering ladder's <c>Below</c>/<c>Nominal</c> rung.</remarks>
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+        [new(Landmark.Nominal, ComparisonType.LessThan, Landmark.Nominal)];
 }
 
 /// <summary>
@@ -82,11 +84,12 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 
     /// <inheritdoc/>
     /// <remarks>
-    /// The top tier read the other way round. <see cref="ComparisonRule.Mirrored"/> turns "my ceiling is below
-    /// your floor" into "my floor is above your ceiling" — a rule of this operator's own, over these operands,
-    /// rather than a note to evaluate the ladder backwards.
+    /// The ordering ladder's <c>Above</c>/<c>Certain</c> rung, and written out rather than derived from the
+    /// less-than rule: "my floor is above your ceiling" is what this operator checks, and saying so directly
+    /// beats making a reader apply a mirroring convention to find out.
     /// </remarks>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = [OrderingLadder.Certainly.Mirrored];
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+        [new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.UpperBound)];
 }
 
 /// <summary>
@@ -128,6 +131,7 @@ public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
     public override string Symbol => "·>·";
 
     /// <inheritdoc/>
-    /// <remarks>The nominal tier, mirrored — see <see cref="DefinitelyGreaterThanOperator"/>.</remarks>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = [OrderingLadder.Nominally.Mirrored];
+    /// <remarks>The ordering ladder's <c>Above</c>/<c>Nominal</c> rung.</remarks>
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+        [new(Landmark.Nominal, ComparisonType.GreaterThan, Landmark.Nominal)];
 }

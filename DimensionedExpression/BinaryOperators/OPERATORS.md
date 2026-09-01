@@ -1,6 +1,6 @@
 # Binary Operator Taxonomy
 
-Under uncertainty a comparison does not have one answer — it has several nested ones, and the arithmetic that produces any of them produces all of them. So the fourteen operators are **declarations**, not implementations: each one names the comparisons it asserts, and the comparing happens in exactly one place.
+The fourteen operators are **declarations**, not implementations: each one names the comparisons it asserts, and the comparing happens in exactly one place.
 
 Every operator supplies `IReadOnlyList<ComparisonRule> Rules`. The base class ANDs them: `IsSatisfiedGiven(lhs, rhs)` → `bool?`. Resolving the two sides is also the base class's job — `IsSatisfied(overrides?, propagator?)` → `bool?` computes both operands and delegates, answering `null` when either does not resolve.
 
@@ -24,7 +24,7 @@ One landmark of the subject against one landmark of the criterion, at a stated s
 
 `Incomparable` is `0b000` and so satisfies **no** mask, including `Any`. A rule that cannot be answered returns `null`, never `false` — see *Three-valued verdicts* below.
 
-`rule.Mirrored` swaps both landmarks and reverses the relation, so `rule.Mirrored` holds for `(a, b)` exactly when `rule` holds for `(b, a)`. This is how each mirrored pair of operators is declared once: `DefinitelyGreaterThan` is `DefinitelyLessThan`'s rule mirrored.
+`rule.Mirrored` swaps both landmarks and reverses the relation, so `rule.Mirrored` holds for `(a, b)` exactly when `rule` holds for `(b, a)`. Operators do **not** use it — each states its own rule outright — but `OrderingLadder.RuleFor` does, to derive one direction from the other.
 
 ### Notation
 
@@ -56,27 +56,36 @@ Conjunction is Kleene, and `false` beats `null`: one rule definitively violated 
 
 ## The two ladders
 
-The ladders declare the rules; the operators point at those declarations. That is what stops a tier and the operator named after it becoming two descriptions that could drift.
+### `OrderingLadder` — how strongly is Lhs ordered against Rhs?
 
-### `OrderingLadder` — is Lhs below Rhs?
+**A classifier, not an evaluator.** It does not compute anything until asked, and operators do not go through it: they declare their own rules, and the ladder places them afterwards.
 
-A clean chain: each tier implies the one before it.
+A rung is a **direction and a strength**, both named. Direction used to be a convention — everything was a less-than unless a declaration said `.Mirrored` — which meant you had to already know the convention to read an operator.
 
-| Tier | Rule | Condition | Named operator |
+| Tier | Condition (`Below`) | Symbol | Named operator |
 | --- | --- | --- | --- |
-| `Possible` | `Possibly` | `aL < bU` — some pair of points is ordered | *none* |
-| `Nominal` | `Nominally` | `a < b` — the reported values are | `NominallyLessThan` `·<·` |
-| `Certain` | `Certainly` | `aU < bL` — every pair is | `DefinitelyLessThan` `⌜<⌟` |
+| `Possible` | `aL < bU` — some pair of points is ordered | `⌞<⌝` | *none* |
+| `Nominal` | `a < b` — the reported values are | `·<·` | `NominallyLessThan` |
+| `Certain` | `aU < bL` — every pair is | `⌜<⌟` | `DefinitelyLessThan` |
 
-`Achieved` reports the strongest tier reached — `null` where an unanswered rung leaves it unsettled — and `Reaches(tier)` asks for one rung directly, so a settled tier stays settled even when a stronger one is not.
+A clean chain: `Certain` ⟹ `Nominal` ⟹ `Possible`, each following from a nominal value lying inside its own interval. `Contradicted` is what is left when `Possible` fails — **a result, not a rung**, so no rule tests it and `RuleFor` rejects it.
 
-**The greater-than family is this ladder mirrored.** `⌜<⌟` mirrors to `⌞>⌝`; one declaration serves four operators.
+```csharp
+ComparisonRule RuleFor(OrderingDirection, OrderingConfidence)   // the rule that tests a rung
+OrderingRung?  RungOf(this ComparisonRule)                      // which rung a rule is, if any
+OrderingConfidence? AchievedTier(lhs, rhs, OrderingDirection)   // strongest tier reached, on demand
+bool? Reaches(lhs, rhs, OrderingRung)                           // one rung, one comparison
+```
 
-`Possible` is the tier no named operator ever asked for, and the clearest illustration of what the ladder buys. A modeller who writes `·<·` and gets `false` cannot otherwise tell "comfortably the other way round" from "a hair's breadth away, and the uncertainty covers it".
+`RuleFor` defines the `Below` rules and derives `Above` by mirroring, so mirroring still happens once — but where a direction was explicitly asked for, rather than silently inside an operator. `AchievedTier` reads top-down and stops as soon as it knows, so a certainly-ordered pair costs one comparison rather than three, and an unanswered rung ends the walk.
+
+`RungOf` returning `null` is the honest answer for the comparisons genuinely off the ladder, and is what now stops a rung and the operator named after it drifting apart — a stronger check than asserting an operator was handed the ladder's own constant.
+
+`Possible` is the tier no named operator ever asked for, and the reason the ladder is worth keeping at all. A modeller who writes `·<·` and gets `false` cannot otherwise tell "comfortably the other way round" from "a hair's breadth away, and the uncertainty covers it".
 
 ### `ContainmentLadder` — is Lhs inside Rhs's band?
 
-The same idea, but the middle rungs form a **lattice, not a chain**: a value's upper and lower bounds are independently checkable, so neither middle rung implies the other. There is deliberately no single ordered `Achieved` here — inventing one would force a precedence between "cannot overshoot" and "cannot undershoot", which are different engineering questions.
+Still rule-sets the operators point at, because there is no direction convention to hide here: each rung maps to exactly one operator and is a conjunction of two to four rules, so a literal declaration would repeat the rung rather than clarify it. The middle rungs form a **lattice, not a chain**: a value's upper and lower bounds are independently checkable, so neither middle rung implies the other. There is deliberately no single ordered `Achieved` here — inventing one would force a precedence between "cannot overshoot" and "cannot undershoot", which are different engineering questions.
 
 | Rung | Condition | Named operator |
 | --- | --- | --- |
@@ -142,10 +151,10 @@ It **deliberately overlaps** the named types: configured with `·<·` it is `Nom
 | `WithinBindingToleranceOperator` | `·=}` | ✗ | `NominalWithin` |
 | `PointAndUpperBoundWithinToleranceOperator` | `·⌜=}` | ✗ | `NominalAndUpperWithin` |
 | `PointAndLowerBoundWithinToleranceOperator` | `·⌞=}` | ✗ | `NominalAndLowerWithin` |
-| `DefinitelyLessThanOperator` | `⌜<⌟` | ✗ | ordering `Certainly` |
-| `NominallyLessThanOperator` | `·<·` | ✗ | ordering `Nominally` |
-| `DefinitelyGreaterThanOperator` | `⌞>⌝` | ✗ | ordering `Certainly`, mirrored |
-| `NominallyGreaterThanOperator` | `·>·` | ✗ | ordering `Nominally`, mirrored |
+| `DefinitelyLessThanOperator` | `⌜<⌟` | ✗ | `aU < bL` — ladder `Below`/`Certain` |
+| `NominallyLessThanOperator` | `·<·` | ✗ | `a < b` — ladder `Below`/`Nominal` |
+| `DefinitelyGreaterThanOperator` | `⌞>⌝` | ✗ | `aL > bU` — ladder `Above`/`Certain` |
+| `NominallyGreaterThanOperator` | `·>·` | ✗ | `a > b` — ladder `Above`/`Nominal` |
 | `UpperBoundsLessThanOperator` | `⌜<⌝` | ✗ | its own rule |
 | `LowerBoundsGreaterThanOperator` | `⌞>⌟` | ✗ | its own rule |
 | `SimpleComparison` | *generated* | ✗ | any one rule |

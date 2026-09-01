@@ -125,16 +125,22 @@ public class ComparisonRuleTests
         AllRules().Should().OnlyContain(r => r.Mirrored.Mirrored == r);
 
     /// <remarks>
-    /// The pairing the operator classes actually rely on: the greater-than family is declared as the less-than
-    /// family mirrored, so the mirror of a tier has to be the tier's counterpart and not merely something
-    /// similar.
+    /// Mirroring is what lets <see cref="OrderingLadder.RuleFor"/> define one direction and derive the other, so
+    /// the mirror of a tier has to be that tier's counterpart and not merely something similar. The operators no
+    /// longer rely on this — they state their own rules — but the ladder still does.
     /// </remarks>
-    [Fact]
-    public void MirroringTheOrderingTiersGivesTheGreaterThanFamily()
+    [Theory]
+    [InlineData(OrderingConfidence.Certain, "⌜<⌟", "⌞>⌝")]
+    [InlineData(OrderingConfidence.Nominal, "·<·", "·>·")]
+    [InlineData(OrderingConfidence.Possible, "⌞<⌝", "⌜>⌟")]
+    public void EachOrderingTierMirrorsToItsCounterpartInTheOtherDirection(
+        OrderingConfidence tier, string below, string above)
     {
-        OrderingLadder.Certainly.Mirrored.Symbol.Should().Be("⌞>⌝");
-        OrderingLadder.Nominally.Mirrored.Symbol.Should().Be("·>·");
-        OrderingLadder.Possibly.Mirrored.Symbol.Should().Be("⌜>⌟");
+        var descending = OrderingLadder.RuleFor(OrderingDirection.Below, tier);
+
+        descending.Symbol.Should().Be(below);
+        descending.Mirrored.Symbol.Should().Be(above);
+        OrderingLadder.RuleFor(OrderingDirection.Above, tier).Should().Be(descending.Mirrored);
     }
 
     // ── Three-valued conjunction ──────────────────────────────────────────────
@@ -206,10 +212,14 @@ public class ComparisonRuleTests
     /// The duplication this design exists to prevent. A rung and the operator named after it must be the same
     /// triples, not two descriptions that happen to agree today — that is exactly the drift the previous
     /// refactor removed and this one could have reintroduced.
+    /// <para>
+    /// Containment only. The ordering operators state their rules outright and are placed on their ladder by
+    /// discovery instead — see <c>ConfidenceLadderTests.EachOrderingOperatorsRuleIsDiscoverableAsItsRung</c>.
+    /// </para>
     /// </remarks>
     [Theory]
     [MemberData(nameof(RungOperatorPairs))]
-    public void EachNamedOperatorAssertsExactlyItsLadderRung(
+    public void EachContainmentOperatorAssertsExactlyItsLadderRung(
         IReadOnlyList<ComparisonRule> rung, IBinaryOperator op) =>
         ((BinaryOperatorBase)op).Rules.Should().Equal(rung);
 
@@ -219,16 +229,6 @@ public class ComparisonRuleTests
 
         return new TheoryData<IReadOnlyList<ComparisonRule>, IBinaryOperator>
         {
-            { [OrderingLadder.Certainly], new DefinitelyLessThanOperator { Id = "a", Lhs = x, Rhs = x } },
-            { [OrderingLadder.Nominally], new NominallyLessThanOperator { Id = "b", Lhs = x, Rhs = x } },
-            {
-                [OrderingLadder.Certainly.Mirrored],
-                new DefinitelyGreaterThanOperator { Id = "c", Lhs = x, Rhs = x }
-            },
-            {
-                [OrderingLadder.Nominally.Mirrored],
-                new NominallyGreaterThanOperator { Id = "d", Lhs = x, Rhs = x }
-            },
             {
                 ContainmentLadder.OverlapsRules,
                 new AnyToleranceOverlapOperator { Id = "e", Lhs = x, Rhs = x }
