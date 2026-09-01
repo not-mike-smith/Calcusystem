@@ -23,7 +23,7 @@ public class ExpressionStateRoundTripTests
         var json = JsonSerializer.Serialize(dto);
         var revived = JsonSerializer.Deserialize<Dtos.ExpressionSystem>(json)!;
 
-        return new DeserializingMapper(new DeserializationContext(), new AlwaysEqual()).Map(revived);
+        return new DeserializingMapper(new DeserializationContext()).Map(revived);
     }
 
     private static ExpressionSystem SystemWith(Variable leaf, IExpression derived, string name)
@@ -148,10 +148,5 @@ public class ExpressionStateRoundTripTests
 
         var restoredRoot = restored.DerivedExpressions.OfType<SqrtExpression>().Single();
         restoredRoot.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

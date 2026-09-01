@@ -1,3 +1,5 @@
+using Calcusystem.DimensionedExpression.BinaryOperators;
+
 namespace Calcusystem.DimensionedExpression.State;
 
 /// <summary>Which operator a <see cref="BinaryOperatorState"/> rebuilds into.</summary>
@@ -7,7 +9,7 @@ namespace Calcusystem.DimensionedExpression.State;
 /// </remarks>
 public enum BinaryOperatorKind
 {
-    /// <summary>Values are equal, per an injected equality strategy.</summary>
+    /// <summary>Values agree, to the strictness the state's agreement rule names.</summary>
     Equality,
 
     /// <summary>The uncertainty intervals overlap at all.</summary>
@@ -45,6 +47,9 @@ public enum BinaryOperatorKind
 
     /// <summary>Nominal values compared, uncertainty ignored.</summary>
     NominallyGreaterThan,
+
+    /// <summary>One comparison between named landmarks — the general form, carrying its own rule.</summary>
+    SimpleComparison,
 }
 
 /// <summary>
@@ -62,6 +67,15 @@ public enum BinaryOperatorKind
 /// <see cref="DimensionedExpression.SolvingRole.Requirement"/>; for every other kind reconstruction ignores it,
 /// because those types have no way to represent it.
 /// </param>
+/// <param name="Agreement">
+/// How strictly an equality reads "equal", and null for every other kind. Stored rather than left to the
+/// reader: without it the wire says a relationship is an equality and nothing about what equality means, so two
+/// readers can reach opposite verdicts from identical bytes.
+/// </param>
+/// <param name="Rule">
+/// The comparison a <see cref="BinaryOperatorKind.SimpleComparison"/> asserts, and null for every other kind,
+/// whose rules are fixed by their type.
+/// </param>
 /// <param name="Name">Optional human-readable name.</param>
 /// <param name="Description">Optional human-readable description.</param>
 /// <param name="Provenance">Where the relationship came from (e.g. a citation), or null when untracked.</param>
@@ -71,6 +85,8 @@ public readonly record struct BinaryOperatorState(
     string LhsId,
     string RhsId,
     SolvingRole SolvingRole,
+    AgreementRule? Agreement,
+    ComparisonRule? Rule,
     string? Name,
     string? Description,
     ProvenanceState? Provenance);

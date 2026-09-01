@@ -19,6 +19,46 @@ public class ExpressionSystemMembershipTests
             new Quantity(kmsValue, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0)),
             symbol);
 
+    /// <remarks>
+    /// The authoring gate. Comparing a mass against a length is a modelling mistake, not a verdict — the
+    /// relationship is meaningless rather than false — and nothing said so until now, though <c>Quantity</c> has
+    /// always refused to add the two. Caught at <c>Add</c> because that is where the model is being written and
+    /// where the mistake can still be pointed at.
+    /// </remarks>
+    [Fact]
+    public void ARelationshipAcrossDimensionsIsRefusedWhenItIsAdded()
+    {
+        var mass = Bound("m", 10);
+        var length = new Variable("l", Dimensionality.Length, "l");
+        var system = ExpressionSystem.Create("mismatched", "");
+
+        var act = () => system.Add(new DefinitelyLessThanOperator { Id = "bad", Lhs = mass, Rhs = length });
+
+        act.Should().Throw<Measurement.Exceptions.IncompatibleDimensionsException>()
+            .WithMessage("*bad*");
+        system.Relationships.Should().BeEmpty("a refused relationship must not leave its operands behind");
+        system.Variables.Should().BeEmpty();
+    }
+
+    /// <remarks>
+    /// Dimensionality is known for every expression whether or not it has a value, so the gate works on a model
+    /// that has not been given any numbers yet — which is when a modeller most wants to hear about it.
+    /// </remarks>
+    [Fact]
+    public void TheGateHoldsForRelationshipsOverUnknowns()
+    {
+        var system = ExpressionSystem.Create("unknowns", "");
+
+        var act = () => system.Add(new DefinitelyLessThanOperator
+        {
+            Id = "bad",
+            Lhs = new Variable("m", Dimensionality.Mass, "m"),
+            Rhs = new Variable("l", Dimensionality.Length, "l"),
+        });
+
+        act.Should().Throw<Measurement.Exceptions.IncompatibleDimensionsException>();
+    }
+
     [Fact]
     public void AddingACompositeAbsorbsTheOperandsBeneathIt()
     {

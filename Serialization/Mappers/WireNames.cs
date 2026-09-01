@@ -86,6 +86,7 @@ internal static class WireNames
         BinaryOperatorKind.DefinitelyGreaterThan => nameof(DefinitelyGreaterThanOperator),
         BinaryOperatorKind.LowerBoundsGreaterThan => nameof(LowerBoundsGreaterThanOperator),
         BinaryOperatorKind.NominallyGreaterThan => nameof(NominallyGreaterThanOperator),
+        BinaryOperatorKind.SimpleComparison => nameof(SimpleComparison),
         _ => throw new NotImplementedException($"No wire name for operator kind {kind}"),
     };
 
@@ -104,6 +105,7 @@ internal static class WireNames
         nameof(DefinitelyGreaterThanOperator) => BinaryOperatorKind.DefinitelyGreaterThan,
         nameof(LowerBoundsGreaterThanOperator) => BinaryOperatorKind.LowerBoundsGreaterThan,
         nameof(NominallyGreaterThanOperator) => BinaryOperatorKind.NominallyGreaterThan,
+        nameof(SimpleComparison) => BinaryOperatorKind.SimpleComparison,
         _ => throw new NotImplementedException(
             $"No deserialization method defined for BinaryOperator object with saved type, {type}"),
     };

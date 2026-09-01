@@ -2,6 +2,7 @@ using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
@@ -11,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 /// <summary>
 /// The seam separating <i>what a relationship asserts</i> from <i>where its values came from</i>. Every operator
 /// implements the predicate over two supplied values; the base class implements resolving both sides once, so
-/// the thirteen agree on the null case by construction rather than by thirteen copies of one guard.
+/// the fourteen agree on the null case by construction rather than by fourteen copies of one guard.
 /// </summary>
 public class VerdictSeamTests
 {
@@ -38,13 +39,15 @@ public class VerdictSeamTests
         new MutuallyWithinToleranceOperator { Id = "j", Lhs = lhs, Rhs = rhs },
         new AnyToleranceOverlapOperator { Id = "k", Lhs = lhs, Rhs = rhs },
         new WhollyWithinToleranceOperator { Id = "l", Lhs = lhs, Rhs = rhs },
-        new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement) { Id = "m", Lhs = lhs, Rhs = rhs },
+        new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement) { Id = "m", Lhs = lhs, Rhs = rhs },
+        new SimpleComparison(new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+            { Id = "n", Lhs = lhs, Rhs = rhs },
     ];
 
     [Fact]
-    public void ThereAreThirteenOperatorsAndTheListIsComplete()
+    public void ThereAreFourteenOperatorsAndTheListIsComplete()
     {
-        // Guards the sweeps below: a fourteenth operator that skipped this list would be silently untested.
+        // Guards the sweeps below: a fifteenth operator that skipped this list would be silently untested.
         var covered = AllOperators(Bound(1), Bound(1)).Select(o => o.GetType()).ToHashSet();
 
         var declared = typeof(DefinitelyLessThanOperator).Assembly.GetTypes()
@@ -52,17 +55,164 @@ public class VerdictSeamTests
             .ToHashSet();
 
         covered.Should().BeEquivalentTo(declared);
-        covered.Should().HaveCount(13);
+        covered.Should().HaveCount(14);
+    }
+
+    /// <summary>
+    /// A symbol read from the other side: the characters reversed, each mapped to its mirror image.
+    /// </summary>
+    /// <remarks>
+    /// Not plain string reversal, which would call <c>·&lt;·</c> a palindrome and so declare it commutative.
+    /// This is <c>ComparisonRule.Mirrored</c> lifted to notation — the corners swap hands, the relations flip,
+    /// and the statistic glyphs stay put.
+    /// </remarks>
+    private static string MirrorReverse(string symbol)
+    {
+        const string Fixed = "·=≈≠?∅";
+
+        return new string(symbol.Reverse().Select(c => c switch
+        {
+            '⌜' => '⌝', '⌝' => '⌜',
+            '⌞' => '⌟', '⌟' => '⌞',
+            '{' => '}', '}' => '{',
+            '[' => ']', ']' => '[',
+            '<' => '>', '>' => '<',
+            '≤' => '≥', '≥' => '≤',
+            _ => Fixed.Contains(c) ? c : throw new ArgumentException($"No mirror for '{c}' in {symbol}"),
+        }).ToArray());
     }
 
     /// <remarks>
-    /// `Symbol` is how a relationship identifies itself to a reader, and `OPERATORS.md` documents each operator
-    /// under its symbol — both of which quietly assume no two share one.
+    /// <para>
+    /// The notation earns its keep here. A commutative relationship says the same thing read from either side,
+    /// so its symbol must too — and a non-commutative one must not, or the symbol would claim a symmetry the
+    /// operator does not have.
+    /// </para>
+    /// <para>
+    /// This is what retired <c>≃=</c> and <c>≈=</c>: a trailing family marker reads the same way round from one
+    /// side only, which is exactly what a commutative relation should never do. It also caught
+    /// <see cref="SimpleComparison"/> declaring itself non-commutative when configured with <c>·=·</c>, which
+    /// is commutative by any reading.
+    /// </para>
     /// </remarks>
     [Fact]
-    public void EveryOperatorHasItsOwnSymbol()
+    public void ACommutativeOperatorIsExactlyOneWhoseSymbolReadsTheSameBothWays()
     {
-        var symbols = AllOperators(Bound(1), Bound(1)).Select(o => o.Symbol).ToList();
+        foreach (var op in AllOperators(Bound(1), Bound(1)))
+        {
+            (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(
+                op.IsCommutative,
+                $"{op.GetType().Name} spells {op.Symbol}, which mirrors to {MirrorReverse(op.Symbol)}");
+        }
+    }
+
+    /// <remarks>
+    /// The rule the equality family is built on, stated as a test rather than as a convention: <b>each symbol
+    /// is the symbol of the operator asserting the same condition, with an <c>=</c> inserted at its centre.</b>
+    /// Nothing else pins it — <c>==</c> would satisfy the palindrome invariant and the uniqueness check just as
+    /// well, which is exactly why the scheme needs asserting rather than assuming.
+    /// <para>
+    /// Centred insertion is also what keeps the family from breaking commutativity: <c>=</c> is its own mirror
+    /// and the centre is the fixed point of mirror-reversal, so a palindrome stays one.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(EqualityCounterparts))]
+    public void AnEqualitySymbolIsItsConditionsSymbolWithACentredEquals(
+        AgreementRule rule, string counterpart)
+    {
+        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+
+        op.Symbol.Should().Be(counterpart.Insert(counterpart.Length / 2, "="));
+    }
+
+    public static TheoryData<AgreementRule, string> EqualityCounterparts()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+
+        return new TheoryData<AgreementRule, string>
+        {
+            // The condition is one rule, so its counterpart is that rule's own generated symbol.
+            {
+                AgreementRule.Nominal,
+                new ComparisonRule(Landmark.Nominal, ComparisonType.EqualTo, Landmark.Nominal).Symbol
+            },
+            {
+                AgreementRule.Mutual,
+                new MutuallyWithinToleranceOperator { Id = "m", Lhs = x, Rhs = x }.Symbol
+            },
+            {
+                AgreementRule.Overlapping,
+                new AnyToleranceOverlapOperator { Id = "o", Lhs = x, Rhs = x }.Symbol
+            },
+        };
+    }
+
+    /// <remarks>
+    /// Swept separately because the operator list holds one equality, at one agreement rule — so the sweep
+    /// above never sees the other two symbols. That gap let <c>≃=</c> and <c>≈=</c> survive the invariant that
+    /// was written to retire them, and was found by mutating them back.
+    /// </remarks>
+    [Theory]
+    [InlineData(AgreementRule.Nominal)]
+    [InlineData(AgreementRule.Mutual)]
+    [InlineData(AgreementRule.Overlapping)]
+    public void EveryAgreementRuleSpellsACommutativeSymbol(AgreementRule rule)
+    {
+        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+
+        op.IsCommutative.Should().BeTrue("an equality reads the same from either side");
+        MirrorReverse(op.Symbol).Should().Be(op.Symbol, $"{rule} spells {op.Symbol}");
+    }
+
+    /// <remarks>
+    /// The general form covers both cases, so it is swept separately over every rule rather than in the one
+    /// configuration the operator list happens to hold.
+    /// </remarks>
+    [Fact]
+    public void ASimpleComparisonIsCommutativeExactlyWhenItsRuleHasNoSide()
+    {
+        var x = Bound(1);
+
+        foreach (var landmark in Enum.GetValues<Landmark>())
+        foreach (var mask in Enum.GetValues<ComparisonType>())
+        foreach (var other in Enum.GetValues<Landmark>())
+        {
+            // `None` accepts no outcome and is refused at construction — see ComparisonRuleTests.
+            if (mask is ComparisonType.None) continue;
+
+            var op = new SimpleComparison(new ComparisonRule(landmark, mask, other))
+            {
+                Id = "s", Lhs = x, Rhs = x,
+            };
+
+            (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(op.IsCommutative, op.Symbol);
+            op.IsCommutative.Should().Be(
+                landmark == other
+                    && mask is ComparisonType.EqualTo or ComparisonType.InequalTo or ComparisonType.Any,
+                op.Symbol);
+        }
+    }
+
+    /// <remarks>
+    /// <para>
+    /// `Symbol` is how a relationship identifies itself to a reader, and `OPERATORS.md` documents each operator
+    /// under its symbol — both of which quietly assume no two share one.
+    /// </para>
+    /// <para>
+    /// <see cref="SimpleComparison"/> is excepted, and has to be: it can be configured to spell any of the nine
+    /// landmark comparisons, six of which have named types. Its symbol coinciding with one of theirs is not a
+    /// collision but an identity — the two assert the same rule — so nothing is lost by a report that cannot
+    /// tell them apart.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void EveryNamedOperatorHasItsOwnSymbol()
+    {
+        var symbols = AllOperators(Bound(1), Bound(1))
+            .Where(o => o is not SimpleComparison)
+            .Select(o => o.Symbol)
+            .ToList();
 
         symbols.Should().OnlyHaveUniqueItems();
         symbols.Should().NotContain(s => string.IsNullOrWhiteSpace(s));
@@ -171,7 +321,7 @@ public class VerdictSeamTests
     [InlineData(SolvingRole.Coherence)]
     public void ADeterminingRelationshipHasNeitherASubjectNorACriterion(SolvingRole role)
     {
-        var op = new EqualityOperator(new AlwaysEqual(), role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var op = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
 
         op.Subject.Should().BeNull();
         op.Criterion.Should().BeNull();
@@ -186,7 +336,7 @@ public class VerdictSeamTests
     {
         var lhs = Bound(1);
         var rhs = Bound(1);
-        var op = new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement)
+        var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "eq", Lhs = lhs, Rhs = rhs
         };
@@ -205,7 +355,7 @@ public class VerdictSeamTests
     [InlineData(SolvingRole.Coherence)]
     public void HavingACriterionIsExactlyBeingARequirement(SolvingRole role)
     {
-        var equality = new EqualityOperator(new AlwaysEqual(), role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var equality = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
 
         (equality.Criterion is not null).Should().Be(role is SolvingRole.Requirement);
         (equality.Subject is not null).Should().Be(equality.Criterion is not null);
@@ -215,10 +365,5 @@ public class VerdictSeamTests
             (op.Criterion is not null).Should().Be(op.SolvingRole is SolvingRole.Requirement, op.Symbol);
             (op.Criterion is not null).Should().Be(! op.IsDetermining, op.Symbol);
         }
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

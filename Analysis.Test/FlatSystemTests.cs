@@ -21,7 +21,7 @@ public class FlatSystemTests
             symbol);
 
     private static EqualityOperator Equation(string id, IExpression lhs, IExpression rhs) =>
-        new(new AlwaysEqual(), SolvingRole.Equation) { Id = id, Lhs = lhs, Rhs = rhs };
+        new(AgreementRule.Nominal, SolvingRole.Equation) { Id = id, Lhs = lhs, Rhs = rhs };
 
     // ── What lands in the flat system ────────────────────────────────────────
 
@@ -129,7 +129,7 @@ public class FlatSystemTests
         system.Add(spec);
         system.Add(new WithinBindingToleranceOperator { Id = "tol", Lhs = m, Rhs = spec });
         system.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = m, Rhs = spec });
-        system.Add(new EqualityOperator(new AlwaysEqual(), SolvingRole.Requirement)
+        system.Add(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "check", Lhs = m, Rhs = spec
         });
@@ -357,10 +357,5 @@ public class FlatSystemTests
         withCheck.DegreesOfFreedom.Should().Be(expectedDoF, "a vacuous equation determines nothing");
         withCheck.Determination.Should().Be(expected);
         withCheck.RedundantEquations.Select(e => e.Relationship.Id).Should().Equal("a==b");
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

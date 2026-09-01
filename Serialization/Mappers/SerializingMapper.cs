@@ -117,6 +117,10 @@ public class SerializingMapper
             LhsId = state.LhsId,
             RhsId = state.RhsId,
             SolvingRole = state.SolvingRole,
+            Agreement = state.Agreement,
+            RuleLhs = state.Rule?.Lhs,
+            RuleComparison = state.Rule?.Type,
+            RuleRhs = state.Rule?.Rhs,
             Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
         };
     }

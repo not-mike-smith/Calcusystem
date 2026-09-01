@@ -10,6 +10,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 using Xunit;
 
 namespace Calcusystem.DimensionedExpression.Test.State;
@@ -40,6 +41,13 @@ public class StateSeamTests
     private static Variable Leaf(string id, double value) => new(
         id,
         Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+        id);
+
+    /// <summary>A leaf with an absolute error bar, for tests that need the bands to overlap or not.</summary>
+    private static Variable Leaf(string id, double value, double absoluteError) => new(
+        id,
+        Dimensionality.Dimensionless.Quantity(value)
+            .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError))),
         id);
 
     [Fact]
@@ -124,28 +132,88 @@ public class StateSeamTests
         state.RhsId.Should().Be("r");
 
         var restored = BinaryOperatorFactory.FromState(
-            state, new StubResolver().With("l", lhs).With("r", rhs), new AlwaysEqual());
+            state, new StubResolver().With("l", lhs).With("r", rhs));
 
         restored.Should().BeOfType<WhollyWithinToleranceOperator>();
         restored.Name.Should().Be("check");
         restored.Description.Should().Be("a check");
     }
 
-    [Fact]
-    public void EqualityOperatorReceivesTheInjectedStrategy()
+    /// <remarks>
+    /// The defect this replaced: equality used to take an injected strategy, so the document said "this is an
+    /// equality" and the <i>reader</i> decided what equality meant. Two readers could reach opposite verdicts
+    /// from identical bytes. The rule is state now, so the verdict travels with the model.
+    /// </remarks>
+    [Theory]
+    [InlineData(AgreementRule.Nominal, false)]
+    [InlineData(AgreementRule.Mutual, true)]
+    [InlineData(AgreementRule.Overlapping, true)]
+    public void AnEqualityCarriesItsOwnSemanticsAcrossTheSeam(AgreementRule rule, bool expected)
     {
-        // The one operator with a dependency, which is why reconstruction is a factory taking the strategy
-        // rather than a per-type FromState that has nowhere to accept one.
-        var lhs = Leaf("l", 1);
-        var rhs = Leaf("r", 2);
+        // 1 ± 1 and 2 ± 1: the reported values differ, but each lies inside the other's band.
+        var lhs = Leaf("l", 1, 1);
+        var rhs = Leaf("r", 2, 1);
 
         var restored = BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(BinaryOperatorKind.Equality, "eq", "l", "r", SolvingRole.Requirement, null, null, null),
-            new StubResolver().With("l", lhs).With("r", rhs),
-            new AlwaysEqual());
+            new BinaryOperatorState(
+                BinaryOperatorKind.Equality, "eq", "l", "r", SolvingRole.Requirement, rule, null, null, null, null),
+            new StubResolver().With("l", lhs).With("r", rhs));
 
-        restored.Should().BeOfType<EqualityOperator>();
-        restored.IsSatisfied().Should().BeTrue();
+        restored.Should().BeOfType<EqualityOperator>().Which.Agreement.Should().Be(rule);
+        restored.IsSatisfied().Should().Be(expected);
+    }
+
+    /// <remarks>
+    /// A document that says "equality" and nothing more describes no particular relationship. Guessing a
+    /// reading would reintroduce exactly the ambiguity the rule was added to remove, so it is refused.
+    /// </remarks>
+    [Fact]
+    public void AnEqualityWithNoAgreementRuleIsRefusedRatherThanGuessed()
+    {
+        var resolve = new StubResolver().With("l", Leaf("l", 1)).With("r", Leaf("r", 1));
+
+        var act = () => BinaryOperatorFactory.FromState(
+            new BinaryOperatorState(
+                BinaryOperatorKind.Equality, "eq", "l", "r", SolvingRole.Requirement, null, null, null, null, null),
+            resolve);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*agreement rule*");
+    }
+
+    /// <remarks>
+    /// The general comparison carries its rule the way equality carries its agreement: as state. A kind alone
+    /// cannot say which landmarks it compares, so a document that named only the kind would describe fourteen
+    /// different relationships at once.
+    /// </remarks>
+    [Fact]
+    public void ASimpleComparisonCarriesItsRuleAcrossTheSeam()
+    {
+        var lhs = Leaf("l", 1);
+        var rhs = Leaf("r", 1);
+        var rule = new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound);
+
+        var state = new SimpleComparison(rule) { Id = "c", Lhs = lhs, Rhs = rhs }.GetState();
+        state.Rule.Should().Be(rule);
+
+        var restored = BinaryOperatorFactory.FromState(
+            state, new StubResolver().With("l", lhs).With("r", rhs));
+
+        restored.Should().BeOfType<SimpleComparison>().Which.Rule.Should().Be(rule);
+        restored.Symbol.Should().Be("·<⌟");
+    }
+
+    [Fact]
+    public void ASimpleComparisonWithNoRuleIsRefusedRatherThanGuessed()
+    {
+        var resolve = new StubResolver().With("l", Leaf("l", 1)).With("r", Leaf("r", 1));
+
+        var act = () => BinaryOperatorFactory.FromState(
+            new BinaryOperatorState(
+                BinaryOperatorKind.SimpleComparison, "c", "l", "r", SolvingRole.Requirement,
+                null, null, null, null, null),
+            resolve);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*no rule*");
     }
 
     [Fact]
@@ -170,10 +238,5 @@ public class StateSeamTests
         restored.Variables.Should().HaveCount(2);
         restored.DerivedExpressions.Single().Should().BeSameAs(sum);
         restored.Requirements.Single().Should().BeSameAs(op);
-    }
-
-    private sealed class AlwaysEqual : IEqualityEstimating
-    {
-        public bool AreEqual(Measurand lhs, Measurand rhs) => true;
     }
 }

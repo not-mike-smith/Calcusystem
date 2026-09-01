@@ -2,6 +2,7 @@ using Calcusystem.Core;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Measurement;
 
@@ -38,6 +39,14 @@ public class Measurand : IStateful<Measurand, MeasurandState>
     public double KmsUpperAbsoluteError => Uncertainty.UpperAbsoluteError(KmsValue);
     public double KmsLowerAbsoluteError => Uncertainty.LowerAbsoluteError(KmsValue);
     public double KmsAbsoluteError => Math.Max(KmsUpperAbsoluteError, KmsLowerAbsoluteError);
+
+    public double this[Landmark lm] => lm switch
+    {
+        Landmark.LowerBound => KmsValue - KmsLowerAbsoluteError,
+        Landmark.Nominal => KmsValue,
+        Landmark.UpperBound => KmsValue + KmsUpperAbsoluteError,
+        _ => throw new IndexOutOfRangeException()
+    };
 
     public double In(UnitOfMeasure unitOfMeasure)
     {

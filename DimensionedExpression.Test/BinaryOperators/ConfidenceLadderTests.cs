@@ -1,3 +1,4 @@
+using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
@@ -9,9 +10,9 @@ using Xunit;
 namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 
 /// <summary>
-/// The ladder underneath the named operators: under uncertainty a comparison has several nested answers, and one
-/// pass computes all of them. These pin the nesting, the one place it deliberately stops, and — most importantly
-/// — that routing the operators through it changed no answer anywhere.
+/// The ladders beside the named operators: under uncertainty a comparison has several nested answers. These pin
+/// the nesting, the one place it deliberately stops, that an operator's own rule is discoverable as the rung it
+/// claims to be, and — most importantly — that none of this changed an answer anywhere.
 /// </summary>
 public class ConfidenceLadderTests
 {
@@ -58,9 +59,9 @@ public class ConfidenceLadderTests
         (">~", (a, b) => a.KmsValue > b.KmsValue),
         ("=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
                          a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError),
-        ("[≓}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
+        ("⌈=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
                           a.KmsValue + a.KmsUpperAbsoluteError <= b.KmsValue + b.KmsUpperAbsoluteError),
-        ("[≒}", (a, b) => a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError &&
+        ("⌊=}", (a, b) => a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError &&
                           a.KmsValue - a.KmsLowerAbsoluteError >= b.KmsValue - b.KmsLowerAbsoluteError),
         ("[=}", (a, b) => a.KmsValue - a.KmsLowerAbsoluteError > b.KmsValue - b.KmsLowerAbsoluteError &&
                           a.KmsValue + a.KmsUpperAbsoluteError < b.KmsValue + b.KmsUpperAbsoluteError),
@@ -88,8 +89,8 @@ public class ConfidenceLadderTests
         ">v" => new LowerBoundsGreaterThanOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         ">~" => new NominallyGreaterThanOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "=}" => new WithinBindingToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
-        "[≓}" => new PointAndUpperBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
-        "[≒}" => new PointAndLowerBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
+        "⌈=}" => new PointAndUpperBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
+        "⌊=}" => new PointAndLowerBoundWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "[=}" => new WhollyWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "≈" => new AnyToleranceOverlapOperator { Id = "o", Lhs = lhs, Rhs = rhs },
         "≃" => new MutuallyWithinToleranceOperator { Id = "o", Lhs = lhs, Rhs = rhs },
@@ -97,9 +98,19 @@ public class ConfidenceLadderTests
     };
 
     /// <remarks>
+    /// <para>
     /// The real proof the ladder changed nothing. The pre-existing suite is 65 hand-picked cases; this is every
     /// operator against its original formula over 2,025 pairs built to land on exact boundary coincidences,
     /// which is where a rewrite of interval comparisons would actually go wrong.
+    /// </para>
+    /// <para>
+    /// It has since survived a second rewrite, onto declared <c>ComparisonRule</c>s evaluated by
+    /// <c>MeasurandComparer</c>, and that was not a foregone conclusion — comparison became tolerance-aware,
+    /// which is a genuine behaviour change. It does not show up here because the grid's values are separated by
+    /// far more than any measurement resolves. Where it does show up is pinned separately, in
+    /// <c>UnboundedUncertaintyTests</c>. Keep both: this one guards everything the change was <i>not</i> meant
+    /// to touch, which is almost all of it.
+    /// </para>
     /// </remarks>
     [Theory]
     [InlineData("<<")]
@@ -109,8 +120,8 @@ public class ConfidenceLadderTests
     [InlineData(">v")]
     [InlineData(">~")]
     [InlineData("=}")]
-    [InlineData("[≓}")]
-    [InlineData("[≒}")]
+    [InlineData("⌈=}")]
+    [InlineData("⌊=}")]
     [InlineData("[=}")]
     [InlineData("≈")]
     [InlineData("≃")]
@@ -133,16 +144,102 @@ public class ConfidenceLadderTests
 
     // ── Ordering: a clean chain ───────────────────────────────────────────────
 
-    [Fact]
-    public void EachOrderingTierImpliesTheOneBelowIt()
+    /// <remarks>
+    /// Asserted in both directions now that direction is named rather than assumed. The chain has to hold for
+    /// <c>Above</c> on its own terms — it is not enough that it holds for <c>Below</c> and that the rules happen
+    /// to mirror.
+    /// </remarks>
+    [Theory]
+    [InlineData(OrderingDirection.Below)]
+    [InlineData(OrderingDirection.Above)]
+    public void EachOrderingTierImpliesTheOneBelowIt(OrderingDirection direction)
     {
         foreach (var (lhs, rhs) in Pairs())
         {
-            var ladder = OrderingLadder.Evaluate(lhs, rhs);
+            var because = $"{Describe(lhs)}/{Describe(rhs)} going {direction}";
 
-            if (ladder.Certain) ladder.Nominal.Should().BeTrue($"certain implies nominal for {Describe(lhs)}/{Describe(rhs)}");
-            if (ladder.Nominal) ladder.Possible.Should().BeTrue($"nominal implies possible for {Describe(lhs)}/{Describe(rhs)}");
+            bool? Reaches(OrderingConfidence tier) =>
+                OrderingLadder.Reaches(lhs, rhs, new OrderingRung(direction, tier));
+
+            if (Reaches(OrderingConfidence.Certain) is true)
+            {
+                Reaches(OrderingConfidence.Nominal).Should().BeTrue("certain implies nominal for " + because);
+            }
+
+            if (Reaches(OrderingConfidence.Nominal) is true)
+            {
+                Reaches(OrderingConfidence.Possible).Should().BeTrue("nominal implies possible for " + because);
+            }
         }
+    }
+
+    /// <remarks>
+    /// The discovery half. An operator declares its comparison plainly and the ladder places it afterwards, so
+    /// this is what now stops a rung and the operator named after it drifting apart — a stronger check than the
+    /// old one, which only asserted the operator had been handed the ladder's own constant.
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(LadderOperators))]
+    public void EachOrderingOperatorsRuleIsDiscoverableAsItsRung(IBinaryOperator op, OrderingRung expected)
+    {
+        var rule = ((BinaryOperatorBase)op).Rules.Single();
+
+        rule.RungOf().Should().Be(expected);
+        rule.Should().Be(OrderingLadder.RuleFor(expected.Direction, expected.Confidence));
+    }
+
+    public static TheoryData<IBinaryOperator, OrderingRung> LadderOperators()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+
+        return new TheoryData<IBinaryOperator, OrderingRung>
+        {
+            {
+                new DefinitelyLessThanOperator { Id = "a", Lhs = x, Rhs = x },
+                new OrderingRung(OrderingDirection.Below, OrderingConfidence.Certain)
+            },
+            {
+                new NominallyLessThanOperator { Id = "b", Lhs = x, Rhs = x },
+                new OrderingRung(OrderingDirection.Below, OrderingConfidence.Nominal)
+            },
+            {
+                new DefinitelyGreaterThanOperator { Id = "c", Lhs = x, Rhs = x },
+                new OrderingRung(OrderingDirection.Above, OrderingConfidence.Certain)
+            },
+            {
+                new NominallyGreaterThanOperator { Id = "d", Lhs = x, Rhs = x },
+                new OrderingRung(OrderingDirection.Above, OrderingConfidence.Nominal)
+            },
+        };
+    }
+
+    /// <remarks>
+    /// The two statistic comparisons are off the ladder, and discovery is where that stops being a claim in a
+    /// doc comment and becomes something the code answers.
+    /// </remarks>
+    [Fact]
+    public void TheStatisticComparisonsAreNotRungsOfTheOrderingLadder()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+
+        ((BinaryOperatorBase)new UpperBoundsLessThanOperator { Id = "a", Lhs = x, Rhs = x })
+            .Rules.Single().RungOf().Should().BeNull();
+        ((BinaryOperatorBase)new LowerBoundsGreaterThanOperator { Id = "b", Lhs = x, Rhs = x })
+            .Rules.Single().RungOf().Should().BeNull();
+    }
+
+    /// <remarks>
+    /// <c>Contradicted</c> is what is left when the weakest rung fails, so no rule tests it. Asking for one is a
+    /// caller error rather than a lookup that quietly returns something plausible.
+    /// </remarks>
+    [Fact]
+    public void ContradictedIsAResultAndNotARung()
+    {
+        var act = () => OrderingLadder.RuleFor(OrderingDirection.Below, OrderingConfidence.Contradicted);
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+        OrderingLadder.RuleFor(OrderingDirection.Below, OrderingConfidence.Certain)
+            .RungOf()!.Value.Confidence.Should().NotBe(OrderingConfidence.Contradicted);
     }
 
     [Theory]
@@ -159,35 +256,67 @@ public class ConfidenceLadderTests
         double rhsValue, double rhsLower, double rhsUpper,
         OrderingConfidence expected)
     {
-        OrderingLadder.Evaluate(M(lhsValue, lhsLower, lhsUpper), M(rhsValue, rhsLower, rhsUpper))
-            .Achieved.Should().Be(expected);
-    }
-
-    [Fact]
-    public void ReachesAsksForAtLeastATier()
-    {
-        // 10 ± 1 against 10.5 ± 1: nominally ordered, intervals overlap.
-        var ladder = OrderingLadder.Evaluate(M(10, 1, 1), M(10.5, 1, 1));
-
-        ladder.Reaches(OrderingConfidence.Possible).Should().BeTrue();
-        ladder.Reaches(OrderingConfidence.Nominal).Should().BeTrue();
-        ladder.Reaches(OrderingConfidence.Certain).Should().BeFalse();
+        OrderingLadder.AchievedTier(
+                M(lhsValue, lhsLower, lhsUpper), M(rhsValue, rhsLower, rhsUpper), OrderingDirection.Below)
+            .Should().Be(expected);
     }
 
     /// <remarks>
-    /// The tier no named operator ever asked for, and the reason the ladder is worth having: a modeller who
-    /// writes <c>&lt;~</c> and gets <c>false</c> currently cannot tell "comfortably the other way round" from
-    /// "a hair's breadth away, and the uncertainty covers it".
+    /// Reversing the operands reverses the direction, which is the mirroring property stated where a reader of
+    /// the ladder can see it — rather than left implicit in how four operators were declared.
+    /// </remarks>
+    [Theory]
+    [InlineData(9, 0, 0.1, 11, 0.1, 0, OrderingConfidence.Certain)]
+    [InlineData(10, 0, 1, 10.5, 1, 0, OrderingConfidence.Nominal)]
+    [InlineData(10.5, 1, 1, 10, 1, 1, OrderingConfidence.Possible)]
+    [InlineData(11, 0.1, 0, 9, 0, 0.1, OrderingConfidence.Contradicted)]
+    public void GoingAboveIsGoingBelowWithTheOperandsSwapped(
+        double lhsValue, double lhsLower, double lhsUpper,
+        double rhsValue, double rhsLower, double rhsUpper,
+        OrderingConfidence expected)
+    {
+        var lhs = M(lhsValue, lhsLower, lhsUpper);
+        var rhs = M(rhsValue, rhsLower, rhsUpper);
+
+        OrderingLadder.AchievedTier(rhs, lhs, OrderingDirection.Above).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ReachesAsksForOneRungAndNotTheWholeLadder()
+    {
+        // 10 ± 1 against 10.5 ± 1: nominally ordered, intervals overlap.
+        var lhs = M(10, 1, 1);
+        var rhs = M(10.5, 1, 1);
+
+        bool? Reaches(OrderingConfidence tier) =>
+            OrderingLadder.Reaches(lhs, rhs, new OrderingRung(OrderingDirection.Below, tier));
+
+        Reaches(OrderingConfidence.Contradicted).Should().BeTrue("every pair reaches the floor");
+        Reaches(OrderingConfidence.Possible).Should().BeTrue();
+        Reaches(OrderingConfidence.Nominal).Should().BeTrue();
+        Reaches(OrderingConfidence.Certain).Should().BeFalse();
+    }
+
+    /// <remarks>
+    /// The tier no named operator ever asked for, and the reason the ladder is worth keeping at all: a modeller
+    /// who writes <c>·&lt;·</c> and gets <c>false</c> cannot otherwise tell "comfortably the other way round"
+    /// from "a hair's breadth away, and the uncertainty covers it".
     /// </remarks>
     [Fact]
     public void PossibleIsReachableWithoutNominal()
     {
         // 10.5 ± 1 vs 10 ± 1 — nominally greater, but the intervals overlap heavily.
-        var ladder = OrderingLadder.Evaluate(M(10.5, 1, 1), M(10, 1, 1));
+        var lhs = M(10.5, 1, 1);
+        var rhs = M(10, 1, 1);
 
-        ladder.Possible.Should().BeTrue();
-        ladder.Nominal.Should().BeFalse();
-        ladder.Certain.Should().BeFalse();
+        bool? Reaches(OrderingConfidence tier) =>
+            OrderingLadder.Reaches(lhs, rhs, new OrderingRung(OrderingDirection.Below, tier));
+
+        OrderingLadder.AchievedTier(lhs, rhs, OrderingDirection.Below)
+            .Should().Be(OrderingConfidence.Possible);
+        Reaches(OrderingConfidence.Possible).Should().BeTrue();
+        Reaches(OrderingConfidence.Nominal).Should().BeFalse();
+        Reaches(OrderingConfidence.Certain).Should().BeFalse();
     }
 
     // ── Containment: a lattice, not a chain ───────────────────────────────────
@@ -197,19 +326,82 @@ public class ConfidenceLadderTests
     {
         foreach (var (lhs, rhs) in Pairs())
         {
-            var ladder = ContainmentLadder.Evaluate(lhs, rhs);
             var because = $"{Describe(lhs)} within {Describe(rhs)}";
+            bool? Reaches(ContainmentRung rung) => ContainmentLadder.Reaches(lhs, rhs, rung);
 
-            if (ladder.WhollyWithin)
+            if (Reaches(ContainmentRung.WhollyWithin) is true)
             {
-                ladder.NominalAndUpperWithin.Should().BeTrue(because);
-                ladder.NominalAndLowerWithin.Should().BeTrue(because);
+                Reaches(ContainmentRung.NominalAndUpperWithin).Should().BeTrue(because);
+                Reaches(ContainmentRung.NominalAndLowerWithin).Should().BeTrue(because);
             }
 
-            if (ladder.NominalAndUpperWithin) ladder.NominalWithin.Should().BeTrue(because);
-            if (ladder.NominalAndLowerWithin) ladder.NominalWithin.Should().BeTrue(because);
-            if (ladder.NominalWithin) ladder.Overlaps.Should().BeTrue(because);
+            if (Reaches(ContainmentRung.NominalAndUpperWithin) is true)
+            {
+                Reaches(ContainmentRung.NominalWithin).Should().BeTrue(because);
+            }
+
+            if (Reaches(ContainmentRung.NominalAndLowerWithin) is true)
+            {
+                Reaches(ContainmentRung.NominalWithin).Should().BeTrue(because);
+            }
+
+            if (Reaches(ContainmentRung.NominalWithin) is true)
+            {
+                Reaches(ContainmentRung.Overlaps).Should().BeTrue(because);
+            }
         }
+    }
+
+    /// <remarks>
+    /// The containment half of discovery. Each operator writes its own comparisons and the ladder places them
+    /// afterwards, which is what now stops a rung and the operator named after it drifting apart.
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(ContainmentOperators))]
+    public void EachContainmentOperatorsRulesAreDiscoverableAsItsRung(
+        IBinaryOperator op, ContainmentRung expected)
+    {
+        var rules = ((BinaryOperatorBase)op).Rules;
+
+        ContainmentLadder.RungOf(rules).Should().Be(expected);
+        rules.Should().Equal(ContainmentLadder.RulesFor(expected));
+    }
+
+    public static TheoryData<IBinaryOperator, ContainmentRung> ContainmentOperators()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+
+        return new TheoryData<IBinaryOperator, ContainmentRung>
+        {
+            { new AnyToleranceOverlapOperator { Id = "a", Lhs = x, Rhs = x }, ContainmentRung.Overlaps },
+            { new WithinBindingToleranceOperator { Id = "b", Lhs = x, Rhs = x }, ContainmentRung.NominalWithin },
+            {
+                new PointAndUpperBoundWithinToleranceOperator { Id = "c", Lhs = x, Rhs = x },
+                ContainmentRung.NominalAndUpperWithin
+            },
+            {
+                new PointAndLowerBoundWithinToleranceOperator { Id = "d", Lhs = x, Rhs = x },
+                ContainmentRung.NominalAndLowerWithin
+            },
+            { new WhollyWithinToleranceOperator { Id = "e", Lhs = x, Rhs = x }, ContainmentRung.WhollyWithin },
+        };
+    }
+
+    /// <remarks>
+    /// Mutual containment is a quantifier over the ladder rather than a rung of it — the ladder runs one way,
+    /// and this asks for it in both. Discovery says so rather than a doc comment claiming it.
+    /// </remarks>
+    [Fact]
+    public void MutualContainmentIsNotARungOfTheContainmentLadder()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+        var mutual = new MutuallyWithinToleranceOperator { Id = "m", Lhs = x, Rhs = x };
+
+        ContainmentLadder.RungOf(mutual.Rules).Should().BeNull();
+
+        // …but it is exactly the nominal rung asked in both directions.
+        var oneWay = ContainmentLadder.RulesFor(ContainmentRung.NominalWithin);
+        mutual.Rules.Should().Equal([.. oneWay, .. oneWay.Select(r => r.Mirrored)]);
     }
 
     /// <remarks>
@@ -220,20 +412,22 @@ public class ConfidenceLadderTests
     [Fact]
     public void TheTwoMiddleRungsAreIndependentOfEachOther()
     {
+        bool? Upper(Measurand l, Measurand r) =>
+            ContainmentLadder.Reaches(l, r, ContainmentRung.NominalAndUpperWithin);
+        bool? Lower(Measurand l, Measurand r) =>
+            ContainmentLadder.Reaches(l, r, ContainmentRung.NominalAndLowerWithin);
+
         // Subject 10 [9.9, 11] against band 10 [9, 11]: ceiling coincides so upper fits, floor is well inside.
-        var upperOnly = ContainmentLadder.Evaluate(M(10, 0.1, 1), M(10, 1, 1));
-        upperOnly.NominalAndUpperWithin.Should().BeTrue();
-        upperOnly.NominalAndLowerWithin.Should().BeTrue();
+        Upper(M(10, 0.1, 1), M(10, 1, 1)).Should().BeTrue();
+        Lower(M(10, 0.1, 1), M(10, 1, 1)).Should().BeTrue();
 
         // Subject 10 [9, 11.5] against band 10 [9, 11]: floor coincides, ceiling overshoots.
-        var lowerOnly = ContainmentLadder.Evaluate(M(10, 1, 1.5), M(10, 1, 1));
-        lowerOnly.NominalAndLowerWithin.Should().BeTrue();
-        lowerOnly.NominalAndUpperWithin.Should().BeFalse();
+        Lower(M(10, 1, 1.5), M(10, 1, 1)).Should().BeTrue();
+        Upper(M(10, 1, 1.5), M(10, 1, 1)).Should().BeFalse();
 
         // And the mirror image: ceiling fits, floor undershoots.
-        var upperFits = ContainmentLadder.Evaluate(M(10, 1.5, 1), M(10, 1, 1));
-        upperFits.NominalAndUpperWithin.Should().BeTrue();
-        upperFits.NominalAndLowerWithin.Should().BeFalse();
+        Upper(M(10, 1.5, 1), M(10, 1, 1)).Should().BeTrue();
+        Lower(M(10, 1.5, 1), M(10, 1, 1)).Should().BeFalse();
     }
 
     /// <remarks>
@@ -245,24 +439,27 @@ public class ConfidenceLadderTests
     [Fact]
     public void IdenticalIntervalsSatisfyEveryRungExceptTheStrictTop()
     {
-        var ladder = ContainmentLadder.Evaluate(M(10, 1, 1), M(10, 1, 1));
+        var identical = M(10, 1, 1);
+        bool? Reaches(ContainmentRung rung) => ContainmentLadder.Reaches(identical, M(10, 1, 1), rung);
 
-        ladder.Overlaps.Should().BeTrue();
-        ladder.NominalWithin.Should().BeTrue();
-        ladder.NominalAndUpperWithin.Should().BeTrue();
-        ladder.NominalAndLowerWithin.Should().BeTrue();
-        ladder.WhollyWithin.Should().BeFalse("an interval is not strictly inside a copy of itself");
+        Reaches(ContainmentRung.Overlaps).Should().BeTrue();
+        Reaches(ContainmentRung.NominalWithin).Should().BeTrue();
+        Reaches(ContainmentRung.NominalAndUpperWithin).Should().BeTrue();
+        Reaches(ContainmentRung.NominalAndLowerWithin).Should().BeTrue();
+        Reaches(ContainmentRung.WhollyWithin)
+            .Should().BeFalse("an interval is not strictly inside a copy of itself");
     }
 
     [Fact]
     public void TouchingIntervalsOverlapButContainNothing()
     {
         // [9, 10] and [10, 11] share exactly the point 10.
-        var ladder = ContainmentLadder.Evaluate(M(9.5, 0.5, 0.5), M(10.5, 0.5, 0.5));
+        bool? Reaches(ContainmentRung rung) =>
+            ContainmentLadder.Reaches(M(9.5, 0.5, 0.5), M(10.5, 0.5, 0.5), rung);
 
-        ladder.Overlaps.Should().BeTrue("overlap is non-strict, so touching counts");
-        ladder.NominalWithin.Should().BeFalse();
-        ladder.WhollyWithin.Should().BeFalse();
+        Reaches(ContainmentRung.Overlaps).Should().BeTrue("overlap is non-strict, so touching counts");
+        Reaches(ContainmentRung.NominalWithin).Should().BeFalse();
+        Reaches(ContainmentRung.WhollyWithin).Should().BeFalse();
     }
 
     /// <remarks>
@@ -274,13 +471,17 @@ public class ConfidenceLadderTests
     {
         foreach (var (lhs, rhs) in Pairs())
         {
-            ContainmentLadder.Evaluate(lhs, rhs).Overlaps
-                .Should().Be(ContainmentLadder.Evaluate(rhs, lhs).Overlaps, Describe(lhs) + "/" + Describe(rhs));
+            ContainmentLadder.Reaches(lhs, rhs, ContainmentRung.Overlaps)
+                .Should().Be(
+                    ContainmentLadder.Reaches(rhs, lhs, ContainmentRung.Overlaps),
+                    Describe(lhs) + "/" + Describe(rhs));
         }
 
         // Narrow inside wide is contained; wide inside narrow is not.
-        ContainmentLadder.Evaluate(M(10, 0.5, 0.5), M(10, 1, 1)).WhollyWithin.Should().BeTrue();
-        ContainmentLadder.Evaluate(M(10, 1, 1), M(10, 0.5, 0.5)).WhollyWithin.Should().BeFalse();
+        ContainmentLadder.Reaches(M(10, 0.5, 0.5), M(10, 1, 1), ContainmentRung.WhollyWithin)
+            .Should().BeTrue();
+        ContainmentLadder.Reaches(M(10, 1, 1), M(10, 0.5, 0.5), ContainmentRung.WhollyWithin)
+            .Should().BeFalse();
     }
 
     // ── The two operators that stay off the ladder ────────────────────────────
@@ -306,10 +507,11 @@ public class ConfidenceLadderTests
         // and the ordering ladder gets no further than "nominal". Neither ladder has a rung in this position.
         upperLess.IsSatisfiedGiven(subject, band).Should().BeTrue();
 
-        var containment = ContainmentLadder.Evaluate(subject, band);
-        containment.Overlaps.Should().BeTrue();
-        containment.NominalWithin.Should().BeFalse("9.5 is below the band's floor of 10");
+        ContainmentLadder.Reaches(subject, band, ContainmentRung.Overlaps).Should().BeTrue();
+        ContainmentLadder.Reaches(subject, band, ContainmentRung.NominalWithin)
+            .Should().BeFalse("9.5 is below the band's floor of 10");
 
-        OrderingLadder.Evaluate(subject, band).Achieved.Should().Be(OrderingConfidence.Nominal);
+        OrderingLadder.AchievedTier(subject, band, OrderingDirection.Below)
+            .Should().Be(OrderingConfidence.Nominal);
     }
 }

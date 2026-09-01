@@ -22,14 +22,10 @@ namespace Calcusystem.Serialization.Mappers;
 public class DeserializingMapper
 {
     private readonly DeserializationContext _context;
-    private readonly IEqualityEstimating _equalityEstimator;
 
-    public DeserializingMapper(
-        DeserializationContext context,
-        IEqualityEstimating equalityEstimator)
+    public DeserializingMapper(DeserializationContext context)
     {
         _context = context;
-        _equalityEstimator = equalityEstimator;
     }
 
     /// <remarks>
@@ -207,12 +203,23 @@ public class DeserializingMapper
                 x.LhsId,
                 x.RhsId,
                 x.SolvingRole,
+                x.Agreement,
+                RuleOf(x),
                 x.Name,
                 x.Description,
                 MapProvenance(x.Provenance)),
-            _context,
-            _equalityEstimator);
+            _context);
     }
+
+    /// <summary>The comparison rule a simple comparison carries, or null where the DTO states no complete one.</summary>
+    /// <remarks>
+    /// All three parts or none. A partly written rule is a malformed document, and reconstruction refuses it
+    /// through the factory rather than filling in a landmark nobody wrote.
+    /// </remarks>
+    private static ComparisonRule? RuleOf(Dtos.BinaryOperator x) =>
+        x is { RuleLhs: { } lhs, RuleComparison: { } comparison, RuleRhs: { } rhs }
+            ? new ComparisonRule(lhs, comparison, rhs)
+            : null;
 
     public Variable MapVariable(Dtos.SingleVariable v) => Variable.FromState(
         new VariableState(
