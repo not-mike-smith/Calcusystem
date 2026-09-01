@@ -6,6 +6,7 @@ using Calcusystem.Measurement;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 

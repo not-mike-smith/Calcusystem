@@ -4,6 +4,7 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Core;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -28,7 +29,6 @@ public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<R
     public override bool IsFullyDescribed => Reciprocand.IsFullyDescribed;
     public override Dimensionality Dimensionality => Reciprocand.Dimensionality.Reciprocal();
 
-
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
@@ -42,7 +42,6 @@ public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<R
 
     /// <inheritdoc/>
     public override IEnumerable<IExpression> Children => [Reciprocand];
-
 
     /// <inheritdoc/>
     public UnaryExpressionState GetState() =>

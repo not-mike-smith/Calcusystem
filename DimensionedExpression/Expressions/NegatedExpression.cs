@@ -4,6 +4,7 @@ using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 

@@ -1,7 +1,7 @@
-using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Measurement.Test;
 

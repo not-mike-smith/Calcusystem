@@ -1,23 +1,6 @@
+using Calcusystem.DimensionedExpression.Enums;
+
 namespace Calcusystem.DimensionedExpression.State;
-
-/// <summary>Which single-argument expression a <see cref="UnaryExpressionState"/> rebuilds into.</summary>
-public enum UnaryExpressionKind
-{
-    /// <summary><c>1/x</c>.</summary>
-    Reciprocal,
-
-    /// <summary><c>-x</c>.</summary>
-    Negated,
-
-    /// <summary><c>√x</c>.</summary>
-    Sqrt,
-
-    /// <summary><c>e^x</c>.</summary>
-    Exponential,
-
-    /// <summary><c>ln x</c>.</summary>
-    NaturalLog,
-}
 
 /// <summary>
 /// The complete stored state of any expression wrapping a single argument.

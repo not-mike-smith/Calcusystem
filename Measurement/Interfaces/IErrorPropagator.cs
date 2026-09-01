@@ -1,3 +1,5 @@
+using Calcusystem.Measurement.Enums;
+
 namespace Calcusystem.Measurement.Interfaces;
 
 /// <summary>
