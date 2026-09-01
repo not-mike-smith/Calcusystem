@@ -38,7 +38,19 @@ The symbol is **generated** from the rule, which is the test of whether the nota
 
 So `⌜<⌟` reads "my ceiling is below your floor". The six ordering operators declare their symbols by hand and a test asserts the generated ones match, so the alphabet cannot drift from the operators it describes.
 
+Braces are the band markers: `}` says the right operand acts as a band, `{` says the left one does. So `·=}` places the subject's reported value inside the criterion's band, and `{·=·}` places each side's reported value inside the other's.
+
 Compound operators keep hand-written symbols: `·=}` is a *band*, not a comparison, and spelling it as its two rules would lose what the notation exists to convey.
+
+### Commutativity is visible, and enforced
+
+**A commutative operator's symbol is a mirror-palindrome; a non-commutative one's is not.** Mirror-reversal means reversing the characters *and* mapping each to its mirror — `⌜↔⌝`, `⌞↔⌟`, `{↔}`, `<↔>`, `≤↔≥`, with `·` `=` `≈` `≠` fixed. It is `ComparisonRule.Mirrored` lifted to notation, and `VerdictSeamTests` holds every operator to it.
+
+Plain string reversal will not do: `·<·` reverses to itself and is emphatically not commutative. Under mirror-reversal it becomes `·>·`, which is right.
+
+This retired two symbols. `≃=` and `≈=` marked the equality family with a trailing `=`, which reads the same way round from one side only — exactly what a commutative relation must not do. Doubling the `=` instead keeps the symmetry: `{·==·}`.
+
+It also caught a real defect: `SimpleComparison` declared itself non-commutative unconditionally, when `·=·` is commutative by any reading. Its commutativity now follows its rule — `Rule == Rule.Mirrored`.
 
 ---
 
@@ -89,7 +101,7 @@ A rung is a **set** of comparisons rather than one, so discovery works on rule s
 
 | Rung | Condition | Named operator |
 | --- | --- | --- |
-| `Overlaps` | `aU ≥ bL ∧ aL ≤ bU` — the values are not incompatible | `AnyToleranceOverlap` `≈` |
+| `Overlaps` | `aU ≥ bL ∧ aL ≤ bU` — the values are not incompatible | `AnyToleranceOverlap` `{><}` |
 | `NominalWithin` | `bL ≤ a ≤ bU` | `WithinBindingTolerance` `·=}` |
 | `NominalAndUpperWithin` | …and `aU ≤ bU` | `PointAndUpperBoundWithinTolerance` `·⌜=}` |
 | `NominalAndLowerWithin` | …and `aL ≥ bL` | `PointAndLowerBoundWithinTolerance` `·⌞=}` |
@@ -109,7 +121,7 @@ Implications run downward: `WhollyWithin` ⟹ both middle rungs ⟹ `NominalWith
 
 **The converse fails at the top, deliberately.** `WhollyWithin` is *strict* on both bounds while every rung below it is not, so two identical intervals satisfy every rung except the last — an interval is not *strictly* inside a copy of itself. The dot-prefixed operators place a **point** in a *closed* band; `[=}` places an **interval** inside an *open* one, which is a different claim and why it alone opens with a bracket. This is the one exact-boundary case that really arises, since checking a value against a spec built from the same figures is ordinary, and it is pinned by a test.
 
-`MutuallyWithinTolerance` `≃` is `NominalWithin` in **both directions** — the rung's rules plus their mirrors. Note it is `·=}` doubled, **not** `[=}` doubled, which would give identical intervals and be far stricter.
+`MutuallyWithinTolerance` `{·=·}` is `NominalWithin` in **both directions** — the rung's rules plus their mirrors. Note it is `·=}` doubled, **not** `[=}` doubled, which would give identical intervals and be far stricter.
 
 This ladder is also where a *single* rung genuinely drops out on its own: two unbounded uncertainties leave ceiling-against-ceiling undecidable while the reported values still answer.
 
@@ -133,10 +145,12 @@ These compare a derived **statistic** of each side rather than asking how the qu
 | `AgreementRule` | Symbol | Rules |
 | --- | --- | --- |
 | `Nominal` | `==` | `a = b` — the reported values are the same number |
-| `Mutual` | `≃=` | `NominalWithin` both ways |
-| `Overlapping` | `≈=` | `Overlaps` |
+| `Mutual` | `{·==·}` | `NominalWithin` both ways |
+| `Overlapping` | `{≈}` | `Overlaps` |
 
-The trailing `=` marks the equality family; the leading glyph names how loosely agreement is read. The looser two coincide with `≃` and `≈`, deliberately: those state the condition as a requirement, while an equality can carry a solver's weight.
+All three are mirror-palindromes, as every commutative operator's symbol must be. The doubled `=`, or the braces, mark the equality family without breaking the symmetry a trailing marker would.
+
+The looser two assert exactly the rules of `{·=·}` and `{><}`, deliberately: those state the condition as a requirement, while an equality can additionally be an `Equation` or a `Coherence` check and so is the only place the condition can carry a solver's weight.
 
 **The rule is state, not a strategy.** Equality previously took an injected `IEqualityEstimating`, so the wire carried "this is an equality" and nothing about what equality *meant* — the reader supplied the semantics, and two readers could reach opposite verdicts from identical bytes. A strategy cannot be serialized; an enum can. Reconstruction refuses an equality whose state names no rule rather than guessing one.
 
@@ -154,9 +168,9 @@ It **deliberately overlaps** the named types: configured with `·<·` it is `Nom
 
 | Class | Symbol | Commutative | Asserts |
 | --- | --- | --- | --- |
-| `EqualityOperator` | `==` / `≃=` / `≈=` | ✓ | its `AgreementRule` |
-| `MutuallyWithinToleranceOperator` | `≃` | ✓ | `NominalWithin` both ways |
-| `AnyToleranceOverlapOperator` | `≈` | ✓ | `Overlaps` |
+| `EqualityOperator` | `==` / `{·==·}` / `{≈}` | ✓ | its `AgreementRule` |
+| `MutuallyWithinToleranceOperator` | `{·=·}` | ✓ | `NominalWithin` both ways |
+| `AnyToleranceOverlapOperator` | `{><}` | ✓ | `Overlaps` |
 | `WhollyWithinToleranceOperator` | `[=}` | ✗ | `WhollyWithin` |
 | `WithinBindingToleranceOperator` | `·=}` | ✗ | `NominalWithin` |
 | `PointAndUpperBoundWithinToleranceOperator` | `·⌜=}` | ✗ | `NominalAndUpperWithin` |
@@ -167,7 +181,7 @@ It **deliberately overlaps** the named types: configured with `·<·` it is `Nom
 | `NominallyGreaterThanOperator` | `·>·` | ✗ | `a > b` — ladder `Above`/`Nominal` |
 | `UpperBoundsLessThanOperator` | `⌜<⌝` | ✗ | its own rule |
 | `LowerBoundsGreaterThanOperator` | `⌞>⌟` | ✗ | its own rule |
-| `SimpleComparison` | *generated* | ✗ | any one rule |
+| `SimpleComparison` | *generated* | *follows its rule* | any one rule |
 
 No `≤` / `≥` variants of the *ordering* tiers exist. Comparison is tolerance-aware — `MeasurandComparer` calls two values equal when they differ by less than the measurements can resolve — so a non-strict ordering would differ from a strict one only on values already judged the same. Containment is the exception, and the reason is above: identical intervals really do arise.
 

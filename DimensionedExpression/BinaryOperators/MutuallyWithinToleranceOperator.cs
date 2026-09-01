@@ -9,7 +9,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// Satisfied when each side's nominal value falls within the other side's tolerance band — i.e.
 /// Lhs ∈ [Rhs ± Rhs.error] AND Rhs ∈ [Lhs ± Lhs.error]. The check is symmetric.
 /// <br/>
-/// Symbol: <b>≃</b>
+/// Symbol: <b>{·=·}</b>
 /// <br/>
 /// Use when two independently measured quantities are expected to agree within their own stated uncertainties.
 /// </summary>
@@ -17,7 +17,13 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.MutuallyWithinTolerance;
 
-    public override string Symbol => "≃";
+    /// <inheritdoc/>
+    /// <remarks>
+    /// A brace on each side says both operands act as bands; the dot beside each <c>=</c> says it is the
+    /// reported value that must land inside the other's. Being a mirror-palindrome is not decoration — it is
+    /// how the notation shows commutativity, and a test holds every operator to it.
+    /// </remarks>
+    public override string Symbol => "{·=·}";
 
     /// <inheritdoc/>
     /// <remarks>

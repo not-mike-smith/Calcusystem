@@ -58,6 +58,97 @@ public class VerdictSeamTests
         covered.Should().HaveCount(14);
     }
 
+    /// <summary>
+    /// A symbol read from the other side: the characters reversed, each mapped to its mirror image.
+    /// </summary>
+    /// <remarks>
+    /// Not plain string reversal, which would call <c>·&lt;·</c> a palindrome and so declare it commutative.
+    /// This is <c>ComparisonRule.Mirrored</c> lifted to notation — the corners swap hands, the relations flip,
+    /// and the statistic glyphs stay put.
+    /// </remarks>
+    private static string MirrorReverse(string symbol)
+    {
+        const string Fixed = "·=≈≠?∅";
+
+        return new string(symbol.Reverse().Select(c => c switch
+        {
+            '⌜' => '⌝', '⌝' => '⌜',
+            '⌞' => '⌟', '⌟' => '⌞',
+            '{' => '}', '}' => '{',
+            '[' => ']', ']' => '[',
+            '<' => '>', '>' => '<',
+            '≤' => '≥', '≥' => '≤',
+            _ => Fixed.Contains(c) ? c : throw new ArgumentException($"No mirror for '{c}' in {symbol}"),
+        }).ToArray());
+    }
+
+    /// <remarks>
+    /// <para>
+    /// The notation earns its keep here. A commutative relationship says the same thing read from either side,
+    /// so its symbol must too — and a non-commutative one must not, or the symbol would claim a symmetry the
+    /// operator does not have.
+    /// </para>
+    /// <para>
+    /// This is what retired <c>≃=</c> and <c>≈=</c>: a trailing family marker reads the same way round from one
+    /// side only, which is exactly what a commutative relation should never do. It also caught
+    /// <see cref="SimpleComparison"/> declaring itself non-commutative when configured with <c>·=·</c>, which
+    /// is commutative by any reading.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void ACommutativeOperatorIsExactlyOneWhoseSymbolReadsTheSameBothWays()
+    {
+        foreach (var op in AllOperators(Bound(1), Bound(1)))
+        {
+            (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(
+                op.IsCommutative,
+                $"{op.GetType().Name} spells {op.Symbol}, which mirrors to {MirrorReverse(op.Symbol)}");
+        }
+    }
+
+    /// <remarks>
+    /// Swept separately because the operator list holds one equality, at one agreement rule — so the sweep
+    /// above never sees the other two symbols. That gap let <c>≃=</c> and <c>≈=</c> survive the invariant that
+    /// was written to retire them, and was found by mutating them back.
+    /// </remarks>
+    [Theory]
+    [InlineData(AgreementRule.Nominal)]
+    [InlineData(AgreementRule.Mutual)]
+    [InlineData(AgreementRule.Overlapping)]
+    public void EveryAgreementRuleSpellsACommutativeSymbol(AgreementRule rule)
+    {
+        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+
+        op.IsCommutative.Should().BeTrue("an equality reads the same from either side");
+        MirrorReverse(op.Symbol).Should().Be(op.Symbol, $"{rule} spells {op.Symbol}");
+    }
+
+    /// <remarks>
+    /// The general form covers both cases, so it is swept separately over every rule rather than in the one
+    /// configuration the operator list happens to hold.
+    /// </remarks>
+    [Fact]
+    public void ASimpleComparisonIsCommutativeExactlyWhenItsRuleHasNoSide()
+    {
+        var x = Bound(1);
+
+        foreach (var landmark in Enum.GetValues<Landmark>())
+        foreach (var mask in Enum.GetValues<ComparisonType>())
+        foreach (var other in Enum.GetValues<Landmark>())
+        {
+            var op = new SimpleComparison(new ComparisonRule(landmark, mask, other))
+            {
+                Id = "s", Lhs = x, Rhs = x,
+            };
+
+            (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(op.IsCommutative, op.Symbol);
+            op.IsCommutative.Should().Be(
+                landmark == other && mask is ComparisonType.EqualTo or ComparisonType.InequalTo
+                    or ComparisonType.Any or ComparisonType.None,
+                op.Symbol);
+        }
+    }
+
     /// <remarks>
     /// <para>
     /// `Symbol` is how a relationship identifies itself to a reader, and `OPERATORS.md` documents each operator

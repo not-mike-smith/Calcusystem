@@ -7,8 +7,8 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// <summary>
 /// Satisfied when the Lhs and Rhs agree, to the strictness named by <see cref="AgreementRule"/>.
 /// <br/>
-/// Symbol: <b>==</b>, <b>≃=</b> or <b>≈=</b> — the trailing <c>=</c> marks the equality family and the leading
-/// glyph, where there is one, names how loosely agreement is being read.
+/// Symbol: <b>==</b>, <b>{·==·}</b> or <b>{≈}</b> — a doubled <c>=</c>, or braces, mark the equality family;
+/// what is inside names how loosely agreement is being read.
 /// <br/>
 /// Use when two quantities are expected to be the same, and say how nearly the same they must be.
 /// </summary>
@@ -48,11 +48,24 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// </remarks>
     public AgreementRule Agreement { get; } = agreementRule;
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// All three are mirror-palindromes, as every commutative operator's symbol must be. That is what ruled out
+    /// the earlier <c>≃=</c> and <c>≈=</c>: a trailing family marker reads the same way round only from one
+    /// side, which is exactly what a commutative relation should not do. Doubling the <c>=</c> marks the family
+    /// without breaking the symmetry.
+    /// <para>
+    /// <c>{·==·}</c> and <c>{·=·}</c> asserting the same rules is deliberate. The tolerance operator states the
+    /// condition as a requirement; an equality can additionally be an
+    /// <see cref="DimensionedExpression.SolvingRole.Equation"/> or a
+    /// <see cref="DimensionedExpression.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
+    /// </para>
+    /// </remarks>
     public override string Symbol => Agreement switch
     {
         AgreementRule.Nominal => "==",
-        AgreementRule.Mutual => "≃=",
-        AgreementRule.Overlapping => "≈=",
+        AgreementRule.Mutual => "{·==·}",
+        AgreementRule.Overlapping => "{≈}",
         _ => throw new ArgumentOutOfRangeException(
             nameof(Agreement), Agreement, "Unknown agreement rule."),
     };

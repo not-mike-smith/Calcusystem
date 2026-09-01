@@ -26,14 +26,26 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// Always a <see cref="SolvingRole.Requirement"/>. An ordering confines a value to an interval rather than
 /// producing one, so nothing can be derived from it however it is spelled.
 /// </para>
+/// <para>
+/// Commutativity, by contrast, depends on the rule: <c>·=·</c> reads the same from either side while
+/// <c>·&lt;·</c> does not. It is the only operator whose commutativity is not fixed by its type.
+/// </para>
 /// </remarks>
 /// <param name="rule">The comparison this relationship asserts.</param>
-public class SimpleComparison(ComparisonRule rule) : NonCommutativeOperatorBase
+public class SimpleComparison(ComparisonRule rule) : BinaryOperatorBase
 {
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.SimpleComparison;
 
     /// <summary>The single comparison this relationship asserts.</summary>
     public ComparisonRule Rule { get; } = rule;
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// A rule is commutative exactly when mirroring leaves it unchanged — when its mask carries no ordering
+    /// bias, so swapping the operands cannot change the answer. <c>·=·</c> and <c>·≠·</c> qualify; nothing with
+    /// a <c>&lt;</c> or <c>&gt;</c> bit does, and neither does a rule comparing two different landmarks.
+    /// </remarks>
+    public override bool IsCommutative => Rule == Rule.Mirrored;
 
     /// <inheritdoc/>
     /// <remarks>
