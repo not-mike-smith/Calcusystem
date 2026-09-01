@@ -48,7 +48,7 @@ Compound operators keep hand-written symbols: `·=}` is a *band*, not a comparis
 
 Plain string reversal will not do: `·<·` reverses to itself and is emphatically not commutative. Under mirror-reversal it becomes `·>·`, which is right.
 
-This retired two symbols. `≃=` and `≈=` marked the equality family with a trailing `=`, which reads the same way round from one side only — exactly what a commutative relation must not do. Doubling the `=` instead keeps the symmetry: `{·==·}`.
+This retired two symbols. `≃=` and `≈=` marked the equality family with a trailing `=`, which reads the same way round from one side only — exactly what a commutative relation must not do. The family marker is a **centred** `=` instead, which cannot break the invariant: `=` is its own mirror and the centre is the fixed point of mirror-reversal, so inserting one there maps a palindrome to a palindrome.
 
 It also caught a real defect: `SimpleComparison` declared itself non-commutative unconditionally, when `·=·` is commutative by any reading. Its commutativity now follows its rule — `Rule == Rule.Mirrored`.
 
@@ -142,13 +142,17 @@ These compare a derived **statistic** of each side rather than asking how the qu
 
 `EqualityOperator` takes an `AgreementRule` saying how strictly "equal" is read. It is the only operator whose `SolvingRole` can be `Equation` or `Coherence` — every other operator here yields an interval rather than a point, so no value can be derived from one, and all of them are `Requirement`.
 
-| `AgreementRule` | Symbol | Rules |
-| --- | --- | --- |
-| `Nominal` | `==` | `a = b` — the reported values are the same number |
-| `Mutual` | `{·==·}` | `NominalWithin` both ways |
-| `Overlapping` | `{≈}` | `Overlaps` |
+One rule, applied three times: **take the symbol of the operator asserting the same condition and insert an `=` at its centre.**
 
-All three are mirror-palindromes, as every commutative operator's symbol must be. The doubled `=`, or the braces, mark the equality family without breaking the symmetry a trailing marker would.
+| `AgreementRule` | Symbol | from | Rules |
+| --- | --- | --- | --- |
+| `Nominal` | `·==·` | `·=·` | `a = b` — the reported values are the same number |
+| `Mutual` | `{·==·}` | `{·=·}` | `NominalWithin` both ways |
+| `Overlapping` | `{>=<}` | `{><}` | `Overlaps` |
+
+`·==·` rather than the conventional `==` deliberately: "equal" is not one thing for measured values — that is why `AgreementRule` exists — and `==` is silent about which statistic participates.
+
+All three are mirror-palindromes, as every commutative operator's symbol must be, and no member of the family is a special case.
 
 The looser two assert exactly the rules of `{·=·}` and `{><}`, deliberately: those state the condition as a requirement, while an equality can additionally be an `Equation` or a `Coherence` check and so is the only place the condition can carry a solver's weight.
 
@@ -162,13 +166,19 @@ The looser two assert exactly the rules of `{·=·}` and `{><}`, deliberately: t
 
 It **deliberately overlaps** the named types: configured with `·<·` it is `NominallyLessThan` in every respect including its symbol. That is an identity, not a collision — the two assert the same rule — which is why the symbol-uniqueness test excepts it. The named types stay because they are the ergonomic spelling and because the wire identifies operators by kind.
 
+It is also the only operator whose **commutativity follows its rule** rather than its type: `Rule == Rule.Mirrored`, true exactly when the mask carries no ordering bias.
+
+`ComparisonType.None` is refused at construction, and is the only mask that is. A rule accepting no outcome is never satisfied, so it reports as a *violation* on every calculation — a finding against the model that the model never asserted. It is also the mask enum's zero, so it is what an uninitialised field reads as, and refusing it turns a forgotten assignment into an error where it was forgotten.
+
+`ComparisonType.Any` is **not** refused, though it looks like the same mistake. Under a three-valued seam it is not vacuous: it answers `true` when the landmarks can be compared and `null` when they cannot, so `⌜?⌝` asserts "both of these ceilings are well-defined quantities" — a real check that nothing else spells.
+
 ---
 
 ## The full fourteen
 
 | Class | Symbol | Commutative | Asserts |
 | --- | --- | --- | --- |
-| `EqualityOperator` | `==` / `{·==·}` / `{≈}` | ✓ | its `AgreementRule` |
+| `EqualityOperator` | `·==·` / `{·==·}` / `{>=<}` | ✓ | its `AgreementRule` |
 | `MutuallyWithinToleranceOperator` | `{·=·}` | ✓ | `NominalWithin` both ways |
 | `AnyToleranceOverlapOperator` | `{><}` | ✓ | `Overlaps` |
 | `WhollyWithinToleranceOperator` | `[=}` | ✗ | `WhollyWithin` |

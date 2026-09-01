@@ -107,6 +107,48 @@ public class VerdictSeamTests
     }
 
     /// <remarks>
+    /// The rule the equality family is built on, stated as a test rather than as a convention: <b>each symbol
+    /// is the symbol of the operator asserting the same condition, with an <c>=</c> inserted at its centre.</b>
+    /// Nothing else pins it — <c>==</c> would satisfy the palindrome invariant and the uniqueness check just as
+    /// well, which is exactly why the scheme needs asserting rather than assuming.
+    /// <para>
+    /// Centred insertion is also what keeps the family from breaking commutativity: <c>=</c> is its own mirror
+    /// and the centre is the fixed point of mirror-reversal, so a palindrome stays one.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(EqualityCounterparts))]
+    public void AnEqualitySymbolIsItsConditionsSymbolWithACentredEquals(
+        AgreementRule rule, string counterpart)
+    {
+        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+
+        op.Symbol.Should().Be(counterpart.Insert(counterpart.Length / 2, "="));
+    }
+
+    public static TheoryData<AgreementRule, string> EqualityCounterparts()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+
+        return new TheoryData<AgreementRule, string>
+        {
+            // The condition is one rule, so its counterpart is that rule's own generated symbol.
+            {
+                AgreementRule.Nominal,
+                new ComparisonRule(Landmark.Nominal, ComparisonType.EqualTo, Landmark.Nominal).Symbol
+            },
+            {
+                AgreementRule.Mutual,
+                new MutuallyWithinToleranceOperator { Id = "m", Lhs = x, Rhs = x }.Symbol
+            },
+            {
+                AgreementRule.Overlapping,
+                new AnyToleranceOverlapOperator { Id = "o", Lhs = x, Rhs = x }.Symbol
+            },
+        };
+    }
+
+    /// <remarks>
     /// Swept separately because the operator list holds one equality, at one agreement rule — so the sweep
     /// above never sees the other two symbols. That gap let <c>≃=</c> and <c>≈=</c> survive the invariant that
     /// was written to retire them, and was found by mutating them back.
@@ -136,6 +178,9 @@ public class VerdictSeamTests
         foreach (var mask in Enum.GetValues<ComparisonType>())
         foreach (var other in Enum.GetValues<Landmark>())
         {
+            // `None` accepts no outcome and is refused at construction — see ComparisonRuleTests.
+            if (mask is ComparisonType.None) continue;
+
             var op = new SimpleComparison(new ComparisonRule(landmark, mask, other))
             {
                 Id = "s", Lhs = x, Rhs = x,
@@ -143,8 +188,8 @@ public class VerdictSeamTests
 
             (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(op.IsCommutative, op.Symbol);
             op.IsCommutative.Should().Be(
-                landmark == other && mask is ComparisonType.EqualTo or ComparisonType.InequalTo
-                    or ComparisonType.Any or ComparisonType.None,
+                landmark == other
+                    && mask is ComparisonType.EqualTo or ComparisonType.InequalTo or ComparisonType.Any,
                 op.Symbol);
         }
     }

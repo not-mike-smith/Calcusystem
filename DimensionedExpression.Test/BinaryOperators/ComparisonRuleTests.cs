@@ -234,6 +234,48 @@ public class ComparisonRuleTests
         op.IsSatisfiedGiven(M(9.8, 1, 1), M(10, 0.5, 0.5)).Should().BeFalse();
     }
 
+    /// <remarks>
+    /// A rule accepting no outcome is never satisfied, so it would report as a violation of something the model
+    /// never asserted. It is also the mask enum's zero, which makes it what a forgotten field reads as — so the
+    /// refusal turns a silent phantom finding into an error where the mistake was made.
+    /// </remarks>
+    [Fact]
+    public void ASimpleComparisonThatCanNeverBeSatisfiedIsRefused()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+
+        // The refusal happens in the constructor, before the required members are ever assigned.
+        var act = () => new SimpleComparison(
+            new ComparisonRule(Landmark.Nominal, ComparisonType.None, Landmark.Nominal))
+        {
+            Id = "never", Lhs = x, Rhs = x,
+        };
+
+        act.Should().Throw<ArgumentException>().WithMessage("*never be satisfied*");
+    }
+
+    /// <remarks>
+    /// <c>Any</c> looks like the same mistake and is not. Under a three-valued seam it is not a tautology: it
+    /// answers true when the landmarks can be compared and null when they cannot, so it is the only way to
+    /// spell "both of these are well-defined quantities". Refusing it would remove a check nothing else offers.
+    /// </remarks>
+    [Fact]
+    public void AnAcceptAnythingComparisonIsAComparabilityCheckAndIsAllowed()
+    {
+        var x = new Variable("x", Mass.Kilogram.Dimensionality);
+        var op = new SimpleComparison(
+            new ComparisonRule(Landmark.UpperBound, ComparisonType.Any, Landmark.UpperBound))
+        {
+            Id = "well-defined", Lhs = x, Rhs = x,
+        };
+
+        op.Symbol.Should().Be("⌜?⌝");
+        op.IsSatisfiedGiven(M(1, 0.1, 0.1), M(99, 0.1, 0.1))
+            .Should().BeTrue("both ceilings are ordinary numbers");
+        op.IsSatisfiedGiven(M(1, 0, double.PositiveInfinity), M(9, 0, double.PositiveInfinity))
+            .Should().BeNull("neither ceiling is a quantity at all");
+    }
+
     [Fact]
     public void SimpleComparisonIsAlwaysARequirement()
     {

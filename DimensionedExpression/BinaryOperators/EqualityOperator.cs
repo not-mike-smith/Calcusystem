@@ -7,8 +7,8 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// <summary>
 /// Satisfied when the Lhs and Rhs agree, to the strictness named by <see cref="AgreementRule"/>.
 /// <br/>
-/// Symbol: <b>==</b>, <b>{·==·}</b> or <b>{≈}</b> — a doubled <c>=</c>, or braces, mark the equality family;
-/// what is inside names how loosely agreement is being read.
+/// Symbol: <b>·==·</b>, <b>{·==·}</b> or <b>{>=<}</b> — each is the tolerance operator asserting the same
+/// condition with an <c>=</c> inserted at its centre, which is what marks the equality family.
 /// <br/>
 /// Use when two quantities are expected to be the same, and say how nearly the same they must be.
 /// </summary>
@@ -50,22 +50,34 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
 
     /// <inheritdoc/>
     /// <remarks>
-    /// All three are mirror-palindromes, as every commutative operator's symbol must be. That is what ruled out
-    /// the earlier <c>≃=</c> and <c>≈=</c>: a trailing family marker reads the same way round only from one
-    /// side, which is exactly what a commutative relation should not do. Doubling the <c>=</c> marks the family
-    /// without breaking the symmetry.
     /// <para>
-    /// <c>{·==·}</c> and <c>{·=·}</c> asserting the same rules is deliberate. The tolerance operator states the
-    /// condition as a requirement; an equality can additionally be an
-    /// <see cref="DimensionedExpression.SolvingRole.Equation"/> or a
-    /// <see cref="DimensionedExpression.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
+    /// One rule, applied three times: <b>take the symbol of the operator asserting the same condition and insert
+    /// an <c>=</c> at its centre</b>. <c>·=·</c> → <c>·==·</c>, <c>{·=·}</c> → <c>{·==·}</c>,
+    /// <c>{&gt;&lt;}</c> → <c>{&gt;=&lt;}</c>. No member of the family is a special case, which is what a
+    /// notation is for.
+    /// </para>
+    /// <para>
+    /// It also cannot break the commutativity invariant, and not by luck: <c>=</c> is its own mirror image and
+    /// the centre is the fixed point of mirror-reversal, so inserting one there maps a palindrome to a
+    /// palindrome. That is what ruled out the earlier <c>≃=</c> and <c>≈=</c> — a <i>trailing</i> marker reads
+    /// the same way round from one side only, which is exactly what a commutative relation must not do.
+    /// </para>
+    /// <para>
+    /// <c>·==·</c> rather than the conventional <c>==</c> deliberately. "Equal" is not one thing for measured
+    /// values — that is why <see cref="BinaryOperators.AgreementRule"/> exists — and <c>==</c> is silent about
+    /// which statistic participates, while <c>·==·</c> says the reported values and nothing else.
+    /// </para>
+    /// <para>
+    /// Asserting the same rules as the tolerance operators is deliberate too. Those state the condition as a
+    /// requirement; an equality can additionally be an <see cref="DimensionedExpression.SolvingRole.Equation"/>
+    /// or a <see cref="DimensionedExpression.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
     /// </para>
     /// </remarks>
     public override string Symbol => Agreement switch
     {
-        AgreementRule.Nominal => "==",
+        AgreementRule.Nominal => "·==·",
         AgreementRule.Mutual => "{·==·}",
-        AgreementRule.Overlapping => "{≈}",
+        AgreementRule.Overlapping => "{>=<}",
         _ => throw new ArgumentOutOfRangeException(
             nameof(Agreement), Agreement, "Unknown agreement rule."),
     };

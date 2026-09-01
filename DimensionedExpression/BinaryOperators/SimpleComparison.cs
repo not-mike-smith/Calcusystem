@@ -31,13 +31,45 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// <c>·&lt;·</c> does not. It is the only operator whose commutativity is not fixed by its type.
 /// </para>
 /// </remarks>
-/// <param name="rule">The comparison this relationship asserts.</param>
-public class SimpleComparison(ComparisonRule rule) : BinaryOperatorBase
+public class SimpleComparison : BinaryOperatorBase
 {
+    /// <param name="rule">The comparison this relationship asserts.</param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="rule"/> accepts no outcome at all — see the remarks.
+    /// </exception>
+    /// <remarks>
+    /// <para>
+    /// <see cref="ComparisonType.None"/> is refused, and it is the only mask that is. A rule accepting no
+    /// outcome is never satisfied, so it reports as a <i>violation</i> on every calculation — a finding against
+    /// the model that the model never asserted, which is worse than useless because someone will go looking for
+    /// it. And it is the enum's zero, so it is what an uninitialised mask reads as: refusing it here turns a
+    /// forgotten field into an error at the point it was forgotten.
+    /// </para>
+    /// <para>
+    /// <see cref="ComparisonType.Any"/> is <b>not</b> refused, though it looks like the same kind of mistake.
+    /// Under a three-valued seam it is not vacuous: it answers <see langword="true"/> when the two landmarks can
+    /// be compared and <see langword="null"/> when they cannot, so <c>⌜?⌝</c> asserts "both of these ceilings
+    /// are well-defined quantities" — a real thing to want to check, and one nothing else spells.
+    /// </para>
+    /// </remarks>
+    public SimpleComparison(ComparisonRule rule)
+    {
+        if (rule.Type is ComparisonType.None)
+        {
+            throw new ArgumentException(
+                "A comparison accepting no outcome can never be satisfied, and would report as a violation of "
+                + "something the model never asserted.",
+                nameof(rule));
+        }
+
+        Rule = rule;
+        Rules = [rule];
+    }
+
     protected override BinaryOperatorKind Kind => BinaryOperatorKind.SimpleComparison;
 
     /// <summary>The single comparison this relationship asserts.</summary>
-    public ComparisonRule Rule { get; } = rule;
+    public ComparisonRule Rule { get; }
 
     /// <inheritdoc/>
     /// <remarks>
@@ -55,7 +87,7 @@ public class SimpleComparison(ComparisonRule rule) : BinaryOperatorBase
     public override string Symbol => Rule.Symbol;
 
     /// <inheritdoc/>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = [rule];
+    public override IReadOnlyList<ComparisonRule> Rules { get; }
 
     /// <inheritdoc/>
     public override BinaryOperatorState GetState() => base.GetState() with { Rule = Rule };
