@@ -1,5 +1,6 @@
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Comparison;
 using Calcusystem.Measurement.Enums;
+using Calcusystem.Measurement.Quantities;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 

@@ -1,14 +1,15 @@
-using Calcusystem.Analysis;
-using Calcusystem.DimensionedExpression;
+using Calcusystem.Analysis.Enums;
+using Calcusystem.Analysis.Extensions;
 using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
+using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
-using Calcusystem.Measurement;
 using Xunit;
-using Calcusystem.Analysis.Enums;
-using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.Analysis.Test;
 

@@ -1,8 +1,9 @@
 using System;
 using Calcusystem.DimensionedExpression.Expressions;
-using FluentAssertions;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Exceptions;
+using Calcusystem.Measurement.Uncertainties;
+using FluentAssertions;
 using Xunit;
 
 namespace Calcusystem.DimensionedExpression.Test.Expressions;

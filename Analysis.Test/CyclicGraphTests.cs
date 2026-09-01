@@ -1,9 +1,12 @@
+using Calcusystem.Analysis.Extensions;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
 using Xunit;
 

@@ -1,12 +1,13 @@
 using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
+using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
-using Calcusystem.DimensionedExpression.Enums;
-using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 

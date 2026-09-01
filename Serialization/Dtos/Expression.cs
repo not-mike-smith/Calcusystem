@@ -1,6 +1,4 @@
 ﻿using Calcusystem.Serialization.Interfaces;
-using Calcusystem.Measurement;
-using Calcusystem.Measurement.State;
 using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Serialization.Dtos;
