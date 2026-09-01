@@ -21,13 +21,16 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Nominal containment stated in both directions. Because a rule names the landmark on each side
-    /// independently, the reverse direction is written directly — the band's reported value against the
-    /// subject's bounds — rather than by evaluating the operator a second time with the operands swapped.
+    /// Nominal containment stated in both directions, and written out rather than derived by mirroring: because
+    /// a rule names the landmark on each side independently, "the band's reported value lies between my bounds"
+    /// is directly expressible. Deliberately <i>not</i> a rung — the containment ladder runs one way, and this
+    /// is a quantifier over it.
     /// </remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
     [
-        .. ContainmentLadder.NominalWithinRules,
-        .. ContainmentLadder.NominalWithinRules.Select(rule => rule.Mirrored),
+        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+        new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.Nominal),
+        new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.Nominal),
     ];
 }

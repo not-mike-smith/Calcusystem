@@ -138,7 +138,7 @@ The verdict is therefore **three-valued**: `IsSatisfiedGiven` returns `bool?`, a
 Under uncertainty a comparison has several nested answers, and the arithmetic producing any of them produces all of them. The ladders give those answers a vocabulary:
 
 - **`OrderingLadder`** — `Possible` / `Nominal` / `Certain`, a clean chain, over a named `OrderingDirection`. It is a **classifier**, not an evaluator: `RungOf` asks which rung a rule is, `AchievedTier` computes the strongest tier reached *when asked* and stops as soon as it knows. Operators do not go through it — they declare their own rules and the ladder places them afterwards, so nothing has to know that tiers are less-than by convention.
-- **`ContainmentLadder`** — `Overlaps` / `NominalWithin` / `NominalAndUpperWithin` / `NominalAndLowerWithin` / `WhollyWithin`. The middle rungs form a **lattice, not a chain**, because upper and lower bounds are independently checkable — so there is deliberately no single ordered `Achieved` here.
+- **`ContainmentLadder`** — `Overlaps` / `NominalWithin` / `NominalAndUpperWithin` / `NominalAndLowerWithin` / `WhollyWithin`, and a classifier for the same reasons: `RungOf` places a rule *set* on the ladder, `Reaches` evaluates one rung on demand. The middle rungs form a **lattice, not a chain**, because upper and lower bounds are independently checkable — so there is deliberately no single ordered "achieved rung" here.
 
 `UpperBoundsLessThan` and `LowerBoundsGreaterThan` sit outside both because they compare a derived *statistic* of each side — ceiling against ceiling, floor against floor — rather than asking how the quantities stand to one another.
 

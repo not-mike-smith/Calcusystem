@@ -24,7 +24,12 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
     public override string Symbol => "·=}";
 
     /// <inheritdoc/>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = ContainmentLadder.NominalWithinRules;
+    /// <remarks>The containment ladder's <c>NominalWithin</c> rung.</remarks>
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+    [
+        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+    ];
 }
 
 /// <summary>
@@ -50,7 +55,10 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
     /// stricter bilateral check instead.
     /// </remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        ContainmentLadder.NominalAndUpperWithinRules;
+    [
+        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.UpperBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+    ];
 }
 
 /// <summary>
@@ -72,5 +80,8 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
     /// <inheritdoc/>
     /// <remarks>The mirror of <see cref="PointAndUpperBoundWithinToleranceOperator"/>, bounding downward only.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        ContainmentLadder.NominalAndLowerWithinRules;
+    [
+        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+        new(Landmark.LowerBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+    ];
 }

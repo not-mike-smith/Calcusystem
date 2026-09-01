@@ -71,10 +71,16 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
         AgreementRule.Nominal => NominalRules,
         AgreementRule.Mutual =>
         [
-            .. ContainmentLadder.NominalWithinRules,
-            .. ContainmentLadder.NominalWithinRules.Select(rule => rule.Mirrored),
+            new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+            new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+            new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.Nominal),
+            new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.Nominal),
         ],
-        AgreementRule.Overlapping => ContainmentLadder.OverlapsRules,
+        AgreementRule.Overlapping =>
+        [
+            new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+            new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+        ],
         _ => throw new ArgumentOutOfRangeException(
             nameof(agreementRule), agreementRule, "Unknown agreement rule."),
     };

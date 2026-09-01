@@ -56,9 +56,9 @@ Conjunction is Kleene, and `false` beats `null`: one rule definitively violated 
 
 ## The two ladders
 
-### `OrderingLadder` — how strongly is Lhs ordered against Rhs?
+Both are **classifiers, not evaluators**. Neither computes anything until asked, and operators do not go through either: every operator declares its own rules, and a ladder places them afterwards. They used to be record structs that evaluated every rung up front — the ordering one did three comparisons, containment did ten — and nothing outside the tests ever called them.
 
-**A classifier, not an evaluator.** It does not compute anything until asked, and operators do not go through it: they declare their own rules, and the ladder places them afterwards.
+### `OrderingLadder` — how strongly is Lhs ordered against Rhs?
 
 A rung is a **direction and a strength**, both named. Direction used to be a convention — everything was a less-than unless a declaration said `.Mirrored` — which meant you had to already know the convention to read an operator.
 
@@ -83,9 +83,9 @@ bool? Reaches(lhs, rhs, OrderingRung)                           // one rung, one
 
 `Possible` is the tier no named operator ever asked for, and the reason the ladder is worth keeping at all. A modeller who writes `·<·` and gets `false` cannot otherwise tell "comfortably the other way round" from "a hair's breadth away, and the uncertainty covers it".
 
-### `ContainmentLadder` — is Lhs inside Rhs's band?
+### `ContainmentLadder` — how far inside Rhs's band does Lhs sit?
 
-Still rule-sets the operators point at, because there is no direction convention to hide here: each rung maps to exactly one operator and is a conjunction of two to four rules, so a literal declaration would repeat the rung rather than clarify it. The middle rungs form a **lattice, not a chain**: a value's upper and lower bounds are independently checkable, so neither middle rung implies the other. There is deliberately no single ordered `Achieved` here — inventing one would force a precedence between "cannot overshoot" and "cannot undershoot", which are different engineering questions.
+A rung is a **set** of comparisons rather than one, so discovery works on rule sets.
 
 | Rung | Condition | Named operator |
 | --- | --- | --- |
@@ -94,6 +94,16 @@ Still rule-sets the operators point at, because there is no direction convention
 | `NominalAndUpperWithin` | …and `aU ≤ bU` | `PointAndUpperBoundWithinTolerance` `·⌜=}` |
 | `NominalAndLowerWithin` | …and `aL ≥ bL` | `PointAndLowerBoundWithinTolerance` `·⌞=}` |
 | `WhollyWithin` | `aL > bL ∧ aU < bU` | `WhollyWithinTolerance` `[=}` |
+
+```csharp
+IReadOnlyList<ComparisonRule> RulesFor(ContainmentRung)          // the rules that test a rung
+ContainmentRung? RungOf(IReadOnlyList<ComparisonRule>)           // which rung a rule set is, if any
+bool? Reaches(lhs, rhs, ContainmentRung)                         // one rung, on demand
+```
+
+`Reaches` evaluates only the rung asked for. `RungOf` matches on the rules themselves rather than on what they mean, which is enough to keep an operator and its rung from drifting — semantic matching is possible and considerably more machinery, and nothing needs it yet. `MutuallyWithinTolerance` correctly comes back `null`: it is nominal containment asked in **both** directions, a quantifier over the ladder rather than a rung of it.
+
+The middle rungs form a **lattice, not a chain**: a value's upper and lower bounds are independently checkable, so neither middle rung implies the other. There is deliberately no "achieved rung" here as there is for ordering — inventing one would force a precedence between "cannot overshoot" and "cannot undershoot", which are different engineering questions.
 
 Implications run downward: `WhollyWithin` ⟹ both middle rungs ⟹ `NominalWithin` ⟹ `Overlaps`.
 

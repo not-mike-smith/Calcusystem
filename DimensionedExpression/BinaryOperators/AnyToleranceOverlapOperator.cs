@@ -25,7 +25,11 @@ public class AnyToleranceOverlapOperator : CommutativeOperatorBase
     /// <remarks>
     /// Two rules that between them say the intervals are not disjoint — neither ends before the other begins.
     /// Non-strict on both, so bands that merely touch overlap. Commutative, and visibly so: swapping the
-    /// operands maps each rule onto the other.
+    /// operands maps each rule onto the other. The containment ladder's <c>Overlaps</c> rung.
     /// </remarks>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = ContainmentLadder.OverlapsRules;
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+    [
+        new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+    ];
 }

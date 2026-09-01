@@ -198,59 +198,16 @@ public class ComparisonRuleTests
     public void OneLadderRungCanBeUnknownWhileTheOthersAnswer()
     {
         // Subject reported at 15 with no ceiling; band from 10 with no ceiling either.
-        var ladder = ContainmentLadder.Evaluate(
-            M(15, 0, double.PositiveInfinity),
-            M(10, 0, double.PositiveInfinity));
+        var subject = M(15, 0, double.PositiveInfinity);
+        var band = M(10, 0, double.PositiveInfinity);
 
-        ladder.NominalWithin.Should().BeTrue("15 is above the band's floor and below its unbounded ceiling");
-        ladder.NominalAndUpperWithin.Should().BeNull("both ceilings are +∞, so neither is below the other");
+        ContainmentLadder.Reaches(subject, band, ContainmentRung.NominalWithin)
+            .Should().BeTrue("15 is above the band's floor and below its unbounded ceiling");
+        ContainmentLadder.Reaches(subject, band, ContainmentRung.NominalAndUpperWithin)
+            .Should().BeNull("both ceilings are +∞, so neither is below the other");
     }
 
     // ── Operators and ladder rungs are one declaration ────────────────────────
-
-    /// <remarks>
-    /// The duplication this design exists to prevent. A rung and the operator named after it must be the same
-    /// triples, not two descriptions that happen to agree today — that is exactly the drift the previous
-    /// refactor removed and this one could have reintroduced.
-    /// <para>
-    /// Containment only. The ordering operators state their rules outright and are placed on their ladder by
-    /// discovery instead — see <c>ConfidenceLadderTests.EachOrderingOperatorsRuleIsDiscoverableAsItsRung</c>.
-    /// </para>
-    /// </remarks>
-    [Theory]
-    [MemberData(nameof(RungOperatorPairs))]
-    public void EachContainmentOperatorAssertsExactlyItsLadderRung(
-        IReadOnlyList<ComparisonRule> rung, IBinaryOperator op) =>
-        ((BinaryOperatorBase)op).Rules.Should().Equal(rung);
-
-    public static TheoryData<IReadOnlyList<ComparisonRule>, IBinaryOperator> RungOperatorPairs()
-    {
-        var x = new Variable("x", Mass.Kilogram.Dimensionality);
-
-        return new TheoryData<IReadOnlyList<ComparisonRule>, IBinaryOperator>
-        {
-            {
-                ContainmentLadder.OverlapsRules,
-                new AnyToleranceOverlapOperator { Id = "e", Lhs = x, Rhs = x }
-            },
-            {
-                ContainmentLadder.NominalWithinRules,
-                new WithinBindingToleranceOperator { Id = "f", Lhs = x, Rhs = x }
-            },
-            {
-                ContainmentLadder.NominalAndUpperWithinRules,
-                new PointAndUpperBoundWithinToleranceOperator { Id = "g", Lhs = x, Rhs = x }
-            },
-            {
-                ContainmentLadder.NominalAndLowerWithinRules,
-                new PointAndLowerBoundWithinToleranceOperator { Id = "h", Lhs = x, Rhs = x }
-            },
-            {
-                ContainmentLadder.WhollyWithinRules,
-                new WhollyWithinToleranceOperator { Id = "i", Lhs = x, Rhs = x }
-            },
-        };
-    }
 
     // ── SimpleComparison ──────────────────────────────────────────────────────
 

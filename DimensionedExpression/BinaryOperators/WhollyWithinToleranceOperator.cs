@@ -27,5 +27,13 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
     public override string Symbol => "[=}";
 
     /// <inheritdoc/>
-    public override IReadOnlyList<ComparisonRule> Rules { get; } = ContainmentLadder.WhollyWithinRules;
+    /// <remarks>
+    /// The containment ladder's <c>WhollyWithin</c> rung. Strict on both bounds, which is what separates it from
+    /// the rest of the family — see the class summary.
+    /// </remarks>
+    public override IReadOnlyList<ComparisonRule> Rules { get; } =
+    [
+        new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.LowerBound),
+        new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.UpperBound),
+    ];
 }
