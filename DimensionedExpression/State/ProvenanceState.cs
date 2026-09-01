@@ -1,4 +1,3 @@
-using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.State;

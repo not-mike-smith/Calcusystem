@@ -1,6 +1,8 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
 using Xunit;
 

@@ -1,11 +1,10 @@
 ﻿using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
-using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Measurement.Quantities;
 
 namespace Calcusystem.DimensionedExpression.BaseModels;
 

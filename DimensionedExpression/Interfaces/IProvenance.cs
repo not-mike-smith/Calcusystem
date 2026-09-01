@@ -1,4 +1,4 @@
-using Calcusystem.Core;
+using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.State;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;

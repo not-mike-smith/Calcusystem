@@ -1,18 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Calcusystem.Core;
+using System;
+using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.Systems;
-using FluentAssertions;
-using Calcusystem.Measurement;
-using Xunit;
-using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Enums;
+using Calcusystem.Measurement.Uncertainties;
+using FluentAssertions;
+using Xunit;
 
 namespace Calcusystem.DimensionedExpression.Test.State;
 

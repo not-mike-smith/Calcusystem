@@ -1,3 +1,5 @@
+using Calcusystem.Measurement.Dimensions;
+
 namespace Calcusystem.Measurement.State;
 
 /// <summary>

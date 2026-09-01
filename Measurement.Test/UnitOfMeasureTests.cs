@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;

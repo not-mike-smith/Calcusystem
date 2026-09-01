@@ -1,8 +1,7 @@
-using Calcusystem.Core;
-using Calcusystem.DimensionedExpression.BaseModels;
+using Calcusystem.Core.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.State;
-using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
