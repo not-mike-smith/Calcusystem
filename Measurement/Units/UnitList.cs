@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using Calcusystem.Measurement.Dimensions;
-using Calcusystem.Measurement.Units;
+using System.Collections.Generic;
+using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.Measurement.BaseClasses;
+namespace Calcusystem.Measurement.Units;
 
 public abstract class UnitList
 {

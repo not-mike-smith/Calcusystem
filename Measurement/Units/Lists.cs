@@ -2,8 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System;
-using Calcusystem.Measurement.BaseClasses;
-using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Units;
 

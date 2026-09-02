@@ -1,6 +1,5 @@
-﻿using System;
-using Calcusystem.Measurement.Dimensions;
-using Calcusystem.Measurement.Quantities;
+using System;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Units;
 

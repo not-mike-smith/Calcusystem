@@ -1,4 +1,4 @@
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Uncertainties;
 

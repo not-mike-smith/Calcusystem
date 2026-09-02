@@ -1,4 +1,4 @@
-using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.State;
 
 namespace Calcusystem.Serialization.Mappers;

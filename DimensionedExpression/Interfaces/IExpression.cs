@@ -1,9 +1,8 @@
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Expressions;
-using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;
 

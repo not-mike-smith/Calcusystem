@@ -1,4 +1,3 @@
-using Calcusystem.Measurement.BaseClasses;
 using Calcusystem.Measurement.Factories;
 using Uom = Calcusystem.Measurement.Units.UnitOfMeasure;
 

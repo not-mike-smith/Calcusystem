@@ -1,6 +1,6 @@
 using Calcusystem.Measurement.Extensions;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.State;
 
 namespace Calcusystem.Measurement.Uncertainties;

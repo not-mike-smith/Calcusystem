@@ -1,7 +1,7 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.Measurement.Enums;
 
-namespace Calcusystem.DimensionedExpression.BaseModels;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 public abstract class ComputedExpressionBase : ExpressionBase
 {

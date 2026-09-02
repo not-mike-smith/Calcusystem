@@ -1,11 +1,10 @@
 using System.Linq;
 using System;
-using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Extensions;
 using Calcusystem.Measurement.Factories;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;

@@ -1,6 +1,6 @@
 using Calcusystem.Measurement.Comparison;
 using Calcusystem.Measurement.Enums;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;

@@ -1,7 +1,7 @@
 using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
 
-namespace Calcusystem.DimensionedExpression.BaseModels;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Walks that range over a <i>set</i> of nodes rather than one node.

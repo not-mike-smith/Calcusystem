@@ -1,4 +1,4 @@
-﻿using Calcusystem.Serialization.Interfaces;
+using Calcusystem.Serialization.Interfaces;
 
 namespace Calcusystem.Serialization.Dtos;
 

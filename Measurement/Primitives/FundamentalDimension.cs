@@ -4,7 +4,7 @@ using System;
 using Calcusystem.Measurement.Constants;
 using Calcusystem.Measurement.Units;
 
-namespace Calcusystem.Measurement.Dimensions;
+namespace Calcusystem.Measurement.Primitives;
 
 /// <summary>
 /// One of the irreducible base dimensions of measurement (mass, length, time, …). A
