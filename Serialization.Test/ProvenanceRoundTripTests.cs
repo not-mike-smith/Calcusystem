@@ -4,7 +4,7 @@ using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Provenance;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Uncertainties;
@@ -28,20 +28,20 @@ public class ProvenanceRoundTripTests
         var system = ExpressionSystem.Create("provenance", "variable provenance");
         var measured = new Variable(
             "m",
-            new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+            new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0.01)),
             "m")
         {
-            Provenance = ProvenanceFactory.FromState(
-                ProvenanceState.Measured("prov-m", "SN-42", new DateOnly(2026, 1, 15)))
+            Provenance = ProvenanceFactory.FromSnapshot(
+                ProvenanceSnapshot.Measured("prov-m", "SN-42", new DateOnly(2026, 1, 15)))
         };
         system.Add(measured);
 
         var restored = (Variable)RoundTrip(system).GetAllExpressions().Single(e => e.Id == "m");
 
         restored.Provenance.Should().BeOfType<MeasuredProvenance>();
-        var state = restored.Provenance!.GetState();
+        var state = restored.Provenance!.GetSnapshot();
         state.Id.Should().Be("prov-m");
-        state.Kind.Should().Be(ProvenanceKind.Measured);
+        state.Type.Should().Be(ProvenanceType.Measured);
         state.InstrumentId.Should().Be("SN-42");
         state.CalibrationDate.Should().Be(new DateOnly(2026, 1, 15));
         restored.Provenance.Summary().Should().Be(measured.Provenance!.Summary());
@@ -71,16 +71,16 @@ public class ProvenanceRoundTripTests
             Id = "op",
             Lhs = lhs,
             Rhs = rhs,
-            Provenance = ProvenanceFactory.FromState(
-                ProvenanceState.Reference("prov-op", "NIST SP 811", "https://nist.gov", 2008))
+            Provenance = ProvenanceFactory.FromSnapshot(
+                ProvenanceSnapshot.Reference("prov-op", "NIST SP 811", "https://nist.gov", 2008))
         });
 
         var restored = RoundTrip(system).Relationships.Single();
 
         restored.Provenance.Should().BeOfType<ReferenceProvenance>();
-        var state = restored.Provenance!.GetState();
+        var state = restored.Provenance!.GetSnapshot();
         state.Id.Should().Be("prov-op");
-        state.Kind.Should().Be(ProvenanceKind.Reference);
+        state.Type.Should().Be(ProvenanceType.Reference);
         state.Citation.Should().Be("NIST SP 811");
         state.Url.Should().Be("https://nist.gov");
         state.Year.Should().Be(2008);

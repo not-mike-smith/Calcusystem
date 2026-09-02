@@ -25,7 +25,7 @@ Five library assemblies stacked bottom-up; the upper four each have a matching t
 
 | Assembly / namespace | Directory | Depends on | What it does |
 | --- | --- | --- | --- |
-| `Calcusystem.Core` | [`Core/`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`IStateful`, `IStatefulNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
+| `Calcusystem.Core` | [`Core/`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`ISnapshotting`, `ISnapshottingNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
 | `Calcusystem.Measurement` | [`Measurement/`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | `Calcusystem.DimensionedExpression` | [`DimensionedExpression/`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
 | `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
@@ -60,7 +60,7 @@ using Calcusystem.Measurement.Units;
 // 2 kg ± 1% — supply and read values in whatever unit you like; storage is always KMS
 var mass = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
 mass.In(Mass.Pound);   // ≈ 4.409 lb
-mass.RelativeError;    // 0.01
+mass.RelativeUncertainty;    // 0.01
 
 // arithmetic enforces dimensions and propagates uncertainty
 var accel = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time))
@@ -81,7 +81,7 @@ var a = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensi
 var f = new ProductExpression([m, a]);
 
 f.Dimensionality;      // M·L·T⁻²  — known before any value is supplied
-f.FreeVariables();     // [m, a]  — the distinct unbound leaves
+f.UnsetVariables();     // [m, a]  — the distinct unbound leaves
 f.IsFullyDescribed;    // false until both leaves are set
 ```
 
@@ -99,7 +99,7 @@ calc.ValueOf(f);        // 6 kg·m·s⁻² — each node computed exactly once
 calc.MissingValues;     // the unbound variables holding the rest back
 ```
 
-`Calculate` is the way to compute over a whole system: a node's own `CalculateValueIfDetermined()` re-walks to the leaves on every call and caches nothing, by design.
+`Calculate` is the way to compute over a whole system: a node's own `ComputeIfFullyDescribed()` re-walks to the leaves on every call and caches nothing, by design.
 
 See each assembly's README for the full surface.
 

@@ -2,7 +2,7 @@ using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
@@ -14,7 +14,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <br/>
 /// Not directly mutable; <see cref="Value"/> is null until the reciprocand is fully described.
 /// </summary>
-public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<ReciprocalExpression, UnaryExpressionState>
+public class ReciprocalExpression : ExpressionBase, IExpression, ISnapshottingNode<ReciprocalExpression, UnaryExpressionSnapshot>
 {
     private readonly IExpression _reciprocand;
 
@@ -32,7 +32,7 @@ public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<R
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null) =>
+        IUncertaintyPropagator? propagator = null) =>
         known.TryGetValue(Reciprocand, out var operand) ? operand.Reciprocal() : null;
 
     public override string ToString()
@@ -44,10 +44,10 @@ public class ReciprocalExpression : ExpressionBase, IExpression, IStatefulNode<R
     public override IEnumerable<IExpression> Children => [Reciprocand];
 
     /// <inheritdoc/>
-    public UnaryExpressionState GetState() =>
-        new(UnaryExpressionKind.Reciprocal, Id, Reciprocand.Id);
+    public UnaryExpressionSnapshot GetSnapshot() =>
+        new(UnaryExpressionType.Reciprocal, Id, Reciprocand.Id);
 
     /// <inheritdoc/>
-    public static ReciprocalExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+    public static ReciprocalExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
         new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

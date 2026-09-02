@@ -37,13 +37,13 @@ public static class DoubleExtensions
         return Math.Sqrt(sumOfSquares);
     }
 
-    public static RelativeError Fraction(this double relativeError)
+    public static RelativeUncertainty Fraction(this double relativeUncertainty)
     {
-        return new RelativeError(relativeError);
+        return new RelativeUncertainty(relativeUncertainty);
     }
 
-    public static RelativeError Percent(this double relativeErrorPercent)
+    public static RelativeUncertainty Percent(this double relativeUncertaintyPercent)
     {
-        return new RelativeError(relativeErrorPercent / 100d);
+        return new RelativeUncertainty(relativeUncertaintyPercent / 100d);
     }
 }

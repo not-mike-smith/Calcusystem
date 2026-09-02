@@ -1,5 +1,5 @@
 using Calcusystem.Measurement.Primitives;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 
 namespace Calcusystem.Serialization.Mappers;
 
@@ -12,7 +12,7 @@ namespace Calcusystem.Serialization.Mappers;
 /// <para>
 /// This lives here, not in <c>Measurement</c>, because it is a format decision: which identity to key on
 /// (symbols), how to lay the pairs out, and what to do with a payload written before a symbol was renamed.
-/// <c>Measurement</c> supplies only the structural <see cref="DimensionalityState"/>.
+/// <c>Measurement</c> supplies only the structural <see cref="DimensionalitySnapshot"/>.
 /// </para>
 /// <para>
 /// A compact string rather than a nested object because the content is tightly constrained — nine possible
@@ -30,10 +30,10 @@ public static class DimensionalityCodec
         FundamentalDimension.All.ToDictionary(f => f.Symbol, StringComparer.Ordinal);
 
     /// <summary>
-    /// Writes the canonical encoding. <see cref="Dimensionality.GetState"/> yields its pairs in canonical order,
+    /// Writes the canonical encoding. <see cref="Dimensionality.GetSnapshot"/> yields its pairs in canonical order,
     /// so dimensionally-equal values always produce the identical string — safe to diff, compare, or hash.
     /// </summary>
-    public static string Encode(DimensionalityState state) =>
+    public static string Encode(DimensionalitySnapshot state) =>
         string.Join(',', state.Pairs.Select(pair => $"{pair.Key.Symbol}{pair.Value}"));
 
     /// <summary>
@@ -45,10 +45,10 @@ public static class DimensionalityCodec
     /// repeats one. Deserialization fails loudly rather than dropping a dimension: a quietly dimensionless
     /// quantity is far worse than a rejected load.
     /// </exception>
-    public static DimensionalityState Decode(string? encoded)
+    public static DimensionalitySnapshot Decode(string? encoded)
     {
         var pairs = new Dictionary<FundamentalDimension, int>();
-        if (string.IsNullOrWhiteSpace(encoded)) return new DimensionalityState(pairs);
+        if (string.IsNullOrWhiteSpace(encoded)) return new DimensionalitySnapshot(pairs);
 
         foreach (var token in encoded.Split(',', StringSplitOptions.TrimEntries))
         {
@@ -67,6 +67,6 @@ public static class DimensionalityCodec
                 throw new FormatException($"Duplicate symbol '{symbol}' in '{encoded}'.");
         }
 
-        return new DimensionalityState(pairs);
+        return new DimensionalitySnapshot(pairs);
     }
 }

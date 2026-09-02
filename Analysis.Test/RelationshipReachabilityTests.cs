@@ -18,16 +18,16 @@ namespace Calcusystem.Analysis.Test;
 /// </summary>
 public class RelationshipReachabilityTests
 {
-    private static Variable Bound(string symbol, double kmsValue) =>
+    private static Variable Valued(string symbol, double kmsValue) =>
         new(symbol,
-            new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelErr(0)),
+            new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelative(0)),
             symbol);
 
     [Fact]
-    public void ComputesABoundVariableReachableOnlyThroughARelationship()
+    public void ComputesAKnownVariableReachableOnlyThroughARelationship()
     {
-        var length = Bound("l", 2);
-        var limit = Bound("l_max", 3);
+        var length = Valued("l", 2);
+        var limit = Valued("l_max", 3);
 
         var system = ExpressionSystem.Create("beam", "");
         system.Add(length);
@@ -43,11 +43,11 @@ public class RelationshipReachabilityTests
     [Fact]
     public void ComputesADerivedNodeReachableOnlyThroughARelationship()
     {
-        var length = Bound("l", 2);
+        var length = Valued("l", 2);
 
         // A limit the modeller assembled for the comparison and never filed under DerivedExpressions.
-        var clearance = Bound("clearance", 1);
-        var nominal = Bound("l_nominal", 3);
+        var clearance = Valued("clearance", 1);
+        var nominal = Valued("l_nominal", 3);
         var limit = new SumExpression([nominal, clearance]) { Id = "l_max" };
 
         var system = ExpressionSystem.Create("beam", "");
@@ -63,8 +63,8 @@ public class RelationshipReachabilityTests
     [Fact]
     public void FlattenAndCalculateAgreeOnUnknownsReachableOnlyThroughARelationship()
     {
-        var length = Bound("l", 2);
-        var limit = new Variable("l_max", Dimensionality.Length, "l_max");   // unbound
+        var length = Valued("l", 2);
+        var limit = new Variable("l_max", Dimensionality.Length, "l_max");   // unset
 
         var system = ExpressionSystem.Create("beam", "");
         system.Add(length);
@@ -86,8 +86,8 @@ public class RelationshipReachabilityTests
     [Fact]
     public void AnUnresolvableRelationshipOperandLeavesTheCalculationIncomplete()
     {
-        var length = Bound("l", 2);
-        var limit = new Variable("l_max", Dimensionality.Length, "l_max");   // unbound
+        var length = Valued("l", 2);
+        var limit = new Variable("l_max", Dimensionality.Length, "l_max");   // unset
 
         var system = ExpressionSystem.Create("beam", "");
         system.Add(length);

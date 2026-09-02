@@ -1,5 +1,5 @@
 using Calcusystem.DimensionedExpression.Enums;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
@@ -37,9 +37,9 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
 {
     /// <summary>Nominal agreement: the two reported values are the same number.</summary>
     public static readonly IReadOnlyList<ComparisonRule> NominalRules =
-        [new(Landmark.Nominal, ComparisonType.EqualTo, Landmark.Nominal)];
+        [new(Landmark.Nominal, MustBe.EqualTo, Landmark.Nominal)];
 
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.Equality;
+    protected override BinaryOperatorType Type => BinaryOperatorType.Equality;
 
     /// <summary>How strictly this instance reads "equal".</summary>
     /// <remarks>
@@ -96,20 +96,20 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
         AgreementRule.Nominal => NominalRules,
         AgreementRule.Mutual =>
         [
-            new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
-            new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
-            new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.Nominal),
-            new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.Nominal),
+            new(Landmark.Nominal, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
+            new(Landmark.Nominal, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
+            new(Landmark.LowerBound, MustBe.LessThanOrEqualTo, Landmark.Nominal),
+            new(Landmark.UpperBound, MustBe.GreaterThanOrEqualTo, Landmark.Nominal),
         ],
         AgreementRule.Overlapping =>
         [
-            new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
-            new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+            new(Landmark.UpperBound, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
+            new(Landmark.LowerBound, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
         ],
         _ => throw new ArgumentOutOfRangeException(
             nameof(agreementRule), agreementRule, "Unknown agreement rule."),
     };
 
     /// <inheritdoc/>
-    public override BinaryOperatorState GetState() => base.GetState() with { Agreement = Agreement };
+    public override BinaryOperatorSnapshot GetSnapshot() => base.GetSnapshot() with { Agreement = Agreement };
 }

@@ -2,7 +2,7 @@ using System;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 
@@ -19,7 +19,7 @@ namespace Calcusystem.Measurement.Primitives;
 /// either from a user value plus a <see cref="UnitOfMeasure"/> (which converts to KMS), or directly from a
 /// raw KMS value plus a <see cref="Dimensionality"/>.
 /// </remarks>
-public readonly struct Quantity : IStateful<Quantity, QuantityState>
+public readonly struct Quantity : ISnapshotting<Quantity, QuantitySnapshot>
 {
     private readonly double? _value;
     private double Value => _value ?? double.NaN;
@@ -59,20 +59,20 @@ public readonly struct Quantity : IStateful<Quantity, QuantityState>
     public Measurand WithoutError() => Measurand(Uncertainty.Exact());
 
     /// <summary>This value with equal error above and below, as a fraction of it.</summary>
-    public Measurand WithError(RelativeError relativeError) => Measurand(Uncertainty.Relative(relativeError));
+    public Measurand WithError(RelativeUncertainty relativeUncertainty) => Measurand(Uncertainty.Relative(relativeUncertainty));
 
     /// <summary>This value with equal error above and below, as a dimensioned amount.</summary>
-    public Measurand WithError(Quantity absoluteError) => Measurand(Uncertainty.Absolute(absoluteError));
+    public Measurand WithError(Quantity absoluteUncertainty) => Measurand(Uncertainty.Absolute(absoluteUncertainty));
 
     /// <summary>This value with independent errors above and below, each a fraction of it.</summary>
     /// <remarks>
     /// Pass the arguments by name. Which bound is which is otherwise invisible at the call site, and swapping
     /// them yields a plausible-looking error band rather than an obvious fault.
     /// </remarks>
-    public Measurand WithAsymmetricError(RelativeError upper, RelativeError lower) =>
+    public Measurand WithAsymmetricError(RelativeUncertainty upper, RelativeUncertainty lower) =>
         Measurand(Uncertainty.Relative(upper, lower));
 
-    /// <inheritdoc cref="WithAsymmetricError(RelativeError, RelativeError)"/>
+    /// <inheritdoc cref="WithAsymmetricError(RelativeUncertainty, RelativeUncertainty)"/>
     public Measurand WithAsymmetricError(Quantity upper, Quantity lower) =>
         Measurand(Uncertainty.Absolute(upper, lower));
 
@@ -254,9 +254,9 @@ public readonly struct Quantity : IStateful<Quantity, QuantityState>
     /// <inheritdoc/>
     /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's state is its value
     /// and its dimension, both of which are already public concepts here. Nothing is being hidden to protect.</remarks>
-    public QuantityState GetState() => new(KmsValue, Dimensionality.GetState());
+    public QuantitySnapshot GetSnapshot() => new(KmsValue, Dimensionality.GetSnapshot());
 
     /// <inheritdoc/>
-    public static Quantity FromState(QuantityState state) =>
-        new(state.KmsValue, Dimensionality.FromState(state.Dimensionality));
+    public static Quantity FromSnapshot(QuantitySnapshot state) =>
+        new(state.KmsValue, Dimensionality.FromSnapshot(state.Dimensionality));
 }

@@ -13,7 +13,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.MutuallyWithinTolerance;
+    protected override BinaryOperatorType Type => BinaryOperatorType.MutuallyWithinTolerance;
 
     /// <inheritdoc/>
     /// <remarks>
@@ -32,9 +32,9 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
     /// </remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
     [
-        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
-        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
-        new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.Nominal),
-        new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.Nominal),
+        new(Landmark.Nominal, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.Nominal, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
+        new(Landmark.LowerBound, MustBe.LessThanOrEqualTo, Landmark.Nominal),
+        new(Landmark.UpperBound, MustBe.GreaterThanOrEqualTo, Landmark.Nominal),
     ];
 }

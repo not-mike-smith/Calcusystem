@@ -15,10 +15,10 @@ namespace Calcusystem.Measurement.Test;
 /// </summary>
 public class MeasurandComparerTests
 {
-    private static Measurand Meters(double value, double absoluteError = 0) =>
+    private static Measurand Meters(double value, double absoluteUncertainty = 0) =>
         Length.Meter.Quantity(value).Measurand(
-            AsymmetricUncertainty.FromAbsErr(
-                Length.Meter.Quantity(absoluteError), Length.Meter.Quantity(absoluteError)));
+            AsymmetricUncertainty.FromAbsolute(
+                Length.Meter.Quantity(absoluteUncertainty), Length.Meter.Quantity(absoluteUncertainty)));
 
     private static Measurand Kilograms(double value) =>
         Mass.Kilogram.Quantity(value).WithoutError();
@@ -120,7 +120,7 @@ public class MeasurandComparerTests
     /// and only the measurement carries one.
     /// </para>
     /// <para>
-    /// The two rows below are the same two numbers with different error bars and opposite answers. No universal
+    /// The two rows below are the same two numbers with different uncertainty bars and opposite answers. No universal
     /// constant, and no per-dimension constant, could distinguish them.
     /// </para>
     /// </remarks>
@@ -128,9 +128,9 @@ public class MeasurandComparerTests
     [InlineData(1e-9, ComparisonResult.Equal)]        // coarse: a thousandth of a sigma apart
     [InlineData(1e-18, ComparisonResult.GreaterThan)] // fine:   the bar resolves them
     public void WhetherValuesStraddlingZeroAgreeDependsOnTheirUncertainty(
-        double absoluteError, ComparisonResult expected)
+        double absoluteUncertainty, ComparisonResult expected)
     {
-        Compare(Meters(1e-12, absoluteError), Meters(-1e-12, absoluteError)).Should().Be(expected);
+        Compare(Meters(1e-12, absoluteUncertainty), Meters(-1e-12, absoluteUncertainty)).Should().Be(expected);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class MeasurandComparerTests
     }
 
     /// <remarks>
-    /// An exact operand has no error bar, and that must not be read as an error bar of zero. It does not make
+    /// An exact operand has no uncertainty bar, and that must not be read as an uncertainty bar of zero. It does not make
     /// the other operand better resolved — it simply has no opinion — and letting the zero win the minimum
     /// would collapse the threshold to the dimensional floor. Comparing a measurement against an exact limit of
     /// zero is ordinary, so this is not a corner case.
@@ -252,7 +252,7 @@ public class MeasurandComparerTests
     [InlineData(1, 0)]
     [InlineData(10, 1e-3)]
     [InlineData(1e5, 1e-9)]
-    public void ComparisonIsMonotoneInTheLeftValue(double rhsValue, double absoluteError)
+    public void ComparisonIsMonotoneInTheLeftValue(double rhsValue, double absoluteUncertainty)
     {
         double[] ascending =
         [
@@ -261,20 +261,20 @@ public class MeasurandComparerTests
             1e-40, 1e-20, 1e-13, 1e-12, 1e-6, 1, 10, 1e5,
         ];
 
-        var rhs = Meters(rhsValue, absoluteError);
+        var rhs = Meters(rhsValue, absoluteUncertainty);
 
         var previous = -1;
         var previousValue = double.NegativeInfinity;
 
         foreach (var lhsValue in ascending)
         {
-            var result = Compare(Meters(lhsValue, absoluteError), rhs);
+            var result = Compare(Meters(lhsValue, absoluteUncertainty), rhs);
             result.Should().NotBe(ComparisonResult.Incomparable, "every value here is finite and a length");
 
             var rank = Rank(result);
             rank.Should().BeGreaterThanOrEqualTo(
                 previous,
-                $"comparing {lhsValue} against {rhsValue} (±{absoluteError}) gave {result}, but " +
+                $"comparing {lhsValue} against {rhsValue} (±{absoluteUncertainty}) gave {result}, but " +
                 $"{previousValue} — which is smaller — had already reached a later tier");
 
             previous = rank;

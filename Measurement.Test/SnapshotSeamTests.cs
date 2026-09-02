@@ -13,58 +13,58 @@ using Xunit;
 namespace Calcusystem.Measurement.Test;
 
 /// <summary>
-/// Covers the persistence seam: <see cref="IUncertainty.GetState"/> / <see cref="IStateful{TSelf,TState}"/> out,
-/// <see cref="UncertaintyFactory.FromState"/> / <c>FromState</c> back. A round trip must preserve the stored form,
+/// Covers the persistence seam: <see cref="IUncertainty.GetSnapshot"/> / <see cref="ISnapshotting{TSelf,TSnapshot}"/> out,
+/// <see cref="UncertaintyFactory.FromSnapshot"/> / <c>FromSnapshot</c> back. A round trip must preserve the stored form,
 /// not merely an equivalent error band — storing 0 as an absolute error means something different from storing it
 /// as a relative one.
 /// </summary>
-public class StateSeamTests
+public class SnapshotSeamTests
 {
     [Fact]
     public void SymmetricRelativeUncertaintyRoundTrips()
     {
-        IUncertainty original = SymmetricUncertainty.FromRelErr(0.02);
+        IUncertainty original = SymmetricUncertainty.FromRelative(0.02);
 
-        var state = original.GetState();
-        state.Shape.Should().Be(UncertaintyShape.Symmetric);
+        var state = original.GetSnapshot();
+        state.Type.Should().Be(UncertaintyType.Symmetric);
         state.IsStoredAsAbs.Should().BeFalse();
 
-        var rebuilt = UncertaintyFactory.FromState(state);
+        var rebuilt = UncertaintyFactory.FromSnapshot(state);
         rebuilt.Should().BeOfType<SymmetricUncertainty>();
-        rebuilt.RelativeError(5.0).Should().Be(0.02);
-        rebuilt.AbsoluteError(5.0).Should().Be(0.1);
+        rebuilt.RelativeUncertainty(5.0).Should().Be(0.02);
+        rebuilt.AbsoluteUncertainty(5.0).Should().Be(0.1);
     }
 
     [Fact]
     public void SymmetricAbsoluteUncertaintyRoundTripsAndSurvivesAtZero()
     {
-        IUncertainty original = SymmetricUncertainty.FromAbsErr(1.0.Units(Mass.Milligram));
+        IUncertainty original = SymmetricUncertainty.FromAbsolute(1.0.Units(Mass.Milligram));
 
-        var state = original.GetState();
-        state.Shape.Should().Be(UncertaintyShape.Symmetric);
+        var state = original.GetSnapshot();
+        state.Type.Should().Be(UncertaintyType.Symmetric);
         state.IsStoredAsAbs.Should().BeTrue();
 
-        var rebuilt = UncertaintyFactory.FromState(state);
+        var rebuilt = UncertaintyFactory.FromSnapshot(state);
 
         // The storage form is what makes an error at zero meaningful; a round trip must not quietly convert it.
-        rebuilt.AbsoluteError(0.0).Should().Be(original.AbsoluteError(0.0));
-        rebuilt.RelativeError(0.0).Should().Be(double.PositiveInfinity);
+        rebuilt.AbsoluteUncertainty(0.0).Should().Be(original.AbsoluteUncertainty(0.0));
+        rebuilt.RelativeUncertainty(0.0).Should().Be(double.PositiveInfinity);
     }
 
     [Fact]
     public void AsymmetricUncertaintyRoundTripsPreservingDirection()
     {
-        IUncertainty original = AsymmetricUncertainty.FromRelErr(0.05, 0.01);
+        IUncertainty original = AsymmetricUncertainty.FromRelative(0.05, 0.01);
 
-        var state = original.GetState();
-        state.Shape.Should().Be(UncertaintyShape.Asymmetric);
+        var state = original.GetSnapshot();
+        state.Type.Should().Be(UncertaintyType.Asymmetric);
         state.UpperMagnitude.Should().Be(0.05);
         state.LowerMagnitude.Should().Be(0.01);
 
-        var rebuilt = UncertaintyFactory.FromState(state);
+        var rebuilt = UncertaintyFactory.FromSnapshot(state);
         rebuilt.Should().BeOfType<AsymmetricUncertainty>();
-        rebuilt.UpperRelativeError(2.0).Should().Be(0.05);
-        rebuilt.LowerRelativeError(2.0).Should().Be(0.01);
+        rebuilt.UpperRelativeUncertainty(2.0).Should().Be(0.05);
+        rebuilt.LowerRelativeUncertainty(2.0).Should().Be(0.01);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class StateSeamTests
     {
         var original = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));
 
-        var rebuilt = Quantity.FromState(original.GetState());
+        var rebuilt = Quantity.FromSnapshot(original.GetSnapshot());
 
         rebuilt.In(Acceleration.MeterPerSecondSquared).Should().Be(9.81);
         rebuilt.Dimensionality.Should().Be(original.Dimensionality);
@@ -83,7 +83,7 @@ public class StateSeamTests
     {
         var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 
-        var pairs = force.GetState().Pairs;
+        var pairs = force.GetSnapshot().Pairs;
 
         pairs.Should().HaveCount(3);
         pairs[FundamentalDimension.Mass].Should().Be(1);
@@ -99,19 +99,19 @@ public class StateSeamTests
         var oneWay = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
         var otherWay = Dimensionality.Length / Dimensionality.Time * Dimensionality.Mass / Dimensionality.Time;
 
-        oneWay.GetState().Pairs.Keys.Should().Equal(otherWay.GetState().Pairs.Keys);
-        oneWay.GetState().Pairs.Keys.Should().Equal(
+        oneWay.GetSnapshot().Pairs.Keys.Should().Equal(otherWay.GetSnapshot().Pairs.Keys);
+        oneWay.GetSnapshot().Pairs.Keys.Should().Equal(
             FundamentalDimension.Mass, FundamentalDimension.Length, FundamentalDimension.Time);
     }
 
     [Fact]
     public void DimensionlessStateIsEmptyAndRoundTrips()
     {
-        Dimensionality.Dimensionless.GetState().Pairs.Should().BeEmpty();
-        Dimensionality.FromState(default).Should().Be(Dimensionality.Dimensionless);
+        Dimensionality.Dimensionless.GetSnapshot().Pairs.Should().BeEmpty();
+        Dimensionality.FromSnapshot(default).Should().Be(Dimensionality.Dimensionless);
 
         // default(Dimensionality) has no backing map at all; it must behave the same way.
-        default(Dimensionality).GetState().Pairs.Should().BeEmpty();
+        default(Dimensionality).GetSnapshot().Pairs.Should().BeEmpty();
     }
 
     [Fact]
@@ -120,31 +120,31 @@ public class StateSeamTests
         var dimension = Dimensionality.Mass * Dimensionality.Length * Dimensionality.Length
                         / (Dimensionality.Time * Dimensionality.Time * Dimensionality.Temperature);
 
-        Dimensionality.FromState(dimension.GetState()).Should().Be(dimension);
+        Dimensionality.FromSnapshot(dimension.GetSnapshot()).Should().Be(dimension);
     }
 
     [Fact]
     public void DimensionalityStateEqualityIsStructural()
     {
         // The compiler-generated Equals would compare dictionary references, and that would propagate into
-        // QuantityState and MeasurandState, whose equality is built from their fields'.
+        // QuantitySnapshot and MeasurandSnapshot, whose equality is built from their fields'.
         var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
         var sameAgain = Dimensionality.Length * Dimensionality.Mass / (Dimensionality.Time * Dimensionality.Time);
 
-        force.GetState().Should().Be(sameAgain.GetState());
-        force.GetState().GetHashCode().Should().Be(sameAgain.GetState().GetHashCode());
-        force.GetState().Should().NotBe(Dimensionality.Mass.GetState());
+        force.GetSnapshot().Should().Be(sameAgain.GetSnapshot());
+        force.GetSnapshot().GetHashCode().Should().Be(sameAgain.GetSnapshot().GetHashCode());
+        force.GetSnapshot().Should().NotBe(Dimensionality.Mass.GetSnapshot());
     }
 
     [Fact]
     public void MeasurandRoundTripsValueAndUncertaintyTogether()
     {
-        var original = Mass.Kilogram.Quantity(2).Measurand(AsymmetricUncertainty.FromRelErr(0.05, 0.01));
+        var original = Mass.Kilogram.Quantity(2).Measurand(AsymmetricUncertainty.FromRelative(0.05, 0.01));
 
-        var rebuilt = Measurand.FromState(original.GetState());
+        var rebuilt = Measurand.FromSnapshot(original.GetSnapshot());
 
         rebuilt.In(Mass.Kilogram).Should().Be(2);
-        rebuilt.UpperRelativeError.Should().Be(0.05);
-        rebuilt.LowerRelativeError.Should().Be(0.01);
+        rebuilt.UpperRelativeUncertainty.Should().Be(0.05);
+        rebuilt.LowerRelativeUncertainty.Should().Be(0.01);
     }
 }

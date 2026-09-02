@@ -49,11 +49,11 @@ public class CyclicGraphTests
     [Fact]
     public void ASingleNodesOwnWalkIsProtectedToo()
     {
-        // `ComputeIfDetermined` shares the ordering, so it reports the cycle instead of recursing until
+        // `ComputeIfFullyDescribed` shares the ordering, so it reports the cycle instead of recursing until
         // the stack dies — a StackOverflowException cannot be caught and would take the process with it.
         var (_, a, _) = TwoNodeCycle();
 
-        var act = () => a.ComputeIfDetermined();
+        var act = () => a.ComputeIfFullyDescribed();
 
         act.Should().Throw<CyclicExpressionGraphException>();
     }
@@ -125,7 +125,7 @@ public class CyclicGraphTests
 
         public override Measurand? ComputeFrom(
             IReadOnlyDictionary<IExpression, Measurand> known,
-            IErrorPropagator? propagator = null) =>
-            Dimensionality.Dimensionless.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0));
+            IUncertaintyPropagator? propagator = null) =>
+            Dimensionality.Dimensionless.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0));
     }
 }

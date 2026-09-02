@@ -3,13 +3,13 @@ using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Factories;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 
 namespace Calcusystem.Measurement.Primitives;
 
-public class Measurand : IStateful<Measurand, MeasurandState>
+public class Measurand : ISnapshotting<Measurand, MeasurandSnapshot>
 {
     internal readonly Quantity Quantity;
     public readonly IUncertainty Uncertainty;
@@ -18,7 +18,7 @@ public class Measurand : IStateful<Measurand, MeasurandState>
     public Measurand()
     {
         Quantity = Quantity.One;
-        Uncertainty = SymmetricUncertainty.FromRelErr(0);
+        Uncertainty = SymmetricUncertainty.FromRelative(0);
     }
 
     public Measurand(Quantity quantity, IUncertainty uncertainty)
@@ -29,25 +29,25 @@ public class Measurand : IStateful<Measurand, MeasurandState>
 
     public Dimensionality Dimensionality => Quantity.Dimensionality;
 
-    public double RelativeError => Uncertainty.RelativeError(KmsValue);
-    public double UpperRelativeError => Uncertainty.UpperRelativeError(KmsValue);
-    public double LowerRelativeError => Uncertainty.LowerRelativeError(KmsValue);
+    public double RelativeUncertainty => Uncertainty.RelativeUncertainty(KmsValue);
+    public double UpperRelativeUncertainty => Uncertainty.UpperRelativeUncertainty(KmsValue);
+    public double LowerRelativeUncertainty => Uncertainty.LowerRelativeUncertainty(KmsValue);
 
-    public double AbsoluteError(UnitOfMeasure unitOfMeasure)
+    public double AbsoluteUncertainty(UnitOfMeasure unitOfMeasure)
     {
-        return Math.Abs(Quantity.In(unitOfMeasure)) * RelativeError;
+        return Math.Abs(Quantity.In(unitOfMeasure)) * RelativeUncertainty;
     }
 
     public double KmsValue => Quantity.KmsValue;
-    public double KmsUpperAbsoluteError => Uncertainty.UpperAbsoluteError(KmsValue);
-    public double KmsLowerAbsoluteError => Uncertainty.LowerAbsoluteError(KmsValue);
-    public double KmsAbsoluteError => Math.Max(KmsUpperAbsoluteError, KmsLowerAbsoluteError);
+    public double KmsUpperAbsoluteUncertainty => Uncertainty.UpperAbsoluteUncertainty(KmsValue);
+    public double KmsLowerAbsoluteUncertainty => Uncertainty.LowerAbsoluteUncertainty(KmsValue);
+    public double KmsAbsoluteUncertainty => Math.Max(KmsUpperAbsoluteUncertainty, KmsLowerAbsoluteUncertainty);
 
     public double this[Landmark lm] => lm switch
     {
-        Landmark.LowerBound => KmsValue - KmsLowerAbsoluteError,
+        Landmark.LowerBound => KmsValue - KmsLowerAbsoluteUncertainty,
         Landmark.Nominal => KmsValue,
-        Landmark.UpperBound => KmsValue + KmsUpperAbsoluteError,
+        Landmark.UpperBound => KmsValue + KmsUpperAbsoluteUncertainty,
         _ => throw new IndexOutOfRangeException()
     };
 
@@ -106,14 +106,14 @@ public class Measurand : IStateful<Measurand, MeasurandState>
         return Quantity.IsSubnormal();
     }
 
-    public double AbsoluteErrorIn(UnitOfMeasure unit)
+    public double AbsoluteUncertaintyIn(UnitOfMeasure unit)
     {
-        return In(unit) * RelativeError;
+        return In(unit) * RelativeUncertainty;
     }
 
-    public double TryAbsoluteErrorIn(UnitOfMeasure unit)
+    public double TryAbsoluteUncertaintyIn(UnitOfMeasure unit)
     {
-        return TryIn(unit) * RelativeError;
+        return TryIn(unit) * RelativeUncertainty;
     }
 
     public override string ToString()
@@ -127,19 +127,19 @@ public class Measurand : IStateful<Measurand, MeasurandState>
     /// <remarks>
     /// Which propagator is used and whether operands are <i>correlated</i> are different questions on different
     /// axes. Correlation is a statement about the model — whether these two quantities move together — and rides
-    /// on the operation as an <see cref="ErrorPropagationMethod"/>. The propagator is the numerical method for
+    /// on the operation as an <see cref="UncertaintyPropagation"/>. The propagator is the numerical method for
     /// combining uncertainties at all, and is a property of the calculation. Swapping it therefore does not
     /// discard what the model says about correlation; both are passed through together.
     /// </remarks>
-    private static IErrorPropagator ResolveErrorPropagator(IErrorPropagator? supplied) =>
+    private static IUncertaintyPropagator ResolveErrorPropagator(IUncertaintyPropagator? supplied) =>
         supplied ?? ConservativeGaussianPropagator.Instance;
 
     public static Measurand Sum(
-        ErrorPropagationMethod method,
-        IErrorPropagator? propagator,
+        UncertaintyPropagation method,
+        IUncertaintyPropagator? propagator,
         IEnumerable<Measurand> measurands) => Sum(method, propagator, measurands.ToArray());
 
-    public static Measurand Sum(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] measurands)
+    public static Measurand Sum(UncertaintyPropagation method, IUncertaintyPropagator? propagator, params Measurand[] measurands)
     {
         if (measurands.Length == 0) return new Measurand();
 
@@ -151,7 +151,7 @@ public class Measurand : IStateful<Measurand, MeasurandState>
         return new Measurand(quantity, ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, measurands));
     }
 
-    public static Measurand Product(ErrorPropagationMethod method, IErrorPropagator? propagator, params Measurand[] quantities)
+    public static Measurand Product(UncertaintyPropagation method, IUncertaintyPropagator? propagator, params Measurand[] quantities)
     {
         if (quantities.Length == 0) return new Measurand();
 
@@ -188,12 +188,12 @@ public class Measurand : IStateful<Measurand, MeasurandState>
 
     public Measurand TryAdd(
         Measurand other,
-        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
-        IErrorPropagator? propagator = null)
+        UncertaintyPropagation method = UncertaintyPropagation.Uncorrelated,
+        IUncertaintyPropagator? propagator = null)
     {
         var quantity = Quantity.TryAdd(other.Quantity);
         var uncertainty = quantity.IsNaN()
-            ? SymmetricUncertainty.FromRelErr(0)
+            ? SymmetricUncertainty.FromRelative(0)
             : ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, [this, other]);
 
         return new Measurand(quantity, uncertainty);
@@ -201,12 +201,12 @@ public class Measurand : IStateful<Measurand, MeasurandState>
 
     public Measurand TrySubtract(
         Measurand other,
-        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
-        IErrorPropagator? propagator = null)
+        UncertaintyPropagation method = UncertaintyPropagation.Uncorrelated,
+        IUncertaintyPropagator? propagator = null)
     {
         var quantity = Quantity.TrySubtract(other.Quantity);
         var uncertainty = quantity.IsNaN()
-            ? SymmetricUncertainty.FromRelErr(0)
+            ? SymmetricUncertainty.FromRelative(0)
             : ResolveErrorPropagator(propagator).PropagateErrorThroughSum(method, [this, -other]);
 
         return new Measurand(quantity, uncertainty);
@@ -214,40 +214,40 @@ public class Measurand : IStateful<Measurand, MeasurandState>
 
     public Measurand Plus(
         Measurand other,
-        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
-        IErrorPropagator? propagator = null)
+        UncertaintyPropagation method = UncertaintyPropagation.Uncorrelated,
+        IUncertaintyPropagator? propagator = null)
     {
         return Sum(method, propagator, this, other);
     }
 
     public Measurand Minus(
         Measurand other,
-        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
-        IErrorPropagator? propagator = null)
+        UncertaintyPropagation method = UncertaintyPropagation.Uncorrelated,
+        IUncertaintyPropagator? propagator = null)
     {
         return Sum(method, propagator, this, -other);
     }
 
     public Measurand Times(
         Measurand other,
-        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
-        IErrorPropagator? propagator = null)
+        UncertaintyPropagation method = UncertaintyPropagation.Uncorrelated,
+        IUncertaintyPropagator? propagator = null)
     {
         return Product(method, propagator, this, other);
     }
 
     public Measurand DividedBy(
         Measurand other,
-        ErrorPropagationMethod method = ErrorPropagationMethod.Uncorrelated,
-        IErrorPropagator? propagator = null)
+        UncertaintyPropagation method = UncertaintyPropagation.Uncorrelated,
+        IUncertaintyPropagator? propagator = null)
     {
         return Product(method, propagator, this, other.Reciprocal());
     }
 
     /// <inheritdoc/>
-    public MeasurandState GetState() => new(Quantity.GetState(), Uncertainty.GetState());
+    public MeasurandSnapshot GetSnapshot() => new(Quantity.GetSnapshot(), Uncertainty.GetSnapshot());
 
     /// <inheritdoc/>
-    public static Measurand FromState(MeasurandState state) =>
-        new(Quantity.FromState(state.Quantity), UncertaintyFactory.FromState(state.Uncertainty));
+    public static Measurand FromSnapshot(MeasurandSnapshot state) =>
+        new(Quantity.FromSnapshot(state.Quantity), UncertaintyFactory.FromSnapshot(state.Uncertainty));
 }

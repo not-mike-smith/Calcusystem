@@ -1,11 +1,13 @@
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
+using Calcusystem.Measurement.Uncertainties;
+using Calcusystem.Measurement.Factories;
 
 namespace Calcusystem.Measurement.Interfaces;
 
 /// <summary>
 /// Represents the uncertainty of a physical quantity expressed in KMS units.
 /// The uncertainty interval around a nominal value <c>v</c> is
-/// <c>[v - LowerAbsoluteError(v), v + UpperAbsoluteError(v)]</c>.
+/// <c>[v - LowerAbsoluteUncertainty(v), v + UpperAbsoluteUncertainty(v)]</c>.
 /// </summary>
 /// <remarks>
 /// Errors are stored as a function of the nominal value rather than as fixed magnitudes: a relative-error
@@ -15,30 +17,30 @@ namespace Calcusystem.Measurement.Interfaces;
 public interface IUncertainty
 {
     /// <summary>Absolute error above the nominal value in KMS units.</summary>
-    double UpperAbsoluteError(double nominalKmsValue);
+    double UpperAbsoluteUncertainty(double nominalKmsValue);
 
     /// <summary>Absolute error below the nominal value in KMS units.  Always a positive value</summary>
-    double LowerAbsoluteError(double nominalKmsValue);
+    double LowerAbsoluteUncertainty(double nominalKmsValue);
 
     /// <summary>Relative error above the nominal value (a fraction of the nominal value).</summary>
-    double UpperRelativeError(double nominalKmsValue);
+    double UpperRelativeUncertainty(double nominalKmsValue);
 
     /// <summary>
     /// Relative error below the nominal value (a fraction of the nominal value). Always a positive value
     /// </summary>
-    double LowerRelativeError(double nominalKmsValue);
+    double LowerRelativeUncertainty(double nominalKmsValue);
 
     /// <summary>
     /// Conservative relative error for use in propagation formulas.
     /// For asymmetric uncertainty types this is the larger of upper and lower relative errors.
     /// </summary>
-    double RelativeError(double nominalKmsValue);
+    double RelativeUncertainty(double nominalKmsValue);
 
     /// <summary>
     /// Conservative absolute error for use in propagation formulas.
     /// For asymmetric uncertainty types this is the larger of upper and lower absolute errors.
     /// </summary>
-    double AbsoluteError(double nominalKmsValue);
+    double AbsoluteUncertainty(double nominalKmsValue);
 
     /// <summary>
     /// Returns the uncertainty describing the reciprocal (<c>1 / v</c>) of the value this instance describes.
@@ -70,12 +72,12 @@ public interface IUncertainty
 
     /// <summary>
     /// Returns the complete stored state of this uncertainty — the storage convention and magnitudes needed to
-    /// rebuild it via <see cref="UncertaintyFactory.FromState"/>, and nothing more.
+    /// rebuild it via <see cref="UncertaintyFactory.FromSnapshot"/>, and nothing more.
     /// </summary>
     /// <remarks>
     /// The persistence seam. Implementations provide this <i>explicitly</i>, so the storage form stays off their
     /// own public surface: consumers holding a concrete <see cref="SymmetricUncertainty"/> still see only the
     /// error-reading and construction members, never the raw magnitude.
     /// </remarks>
-    UncertaintyState GetState();
+    UncertaintySnapshot GetSnapshot();
 }

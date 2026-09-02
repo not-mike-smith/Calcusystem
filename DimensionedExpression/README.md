@@ -2,13 +2,13 @@
 
 The expression layer of Calcusystem. Builds trees of dimensioned variables and formulas — a system of equations whose leaves are measured/known values and whose interior nodes compute derived values with uncertainty propagation. Constraints and definitions are expressed as binary operators over those expressions.
 
-Depends only on `Measurement` (for `Measurand`, `Dimensionality`, `ErrorPropagationMethod`). It has no dependency on serialization, evaluation, or solving.
+Depends only on `Measurement` (for `Measurand`, `Dimensionality`, `UncertaintyPropagation`). It has no dependency on serialization, evaluation, or solving.
 
 ---
 
 ## The central idea: lazy, dimension-checked expression trees
 
-Every node in the tree is an `IExpression`. A node knows its `Dimensionality` *structurally* — always available, even before any values are supplied — but produces a value **only once every leaf it depends on has been given a value**. Until then `CalculateValueIfDetermined()` returns `null` and `IsFullyDescribed` is `false`.
+Every node in the tree is an `IExpression`. A node knows its `Dimensionality` *structurally* — always available, even before any values are supplied — but produces a value **only once every leaf it depends on has been given a value**. Until then `ComputeIfFullyDescribed()` returns `null` and `IsFullyDescribed` is `false`.
 
 ```csharp
 var mass  = new Variable("m", Dimensionality.Mass);
@@ -18,17 +18,17 @@ var force = new ProductExpression([mass, accel]);
 
 force.Dimensionality;      // M·L·T⁻²  — known immediately
 force.IsFullyDescribed;    // false
-force.CalculateValueIfDetermined();  // null
-force.FreeVariables();     // [mass, accel]  — the distinct unbound leaves
+force.ComputeIfFullyDescribed();  // null
+force.UnsetVariables();     // [mass, accel]  — the distinct unbound leaves
 
 mass.Value  = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
 accel.Value = /* … */;
 
 force.IsFullyDescribed;    // true once both are set
-force.CalculateValueIfDetermined();  // a Measurand (value + propagated uncertainty)
+force.ComputeIfFullyDescribed();  // a Measurand (value + propagated uncertainty)
 ```
 
-**`CalculateValueIfDetermined()` is a method, and named for what it costs.** It walks the entire graph beneath the node on every call and caches nothing, so a sub-expression shared by three parents is computed three times. It was once a `Value` property, which invited callers to read it like a field and to call it in a loop.
+**`ComputeIfFullyDescribed()` is a method, and named for what it costs.** It walks the entire graph beneath the node on every call and caches nothing, so a sub-expression shared by three parents is computed three times. It was once a `Value` property, which invited callers to read it like a field and to call it in a loop.
 
 Nothing is memoised on the node deliberately: a node cannot learn that a leaf beneath it was reassigned, so a cached answer there could silently go stale. Caching belongs to a caller that knows over what scope the graph is unchanged — `Calcusystem.Analysis`'s `system.Calculate()` computes each node exactly once per run by walking in dependency order and feeding results to `ComputeFrom`. **Prefer it for anything beyond a one-off read.**
 
@@ -46,8 +46,8 @@ The split is what makes the rest of the layer safe to reason about:
 
 Two further consequences worth internalizing:
 
-- **Dimensionality is total; value is partial.** Ask for `Dimensionality` any time. A null result from `CalculateValueIfDetermined()` *is* the "not fully described" answer, so prefer checking the result over calling `IsFullyDescribed` first — the latter is itself a walk, and asking both walks the graph twice.
-- **`FreeVariables()` names the unbound leaves.** A fully-described tree has none. It is set-valued rather than a count because the graph is a **DAG, not a tree** — a shared sub-expression is reachable by several paths, and anything that asks "how many distinct unknowns" must deduplicate. It is also what the caller needs: a report has to name the missing values, not just tally them. Whether a whole *system* is solvable is a different question — see `Calcusystem.Analysis`.
+- **Dimensionality is total; value is partial.** Ask for `Dimensionality` any time. A null result from `ComputeIfFullyDescribed()` *is* the "not fully described" answer, so prefer checking the result over calling `IsFullyDescribed` first — the latter is itself a walk, and asking both walks the graph twice.
+- **`UnsetVariables()` names the unbound leaves.** A fully-described tree has none. It is set-valued rather than a count because the graph is a **DAG, not a tree** — a shared sub-expression is reachable by several paths, and anything that asks "how many distinct unknowns" must deduplicate. It is also what the caller needs: a report has to name the missing values, not just tally them. Whether a whole *system* is solvable is a different question — see `Calcusystem.Analysis`.
 
 ---
 
@@ -59,7 +59,7 @@ Two further consequences worth internalizing:
 | --- | --- | --- |
 | `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Children`, `ComputeFrom(known)` |
 | `IDirectExpression` | `IExpression` | adds `Measurand? Value { get; set; }` — a mutable leaf's *stored* value. A genuine property: there is nothing beneath a leaf to walk. It no longer shadows anything, which is what kept the difference in cost between the two hidden. |
-| `IComputedExpression` | `IExpression` | `ErrorPropagation { get; set; }` — the `ErrorPropagationMethod` used when combining children |
+| `IComputedExpression` | `IExpression` | `UncertaintyPropagation { get; set; }` — the `UncertaintyPropagation` used when combining children |
 
 ### Expression node types (`Expressions/`)
 
@@ -71,11 +71,11 @@ Two further consequences worth internalizing:
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
 | `NegatedExpression` | `IExpression` | Unary negation wrapper over any `IExpression` (its `Operand`). Not directly mutable. |
 | `ReciprocalExpression` | `IExpression` | Unary `1/x` wrapper over any `IExpression`; reciprocates the dimensionality. |
-| `SqrtExpression` | `IExpression` | Unary `√x` over any `IExpression` (its `Argument`); halves each dimension exponent (odd exponent throws `NondiscreteDimensionalityException`). Uncertainty: `RelativeError(√x) = ½·RelativeError(x)`. |
-| `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeError(eˣ) ≈ \|x\|·RelativeError(x)`. |
-| `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteError(ln x) ≈ RelativeError(x)`. Degenerate at `x = 1` (result 0 → relative error undefined; throws). |
+| `SqrtExpression` | `IExpression` | Unary `√x` over any `IExpression` (its `Argument`); halves each dimension exponent (odd exponent throws `NondiscreteDimensionalityException`). Uncertainty: `RelativeUncertainty(√x) = ½·RelativeUncertainty(x)`. |
+| `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeUncertainty(eˣ) ≈ \|x\|·RelativeUncertainty(x)`. |
+| `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x)`. Degenerate at `x = 1` (result 0 → relative error undefined; throws). |
 
-Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `ErrorPropagation` property); each still implements `Dimensionality`/`IsFullyDescribed`/`Children`/`ComputeFrom` itself.
+Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `UncertaintyPropagation` property); each still implements `Dimensionality`/`IsFullyDescribed`/`Children`/`ComputeFrom` itself.
 
 ### `ComputeFrom`: the node's arithmetic, without the walk
 
@@ -89,7 +89,7 @@ public Measurand? ComputeFrom(IReadOnlyDictionary<IExpression, Measurand> known)
     known.TryGetValue(this, out var supplied) ? supplied : _value;
 ```
 
-`CalculateValueIfDetermined()` (an extension in `Traversal/`, written once for every node type) is that function applied to children which computed themselves recursively. `Calculate` is the same function applied to operands it computed in dependency order and kept. That is the whole point of the split: **a node owns how values combine; a caller owns the order they are produced in and whether any are worth keeping.**
+`ComputeIfFullyDescribed()` (an extension in `Traversal/`, written once for every node type) is that function applied to children which computed themselves recursively. `Calculate` is the same function applied to operands it computed in dependency order and kept. That is the whole point of the split: **a node owns how values combine; a caller owns the order they are produced in and whether any are worth keeping.**
 
 ### The derived walks (`BaseModels/ExpressionBase.cs`)
 
@@ -97,24 +97,24 @@ A node type contributes exactly two things: **what its operands are** (`Children
 
 | Extension | Yields |
 | --- | --- |
-| `ComputeIfDetermined(overrides?, propagator?)` | the node's value, walking to the leaves. Named to match `ComputeFrom`, and takes the same overrides `Calculate` does, for a caller working on one sub-expression |
+| `ComputeIfFullyDescribed(overrides?, propagator?)` | the node's value, walking to the leaves. Named to match `ComputeFrom`, and takes the same overrides `Calculate` does, for a caller working on one sub-expression |
 | `SelfAndDescendants()` | the node and everything reachable from it, each exactly once |
 | `InDependencyOrder()` | children before parents — the order values can be computed in |
 
 `ExpressionSystem.InDependencyOrder()` is the same walk over a whole system, which is the only form ranging over several roots at once — there is no single node to ask, so it sits on the system beside `GetAllExpressions()`. Both delegate to an internal `ExpressionGraph`; neither callers nor node types touch it.
-| `FreeVariables()` | the distinct unbound `Variable` leaves — on an `IExpression`, or on an `IBinaryOperator` across both its sides |
+| `UnsetVariables()` | the distinct unbound `Variable` leaves — on an `IExpression`, or on an `IBinaryOperator` across both its sides |
 
 They are **declared on `IExpression` and implemented on `ExpressionBase`** rather than being extension methods, so they are part of the contract and visible on the interface. The cost is that a type implementing `IExpression` without deriving from `ExpressionBase` must supply all of them; deriving is the expected path, and the test doubles do.
 
 All deduplicate by identity (`IdBase` defines equality and hashing on `Id`), and all are iterative — nothing bounds how deep a graph can be, and a stack frame per node is an avoidable way to fail.
 
-**Cycles are detected, not assumed away.** They are now unconstructible through this assembly's own types — a node's operands are supplied at construction and never change, so a node's children always predate it — but `IExpression` is a public interface, and an implementation outside this assembly can present whatever `Children` it likes. Every walk here assumes a DAG, so the check stays. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `ComputeIfDetermined()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
+**Cycles are detected, not assumed away.** They are now unconstructible through this assembly's own types — a node's operands are supplied at construction and never change, so a node's children always predate it — but `IExpression` is a public interface, and an implementation outside this assembly can present whatever `Children` it likes. Every walk here assumes a DAG, so the check stays. A visited set alone only stops the descent; it leaves a node ordered before an operand it depends on, so a caller folding over that order finds the operand missing and reports a value as unresolvable when nothing is actually absent. `InDependencyOrder` therefore verifies that every node follows all of its own children, and `ComputeIfFullyDescribed()` goes through it. This matters: the per-type `DegreesOfFreedom()` these replaced summed over children, so an unknown referenced from two places was counted twice, and a system with one unknown reported two — enough to misclassify it as underdetermined at the solver gate.
 
 ### Binary operators (`BinaryOperators/`)
 
 All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutative`, `Symbol`, `AreBothSidesFullyDescribed`) via `BinaryOperatorBase` and its `CommutativeOperatorBase` / `NonCommutativeOperatorBase` splits.
 
-**A verdict comes in two halves**, mirroring `ComputeFrom` / `ComputeIfDetermined` on expressions:
+**A verdict comes in two halves**, mirroring `ComputeFrom` / `ComputeIfFullyDescribed` on expressions:
 
 | | Answers | Reads |
 | --- | --- | --- |
@@ -155,7 +155,7 @@ var eq = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
 
 // The general form: any of the 63 rules, including the ones with no named operator.
 var conservative = new SimpleComparison(
-        new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+        new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound))
     { Id = Constants.CREATE_NEW, Lhs = measured, Rhs = guarantee };
 ```
 
@@ -253,16 +253,16 @@ An optional audit annotation recording *where a value came from* — carried by 
 
 `IProvenance` exposes `Id` (it round-trips through serialization like any node) and `Summary()` (a one-line string for UI display). All kinds are created through the single factory — read `ProvenanceFactory` to see the full set available:
 
-| Factory method | Kind | Metadata |
+| Factory method | Type | Metadata |
 | --- | --- | --- |
 | `ProvenanceFactory.Measured(instrumentId?, calibrationDate?)` | instrument/sensor reading | instrument id, calibration date |
 | `ProvenanceFactory.Reference(citation, url?, year?)` | literature/tabulated value | citation, URL, year |
 | `ProvenanceFactory.Design(specReference?)` | engineer-specified value | spec/drawing reference |
 | `ProvenanceFactory.Model(modelName, fittingReference?)` | fitted constitutive constant | model name, fitting reference |
 
-The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so callers can pattern-match on a kind, but their constructors **and their metadata** are **internal** — construction always flows through the factory, and the metadata leaves the assembly only as a `ProvenanceState`. The factory methods above mint a fresh identity and take no `id`; restoring a persisted one is `ProvenanceFactory.FromState(state)`, deliberately kept apart from the creation vocabulary so a caller recording where a value came from is never offered a parameter that only makes sense to a deserializer.
+The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so callers can pattern-match on a kind, but their constructors **and their metadata** are **internal** — construction always flows through the factory, and the metadata leaves the assembly only as a `ProvenanceSnapshot`. The factory methods above mint a fresh identity and take no `id`; restoring a persisted one is `ProvenanceFactory.FromSnapshot(state)`, deliberately kept apart from the creation vocabulary so a caller recording where a value came from is never offered a parameter that only makes sense to a deserializer.
 
-`IProvenance.GetState()` is implemented *explicitly*, so a consumer holding a `MeasuredProvenance` sees `Summary()` and `Id`, not the raw fields. Reading them is a persistence concern and this is its one door.
+`IProvenance.GetSnapshot()` is implemented *explicitly*, so a consumer holding a `MeasuredProvenance` sees `Summary()` and `Id`, not the raw fields. Reading them is a persistence concern and this is its one door.
 
 ---
 
@@ -272,26 +272,26 @@ There are **no DTOs and no mappers in this assembly** — those live in `Calcusy
 
 | State | Discriminator | Covers |
 | --- | --- | --- |
-| `VariableState` | — | `Variable` |
-| `UnaryExpressionState` | `UnaryExpressionKind` | `Reciprocal`, `Negated`, `Sqrt`, `Exponential`, `NaturalLog` |
-| `NaryExpressionState` | `NaryExpressionKind` | `Product`, `Sum` |
-| `BinaryExpressionState` | `BinaryExpressionKind` | `Quotient` (M5's `PowerExpression` joins by adding a kind) |
-| `BinaryOperatorState` | `BinaryOperatorKind` | all thirteen operators |
-| `ExpressionSystemState` | — | `ExpressionSystem` |
-| `ProvenanceState` | `ProvenanceKind` | the four provenance kinds |
+| `VariableSnapshot` | — | `Variable` |
+| `UnaryExpressionSnapshot` | `UnaryExpressionType` | `Reciprocal`, `Negated`, `Sqrt`, `Exponential`, `NaturalLog` |
+| `NaryExpressionSnapshot` | `NaryExpressionType` | `Product`, `Sum` |
+| `BinaryExpressionSnapshot` | `BinaryExpressionType` | `Quotient` (M5's `PowerExpression` joins by adding a kind) |
+| `BinaryOperatorSnapshot` | `BinaryOperatorType` | all thirteen operators |
+| `ExpressionSystemSnapshot` | — | `ExpressionSystem` |
+| `ProvenanceSnapshot` | `ProvenanceType` | the four provenance kinds |
 
 Grouped by **arity, not by type** — the kinds within a group differ in what they compute, not in what must be stored. The semantic difference lives in the discriminator, which is also what reconstruction dispatches on.
 
 ### Two seams, because a graph is not a value
 
-`Variable` rebuilds from its own state alone, so it uses `IStateful<Variable, VariableState>` (from `Calcusystem.Core`). Every other node references neighbours **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `IStatefulNode<TSelf, TState>`, whose `FromState` also takes an `INodeResolver` to turn those ids back into nodes:
+`Variable` rebuilds from its own state alone, so it uses `ISnapshotting<Variable, VariableSnapshot>` (from `Calcusystem.Core`). Every other node references neighbours **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `ISnapshottingNode<TSelf, TSnapshot>`, whose `FromSnapshot` also takes an `INodeResolver` to turn those ids back into nodes:
 
 ```csharp
-public static ProductExpression FromState(NaryExpressionState state, INodeResolver resolve) =>
+public static ProductExpression FromSnapshot(NaryExpressionSnapshot state, INodeResolver resolve) =>
     new(state.InnerIds.Select(resolve.Resolve<IExpression>))
     {
         Id = state.Id,
-        ErrorPropagation = state.ErrorPropagation,
+        UncertaintyPropagation = state.UncertaintyPropagation,
     };
 ```
 
@@ -303,9 +303,9 @@ The axis is *does rebuilding need outside help*, not where a node sits in the tr
 
 Where a state carries a discriminator, the concrete type is chosen by inspecting it, so reconstruction is a static gateway over the closed set rather than a `static abstract` on each type — the same treatment `IUncertainty` and `IProvenance` get:
 
-- `ExpressionFactory.FromState(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromState`, which is where per-type construction actually lives.
-- `BinaryOperatorFactory.FromState(state, resolve)` — a gateway rather than per-type implementations, because construction is identical across all fourteen apart from which type is instantiated. `BinaryOperatorState.SolvingRole` is read only for the equality kind; the others have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation. Two kinds carry state of their own — an equality's `AgreementRule` and a simple comparison's `ComparisonRule` — and reconstruction *refuses* a state missing either rather than guessing, since a guessed reading is exactly the ambiguity storing them removed.
-- `ProvenanceFactory.FromState(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
+- `ExpressionFactory.FromSnapshot(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromSnapshot`, which is where per-type construction actually lives.
+- `BinaryOperatorFactory.FromSnapshot(state, resolve)` — a gateway rather than per-type implementations, because construction is identical across all fourteen apart from which type is instantiated. `BinaryOperatorSnapshot.SolvingRole` is read only for the equality kind; the others have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation. Two kinds carry state of their own — an equality's `AgreementRule` and a simple comparison's `ComparisonRule` — and reconstruction *refuses* a state missing either rather than guessing, since a guessed reading is exactly the ambiguity storing them removed.
+- `ProvenanceFactory.FromSnapshot(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
 
 If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Serialization` is still the assembly to reach for; it consumes these seams.
 
@@ -320,4 +320,4 @@ If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Seriali
 - Physical quantities, units, dimensional algebra, uncertainty types, error propagation math → `Measurement`
 - Serialization DTOs, wire formats, type-discriminator strings, and schema migration → `Calcusystem.Serialization`. The state records above are not an exception: a state record says *what data defines a node*, which only this assembly can answer; a DTO adds *how that data is labelled and encoded*, which is the persistence layer's business.
 - Deciding the order in which a graph is rebuilt, or what a dangling id reference means → whatever supplies the `INodeResolver`
-- Degrees of freedom for a *system*, calculating one, constraint reporting, and solving → `Calcusystem.Analysis` (this layer provides `ComputeFrom`, `IsFullyDescribed`, `Children`, and `FreeVariables()` as the primitives those build on, but performs no orchestration and keeps no cache itself)
+- Degrees of freedom for a *system*, calculating one, constraint reporting, and solving → `Calcusystem.Analysis` (this layer provides `ComputeFrom`, `IsFullyDescribed`, `Children`, and `UnsetVariables()` as the primitives those build on, but performs no orchestration and keeps no cache itself)

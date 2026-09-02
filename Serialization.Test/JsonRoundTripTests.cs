@@ -45,8 +45,8 @@ public class JsonRoundTripTests
     public void AnEqualitysAgreementRuleSurvivesJson(AgreementRule rule)
     {
         var system = ExpressionSystem.Create("json", "equality semantics through a real serializer");
-        var lhs = new Variable("a", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0.1)));
-        var rhs = new Variable("b", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0.1)));
+        var lhs = new Variable("a", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0.1)));
+        var rhs = new Variable("b", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0.1)));
         system.Add(new EqualityOperator(rule, SolvingRole.Equation) { Id = "eq", Lhs = lhs, Rhs = rhs });
 
         var restored = RoundTripThroughJson(system);
@@ -63,10 +63,10 @@ public class JsonRoundTripTests
     [Fact]
     public void ASimpleComparisonsRuleSurvivesJson()
     {
-        var rule = new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound);
+        var rule = new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound);
         var system = ExpressionSystem.Create("json", "a comparison rule through a real serializer");
-        var lhs = new Variable("a", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0.1)));
-        var rhs = new Variable("b", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0.1)));
+        var lhs = new Variable("a", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0.1)));
+        var rhs = new Variable("b", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0.1)));
         system.Add(new SimpleComparison(rule) { Id = "c", Lhs = lhs, Rhs = rhs });
 
         var restored = RoundTripThroughJson(system);
@@ -84,15 +84,15 @@ public class JsonRoundTripTests
     public void AnOperatorWithFixedRulesCarriesNeitherFieldOnTheWire()
     {
         var system = ExpressionSystem.Create("json", "");
-        var lhs = new Variable("a", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0.1)));
-        var rhs = new Variable("b", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelErr(0.1)));
+        var lhs = new Variable("a", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0.1)));
+        var rhs = new Variable("b", Mass.Kilogram.Quantity(1).Measurand(SymmetricUncertainty.FromRelative(0.1)));
         system.Add(new WhollyWithinToleranceOperator { Id = "w", Lhs = lhs, Rhs = rhs });
 
         var dto = new SerializingMapper().Map(system).Relationships.Single();
 
         dto.Agreement.Should().BeNull();
         dto.RuleLhs.Should().BeNull();
-        dto.RuleComparison.Should().BeNull();
+        dto.RuleMustBe.Should().BeNull();
         dto.RuleRhs.Should().BeNull();
     }
 
@@ -118,32 +118,32 @@ public class JsonRoundTripTests
         var system = ExpressionSystem.Create("json", "value and uncertainty through a real serializer");
         system.Add(new Variable(
             "m",
-            Mass.Kilogram.Quantity(2).Measurand(AsymmetricUncertainty.FromRelErr(0.05, 0.01))));
+            Mass.Kilogram.Quantity(2).Measurand(AsymmetricUncertainty.FromRelative(0.05, 0.01))));
 
         var restored = RoundTripThroughJson(system);
 
         var value = restored.Variables.Single().Value!;
         value.In(Mass.Kilogram).Should().Be(2);
-        value.UpperRelativeError.Should().Be(0.05);
-        value.LowerRelativeError.Should().Be(0.01);
+        value.UpperRelativeUncertainty.Should().Be(0.05);
+        value.LowerRelativeUncertainty.Should().Be(0.01);
     }
 
     [Fact]
     public void AbsoluteUncertaintyKeepsItsStorageFormThroughJson()
     {
         // An absolute error is the only form that stays meaningful at zero; if JSON silently converted it to a
-        // relative one, RelativeError(0) would be the only symptom.
+        // relative one, RelativeUncertainty(0) would be the only symptom.
         var system = ExpressionSystem.Create("json", "absolute error at zero");
         system.Add(new Variable(
             "x",
-            Dimensionality.Length.Quantity(0).Measurand(SymmetricUncertainty.FromAbsErr(
+            Dimensionality.Length.Quantity(0).Measurand(SymmetricUncertainty.FromAbsolute(
                 Length.Meter.Quantity(0.5)))));
 
         var restored = RoundTripThroughJson(system);
 
         var value = restored.Variables.Single().Value!;
-        value.KmsAbsoluteError.Should().Be(0.5);
-        value.RelativeError.Should().Be(double.PositiveInfinity);
+        value.KmsAbsoluteUncertainty.Should().Be(0.5);
+        value.RelativeUncertainty.Should().Be(double.PositiveInfinity);
     }
 
     [Fact]

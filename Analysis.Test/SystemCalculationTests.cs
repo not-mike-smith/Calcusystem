@@ -16,20 +16,20 @@ public class SystemCalculationTests
     private static readonly Dimensionality Acceleration =
         Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 
-    private static Variable Bound(string symbol, double kmsValue, Dimensionality dim) =>
-        new(symbol, new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelErr(0)), symbol);
+    private static Variable Valued(string symbol, double kmsValue, Dimensionality dim) =>
+        new(symbol, new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelative(0)), symbol);
 
     private static Measurand Value(double kmsValue, Dimensionality dim) =>
-        new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelErr(0));
+        new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelative(0));
 
     /// <summary>F = m·a, with both leaves supplied.</summary>
     private static ExpressionSystem NewtonsSecondLaw(out Variable m, out Variable a, out ProductExpression f,
-        bool massIsBound = true)
+        bool massIsKnown = true)
     {
-        m = massIsBound
-            ? Bound("m", 2, Dimensionality.Mass)
+        m = massIsKnown
+            ? Valued("m", 2, Dimensionality.Mass)
             : new Variable("m", Dimensionality.Mass, "m");
-        a = Bound("a", 3, Acceleration);
+        a = Valued("a", 3, Acceleration);
 
         f = new ProductExpression([m, a]) { Id = "f" };
 
@@ -62,14 +62,14 @@ public class SystemCalculationTests
 
         var result = system.Calculate();
 
-        result.ValueOf(f)!.KmsValue.Should().Be(f.ComputeIfDetermined()!.KmsValue);
-        result.ValueOf(f)!.RelativeError.Should().Be(f.ComputeIfDetermined()!.RelativeError);
+        result.ValueOf(f)!.KmsValue.Should().Be(f.ComputeIfFullyDescribed()!.KmsValue);
+        result.ValueOf(f)!.RelativeUncertainty.Should().Be(f.ComputeIfFullyDescribed()!.RelativeUncertainty);
     }
 
     [Fact]
     public void ReportsWhatCouldNotResolveAndWhyRatherThanThrowing()
     {
-        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsKnown: false);
 
         var result = system.Calculate();
 
@@ -86,7 +86,7 @@ public class SystemCalculationTests
     [Fact]
     public void OverridesSupplyAValueWithoutTouchingTheModel()
     {
-        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsKnown: false);
 
         var result = system.Calculate(
             new Dictionary<Variable, Measurand> { [m] = Value(5, Dimensionality.Mass) });
@@ -116,7 +116,7 @@ public class SystemCalculationTests
     public void RepeatedTrialValuesLeaveTheModelUntouched()
     {
         // The shape a solver needs: probe the same system at many points, in any order, with no restore step.
-        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsKnown: false);
 
         var computed = new[] { 1.0, 2.0, 4.0 }
             .Select(trial => system.Calculate(
@@ -133,7 +133,7 @@ public class SystemCalculationTests
     {
         // A set of values is not reviewable without the assumptions behind it, so the inputs travel with the
         // outputs — and two calculations of one system can then be compared on equal terms.
-        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsKnown: false);
         var trial = Value(5, Dimensionality.Mass);
 
         var result = system.Calculate(new Dictionary<Variable, Measurand> { [m] = trial });
@@ -147,7 +147,7 @@ public class SystemCalculationTests
     {
         // Why `Calculate` needs no async or internal parallelism: it is a pure function of (system, overrides)
         // and mutates nothing, so a caller wanting many trial points already has the obvious way to get them.
-        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsBound: false);
+        var system = NewtonsSecondLaw(out var m, out _, out var f, massIsKnown: false);
         var trials = Enumerable.Range(1, 500).Select(i => (double)i).ToList();
 
         var computed = trials
@@ -172,7 +172,7 @@ public class SystemCalculationTests
 
         // The nominal value is the propagator's business only for uncertainty, so it is unchanged.
         calc.ValueOf(f)!.KmsValue.Should().BeApproximately(6, 1e-9);
-        calc.ValueOf(f)!.RelativeError.Should().BeApproximately(0.5, 1e-9);
+        calc.ValueOf(f)!.RelativeUncertainty.Should().BeApproximately(0.5, 1e-9);
         spy.ProductCalls.Should().Be(1);
     }
 
@@ -182,32 +182,32 @@ public class SystemCalculationTests
         // The two are different axes. Correlation is a statement about the model — whether these operands move
         // together — and a calculation choosing a numerical method must not silently overrule it.
         var system = NewtonsSecondLaw(out _, out _, out var f);
-        f.ErrorPropagation = ErrorPropagationMethod.Correlated;
+        f.UncertaintyPropagation = UncertaintyPropagation.Correlated;
         var spy = new RecordingPropagator();
 
         system.Calculate(propagator: spy);
 
-        spy.LastMethod.Should().Be(ErrorPropagationMethod.Correlated);
+        spy.LastMethod.Should().Be(UncertaintyPropagation.Correlated);
     }
 
-    private sealed class RecordingPropagator : IErrorPropagator
+    private sealed class RecordingPropagator : IUncertaintyPropagator
     {
         public int ProductCalls { get; private set; }
-        public ErrorPropagationMethod? LastMethod { get; private set; }
+        public UncertaintyPropagation? LastMethod { get; private set; }
 
         public IUncertainty PropagateErrorThroughProduct(
-            ErrorPropagationMethod method, params Measurand[] measurands)
+            UncertaintyPropagation method, params Measurand[] measurands)
         {
             ProductCalls++;
             LastMethod = method;
-            return SymmetricUncertainty.FromRelErr(0.5);
+            return SymmetricUncertainty.FromRelative(0.5);
         }
 
         public IUncertainty PropagateErrorThroughSum(
-            ErrorPropagationMethod method, params Measurand[] measurands)
+            UncertaintyPropagation method, params Measurand[] measurands)
         {
             LastMethod = method;
-            return SymmetricUncertainty.FromRelErr(0.5);
+            return SymmetricUncertainty.FromRelative(0.5);
         }
     }
 
@@ -215,8 +215,8 @@ public class SystemCalculationTests
     public void ASharedSubexpressionResolvesOnceAndIsReportedOnce()
     {
         // s = a + b, used as both factors of a product. The DAG has 4 distinct nodes, not 5.
-        var a = Bound("a", 2, Dimensionality.Mass);
-        var b = Bound("b", 3, Dimensionality.Mass);
+        var a = Valued("a", 2, Dimensionality.Mass);
+        var b = Valued("b", 3, Dimensionality.Mass);
         var sum = new SumExpression([a, b]) { Id = "s" };
         var product = new ProductExpression([sum, sum]) { Id = "p" };
         var system = ExpressionSystem.Create("shared", "");
@@ -236,7 +236,7 @@ public class SystemCalculationTests
     public void DeeplyNestedExpressionsDoNotExhaustTheStack()
     {
         // Traversal is iterative precisely so depth is a data question, not a crash.
-        var leaf = Bound("x", 1, Dimensionality.Mass);
+        var leaf = Valued("x", 1, Dimensionality.Mass);
 
         IExpression nested = leaf;
         for (var i = 0; i < 20_000; i++) nested = new NegatedExpression(nested);

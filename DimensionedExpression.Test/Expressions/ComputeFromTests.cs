@@ -14,16 +14,16 @@ namespace Calcusystem.DimensionedExpression.Test.Expressions;
 /// </summary>
 public class ComputeFromTests
 {
-    private static Variable Bound(string symbol, double kms) =>
-        new(symbol, new Quantity(kms, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0)), symbol);
+    private static Variable Valued(string symbol, double kms) =>
+        new(symbol, new Quantity(kms, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0)), symbol);
 
     private static readonly IReadOnlyDictionary<IExpression, Measurand> Nothing =
         new Dictionary<IExpression, Measurand>();
 
     public static TheoryData<string, IExpression> Composites()
     {
-        var a = Bound("a", 2);
-        var b = Bound("b", 3);
+        var a = Valued("a", 2);
+        var b = Valued("b", 3);
 
         var product = new ProductExpression([a, b]) { Id = "p" };
         var sum = new SumExpression([a, b]) { Id = "s" };
@@ -51,8 +51,8 @@ public class ComputeFromTests
     public void APartiallyCompleteMapAlsoYieldsNull()
     {
         // The half-supplied case, which a `Count` check alone would miss.
-        var a = Bound("a", 2);
-        var b = Bound("b", 3);
+        var a = Valued("a", 2);
+        var b = Valued("b", 3);
         var quotient = new QuotientExpression { Id = "q", Numerator = a, Denominator = b };
 
         var onlyNumerator = new Dictionary<IExpression, Measurand> { [a] = a.Value! };
@@ -61,7 +61,7 @@ public class ComputeFromTests
     }
 
     [Fact]
-    public void AnUnboundLeafSaysSoTheSameWay()
+    public void AnUnsetLeafSaysSoTheSameWay()
     {
         new Variable("x", Dimensionality.Mass, "x").ComputeFrom(Nothing).Should().BeNull();
     }
@@ -74,10 +74,10 @@ public class ComputeFromTests
         var m = new Variable("m", Dimensionality.Mass, "m");
         var negated = new NegatedExpression(m) { Id = "n" };
 
-        negated.ComputeIfDetermined().Should().BeNull();
+        negated.ComputeIfFullyDescribed().Should().BeNull();
 
-        var trial = new Quantity(4, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0));
-        negated.ComputeIfDetermined(new Dictionary<Variable, Measurand> { [m] = trial })!
+        var trial = new Quantity(4, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0));
+        negated.ComputeIfFullyDescribed(new Dictionary<Variable, Measurand> { [m] = trial })!
             .KmsValue.Should().BeApproximately(-4, 1e-9);
 
         m.Value.Should().BeNull();
