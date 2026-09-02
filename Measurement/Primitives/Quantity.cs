@@ -56,24 +56,24 @@ public readonly struct Quantity : ISnapshotting<Quantity, QuantitySnapshot>
     }
 
     /// <summary>This value with no uncertainty at all — exact.</summary>
-    public Measurand WithoutError() => Measurand(Uncertainty.Exact());
+    public Measurand WithoutUncertainty() => Measurand(Uncertainty.Exact());
 
     /// <summary>This value with equal error above and below, as a fraction of it.</summary>
-    public Measurand WithError(RelativeUncertainty relativeUncertainty) => Measurand(Uncertainty.Relative(relativeUncertainty));
+    public Measurand WithUncertainty(RelativeUncertainty relativeUncertainty) => Measurand(Uncertainty.Relative(relativeUncertainty));
 
     /// <summary>This value with equal error above and below, as a dimensioned amount.</summary>
-    public Measurand WithError(Quantity absoluteUncertainty) => Measurand(Uncertainty.Absolute(absoluteUncertainty));
+    public Measurand WithUncertainty(Quantity absoluteUncertainty) => Measurand(Uncertainty.Absolute(absoluteUncertainty));
 
     /// <summary>This value with independent errors above and below, each a fraction of it.</summary>
     /// <remarks>
     /// Pass the arguments by name. Which bound is which is otherwise invisible at the call site, and swapping
     /// them yields a plausible-looking error band rather than an obvious fault.
     /// </remarks>
-    public Measurand WithAsymmetricError(RelativeUncertainty upper, RelativeUncertainty lower) =>
+    public Measurand WithAsymmetricUncertainty(RelativeUncertainty upper, RelativeUncertainty lower) =>
         Measurand(Uncertainty.Relative(upper, lower));
 
-    /// <inheritdoc cref="WithAsymmetricError(RelativeUncertainty, RelativeUncertainty)"/>
-    public Measurand WithAsymmetricError(Quantity upper, Quantity lower) =>
+    /// <inheritdoc cref="WithAsymmetricUncertainty(RelativeUncertainty, RelativeUncertainty)"/>
+    public Measurand WithAsymmetricUncertainty(Quantity upper, Quantity lower) =>
         Measurand(Uncertainty.Absolute(upper, lower));
 
     /// <summary>

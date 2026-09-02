@@ -2,7 +2,7 @@
 
 The expression layer of Calcusystem. Builds trees of dimensioned variables and formulas — a system of equations whose leaves are measured/known values and whose interior nodes compute derived values with uncertainty propagation. Constraints and definitions are expressed as binary operators over those expressions.
 
-Depends only on `Measurement` (for `Measurand`, `Dimensionality`, `UncertaintyPropagation`). It has no dependency on serialization, evaluation, or solving.
+Depends only on `Measurement` (for `Measurand`, `Dimensionality`, `UncertaintyCorrelation`). It has no dependency on serialization, evaluation, or solving.
 
 ---
 
@@ -21,7 +21,7 @@ force.IsFullyDescribed;    // false
 force.ComputeIfFullyDescribed();  // null
 force.UnsetVariables();     // [mass, accel]  — the distinct unbound leaves
 
-mass.Value  = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
+mass.Value  = Mass.Kilogram.Quantity(2).WithUncertainty(1.0.Percent());
 accel.Value = /* … */;
 
 force.IsFullyDescribed;    // true once both are set
@@ -59,7 +59,7 @@ Two further consequences worth internalizing:
 | --- | --- | --- |
 | `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Children`, `ComputeFrom(known)` |
 | `IDirectExpression` | `IExpression` | adds `Measurand? Value { get; set; }` — a mutable leaf's *stored* value. A genuine property: there is nothing beneath a leaf to walk. It no longer shadows anything, which is what kept the difference in cost between the two hidden. |
-| `IComputedExpression` | `IExpression` | `UncertaintyPropagation { get; set; }` — the `UncertaintyPropagation` used when combining children |
+| `IComputedExpression` | `IExpression` | `UncertaintyCorrelation { get; set; }` — the `UncertaintyCorrelation` used when combining children |
 
 ### Expression node types (`Expressions/`)
 
@@ -75,7 +75,7 @@ Two further consequences worth internalizing:
 | `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeUncertainty(eˣ) ≈ \|x\|·RelativeUncertainty(x)`. |
 | `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x)`. Degenerate at `x = 1` (result 0 → relative error undefined; throws). |
 
-Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `UncertaintyPropagation` property); each still implements `Dimensionality`/`IsFullyDescribed`/`Children`/`ComputeFrom` itself.
+Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `UncertaintyCorrelation` property); each still implements `Dimensionality`/`IsFullyDescribed`/`Children`/`ComputeFrom` itself.
 
 ### `ComputeFrom`: the node's arithmetic, without the walk
 
@@ -291,7 +291,7 @@ public static ProductExpression FromSnapshot(NaryExpressionSnapshot state, INode
     new(state.InnerIds.Select(resolve.Resolve<IExpression>))
     {
         Id = state.Id,
-        UncertaintyPropagation = state.UncertaintyPropagation,
+        UncertaintyCorrelation = state.UncertaintyCorrelation,
     };
 ```
 

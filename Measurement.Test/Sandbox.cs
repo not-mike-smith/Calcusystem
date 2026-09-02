@@ -14,18 +14,18 @@ public class Sandbox
 
         var oneKgPlusOrMinusAGram = Mass.Kilogram
             .Quantity(1)
-            .WithError(0.1.Percent());
+            .WithUncertainty(0.1.Percent());
 
-        oneKgPlusOrMinusAGram = Mass.Kilogram.Quantity(1).WithError(Mass.Gram.Quantity(1));
+        oneKgPlusOrMinusAGram = Mass.Kilogram.Quantity(1).WithUncertainty(Mass.Gram.Quantity(1));
 
         var oneKg = Mass.Kilogram.Quantity(1);
 
-        var oneKgPlusOrMinusAMilligram = oneKg.WithError(1.0.Units(Mass.Milligram));
+        var oneKgPlusOrMinusAMilligram = oneKg.WithUncertainty(1.0.Units(Mass.Milligram));
 
-        var oneKgPlusOrMinusALittleOrALot = oneKg.WithAsymmetricError(
+        var oneKgPlusOrMinusALittleOrALot = oneKg.WithAsymmetricUncertainty(
             upper: 0.1.Percent(),
             lower: 0.1.Fraction());
 
-        var exactlyOneKg = oneKg.WithoutError();
+        var exactlyOneKg = oneKg.WithoutUncertainty();
     }
 }

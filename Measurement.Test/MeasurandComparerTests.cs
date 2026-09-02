@@ -21,10 +21,10 @@ public class MeasurandComparerTests
                 Length.Meter.Quantity(absoluteUncertainty), Length.Meter.Quantity(absoluteUncertainty)));
 
     private static Measurand Kilograms(double value) =>
-        Mass.Kilogram.Quantity(value).WithoutError();
+        Mass.Kilogram.Quantity(value).WithoutUncertainty();
 
     private static Measurand ExactMeters(double value) =>
-        Length.Meter.Quantity(value).WithoutError();
+        Length.Meter.Quantity(value).WithoutUncertainty();
 
     private static ComparisonResult Compare(
         Measurand lhs, Measurand rhs,

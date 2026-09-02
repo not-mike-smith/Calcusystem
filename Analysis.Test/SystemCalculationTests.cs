@@ -182,29 +182,29 @@ public class SystemCalculationTests
         // The two are different axes. Correlation is a statement about the model — whether these operands move
         // together — and a calculation choosing a numerical method must not silently overrule it.
         var system = NewtonsSecondLaw(out _, out _, out var f);
-        f.UncertaintyPropagation = UncertaintyPropagation.Correlated;
+        f.UncertaintyCorrelation = UncertaintyCorrelation.Correlated;
         var spy = new RecordingPropagator();
 
         system.Calculate(propagator: spy);
 
-        spy.LastMethod.Should().Be(UncertaintyPropagation.Correlated);
+        spy.LastMethod.Should().Be(UncertaintyCorrelation.Correlated);
     }
 
     private sealed class RecordingPropagator : IUncertaintyPropagator
     {
         public int ProductCalls { get; private set; }
-        public UncertaintyPropagation? LastMethod { get; private set; }
+        public UncertaintyCorrelation? LastMethod { get; private set; }
 
-        public IUncertainty PropagateErrorThroughProduct(
-            UncertaintyPropagation method, params Measurand[] measurands)
+        public IUncertainty PropagateThroughProduct(
+            UncertaintyCorrelation method, params Measurand[] measurands)
         {
             ProductCalls++;
             LastMethod = method;
             return SymmetricUncertainty.FromRelative(0.5);
         }
 
-        public IUncertainty PropagateErrorThroughSum(
-            UncertaintyPropagation method, params Measurand[] measurands)
+        public IUncertainty PropagateThroughSum(
+            UncertaintyCorrelation method, params Measurand[] measurands)
         {
             LastMethod = method;
             return SymmetricUncertainty.FromRelative(0.5);

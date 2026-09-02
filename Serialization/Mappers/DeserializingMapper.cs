@@ -177,7 +177,7 @@ public class DeserializingMapper
 
         _context.ReferencingDto = x;
         return ExpressionFactory.FromSnapshot(
-            new NaryExpressionSnapshot(WireNames.NaryType(x.Type), x.Id, x.InnerIds, x.UncertaintyPropagation),
+            new NaryExpressionSnapshot(WireNames.NaryType(x.Type), x.Id, x.InnerIds, x.UncertaintyCorrelation),
             _context);
     }
 
@@ -188,7 +188,7 @@ public class DeserializingMapper
         _context.ReferencingDto = x;
         return ExpressionFactory.FromSnapshot(
             new BinaryExpressionSnapshot(
-                WireNames.BinaryType(x.Type), x.Id, x.InnerId1, x.InnerId2, x.UncertaintyPropagation),
+                WireNames.BinaryType(x.Type), x.Id, x.InnerId1, x.InnerId2, x.UncertaintyCorrelation),
             _context);
     }
 

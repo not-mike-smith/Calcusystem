@@ -12,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// factors' dimensionalities.
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> multiplication using the
-/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method, and <c>DegreesOfFreedom</c> is the sum
+/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/> method, and <c>DegreesOfFreedom</c> is the sum
 /// of the factors'.
 /// </summary>
 public class ProductExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<ProductExpression, NaryExpressionSnapshot>
@@ -41,7 +41,7 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
 
         // One n-ary call rather than folding pairwise: the propagator combines all the relative errors at once
         // instead of building an intermediate Measurand per factor.
-        return Measurand.Product(UncertaintyPropagation, propagator, _factors.Select(f => known[f]).ToArray());
+        return Measurand.Product(UncertaintyCorrelation, propagator, _factors.Select(f => known[f]).ToArray());
     }
 
     public override string ToString()
@@ -54,13 +54,13 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
 
     /// <inheritdoc/>
     public NaryExpressionSnapshot GetSnapshot() =>
-        new(NaryExpressionType.Product, Id, Factors.Select(f => f.Id).ToList(), UncertaintyPropagation);
+        new(NaryExpressionType.Product, Id, Factors.Select(f => f.Id).ToList(), UncertaintyCorrelation);
 
     /// <inheritdoc/>
     public static ProductExpression FromSnapshot(NaryExpressionSnapshot state, INodeResolver resolve) =>
         new(state.InnerIds.Select(resolve.Resolve<IExpression>))
         {
             Id = state.Id,
-            UncertaintyPropagation = state.UncertaintyPropagation,
+            UncertaintyCorrelation = state.UncertaintyCorrelation,
         };
 }

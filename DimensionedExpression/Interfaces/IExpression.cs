@@ -73,7 +73,7 @@ public interface IExpression : IIdentified
     /// <param name="known">Values already established, by node. Missing entries mean not yet computed.</param>
     /// <param name="propagator">
     /// How uncertainties are combined, or null for the conservative Gaussian default. A different axis from a
-    /// computed node's <c>UncertaintyPropagation</c>: that says whether <i>these</i> operands are correlated, which is
+    /// computed node's <c>UncertaintyCorrelation</c>: that says whether <i>these</i> operands are correlated, which is
     /// a statement about the model, while this is the numerical method and belongs to the calculation. Both are
     /// passed on together, so supplying one never discards the other.
     /// </param>
@@ -135,7 +135,7 @@ public interface IExpression : IIdentified
 
 /// <summary>
 /// An <see cref="IExpression"/> that computes its value from child nodes and therefore needs an
-/// <see cref="UncertaintyPropagation"/> policy for combining their uncertainties.
+/// <see cref="UncertaintyCorrelation"/> policy for combining their uncertainties.
 /// </summary>
 public interface IComputedExpression : IExpression
 {
@@ -148,10 +148,7 @@ public interface IComputedExpression : IExpression
     /// the <see cref="IUncertaintyPropagator"/> a calculation supplies, which is the numerical method for combining
     /// uncertainties — see the remarks on <see cref="IExpression.ComputeFrom"/>, which passes both.
     /// </remarks>
-    // TODO: rename to `ErrorCorrelation`, with `UncertaintyPropagation`. The current name says "propagation
-    // method", which is now what `IUncertaintyPropagator` is; this is the correlation assumption. See the note on
-    // `UncertaintyPropagation` for everything a rename touches, including a wire-format break.
-    UncertaintyPropagation UncertaintyPropagation { get; set; }
+    UncertaintyCorrelation UncertaintyCorrelation { get; set; }
 }
 
 /// <summary>
