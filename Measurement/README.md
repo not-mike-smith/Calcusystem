@@ -264,7 +264,7 @@ A map is affordable because a state object lives only for the duration of a seri
 **What does NOT belong here:**
 
 - Expression trees or variables that represent unknowns → `DimensionedExpression`
-- Binary operators (equality, tolerance, inequality) → `DimensionedExpression`
+- Binary operators (equality, tolerance, unequality) → `DimensionedExpression`
 - Serialization DTOs or mappers → `Calcusystem.Serialization`
 
 The state records in `Measurement/State/` are not an exception to that last line. A state record says *what data defines a value*, which only this assembly can answer; a DTO adds *how that data is labelled, versioned, and encoded*, which is the persistence layer's business. Wire formats, type discriminators, and schema migrations stay out of here.

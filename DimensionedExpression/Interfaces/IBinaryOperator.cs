@@ -50,7 +50,7 @@ public interface IBinaryOperator : IIdentified
     string Symbol { get; }
 
     /// <summary>
-    /// What this relationship does to the problem — see <see cref="DimensionedExpression.SolvingRole"/>.
+    /// What this relationship does to the problem — see <see cref="Enums.SolvingRole"/>.
     /// </summary>
     /// <remarks>
     /// Read-only, and settable only where it can meaningfully be anything else. Ordering and tolerance relations

@@ -29,7 +29,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </para>
 /// </remarks>
 /// <param name="Lhs">Which landmark of the left value is compared.</param>
-/// <param name="Type">Which outcomes count as satisfying the rule.</param>
+/// <param name="MustBe">Which outcomes count as satisfying the rule.</param>
 /// <param name="Rhs">Which landmark of the right value it is compared against.</param>
 public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landmark Rhs)
 {
@@ -151,7 +151,7 @@ public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landma
         MustBe.Impossible => "∅",
         MustBe.GreaterThan => ">",
         MustBe.LessThan => "<",
-        MustBe.InequalTo => "≠",
+        MustBe.UnequalTo => "≠",
         MustBe.EqualTo => "=",
         MustBe.GreaterThanOrEqualTo => "≥",
         MustBe.LessThanOrEqualTo => "≤",

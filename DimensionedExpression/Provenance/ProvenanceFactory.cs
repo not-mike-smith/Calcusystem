@@ -3,6 +3,7 @@ using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Snapshots;
+using Calcusystem.Core.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 
