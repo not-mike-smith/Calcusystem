@@ -12,9 +12,9 @@ public class InequalityOperatorTests
     private static Variable Symmetric(double kmsValue, double relativeUncertainty = 0) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
-    private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
+    private static Variable Asymmetric(double kmsValue, double upperUncertainty, double lowerUncertainty) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
-            AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
+            AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperUncertainty), Mass.Kilogram.Quantity(lowerUncertainty))));
 
     private static Variable Unset() =>
         new("x", Mass.Kilogram.Dimensionality);
@@ -87,14 +87,14 @@ public class InequalityOperatorTests
     }
 
     [Fact]
-    public void DefinitelyLessThan_AsymmetricBounds_UsesDirectionalErrors()
+    public void DefinitelyLessThan_AsymmetricBounds_UsesDirectionalUncertainties()
     {
-        // Lhs: 5 kg, upperError=1 → upper=6;  Rhs: 10 kg, lowerError=2 → lower=8
+        // Lhs: 5 kg, upperUncertainty=1 → upper=6;  Rhs: 10 kg, lowerUncertainty=2 → lower=8
         // 6 < 8 → true
         DefLess(Asymmetric(5, 1.0, 0.5), Asymmetric(10, 0.5, 2.0))
             .IsSatisfied().Should().BeTrue();
 
-        // Lhs: 5 kg, upperError=3 → upper=8;  same Rhs lower=8
+        // Lhs: 5 kg, upperUncertainty=3 → upper=8;  same Rhs lower=8
         // 8 < 8 → false (strict)
         DefLess(Asymmetric(5, 3.0, 0.5), Asymmetric(10, 0.5, 2.0))
             .IsSatisfied().Should().BeFalse();
@@ -138,7 +138,7 @@ public class InequalityOperatorTests
     // Lhs.KmsValue < Rhs.KmsValue: nominal values only, uncertainty ignored
 
     [Fact]
-    public void NominallyLessThan_LargeOverlappingErrors_IgnoresUncertainty()
+    public void NominallyLessThan_LargeOverlappingUncertainties_IgnoresUncertainty()
     {
         // Lhs: 9 ± 50% → [4.5, 13.5];  Rhs: 10 ± 50% → [5, 15]
         // Intervals heavily overlap, but 9 < 10 → true
@@ -182,14 +182,14 @@ public class InequalityOperatorTests
     }
 
     [Fact]
-    public void DefinitelyGreaterThan_AsymmetricBounds_UsesDirectionalErrors()
+    public void DefinitelyGreaterThan_AsymmetricBounds_UsesDirectionalUncertainties()
     {
-        // Lhs: 10 kg, lowerError=1 → lower=9;  Rhs: 5 kg, upperError=3 → upper=8
+        // Lhs: 10 kg, lowerUncertainty=1 → lower=9;  Rhs: 5 kg, upperUncertainty=3 → upper=8
         // 9 > 8 → true
         DefGreater(Asymmetric(10, 0.5, 1.0), Asymmetric(5, 3.0, 0.5))
             .IsSatisfied().Should().BeTrue();
 
-        // Rhs: 5 kg, upperError=4 → upper=9
+        // Rhs: 5 kg, upperUncertainty=4 → upper=9
         // 9 > 9 → false (strict)
         DefGreater(Asymmetric(10, 0.5, 1.0), Asymmetric(5, 4.0, 0.5))
             .IsSatisfied().Should().BeFalse();
@@ -232,7 +232,7 @@ public class InequalityOperatorTests
     // Lhs.KmsValue > Rhs.KmsValue: nominal values only, uncertainty ignored
 
     [Fact]
-    public void NominallyGreaterThan_LargeOverlappingErrors_IgnoresUncertainty()
+    public void NominallyGreaterThan_LargeOverlappingUncertainties_IgnoresUncertainty()
     {
         NomGreater(Symmetric(10, 0.5), Symmetric(9, 0.5))
             .IsSatisfied().Should().BeTrue();

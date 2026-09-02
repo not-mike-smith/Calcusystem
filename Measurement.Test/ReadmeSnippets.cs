@@ -15,12 +15,12 @@ public class ReadmeSnippets
     [Fact]
     public void RootReadmeQuickStart()
     {
-        var mass = Mass.Kilogram.Quantity(2).WithError(1.0.Percent());
+        var mass = Mass.Kilogram.Quantity(2).WithUncertainty(1.0.Percent());
         mass.In(Mass.Pound).Should().BeApproximately(4.409, 1e-3);
         mass.RelativeUncertainty.Should().BeApproximately(0.01, 1e-12);
 
         var accel = new Quantity(9.81, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time))
-            .WithError(0.5.Percent());
+            .WithUncertainty(0.5.Percent());
 
         var force = mass.Times(accel);
         force.Dimensionality.Should().Be(
@@ -30,11 +30,11 @@ public class ReadmeSnippets
     [Fact]
     public void MeasurementReadmeAttachingUncertainty()
     {
-        var exact = Mass.Kilogram.Quantity(1).WithoutError();
-        var relative = Mass.Kilogram.Quantity(1).WithError(0.1.Percent());
-        var absolute = Mass.Kilogram.Quantity(1).WithError(1.0.Units(Mass.Gram));
+        var exact = Mass.Kilogram.Quantity(1).WithoutUncertainty();
+        var relative = Mass.Kilogram.Quantity(1).WithUncertainty(0.1.Percent());
+        var absolute = Mass.Kilogram.Quantity(1).WithUncertainty(1.0.Units(Mass.Gram));
 
-        var lopsided = Mass.Kilogram.Quantity(1).WithAsymmetricError(
+        var lopsided = Mass.Kilogram.Quantity(1).WithAsymmetricUncertainty(
             upper: 0.1.Percent(),
             lower: 2.0.Percent());
 

@@ -94,10 +94,10 @@ public static class MeasurandComparer
     /// </remarks>
     private static bool AreBothIndistinguishableFromZero(Measurand l, Measurand r, double lhs, double rhs)
     {
-        var finestError = FinestNonZeroError(l, r);
+        var finestUncertainty = FinestNonZeroUncertainty(l, r);
 
         // Zero when every operand is exact, which leaves the dimensional floor standing alone.
-        var epsilon = Math.Max(FractionOfAbsErrIsZero * finestError, l.Dimensionality.Epsilon);
+        var epsilon = Math.Max(FractionOfAbsErrIsZero * finestUncertainty, l.Dimensionality.Epsilon);
 
         return Math.Abs(lhs) < epsilon && Math.Abs(rhs) < epsilon;
     }
@@ -125,7 +125,7 @@ public static class MeasurandComparer
     /// allowed to set a scale for anything.
     /// </para>
     /// </remarks>
-    private static double FinestNonZeroError(Measurand l, Measurand r)
+    private static double FinestNonZeroUncertainty(Measurand l, Measurand r)
     {
         ReadOnlySpan<double> errors =
         [

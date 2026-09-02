@@ -92,7 +92,7 @@ public class SerializingMapper
         Id = state.Id,
         Type = WireNames.Of(state.Type),
         InnerIds = state.InnerIds.ToList(),
-        UncertaintyPropagation = state.UncertaintyPropagation,
+        UncertaintyCorrelation = state.UncertaintyCorrelation,
     };
 
     private Dtos.PairDerivedVariable Map(BinaryExpressionSnapshot state) => new()
@@ -101,7 +101,7 @@ public class SerializingMapper
         Type = WireNames.Of(state.Type),
         InnerId1 = state.InnerId1,
         InnerId2 = state.InnerId2,
-        UncertaintyPropagation = state.UncertaintyPropagation,
+        UncertaintyCorrelation = state.UncertaintyCorrelation,
     };
 
     public Dtos.BinaryOperator Map(IBinaryOperator op)

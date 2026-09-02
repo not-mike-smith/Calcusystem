@@ -31,7 +31,7 @@ public static class SystemCalculation
     /// </param>
     /// <param name="propagator">
     /// How uncertainties are combined, or null for the conservative Gaussian default. Orthogonal to a node's own
-    /// <c>UncertaintyPropagation</c>: that records whether particular operands are correlated, which is a fact about
+    /// <c>UncertaintyCorrelation</c>: that records whether particular operands are correlated, which is a fact about
     /// the model and is not this calculation's to overrule, while this is the numerical method for combining
     /// uncertainties at all. Supplying a Monte Carlo propagator therefore re-runs the same model under a
     /// different uncertainty treatment rather than discarding what the model says.

@@ -15,9 +15,9 @@ public class ToleranceOperatorTests
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
     // Creates a bound Variable with independent upper/lower absolute errors (kg)
-    private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
+    private static Variable Asymmetric(double kmsValue, double upperUncertainty, double lowerUncertainty) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
-            AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
+            AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperUncertainty), Mass.Kilogram.Quantity(lowerUncertainty))));
 
     private static Variable Unset() =>
         new("x", Mass.Kilogram.Dimensionality);
@@ -184,7 +184,7 @@ public class ToleranceOperatorTests
     }
 
     [Fact]
-    public void AnyToleranceOverlap_AsymmetricBounds_UsesDirectionalErrors()
+    public void AnyToleranceOverlap_AsymmetricBounds_UsesDirectionalUncertainties()
     {
         // smaller: 10 kg, upper=0.3 → upper bound = 10.3
         // bigger: 11 kg, lower=0.5 → lower bound = 10.5
