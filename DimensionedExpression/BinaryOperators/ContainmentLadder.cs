@@ -34,10 +34,10 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 public static class ContainmentLadder
 {
     private static readonly ComparisonRule AboveFloor =
-        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound);
+        new(Landmark.Nominal, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound);
 
     private static readonly ComparisonRule BelowCeiling =
-        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound);
+        new(Landmark.Nominal, MustBe.LessThanOrEqualTo, Landmark.UpperBound);
 
     private static readonly ContainmentRung[] AllRungs = Enum.GetValues<ContainmentRung>();
 
@@ -58,24 +58,24 @@ public static class ContainmentLadder
     {
         ContainmentRung.Overlaps =>
         [
-            new(Landmark.UpperBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
-            new(Landmark.LowerBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+            new(Landmark.UpperBound, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
+            new(Landmark.LowerBound, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
         ],
         ContainmentRung.NominalWithin => [AboveFloor, BelowCeiling],
         ContainmentRung.NominalAndUpperWithin =>
         [
             AboveFloor,
-            new(Landmark.UpperBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+            new(Landmark.UpperBound, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
         ],
         ContainmentRung.NominalAndLowerWithin =>
         [
             BelowCeiling,
-            new(Landmark.LowerBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+            new(Landmark.LowerBound, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
         ],
         ContainmentRung.WhollyWithin =>
         [
-            new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.LowerBound),
-            new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.UpperBound),
+            new(Landmark.LowerBound, MustBe.GreaterThan, Landmark.LowerBound),
+            new(Landmark.UpperBound, MustBe.LessThan, Landmark.UpperBound),
         ],
         _ => throw new ArgumentOutOfRangeException(nameof(rung), rung, "Unknown containment rung."),
     };

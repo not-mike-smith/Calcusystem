@@ -1,4 +1,5 @@
 using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Factories;
 
 namespace Calcusystem.Measurement.Uncertainties;
 
@@ -12,7 +13,7 @@ namespace Calcusystem.Measurement.Uncertainties;
 /// makes sense to a deserializer.
 /// </para>
 /// <para>
-/// Relative error is taken as a <see cref="RelativeError"/> rather than a bare <see langword="double"/>. A number
+/// Relative error is taken as a <see cref="RelativeUncertainty"/> rather than a bare <see langword="double"/>. A number
 /// on its own cannot say whether it means a fraction of the value or an amount of it — the ambiguity this
 /// library exists to eliminate everywhere else.
 /// </para>
@@ -23,18 +24,18 @@ public static class Uncertainty
     public static SymmetricUncertainty Exact() => SymmetricUncertainty.Exact();
 
     /// <summary>Equal error above and below, as a fraction of the value.</summary>
-    public static SymmetricUncertainty Relative(RelativeError relativeError) =>
-        SymmetricUncertainty.FromRelErr(relativeError.Value);
+    public static SymmetricUncertainty Relative(RelativeUncertainty relativeUncertainty) =>
+        SymmetricUncertainty.FromRelative(relativeUncertainty.Value);
 
     /// <summary>Equal error above and below, as a dimensioned amount.</summary>
-    public static SymmetricUncertainty Absolute(Quantity absoluteError) =>
-        SymmetricUncertainty.FromAbsErr(absoluteError);
+    public static SymmetricUncertainty Absolute(Quantity absoluteUncertainty) =>
+        SymmetricUncertainty.FromAbsolute(absoluteUncertainty);
 
     /// <summary>Independent errors above and below, each a fraction of the value.</summary>
-    public static AsymmetricUncertainty Relative(RelativeError upper, RelativeError lower) =>
-        AsymmetricUncertainty.FromRelErr(upper.Value, lower.Value);
+    public static AsymmetricUncertainty Relative(RelativeUncertainty upper, RelativeUncertainty lower) =>
+        AsymmetricUncertainty.FromRelative(upper.Value, lower.Value);
 
     /// <summary>Independent errors above and below, each a dimensioned amount.</summary>
     public static AsymmetricUncertainty Absolute(Quantity upper, Quantity lower) =>
-        AsymmetricUncertainty.FromAbsErr(upper, lower);
+        AsymmetricUncertainty.FromAbsolute(upper, lower);
 }

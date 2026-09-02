@@ -17,7 +17,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </remarks>
 public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.WithinBindingTolerance;
+    protected override BinaryOperatorType Type => BinaryOperatorType.WithinBindingTolerance;
 
     public override string Symbol => "·=}";
 
@@ -25,8 +25,8 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
     /// <remarks>The containment ladder's <c>NominalWithin</c> rung.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
     [
-        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
-        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+        new(Landmark.Nominal, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.Nominal, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
     ];
 }
 
@@ -42,7 +42,7 @@ public class WithinBindingToleranceOperator : NonCommutativeOperatorBase
 /// </summary>
 public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndUpperBoundWithinTolerance;
+    protected override BinaryOperatorType Type => BinaryOperatorType.PointAndUpperBoundWithinTolerance;
 
     public override string Symbol => "·⌜=}";
 
@@ -54,8 +54,8 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
     /// </remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
     [
-        new(Landmark.Nominal, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
-        new(Landmark.UpperBound, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
+        new(Landmark.Nominal, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.UpperBound, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
     ];
 }
 
@@ -71,7 +71,7 @@ public class PointAndUpperBoundWithinToleranceOperator : NonCommutativeOperatorB
 /// </summary>
 public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.PointAndLowerBoundWithinTolerance;
+    protected override BinaryOperatorType Type => BinaryOperatorType.PointAndLowerBoundWithinTolerance;
 
     public override string Symbol => "·⌞=}";
 
@@ -79,7 +79,7 @@ public class PointAndLowerBoundWithinToleranceOperator : NonCommutativeOperatorB
     /// <remarks>The mirror of <see cref="PointAndUpperBoundWithinToleranceOperator"/>, bounding downward only.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
     [
-        new(Landmark.Nominal, ComparisonType.LessThanOrEqualTo, Landmark.UpperBound),
-        new(Landmark.LowerBound, ComparisonType.GreaterThanOrEqualTo, Landmark.LowerBound),
+        new(Landmark.Nominal, MustBe.LessThanOrEqualTo, Landmark.UpperBound),
+        new(Landmark.LowerBound, MustBe.GreaterThanOrEqualTo, Landmark.LowerBound),
     ];
 }

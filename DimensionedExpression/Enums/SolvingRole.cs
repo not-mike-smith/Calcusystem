@@ -18,7 +18,7 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// <para>
 /// <b>No member is zero</b>, and none means "no role" — every relationship does something. So the default value
 /// of the underlying type is not a valid role, which makes an unsupplied one detectable: a default-constructed
-/// <c>BinaryOperatorState</c>, or a payload missing the field, lands on nothing rather than silently claiming to
+/// <c>BinaryOperatorSnapshot</c>, or a payload missing the field, lands on nothing rather than silently claiming to
 /// be a <see cref="Requirement"/>.
 /// </para>
 /// </remarks>

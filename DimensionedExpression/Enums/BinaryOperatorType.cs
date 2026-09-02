@@ -1,12 +1,12 @@
 
 namespace Calcusystem.DimensionedExpression.Enums;
 
-/// <summary>Which operator a <see cref="BinaryOperatorState"/> rebuilds into.</summary>
+/// <summary>Which operator a <see cref="BinaryOperatorSnapshot"/> rebuilds into.</summary>
 /// <remarks>
 /// The full taxonomy — symbol, commutativity, and the exact interval condition each one tests — lives in
 /// <c>BinaryOperators/OPERATORS.md</c>.
 /// </remarks>
-public enum BinaryOperatorKind
+public enum BinaryOperatorType
 {
     /// <summary>Values agree, to the strictness the state's agreement rule names.</summary>
     Equality,

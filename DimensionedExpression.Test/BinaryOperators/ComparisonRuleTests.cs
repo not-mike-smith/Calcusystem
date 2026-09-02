@@ -20,20 +20,20 @@ public class ComparisonRuleTests
 {
     private static Measurand M(double value, double lowerError, double upperError) =>
         Mass.Kilogram.Quantity(value).Measurand(
-            AsymmetricUncertainty.FromAbsErr(
+            AsymmetricUncertainty.FromAbsolute(
                 Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError)));
 
     private static Measurand Metres(double value) =>
-        Length.Meter.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(0));
+        Length.Meter.Quantity(value).Measurand(SymmetricUncertainty.FromRelative(0));
 
     private static readonly Landmark[] Landmarks =
         [Landmark.LowerBound, Landmark.Nominal, Landmark.UpperBound];
 
-    private static readonly ComparisonType[] Masks =
+    private static readonly MustBe[] Masks =
     [
-        ComparisonType.LessThan, ComparisonType.EqualTo, ComparisonType.GreaterThan,
-        ComparisonType.LessThanOrEqualTo, ComparisonType.GreaterThanOrEqualTo, ComparisonType.InequalTo,
-        ComparisonType.Any,
+        MustBe.LessThan, MustBe.EqualTo, MustBe.GreaterThan,
+        MustBe.LessThanOrEqualTo, MustBe.GreaterThanOrEqualTo, MustBe.InequalTo,
+        MustBe.Comparable,
     ];
 
     private static IEnumerable<ComparisonRule> AllRules() =>
@@ -153,7 +153,7 @@ public class ComparisonRuleTests
     [Fact]
     public void AnUnanswerableComparisonIsNullRatherThanFalse()
     {
-        var rule = new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.Nominal);
+        var rule = new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.Nominal);
 
         rule.IsSatisfiedGiven(M(1, 0, 0), Metres(2)).Should().BeNull();
     }
@@ -163,10 +163,10 @@ public class ComparisonRuleTests
     /// ceiling comparison unanswerable while the reported values stay perfectly comparable.
     /// </summary>
     private static readonly ComparisonRule CeilingBelowCeiling =
-        new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.UpperBound);
+        new(Landmark.UpperBound, MustBe.LessThan, Landmark.UpperBound);
 
     private static readonly ComparisonRule NominalBelowNominal =
-        new(Landmark.Nominal, ComparisonType.LessThan, Landmark.Nominal);
+        new(Landmark.Nominal, MustBe.LessThan, Landmark.Nominal);
 
     [Fact]
     public void ADefiniteFailureBeatsAnUnanswerableRule()
@@ -220,7 +220,7 @@ public class ComparisonRuleTests
     {
         var x = new Variable("x", Mass.Kilogram.Dimensionality);
         var op = new SimpleComparison(
-            new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+            new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound))
         {
             Id = "conservative", Lhs = x, Rhs = x,
         };
@@ -246,7 +246,7 @@ public class ComparisonRuleTests
 
         // The refusal happens in the constructor, before the required members are ever assigned.
         var act = () => new SimpleComparison(
-            new ComparisonRule(Landmark.Nominal, ComparisonType.None, Landmark.Nominal))
+            new ComparisonRule(Landmark.Nominal, MustBe.Impossible, Landmark.Nominal))
         {
             Id = "never", Lhs = x, Rhs = x,
         };
@@ -264,7 +264,7 @@ public class ComparisonRuleTests
     {
         var x = new Variable("x", Mass.Kilogram.Dimensionality);
         var op = new SimpleComparison(
-            new ComparisonRule(Landmark.UpperBound, ComparisonType.Any, Landmark.UpperBound))
+            new ComparisonRule(Landmark.UpperBound, MustBe.Comparable, Landmark.UpperBound))
         {
             Id = "well-defined", Lhs = x, Rhs = x,
         };
@@ -281,7 +281,7 @@ public class ComparisonRuleTests
     {
         var x = new Variable("x", Mass.Kilogram.Dimensionality);
         var op = new SimpleComparison(
-            new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+            new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound))
         {
             Id = "r", Lhs = x, Rhs = x,
         };

@@ -39,7 +39,7 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 | Category | Members |
 | --- | --- |
 | Arithmetic | `Plus`/`Minus`/`Times`/`DividedBy` (throw `IncompatibleDimensionsException` on a `Plus`/`Minus` dimension mismatch); `TryAdd`/`TrySubtract` — dimension-tolerant like `Quantity.TryAdd`/`TrySubtract` below, returning a NaN-valued `Measurand` (with zero uncertainty) instead of throwing on mismatch; unary `-`; `Reciprocal()`; `ToPower(int)`/`ToRoot(int)` |
-| Convert | `In(UnitOfMeasure)` (throws on dimension mismatch) / `TryIn(UnitOfMeasure)` (returns `NaN` on mismatch); `AbsoluteError(unit)` / `AbsoluteErrorIn(unit)` / `TryAbsoluteErrorIn(unit)` |
+| Convert | `In(UnitOfMeasure)` (throws on dimension mismatch) / `TryIn(UnitOfMeasure)` (returns `NaN` on mismatch); `AbsoluteUncertainty(unit)` / `AbsoluteUncertaintyIn(unit)` / `TryAbsoluteUncertaintyIn(unit)` |
 | Validity | `IsValid()` (NaN/finite only — see point/delta note below), `IsNaN()`, `IsInfinity()`/`IsPositiveInfinity()`/`IsNegativeInfinity()`, `IsFinite()`, `IsNormal()`/`IsSubnormal()`, `IsNegative()` |
 
 **`Quantity`** is usable on its own for KMS math without uncertainty: `+`/`-`/unary `-`/`*`/`/` operators (`+`/`-` require matching `Dimensionality` and throw `IncompatibleDimensionsException` otherwise; `*`/`/` combine dimensions freely), `ToPower(int)`/`ToRoot(int)`, an explicit `(Quantity)someDouble` cast to a dimensionless quantity, and dimension-tolerant `TryAdd`/`TrySubtract` — these genuinely return a `NaN`-valued `Quantity` instead of throwing when dimensionalities differ, which is the behavior `Measurand`'s `Try*` methods above are meant to mirror.
@@ -83,9 +83,9 @@ Note `T` is time and `Θ` is temperature — the reverse of the convention some 
 
 ## Uncertainty system
 
-The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteError(v), v + UpperAbsoluteError(v)]`.
+The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteUncertainty(v), v + UpperAbsoluteUncertainty(v)]`.
 
-**Relative or absolute storage.** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by an internal `bool IsStoredAsAbs`. This is purely a **convention on what the stored magnitude means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IErrorPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeError(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
+**Relative or absolute storage.** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by an internal `bool IsStoredAsAbs`. This is purely a **convention on what the stored magnitude means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IUncertaintyPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeUncertainty(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
 
 ### Building one
 
@@ -99,9 +99,9 @@ The concrete constructors are private. `Uncertainty` is the whole construction v
 | `Uncertainty.Relative(upper, lower)` | `AsymmetricUncertainty` | relative fractions |
 | `Uncertainty.Absolute(upper, lower: Quantity)` | `AsymmetricUncertainty` | absolute KMS errors |
 
-The storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a *persisted* uncertainty is a separate concern with a separate door — `UncertaintyFactory.FromState`, see [Persistence](#persistence-state-not-dtos).
+The storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a *persisted* uncertainty is a separate concern with a separate door — `UncertaintyFactory.FromSnapshot`, see [Persistence](#persistence-state-not-dtos).
 
-**Relative error is a `RelativeError`, not a bare `double`.** A number on its own cannot say whether it means a fraction of a value or an amount of it: given a mass in kilograms, `0.001` reads equally well as one gram or as one tenth of a percent. Build one with `Percent()` or `Fraction()`:
+**Relative error is a `RelativeUncertainty`, not a bare `double`.** A number on its own cannot say whether it means a fraction of a value or an amount of it: given a mass in kilograms, `0.001` reads equally well as one gram or as one tenth of a percent. Build one with `Percent()` or `Fraction()`:
 
 ```csharp
 0.1.Percent()     // 0.001 — one tenth of one percent
@@ -132,20 +132,20 @@ var mass = Mass.Kilogram.Quantity(1).WithError(1.0.Units(Mass.Milligram));
 
 Propagation follows the storage: **sums/differences produce an absolute-error result** (no dividing by the possibly-zero sum), while products compose relative errors. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.
 
-**`ISymmetricUncertainty`** extends `IUncertainty` and adds default interface implementations of the directional members (`UpperAbsoluteError`/`LowerAbsoluteError` and their relative equivalents) in terms of the single `AbsoluteError`/`RelativeError`. Only `SymmetricUncertainty` implements this.
+**`ISymmetricUncertainty`** extends `IUncertainty` and adds default interface implementations of the directional members (`UpperAbsoluteUncertainty`/`LowerAbsoluteUncertainty` and their relative equivalents) in terms of the single `AbsoluteUncertainty`/`RelativeUncertainty`. Only `SymmetricUncertainty` implements this.
 
 `Measurand` exposes:
 
-- `KmsUpperAbsoluteError` / `KmsLowerAbsoluteError` — directional errors; use these in operators and checks
-- `KmsAbsoluteError` — `Max(upper, lower)`; conservative single value for propagation formulas
-- `RelativeError` — `KmsAbsoluteError / |KmsValue|`; conservative for propagation
+- `KmsUpperAbsoluteUncertainty` / `KmsLowerAbsoluteUncertainty` — directional errors; use these in operators and checks
+- `KmsAbsoluteUncertainty` — `Max(upper, lower)`; conservative single value for propagation formulas
+- `RelativeUncertainty` — `KmsAbsoluteUncertainty / |KmsValue|`; conservative for propagation
 - `Uncertainty` — the raw `IUncertainty` instance; preserved through negation and `Reciprocal()`
 
 ---
 
 ## Error propagation
 
-`Measurand` arithmetic (`Plus`, `Minus`, `Times`, `DividedBy`, `ToPower`, `ToRoot`) propagates uncertainty through an `IErrorPropagator` (`Measurement/Interfaces/IErrorPropagator.cs`):
+`Measurand` arithmetic (`Plus`, `Minus`, `Times`, `DividedBy`, `ToPower`, `ToRoot`) propagates uncertainty through an `IUncertaintyPropagator` (`Measurement/Interfaces/IUncertaintyPropagator.cs`):
 
 | Method | Used for |
 | --- | --- |
@@ -153,7 +153,7 @@ Propagation follows the storage: **sums/differences produce an absolute-error re
 | `PropagateErrorThroughProduct(method, measurands)` | `Times` / `DividedBy` |
 | `PropagateErrorThroughExponentiation(measurand, exponentNumerator, exponentDenominator)` | `ToPower` / `ToRoot` |
 
-Each takes an `ErrorPropagationMethod`, defaulting to `Uncorrelated`:
+Each takes an `UncertaintyPropagation`, defaulting to `Uncorrelated`:
 
 | Method | Sum error | Product relative error |
 | --- | --- | --- |
@@ -167,7 +167,7 @@ Each takes an `ErrorPropagationMethod`, defaulting to `Uncorrelated`:
 - When every operand is symmetric it returns a `SymmetricUncertainty`; if any operand is asymmetric it preserves the asymmetry, returning an `AsymmetricUncertainty` built from the directional upper/lower errors. (Unary transforms — negation, reciprocal, exponentiation — likewise preserve asymmetry; they live on `IUncertainty` rather than the propagator.)
 - Full Monte Carlo propagation is still deferred to Milestone 4; the current propagator combines errors by RSS / direct sum per the table above.
 
-**Why `IErrorPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IErrorPropagator` is the intended seam for that. As it stands, `Measurand.ResolveErrorPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
+**Why `IUncertaintyPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IUncertaintyPropagator` is the intended seam for that. As it stands, `Measurand.ResolveErrorPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
 
 ---
 
@@ -231,29 +231,29 @@ Measurement owns **what state defines a value**; it does not own **how that stat
 
 | Type | State record | Contents |
 | --- | --- | --- |
-| `IUncertainty` | `UncertaintyState` | shape (symmetric/asymmetric), storage flag, magnitudes |
-| `Quantity` | `QuantityState` | KMS value + `DimensionalityState` |
-| `Measurand` | `MeasurandState` | `QuantityState` + `UncertaintyState` |
-| `Dimensionality` | `DimensionalityState` | exponent of each present fundamental dimension |
+| `IUncertainty` | `UncertaintySnapshot` | shape (symmetric/asymmetric), storage flag, magnitudes |
+| `Quantity` | `QuantitySnapshot` | KMS value + `DimensionalitySnapshot` |
+| `Measurand` | `MeasurandSnapshot` | `QuantitySnapshot` + `UncertaintySnapshot` |
+| `Dimensionality` | `DimensionalitySnapshot` | exponent of each present fundamental dimension |
 
 These are **mementos, not DTOs**: no type discriminator, no schema version, no encoding choices. A persistence layer maps them to whatever wire format it likes and owns any fix-up of older payloads — Measurement never sees a version number.
 
 ```csharp
-var state = measurand.GetState();          // hand to Calcusystem.Serialization
-var restored = Measurand.FromState(state); // rebuild
+var state = measurand.GetSnapshot();          // hand to Calcusystem.Serialization
+var restored = Measurand.FromSnapshot(state); // rebuild
 ```
 
-`Quantity`, `Measurand`, and `Dimensionality` implement `IStateful<TSelf, TState>` (`Interfaces/IStateful.cs`), which pairs an instance `GetState()` with a `static abstract FromState`.
+`Quantity`, `Measurand`, and `Dimensionality` implement `ISnapshotting<TSelf, TSnapshot>` (`Interfaces/ISnapshotting.cs`), which pairs an instance `GetSnapshot()` with a `static abstract FromSnapshot`.
 
-**`IUncertainty` deliberately does not.** Its concrete type is chosen by *inspecting* the state, so reconstruction cannot be a per-type `static abstract`; it is a static gateway over the closed set instead — `UncertaintyFactory.FromState(state)`, mirroring how `DimensionedExpression` rebuilds provenance through `ProvenanceFactory`. `IUncertainty.GetState()` is implemented **explicitly** by both concrete types, so the storage form is reachable through the interface but stays off `SymmetricUncertainty`'s and `AsymmetricUncertainty`'s own public surfaces. `Quantity` and `Measurand` implement `GetState()` publicly — their state is value and dimension, both already public concepts, so there is nothing to protect.
+**`IUncertainty` deliberately does not.** Its concrete type is chosen by *inspecting* the state, so reconstruction cannot be a per-type `static abstract`; it is a static gateway over the closed set instead — `UncertaintyFactory.FromSnapshot(state)`, mirroring how `DimensionedExpression` rebuilds provenance through `ProvenanceFactory`. `IUncertainty.GetSnapshot()` is implemented **explicitly** by both concrete types, so the storage form is reachable through the interface but stays off `SymmetricUncertainty`'s and `AsymmetricUncertainty`'s own public surfaces. `Quantity` and `Measurand` implement `GetSnapshot()` publicly — their state is value and dimension, both already public concepts, so there is nothing to protect.
 
-**`DimensionalityState` carries the exponent pairs**, zero exponents stripped, so an empty map is a dimensionless value. It does *not* carry an encoded string: choosing to write those pairs as `"M1,L1,T-2"` versus a nested object, keying them on symbols versus names, and repairing a payload written before a symbol changed are all format decisions, and they live in `Calcusystem.Serialization` (see `DimensionalityCodec` there). This is also why the state is not `ToString()`, which is a human-readable form (`M·L/T²`) with middots and superscripts that does not round-trip.
+**`DimensionalitySnapshot` carries the exponent pairs**, zero exponents stripped, so an empty map is a dimensionless value. It does *not* carry an encoded string: choosing to write those pairs as `"M1,L1,T-2"` versus a nested object, keying them on symbols versus names, and repairing a payload written before a symbol changed are all format decisions, and they live in `Calcusystem.Serialization` (see `DimensionalityCodec` there). This is also why the state is not `ToString()`, which is a human-readable form (`M·L/T²`) with middots and superscripts that does not round-trip.
 
 ```csharp
-var pairs = force.GetState().Pairs;   // { Mass: 1, Length: 1, Time: -2 }, in canonical order
+var pairs = force.GetSnapshot().Pairs;   // { Mass: 1, Length: 1, Time: -2 }, in canonical order
 ```
 
-A map is affordable because a state object lives only for the duration of a serialization pass — it is not something the rest of the library computes with. `GetState()` yields its pairs in canonical dimension order, so a consumer writing them out gets a stable result for dimensionally-equal values without sorting them itself. `DimensionalityState` compares its maps set-wise rather than by reference; the compiler-generated equality would otherwise make two states describing the same dimension unequal, and that would propagate into `QuantityState` and `MeasurandState`.
+A map is affordable because a state object lives only for the duration of a serialization pass — it is not something the rest of the library computes with. `GetSnapshot()` yields its pairs in canonical dimension order, so a consumer writing them out gets a stable result for dimensionally-equal values without sorting them itself. `DimensionalitySnapshot` compares its maps set-wise rather than by reference; the compiler-generated equality would otherwise make two states describing the same dimension unequal, and that would propagate into `QuantitySnapshot` and `MeasurandSnapshot`.
 
 ---
 

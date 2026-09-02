@@ -1,5 +1,5 @@
 
-namespace Calcusystem.DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
 /// The complete stored state of an <see cref="Systems.ExpressionSystem"/>: its identity, its labels, and the ids
@@ -20,7 +20,7 @@ namespace Calcusystem.DimensionedExpression.State;
 /// a relationship is, is carried by the operator's own <c>SolvingRole</c> — storing it as list membership too
 /// would let the two disagree.
 /// </param>
-public readonly record struct ExpressionSystemState(
+public readonly record struct ExpressionSystemSnapshot(
     string Id,
     string Name,
     string Description,

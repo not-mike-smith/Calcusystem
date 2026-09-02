@@ -19,16 +19,16 @@ public class DeterminingRelationshipTests
 {
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = false };
 
-    private static Variable Bound(string symbol, double kmsValue) =>
+    private static Variable Valued(string symbol, double kmsValue) =>
         new(symbol,
-            new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+            new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelative(0.01)),
             symbol);
 
     private static ExpressionSystem TwoLeafSystem(out Variable lhs, out Variable rhs)
     {
         var system = ExpressionSystem.Create("determining", "");
-        lhs = Bound("x", 10);
-        rhs = Bound("y", 10);
+        lhs = Valued("x", 10);
+        rhs = Valued("y", 10);
         system.Add(lhs);
         system.Add(rhs);
         return system;

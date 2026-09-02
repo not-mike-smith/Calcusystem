@@ -1,7 +1,7 @@
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
@@ -55,12 +55,12 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// </remarks>
     public bool? IsSatisfied(
         IReadOnlyDictionary<Variable, Measurand>? overrides = null,
-        IErrorPropagator? propagator = null)
+        IUncertaintyPropagator? propagator = null)
     {
-        // One walk per side. `ComputeIfDetermined` is not free, and a null answer is exactly the
+        // One walk per side. `ComputeIfFullyDescribed` is not free, and a null answer is exactly the
         // "not fully described" case the guard used to ask for separately.
-        var lhs = Lhs.ComputeIfDetermined(overrides, propagator);
-        var rhs = Rhs.ComputeIfDetermined(overrides, propagator);
+        var lhs = Lhs.ComputeIfFullyDescribed(overrides, propagator);
+        var rhs = Rhs.ComputeIfFullyDescribed(overrides, propagator);
         if (lhs is null || rhs is null) return null;
 
         return IsSatisfiedGiven(lhs, rhs);
@@ -84,7 +84,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public IExpression? Criterion => SolvingRole is SolvingRole.Requirement ? Rhs : null;
 
     /// <summary>Which operator this is, for state capture. Declared alongside <see cref="Symbol"/>.</summary>
-    protected abstract BinaryOperatorKind Kind { get; }
+    protected abstract BinaryOperatorType Type { get; }
 
     /// <summary>
     /// Returns this operator's complete stored state. Every operator has the same shape — two operand
@@ -95,14 +95,14 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// agreement rule on top of what is captured here. Overriding beats a hook on this class, which would put a
     /// member for equality's semantics on the twelve operators that have none.
     /// </remarks>
-    public virtual BinaryOperatorState GetState() =>
-        new(Kind, Id, Lhs.Id, Rhs.Id, SolvingRole, null, null, Name, Description, Provenance?.GetState());
+    public virtual BinaryOperatorSnapshot GetSnapshot() =>
+        new(Type, Id, Lhs.Id, Rhs.Id, SolvingRole, null, null, Name, Description, Provenance?.GetSnapshot());
 
     public bool AreBothSidesFullyDescribed => Lhs.IsFullyDescribed && Rhs.IsFullyDescribed;
 
     /// <inheritdoc/>
-    public IEnumerable<Variable> FreeVariables() =>
-        Lhs.FreeVariables().Concat(Rhs.FreeVariables()).Distinct();
+    public IEnumerable<Variable> UnsetVariables() =>
+        Lhs.UnsetVariables().Concat(Rhs.UnsetVariables()).Distinct();
     public override string ToString()
     {
         return $"{Lhs} {Symbol} {Rhs}";

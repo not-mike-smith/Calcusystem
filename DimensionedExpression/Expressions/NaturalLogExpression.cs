@@ -3,7 +3,7 @@ using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
@@ -17,14 +17,14 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// NaN or negative-infinity result. The result is dimensionless.
 /// <br/>
 /// Uncertainty: because <c>d(ln x) = dx/x</c>,
-/// AbsoluteError(ln x) ≈ RelativeError(x).
+/// AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x).
 /// </summary>
 /// <remarks>
-/// The uncertainty is inherently an absolute error and is stored as one (via <c>FromAbsErr</c>). At <c>x = 1</c>
+/// The uncertainty is inherently an absolute error and is stored as one (via <c>FromAbsolute</c>). At <c>x = 1</c>
 /// the result is 0; its <em>relative</em> error is undefined, but the absolute error is retained and
-/// <c>RelativeError</c> reports <c>+∞</c> rather than throwing.
+/// <c>RelativeUncertainty</c> reports <c>+∞</c> rather than throwing.
 /// </remarks>
-public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<NaturalLogExpression, UnaryExpressionState>
+public class NaturalLogExpression : ExpressionBase, IExpression, ISnapshottingNode<NaturalLogExpression, UnaryExpressionSnapshot>
 {
     private readonly IExpression _argument;
 
@@ -43,15 +43,15 @@ public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<N
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null)
+        IUncertaintyPropagator? propagator = null)
     {
         if (! known.TryGetValue(Argument, out var argument)) return null;
 
-        var absoluteError = argument.RelativeError; // AbsoluteError(ln x) ≈ RelativeError(x)
+        var absoluteUncertainty = argument.RelativeUncertainty; // AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x)
 
         return Dimensionality.Dimensionless
             .Quantity(Math.Log(argument.KmsValue))
-            .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError)));
+            .Measurand(SymmetricUncertainty.FromAbsolute(Dimensionality.Dimensionless.Quantity(absoluteUncertainty)));
     }
 
     public override string ToString()
@@ -70,10 +70,10 @@ public class NaturalLogExpression : ExpressionBase, IExpression, IStatefulNode<N
     }
 
     /// <inheritdoc/>
-    public UnaryExpressionState GetState() =>
-        new(UnaryExpressionKind.NaturalLog, Id, Argument.Id);
+    public UnaryExpressionSnapshot GetSnapshot() =>
+        new(UnaryExpressionType.NaturalLog, Id, Argument.Id);
 
     /// <inheritdoc/>
-    public static NaturalLogExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+    public static NaturalLogExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
         new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

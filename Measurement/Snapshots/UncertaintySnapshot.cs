@@ -1,10 +1,12 @@
 using Calcusystem.Measurement.Enums;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Factories;
 
-namespace Calcusystem.Measurement.State;
+namespace Calcusystem.Measurement.Snapshots;
 
 /// <summary>
 /// The complete stored state of an <see cref="IUncertainty"/> — enough to rebuild it, and nothing more.
-/// Read it via <see cref="IUncertainty.GetState"/>; rebuild via <see cref="UncertaintyFactory.FromState"/>.
+/// Read it via <see cref="IUncertainty.GetSnapshot"/>; rebuild via <see cref="UncertaintyFactory.FromSnapshot"/>.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -19,15 +21,15 @@ namespace Calcusystem.Measurement.State;
 /// migrating old data belongs.
 /// </para>
 /// </remarks>
-public readonly record struct UncertaintyState
+public readonly record struct UncertaintySnapshot
 {
     /// <summary>Which concrete uncertainty this state rebuilds into.</summary>
-    public UncertaintyShape Shape { get; private init; }
+    public UncertaintyType Type { get; private init; }
 
     /// <summary>Whether the magnitudes are absolute KMS errors (<c>true</c>) or relative fractions (<c>false</c>).</summary>
     public bool IsStoredAsAbs { get; private init; }
 
-    /// <summary>The stored error above the nominal value. For <see cref="UncertaintyShape.Symmetric"/> this is
+    /// <summary>The stored error above the nominal value. For <see cref="UncertaintyType.Symmetric"/> this is
     /// the single magnitude, equal to <see cref="LowerMagnitude"/>.</summary>
     public double UpperMagnitude { get; private init; }
 
@@ -35,18 +37,18 @@ public readonly record struct UncertaintyState
     public double LowerMagnitude { get; private init; }
 
     /// <summary>Captures the state of a symmetric uncertainty.</summary>
-    public static UncertaintyState Symmetric(bool isStoredAsAbs, double magnitude) => new()
+    public static UncertaintySnapshot Symmetric(bool isStoredAsAbs, double magnitude) => new()
     {
-        Shape = UncertaintyShape.Symmetric,
+        Type = UncertaintyType.Symmetric,
         IsStoredAsAbs = isStoredAsAbs,
         UpperMagnitude = magnitude,
         LowerMagnitude = magnitude,
     };
 
     /// <summary>Captures the state of an asymmetric uncertainty.</summary>
-    public static UncertaintyState Asymmetric(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) => new()
+    public static UncertaintySnapshot Asymmetric(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) => new()
     {
-        Shape = UncertaintyShape.Asymmetric,
+        Type = UncertaintyType.Asymmetric,
         IsStoredAsAbs = isStoredAsAbs,
         UpperMagnitude = upperMagnitude,
         LowerMagnitude = lowerMagnitude,

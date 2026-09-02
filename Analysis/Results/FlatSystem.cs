@@ -33,7 +33,7 @@ public sealed record Equation(IBinaryOperator Relationship, IReadOnlyList<Variab
 /// admitting one would add a column and force a compensating row, changing nothing but the size of the problem.
 /// </para>
 /// </remarks>
-/// <param name="Unknowns">The distinct unbound variables the system must resolve.</param>
+/// <param name="Unknowns">The distinct unset variables the system must resolve.</param>
 /// <param name="Equations">The determining relationships available to resolve them.</param>
 public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<Equation> Equations)
 {

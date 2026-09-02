@@ -1,9 +1,9 @@
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Enums;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 using Calcusystem.Measurement.Uncertainties;
 
 namespace Calcusystem.Serialization.Mappers;
@@ -20,7 +20,7 @@ public class SerializingMapper
 {
     public Dtos.ExpressionSystem Map(ExpressionSystem system)
     {
-        var state = system.GetState();
+        var state = system.GetSnapshot();
 
         var value = new Dtos.ExpressionSystem
         {
@@ -48,7 +48,7 @@ public class SerializingMapper
 
     public Dtos.SingleVariable MapVariable(Variable v)
     {
-        var state = v.GetState();
+        var state = v.GetSnapshot();
 
         return new Dtos.SingleVariable
         {
@@ -68,50 +68,50 @@ public class SerializingMapper
     /// </remarks>
     private Dtos.ExpressionBase MapDerivedExpression(IExpression expression) => expression switch
     {
-        ReciprocalExpression x => Map(x.GetState()),
-        NegatedExpression x => Map(x.GetState()),
-        SqrtExpression x => Map(x.GetState()),
-        ExponentialExpression x => Map(x.GetState()),
-        NaturalLogExpression x => Map(x.GetState()),
-        ProductExpression x => Map(x.GetState()),
-        SumExpression x => Map(x.GetState()),
-        QuotientExpression x => Map(x.GetState()),
+        ReciprocalExpression x => Map(x.GetSnapshot()),
+        NegatedExpression x => Map(x.GetSnapshot()),
+        SqrtExpression x => Map(x.GetSnapshot()),
+        ExponentialExpression x => Map(x.GetSnapshot()),
+        NaturalLogExpression x => Map(x.GetSnapshot()),
+        ProductExpression x => Map(x.GetSnapshot()),
+        SumExpression x => Map(x.GetSnapshot()),
+        QuotientExpression x => Map(x.GetSnapshot()),
         _ => throw new NotImplementedException(
             $"No mapping for derived expression of type {expression.GetType().Name}")
     };
 
-    private Dtos.SingleDerivedVariable Map(UnaryExpressionState state) => new()
+    private Dtos.SingleDerivedVariable Map(UnaryExpressionSnapshot state) => new()
     {
         Id = state.Id,
-        Type = WireNames.Of(state.Kind),
+        Type = WireNames.Of(state.Type),
         InnerId = state.InnerId,
     };
 
-    private Dtos.ListDerivedVariable Map(NaryExpressionState state) => new()
+    private Dtos.ListDerivedVariable Map(NaryExpressionSnapshot state) => new()
     {
         Id = state.Id,
-        Type = WireNames.Of(state.Kind),
+        Type = WireNames.Of(state.Type),
         InnerIds = state.InnerIds.ToList(),
-        ErrorPropagation = state.ErrorPropagation,
+        UncertaintyPropagation = state.UncertaintyPropagation,
     };
 
-    private Dtos.PairDerivedVariable Map(BinaryExpressionState state) => new()
+    private Dtos.PairDerivedVariable Map(BinaryExpressionSnapshot state) => new()
     {
         Id = state.Id,
-        Type = WireNames.Of(state.Kind),
+        Type = WireNames.Of(state.Type),
         InnerId1 = state.InnerId1,
         InnerId2 = state.InnerId2,
-        ErrorPropagation = state.ErrorPropagation,
+        UncertaintyPropagation = state.UncertaintyPropagation,
     };
 
     public Dtos.BinaryOperator Map(IBinaryOperator op)
     {
-        var state = op.GetState();
+        var state = op.GetSnapshot();
 
         return new Dtos.BinaryOperator
         {
             Id = state.Id,
-            Type = WireNames.Of(state.Kind),
+            Type = WireNames.Of(state.Type),
             Name = state.Name,
             Description = state.Description,
             LhsId = state.LhsId,
@@ -119,16 +119,16 @@ public class SerializingMapper
             SolvingRole = state.SolvingRole,
             Agreement = state.Agreement,
             RuleLhs = state.Rule?.Lhs,
-            RuleComparison = state.Rule?.Type,
+            RuleMustBe = state.Rule?.MustBe,
             RuleRhs = state.Rule?.Rhs,
             Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
         };
     }
 
-    private Dtos.Provenance Map(ProvenanceState state) => new()
+    private Dtos.Provenance Map(ProvenanceSnapshot state) => new()
     {
         Id = state.Id,
-        Type = WireNames.Of(state.Kind),
+        Type = WireNames.Of(state.Type),
         InstrumentId = state.InstrumentId,
         CalibrationDate = state.CalibrationDate,
         Citation = state.Citation,
@@ -139,21 +139,21 @@ public class SerializingMapper
         FittingReference = state.FittingReference,
     };
 
-    private Dtos.Uncertainty Map(UncertaintyState state) => state.Shape switch
+    private Dtos.Uncertainty Map(UncertaintySnapshot state) => state.Type switch
     {
-        UncertaintyShape.Symmetric => new Dtos.Uncertainty
+        UncertaintyType.Symmetric => new Dtos.Uncertainty
         {
             Type = nameof(SymmetricUncertainty),
             IsStoredAsAbs = state.IsStoredAsAbs,
             Magnitude = state.UpperMagnitude,
         },
-        UncertaintyShape.Asymmetric => new Dtos.Uncertainty
+        UncertaintyType.Asymmetric => new Dtos.Uncertainty
         {
             Type = nameof(AsymmetricUncertainty),
             IsStoredAsAbs = state.IsStoredAsAbs,
             UpperMagnitude = state.UpperMagnitude,
             LowerMagnitude = state.LowerMagnitude,
         },
-        _ => throw new NotImplementedException($"No mapping for uncertainty shape {state.Shape}")
+        _ => throw new NotImplementedException($"No mapping for uncertainty shape {state.Type}")
     };
 }

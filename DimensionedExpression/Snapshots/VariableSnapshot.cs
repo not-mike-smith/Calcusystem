@@ -1,6 +1,6 @@
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 
-namespace Calcusystem.DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
 /// The complete stored state of a <see cref="Expressions.Variable"/>.
@@ -12,12 +12,12 @@ namespace Calcusystem.DimensionedExpression.State;
 /// </remarks>
 /// <param name="Id">Stable identity.</param>
 /// <param name="Symbol">The variable's display symbol.</param>
-/// <param name="Dimensionality">Its physical dimension, known even while unbound.</param>
-/// <param name="Value">Its value and uncertainty, or null while unbound.</param>
+/// <param name="Dimensionality">Its physical dimension, known even while unset.</param>
+/// <param name="Value">Its value and uncertainty, or null while unset.</param>
 /// <param name="Provenance">Where the value came from, or null when untracked.</param>
-public readonly record struct VariableState(
+public readonly record struct VariableSnapshot(
     string Id,
     string Symbol,
-    DimensionalityState Dimensionality,
-    MeasurandState? Value,
-    ProvenanceState? Provenance);
+    DimensionalitySnapshot Dimensionality,
+    MeasurandSnapshot? Value,
+    ProvenanceSnapshot? Provenance);

@@ -1,6 +1,6 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 
@@ -23,6 +23,6 @@ public sealed class ModelProvenance : IdBase, IProvenance
     public string Summary() =>
         $"Model parameter: {ModelName}{(FittingReference is null ? "" : $" (fit {FittingReference})")}";
 
-    ProvenanceState IProvenance.GetState() =>
-        ProvenanceState.Model(Id, ModelName, FittingReference);
+    ProvenanceSnapshot IProvenance.GetSnapshot() =>
+        ProvenanceSnapshot.Model(Id, ModelName, FittingReference);
 }

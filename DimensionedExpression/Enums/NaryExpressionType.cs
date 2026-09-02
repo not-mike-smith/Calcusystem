@@ -1,8 +1,8 @@
 
 namespace Calcusystem.DimensionedExpression.Enums;
 
-/// <summary>Which n-ary expression a <see cref="NaryExpressionState"/> rebuilds into.</summary>
-public enum NaryExpressionKind
+/// <summary>Which n-ary expression a <see cref="NaryExpressionSnapshot"/> rebuilds into.</summary>
+public enum NaryExpressionType
 {
     /// <summary>Product over its factors.</summary>
     Product,

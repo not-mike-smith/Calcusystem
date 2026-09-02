@@ -1,6 +1,6 @@
 using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.Measurement.State;
+namespace Calcusystem.Measurement.Snapshots;
 
 /// <summary>
 /// The complete stored state of a <see cref="Dimensionality"/>: the exponent of each fundamental dimension
@@ -18,7 +18,7 @@ namespace Calcusystem.Measurement.State;
 /// </para>
 /// </remarks>
 /// <param name="Exponents">Exponent per present fundamental dimension; empty (or default) for dimensionless.</param>
-public readonly record struct DimensionalityState(IReadOnlyDictionary<FundamentalDimension, int> Exponents)
+public readonly record struct DimensionalitySnapshot(IReadOnlyDictionary<FundamentalDimension, int> Exponents)
 {
     /// <summary>The exponent pairs, treating a <c>default</c> instance as dimensionless.</summary>
     public IReadOnlyDictionary<FundamentalDimension, int> Pairs =>
@@ -27,10 +27,10 @@ public readonly record struct DimensionalityState(IReadOnlyDictionary<Fundamenta
     /// <remarks>
     /// Compares the maps set-wise. The compiler-generated version would compare dictionary <i>references</i>,
     /// which would make two states describing the same dimension unequal — a trap that would propagate into
-    /// <see cref="QuantityState"/> and <see cref="MeasurandState"/>, since a record struct's equality is built
+    /// <see cref="QuantitySnapshot"/> and <see cref="MeasurandSnapshot"/>, since a record struct's equality is built
     /// from its fields'.
     /// </remarks>
-    public bool Equals(DimensionalityState other)
+    public bool Equals(DimensionalitySnapshot other)
     {
         var mine = Pairs;
         var theirs = other.Pairs;
@@ -39,7 +39,7 @@ public readonly record struct DimensionalityState(IReadOnlyDictionary<Fundamenta
                && mine.All(pair => theirs.TryGetValue(pair.Key, out var exponent) && exponent == pair.Value);
     }
 
-    /// <inheritdoc cref="Equals(DimensionalityState)"/>
+    /// <inheritdoc cref="Equals(DimensionalitySnapshot)"/>
     public override int GetHashCode() =>
         Pairs.Aggregate(0, (hash, pair) => hash ^ HashCode.Combine(pair.Key, pair.Value));
 }

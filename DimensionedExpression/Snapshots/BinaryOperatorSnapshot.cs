@@ -1,13 +1,13 @@
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Enums;
 
-namespace Calcusystem.DimensionedExpression.State;
+namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
 /// The complete stored state of any binary operator. Every operator has the same shape — two operand references
-/// plus annotations — so one record with a <see cref="Kind"/> discriminator covers all thirteen.
+/// plus annotations — so one record with a <see cref="Type"/> discriminator covers all thirteen.
 /// </summary>
-/// <param name="Kind">Which operator this state rebuilds into.</param>
+/// <param name="Type">Which operator this state rebuilds into.</param>
 /// <param name="Id">Stable identity.</param>
 /// <param name="LhsId">Id of the left-hand expression.</param>
 /// <param name="RhsId">Id of the right-hand expression.</param>
@@ -24,14 +24,14 @@ namespace Calcusystem.DimensionedExpression.State;
 /// readers can reach opposite verdicts from identical bytes.
 /// </param>
 /// <param name="Rule">
-/// The comparison a <see cref="BinaryOperatorKind.SimpleComparison"/> asserts, and null for every other kind,
+/// The comparison a <see cref="BinaryOperatorType.SimpleComparison"/> asserts, and null for every other kind,
 /// whose rules are fixed by their type.
 /// </param>
 /// <param name="Name">Optional human-readable name.</param>
 /// <param name="Description">Optional human-readable description.</param>
 /// <param name="Provenance">Where the relationship came from (e.g. a citation), or null when untracked.</param>
-public readonly record struct BinaryOperatorState(
-    BinaryOperatorKind Kind,
+public readonly record struct BinaryOperatorSnapshot(
+    BinaryOperatorType Type,
     string Id,
     string LhsId,
     string RhsId,
@@ -40,4 +40,4 @@ public readonly record struct BinaryOperatorState(
     ComparisonRule? Rule,
     string? Name,
     string? Description,
-    ProvenanceState? Provenance);
+    ProvenanceSnapshot? Provenance);

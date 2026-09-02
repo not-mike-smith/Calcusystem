@@ -1,7 +1,7 @@
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
@@ -12,9 +12,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// dimensionality is the numerator's divided by the denominator's.
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> division using the
-/// <see cref="ComputedExpressionBase.ErrorPropagation"/> method.
+/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method.
 /// </summary>
-public class QuotientExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<QuotientExpression, BinaryExpressionState>
+public class QuotientExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<QuotientExpression, BinaryExpressionSnapshot>
 {
     public required IExpression Numerator { get; init; }
 
@@ -30,9 +30,9 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     /// </remarks>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null) =>
+        IUncertaintyPropagator? propagator = null) =>
         known.TryGetValue(Numerator, out var numerator) && known.TryGetValue(Denominator, out var denominator)
-            ? numerator.DividedBy(denominator, ErrorPropagation, propagator)
+            ? numerator.DividedBy(denominator, UncertaintyPropagation, propagator)
             : null;
 
     public override string ToString()
@@ -44,16 +44,16 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     public override IEnumerable<IExpression> Children => [Numerator, Denominator];
 
     /// <inheritdoc/>
-    public BinaryExpressionState GetState() =>
-        new(BinaryExpressionKind.Quotient, Id, Numerator.Id, Denominator.Id, ErrorPropagation);
+    public BinaryExpressionSnapshot GetSnapshot() =>
+        new(BinaryExpressionType.Quotient, Id, Numerator.Id, Denominator.Id, UncertaintyPropagation);
 
     /// <inheritdoc/>
-    public static QuotientExpression FromState(BinaryExpressionState state, INodeResolver resolve) =>
+    public static QuotientExpression FromSnapshot(BinaryExpressionSnapshot state, INodeResolver resolve) =>
         new()
         {
             Id = state.Id,
             Numerator = resolve.Resolve<IExpression>(state.InnerId1),
             Denominator = resolve.Resolve<IExpression>(state.InnerId2),
-            ErrorPropagation = state.ErrorPropagation,
+            UncertaintyPropagation = state.UncertaintyPropagation,
         };
 }

@@ -3,12 +3,12 @@ using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
 
 namespace Calcusystem.DimensionedExpression.Systems;
 
-public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, ExpressionSystemState>
+public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, ExpressionSystemSnapshot>
 {
     public ExpressionSystem(string id) : base(id) { }
 
@@ -140,7 +140,7 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
         ExpressionGraph.InDependencyOrder(GetAllExpressions());
 
     /// <inheritdoc/>
-    public ExpressionSystemState GetState() => new(
+    public ExpressionSystemSnapshot GetSnapshot() => new(
         Id,
         Name,
         Description,
@@ -153,7 +153,7 @@ public class ExpressionSystem : IdBase, IStatefulNode<ExpressionSystem, Expressi
     /// The system resolves two different node types — expressions in two of its lists, operators in the third.
     /// That is why resolution is a per-reference query rather than one typed delegate.
     /// </remarks>
-    public static ExpressionSystem FromState(ExpressionSystemState state, INodeResolver resolve)
+    public static ExpressionSystem FromSnapshot(ExpressionSystemSnapshot state, INodeResolver resolve)
     {
         var system = new ExpressionSystem(state.Id)
         {

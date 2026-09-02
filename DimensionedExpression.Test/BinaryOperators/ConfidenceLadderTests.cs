@@ -17,14 +17,14 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 /// </summary>
 public class ConfidenceLadderTests
 {
-    /// <summary>A measurand at <paramref name="value"/> kg with the given absolute error bars.</summary>
+    /// <summary>A measurand at <paramref name="value"/> kg with the given absolute uncertainty bars.</summary>
     private static Measurand M(double value, double lowerError, double upperError) =>
         Mass.Kilogram.Quantity(value).Measurand(
-            AsymmetricUncertainty.FromAbsErr(
+            AsymmetricUncertainty.FromAbsolute(
                 Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError)));
 
     /// <summary>
-    /// Values and error bars chosen so bounds coincide exactly and often — identical intervals, intervals that
+    /// Values and uncertainty bars chosen so bounds coincide exactly and often — identical intervals, intervals that
     /// merely touch, zero-width intervals. Those are where a strict and a non-strict comparison part company,
     /// so a sweep of "generic" inputs would miss precisely the cases worth checking.
     /// </summary>
@@ -52,20 +52,20 @@ public class ConfidenceLadderTests
     /// </summary>
     private static readonly (string Symbol, Func<Measurand, Measurand, bool> Original)[] _originalConditions =
     [
-        ("<<", (a, b) => a.KmsValue + a.KmsUpperAbsoluteError < b.KmsValue - b.KmsLowerAbsoluteError),
-        ("<^", (a, b) => a.KmsValue + a.KmsUpperAbsoluteError < b.KmsValue + b.KmsUpperAbsoluteError),
+        ("<<", (a, b) => a.KmsValue + a.KmsUpperAbsoluteUncertainty < b.KmsValue - b.KmsLowerAbsoluteUncertainty),
+        ("<^", (a, b) => a.KmsValue + a.KmsUpperAbsoluteUncertainty < b.KmsValue + b.KmsUpperAbsoluteUncertainty),
         ("<~", (a, b) => a.KmsValue < b.KmsValue),
-        (">>", (a, b) => a.KmsValue - a.KmsLowerAbsoluteError > b.KmsValue + b.KmsUpperAbsoluteError),
-        (">v", (a, b) => a.KmsValue - a.KmsLowerAbsoluteError > b.KmsValue - b.KmsLowerAbsoluteError),
+        (">>", (a, b) => a.KmsValue - a.KmsLowerAbsoluteUncertainty > b.KmsValue + b.KmsUpperAbsoluteUncertainty),
+        (">v", (a, b) => a.KmsValue - a.KmsLowerAbsoluteUncertainty > b.KmsValue - b.KmsLowerAbsoluteUncertainty),
         (">~", (a, b) => a.KmsValue > b.KmsValue),
-        ("=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
-                         a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError),
-        ("⌈=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteError &&
-                          a.KmsValue + a.KmsUpperAbsoluteError <= b.KmsValue + b.KmsUpperAbsoluteError),
-        ("⌊=}", (a, b) => a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteError &&
-                          a.KmsValue - a.KmsLowerAbsoluteError >= b.KmsValue - b.KmsLowerAbsoluteError),
-        ("[=}", (a, b) => a.KmsValue - a.KmsLowerAbsoluteError > b.KmsValue - b.KmsLowerAbsoluteError &&
-                          a.KmsValue + a.KmsUpperAbsoluteError < b.KmsValue + b.KmsUpperAbsoluteError),
+        ("=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteUncertainty &&
+                         a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteUncertainty),
+        ("⌈=}", (a, b) => a.KmsValue >= b.KmsValue - b.KmsLowerAbsoluteUncertainty &&
+                          a.KmsValue + a.KmsUpperAbsoluteUncertainty <= b.KmsValue + b.KmsUpperAbsoluteUncertainty),
+        ("⌊=}", (a, b) => a.KmsValue <= b.KmsValue + b.KmsUpperAbsoluteUncertainty &&
+                          a.KmsValue - a.KmsLowerAbsoluteUncertainty >= b.KmsValue - b.KmsLowerAbsoluteUncertainty),
+        ("[=}", (a, b) => a.KmsValue - a.KmsLowerAbsoluteUncertainty > b.KmsValue - b.KmsLowerAbsoluteUncertainty &&
+                          a.KmsValue + a.KmsUpperAbsoluteUncertainty < b.KmsValue + b.KmsUpperAbsoluteUncertainty),
         ("≈", OriginalOverlap),
         ("≃", (a, b) => OriginalMutual(a, b) && OriginalMutual(b, a)),
     ];
@@ -73,13 +73,13 @@ public class ConfidenceLadderTests
     private static bool OriginalOverlap(Measurand lhs, Measurand rhs)
     {
         var (smaller, bigger) = lhs.KmsValue < rhs.KmsValue ? (lhs, rhs) : (rhs, lhs);
-        return smaller.KmsValue + smaller.KmsUpperAbsoluteError >=
-               bigger.KmsValue - bigger.KmsLowerAbsoluteError;
+        return smaller.KmsValue + smaller.KmsUpperAbsoluteUncertainty >=
+               bigger.KmsValue - bigger.KmsLowerAbsoluteUncertainty;
     }
 
     private static bool OriginalMutual(Measurand x, Measurand y) =>
-        x.KmsValue >= y.KmsValue - y.KmsLowerAbsoluteError &&
-        x.KmsValue <= y.KmsValue + y.KmsUpperAbsoluteError;
+        x.KmsValue >= y.KmsValue - y.KmsLowerAbsoluteUncertainty &&
+        x.KmsValue <= y.KmsValue + y.KmsUpperAbsoluteUncertainty;
 
     private static IBinaryOperator OperatorFor(string symbol, IExpression lhs, IExpression rhs) => symbol switch
     {
@@ -109,7 +109,7 @@ public class ConfidenceLadderTests
     /// <c>MeasurandComparer</c>, and that was not a foregone conclusion — comparison became tolerance-aware,
     /// which is a genuine behaviour change. It does not show up here because the grid's values are separated by
     /// far more than any measurement resolves. Where it does show up is pinned separately, in
-    /// <c>UnboundedUncertaintyTests</c>. Keep both: this one guards everything the change was <i>not</i> meant
+    /// <c>UnsetedUncertaintyTests</c>. Keep both: this one guards everything the change was <i>not</i> meant
     /// to touch, which is almost all of it.
     /// </para>
     /// </remarks>
@@ -141,7 +141,7 @@ public class ConfidenceLadderTests
     }
 
     private static string Describe(Measurand m) =>
-        $"[{m.KmsValue - m.KmsLowerAbsoluteError}, {m.KmsValue + m.KmsUpperAbsoluteError}]";
+        $"[{m.KmsValue - m.KmsLowerAbsoluteUncertainty}, {m.KmsValue + m.KmsUpperAbsoluteUncertainty}]";
 
     // ── Ordering: a clean chain ───────────────────────────────────────────────
 

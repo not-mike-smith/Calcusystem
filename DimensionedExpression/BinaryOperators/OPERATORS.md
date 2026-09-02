@@ -5,7 +5,7 @@ The fourteen operators are **declarations**, not implementations: each one names
 Every operator supplies `IReadOnlyList<ComparisonRule> Rules`. The base class ANDs them: `IsSatisfiedGiven(lhs, rhs)` → `bool?`. Resolving the two sides is also the base class's job — `IsSatisfied(overrides?, propagator?)` → `bool?` computes both operands and delegates, answering `null` when either does not resolve.
 
 Interval notation: for a `Measurand` *v*, its uncertainty interval is
-`[v.KmsValue − v.KmsLowerAbsoluteError, v.KmsValue + v.KmsUpperAbsoluteError]`.
+`[v.KmsValue − v.KmsLowerAbsoluteUncertainty, v.KmsValue + v.KmsUpperAbsoluteUncertainty]`.
 Below, *a* is the Lhs nominal value and `aL`/`aU` its bounds; *b*, `bL`, `bU` likewise for Rhs.
 
 Where the Commutative column says ✗, **`Lhs` is the value under test and `Rhs` is the bound**. That convention is what `IBinaryOperator.Subject` / `Criterion` report — see the [assembly README](../README.md).
@@ -15,7 +15,7 @@ Where the Commutative column says ✗, **`Lhs` is the value under test and `Rhs`
 ## `ComparisonRule` — the atom
 
 ```csharp
-readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, Landmark Rhs)
+readonly record struct ComparisonRule(Landmark Lhs, MustBe Type, Landmark Rhs)
 ```
 
 One landmark of the subject against one landmark of the criterion, at a stated strictness. Nine landmark pairs × seven masks = 63 distinct rules, every one of which an operator may assert.
@@ -168,9 +168,9 @@ It **deliberately overlaps** the named types: configured with `·<·` it is `Nom
 
 It is also the only operator whose **commutativity follows its rule** rather than its type: `Rule == Rule.Mirrored`, true exactly when the mask carries no ordering bias.
 
-`ComparisonType.None` is refused at construction, and is the only mask that is. A rule accepting no outcome is never satisfied, so it reports as a *violation* on every calculation — a finding against the model that the model never asserted. It is also the mask enum's zero, so it is what an uninitialised field reads as, and refusing it turns a forgotten assignment into an error where it was forgotten.
+`MustBe.Impossible` is refused at construction, and is the only mask that is. A rule accepting no outcome is never satisfied, so it reports as a *violation* on every calculation — a finding against the model that the model never asserted. It is also the mask enum's zero, so it is what an uninitialised field reads as, and refusing it turns a forgotten assignment into an error where it was forgotten.
 
-`ComparisonType.Any` is **not** refused, though it looks like the same mistake. Under a three-valued seam it is not vacuous: it answers `true` when the landmarks can be compared and `null` when they cannot, so `⌜?⌝` asserts "both of these ceilings are well-defined quantities" — a real check that nothing else spells.
+`MustBe.Comparable` is **not** refused, though it looks like the same mistake. Under a three-valued seam it is not vacuous: it answers `true` when the landmarks can be compared and `null` when they cannot, so `⌜?⌝` asserts "both of these ceilings are well-defined quantities" — a real check that nothing else spells.
 
 ---
 
