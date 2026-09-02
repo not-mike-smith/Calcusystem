@@ -1,4 +1,4 @@
-using Calcusystem.Analysis.Results;
+using Calcusystem.Analysis.Outcomes;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Primitives;

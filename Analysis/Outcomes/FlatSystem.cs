@@ -2,7 +2,7 @@ using Calcusystem.Analysis.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 
-namespace Calcusystem.Analysis.Results;
+namespace Calcusystem.Analysis.Outcomes;
 
 /// <summary>
 /// One determining relationship, paired with the unknowns it is incident on.

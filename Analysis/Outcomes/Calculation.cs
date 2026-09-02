@@ -2,7 +2,7 @@ using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.Analysis.Results;
+namespace Calcusystem.Analysis.Outcomes;
 
 /// <summary>
 /// One calculation of a system: the values it was given, the values it produced, and what it could not reach.
