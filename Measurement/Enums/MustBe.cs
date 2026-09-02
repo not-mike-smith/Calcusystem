@@ -39,7 +39,7 @@ public enum MustBe : byte
     LessThan = 0b010,
 
     /// <summary>Accepts either strict ordering but not agreement. Written <c>≠</c>.</summary>
-    InequalTo = LessThan | GreaterThan,
+    UnequalTo = LessThan | GreaterThan,
 
     /// <summary>Accepts <see cref="ComparisonResult.Equal"/>. Written <c>=</c>.</summary>
     EqualTo = 0b100,

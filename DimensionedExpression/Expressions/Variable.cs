@@ -12,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// A mutable leaf expression — a named quantity whose <see cref="Value"/> is set directly. Construct it unset
 /// (dimensionality only) or with an initial <see cref="Measurand"/>; assigning a value of the wrong
-/// dimensionality throws <see cref="IncompatibleDimensionsException"/>. <see cref="DegreesOfFreedom"/> is 0 once
+/// dimensionality throws <see cref="IncompatibleDimensionsException"/>. <c>DegreesOfFreedom</c> is 0 once
 /// valued, else 1.
 /// <br/>
 /// Optionally carries an <see cref="IProvenance"/> recording where its value came from; purely descriptive, it

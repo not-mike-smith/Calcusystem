@@ -125,7 +125,7 @@ All operators implement `IBinaryOperator` (`Lhs`/`Rhs` expressions, `IsCommutati
 
 The split exists because **a verdict must be a function of the values it was handed.** `Calculate` has already computed every node; if it asked each operator instead, the operator would re-walk both subgraphs — twice per relationship — and, worse, would resolve them against the *stored* model, so a calculation run at trial values would quietly report checks against values it was told to ignore. See `Calcusystem.Analysis` for the outcomes it produces.
 
-There are three families — equality, tolerance (compatibility within uncertainty), and inequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
+There are three families — equality, tolerance (compatibility within uncertainty), and unequality (ordering, three strictness levels per direction). **The full taxonomy — every class, its symbol, commutativity, and exact interval condition — lives in [`BinaryOperators/OPERATORS.md`](BinaryOperators/OPERATORS.md).** Read that rather than the individual operator files.
 
 ### Operators declare, they do not compare
 

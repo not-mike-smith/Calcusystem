@@ -1,3 +1,5 @@
+using Calcusystem.Analysis.Results;
+
 namespace Calcusystem.Analysis.Enums;
 
 /// <summary>

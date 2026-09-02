@@ -12,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// factors' dimensionalities.
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> multiplication using the
-/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method, and <see cref="DegreesOfFreedom"/> is the sum
+/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method, and <c>DegreesOfFreedom</c> is the sum
 /// of the factors'.
 /// </summary>
 public class ProductExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<ProductExpression, NaryExpressionSnapshot>

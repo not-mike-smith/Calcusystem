@@ -1,4 +1,5 @@
 using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.DimensionedExpression.Interfaces;
 
 namespace Calcusystem.DimensionedExpression.Snapshots;
 

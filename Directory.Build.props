@@ -16,4 +16,16 @@
         <AssemblyName>Calcusystem.$(MSBuildProjectName)</AssemblyName>
     </PropertyGroup>
 
+    <!--
+      Doc comments are part of the contract, so the compiler checks them. Generating the XML file is what
+      turns cref resolution on; without it a <see cref="..."/> naming something that no longer exists is
+      invisible until a reader follows it. CS1591 stays a warning - not every public member needs prose -
+      but a reference that cannot resolve, or malformed XML, fails the build.
+    -->
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1570;CS1571;CS1572;CS1573;CS1574;CS1580;CS1581;CS1584</WarningsAsErrors>
+    </PropertyGroup>
+
 </Project>
