@@ -8,11 +8,11 @@ namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
 /// A node in a dimensioned expression tree — a leaf variable or a computed combination of other nodes.
-/// A node's <see cref="Dimensionality"/> is always known (structural), but its <see cref="Value"/> is produced
+/// A node's <see cref="Dimensionality"/> is always known (structural), but its value is produced
 /// only once every leaf it depends on has been given a value.
 /// </summary>
 /// <remarks>
-/// Implementations compute <see cref="Value"/> lazily on each access from their current children — there is no
+/// Implementations compute the value lazily on each call from their current children — there is no
 /// caching and no separate evaluate step. Arithmetic and uncertainty propagation are delegated to
 /// <see cref="Measurand"/>; this layer only assembles and walks the tree.
 /// </remarks>
@@ -25,7 +25,7 @@ public interface IExpression : IIdentified
     bool IsDirectlyMutable { get; }
 
     /// <summary>
-    /// Whether every leaf this node depends on has a value, so <see cref="Value"/> is non-null. Equivalent to
+    /// Whether every leaf this node depends on has a value, so <see cref="ComputeIfFullyDescribed"/> is non-null. Equivalent to
     /// <c>DegreesOfFreedom() == 0</c>.
     /// </summary>
     bool IsFullyDescribed { get; }
@@ -44,7 +44,7 @@ public interface IExpression : IIdentified
     /// <remarks>
     /// A node may appear as a child of more than one parent: the graph is a DAG, not a tree, and shared
     /// sub-expressions are the point of referencing neighbours by id. Any walk must therefore deduplicate by
-    /// <see cref="IIdentified.Id"/> — see <c>ExpressionTraversal</c>, which does.
+    /// <see cref="IIdentified.Id"/> — see <c>ExpressionGraph</c>, which does.
     /// </remarks>
     IEnumerable<IExpression> Children { get; }
 

@@ -8,7 +8,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// that is consistent with both uncertainties. This is the weakest form of agreement: even a single
 /// shared point in the two intervals is sufficient.
 /// <br/>
-/// Symbol: <b>{><}</b>
+/// Symbol: <b>{&gt;&lt;}</b>
 /// <br/>
 /// Use when checking whether two measurements are at least plausibly compatible, without requiring
 /// that one falls squarely within the other's band.

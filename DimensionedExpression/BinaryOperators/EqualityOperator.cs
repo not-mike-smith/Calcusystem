@@ -7,7 +7,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// <summary>
 /// Satisfied when the Lhs and Rhs agree, to the strictness named by <see cref="AgreementRule"/>.
 /// <br/>
-/// Symbol: <b>·==·</b>, <b>{·==·}</b> or <b>{>=<}</b> — each is the tolerance operator asserting the same
+/// Symbol: <b>·==·</b>, <b>{·==·}</b> or <b>{&gt;=&lt;}</b> — each is the tolerance operator asserting the same
 /// condition with an <c>=</c> inserted at its centre, which is what marks the equality family.
 /// <br/>
 /// Use when two quantities are expected to be the same, and say how nearly the same they must be.

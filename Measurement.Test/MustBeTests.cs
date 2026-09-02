@@ -63,7 +63,7 @@ public class MustBeTests
     [Theory]
     [InlineData(MustBe.LessThanOrEqualTo, ComparisonResult.LessThan, ComparisonResult.Equal)]
     [InlineData(MustBe.GreaterThanOrEqualTo, ComparisonResult.GreaterThan, ComparisonResult.Equal)]
-    [InlineData(MustBe.InequalTo, ComparisonResult.LessThan, ComparisonResult.GreaterThan)]
+    [InlineData(MustBe.UnequalTo, ComparisonResult.LessThan, ComparisonResult.GreaterThan)]
     public void ACompositeMaskAcceptsExactlyTheTwoResultsItUnions(
         MustBe type, ComparisonResult first, ComparisonResult second)
     {
@@ -78,7 +78,7 @@ public class MustBeTests
     /// </remarks>
     [Theory]
     [InlineData(MustBe.LessThan, MustBe.GreaterThanOrEqualTo)]
-    [InlineData(MustBe.EqualTo, MustBe.InequalTo)]
+    [InlineData(MustBe.EqualTo, MustBe.UnequalTo)]
     [InlineData(MustBe.Impossible, MustBe.Comparable)]
     public void ComplementingAMaskNegatesTheRelationItNames(MustBe type, MustBe expected) =>
         (MustBe.Comparable & ~type).Should().Be(expected);
