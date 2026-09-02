@@ -3,7 +3,7 @@ using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;
 

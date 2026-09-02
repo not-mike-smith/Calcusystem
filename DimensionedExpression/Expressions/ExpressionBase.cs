@@ -1,11 +1,9 @@
 using Calcusystem.Core.Identity;
-using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.DimensionedExpression.BaseModels;
+namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Base for every expression node, supplying the walks that are derivable from

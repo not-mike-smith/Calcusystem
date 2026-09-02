@@ -1,5 +1,5 @@
 using Calcusystem.DimensionedExpression.Expressions;
-using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
 using Xunit;

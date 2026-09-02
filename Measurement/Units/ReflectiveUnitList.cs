@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using Calcusystem.Measurement.Dimensions;
-using Calcusystem.Measurement.Units;
+using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.Measurement.BaseClasses;
+namespace Calcusystem.Measurement.Units;
 
 public abstract class ReflectiveUnitList<T> : UnitList where T : class
 {

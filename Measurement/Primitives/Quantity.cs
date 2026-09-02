@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using Calcusystem.Core.Interfaces;
-using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.State;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 
-namespace Calcusystem.Measurement.Quantities;
+namespace Calcusystem.Measurement.Primitives;
 
 /// <summary>
 /// A dimensioned scalar without uncertainty: a KMS-normalized value paired with its

@@ -1,6 +1,6 @@
 using System.Linq;
 using System;
-using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Primitives;
 using Calcusystem.Serialization.Mappers;
 using FluentAssertions;
 

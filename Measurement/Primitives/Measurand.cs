@@ -1,5 +1,4 @@
 using Calcusystem.Core.Interfaces;
-using Calcusystem.Measurement.Dimensions;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Factories;
@@ -8,7 +7,7 @@ using Calcusystem.Measurement.State;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 
-namespace Calcusystem.Measurement.Quantities;
+namespace Calcusystem.Measurement.Primitives;
 
 public class Measurand : IStateful<Measurand, MeasurandState>
 {

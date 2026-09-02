@@ -1,12 +1,11 @@
-﻿using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.DimensionedExpression.BaseModels;
+namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 public abstract class BinaryOperatorBase : IBinaryOperator
 {

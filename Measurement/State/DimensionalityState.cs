@@ -1,4 +1,4 @@
-using Calcusystem.Measurement.Dimensions;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.State;
 

@@ -1,7 +1,7 @@
 using Calcusystem.Analysis.Results;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.Measurement.Quantities;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Analysis.Extensions;
 
