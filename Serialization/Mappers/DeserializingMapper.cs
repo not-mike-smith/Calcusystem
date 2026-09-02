@@ -2,9 +2,9 @@ using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Serialization.Exceptions;
 
@@ -30,7 +30,7 @@ public class DeserializingMapper
     /// <remarks>
     /// Order matters and is this layer's responsibility: leaves first, then derived expressions as their
     /// dependencies appear, then operators over those expressions, and finally the system that references them
-    /// all. By the time any <c>FromState</c> asks the resolver for a neighbour, it is already present.
+    /// all. By the time any <c>FromSnapshot</c> asks the resolver for a neighbour, it is already present.
     /// </remarks>
     public ExpressionSystem Map(Dtos.ExpressionSystem x)
     {
@@ -47,8 +47,8 @@ public class DeserializingMapper
         }
 
         _context.ReferencingDto = x;
-        return ExpressionSystem.FromState(
-            new ExpressionSystemState(
+        return ExpressionSystem.FromSnapshot(
+            new ExpressionSystemSnapshot(
                 x.Id,
                 x.Name,
                 x.Description,
@@ -166,8 +166,8 @@ public class DeserializingMapper
         if (! _context.Contains(x.InnerId)) return null;
 
         _context.ReferencingDto = x;
-        return ExpressionFactory.FromState(
-            new UnaryExpressionState(WireNames.UnaryKind(x.Type), x.Id, x.InnerId),
+        return ExpressionFactory.FromSnapshot(
+            new UnaryExpressionSnapshot(WireNames.UnaryType(x.Type), x.Id, x.InnerId),
             _context);
     }
 
@@ -176,8 +176,8 @@ public class DeserializingMapper
         if (! x.InnerIds.All(_context.Contains)) return null;
 
         _context.ReferencingDto = x;
-        return ExpressionFactory.FromState(
-            new NaryExpressionState(WireNames.NaryKind(x.Type), x.Id, x.InnerIds, x.ErrorPropagation),
+        return ExpressionFactory.FromSnapshot(
+            new NaryExpressionSnapshot(WireNames.NaryType(x.Type), x.Id, x.InnerIds, x.UncertaintyPropagation),
             _context);
     }
 
@@ -186,18 +186,18 @@ public class DeserializingMapper
         if (! _context.Contains(x.InnerId1) || ! _context.Contains(x.InnerId2)) return null;
 
         _context.ReferencingDto = x;
-        return ExpressionFactory.FromState(
-            new BinaryExpressionState(
-                WireNames.BinaryKind(x.Type), x.Id, x.InnerId1, x.InnerId2, x.ErrorPropagation),
+        return ExpressionFactory.FromSnapshot(
+            new BinaryExpressionSnapshot(
+                WireNames.BinaryType(x.Type), x.Id, x.InnerId1, x.InnerId2, x.UncertaintyPropagation),
             _context);
     }
 
     public IBinaryOperator MapBinaryOperatorByPattern(Dtos.BinaryOperator x)
     {
         _context.ReferencingDto = x;
-        return BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(
-                WireNames.OperatorKind(x.Type),
+        return BinaryOperatorFactory.FromSnapshot(
+            new BinaryOperatorSnapshot(
+                WireNames.OperatorType(x.Type),
                 x.Id,
                 x.LhsId,
                 x.RhsId,
@@ -216,51 +216,51 @@ public class DeserializingMapper
     /// through the factory rather than filling in a landmark nobody wrote.
     /// </remarks>
     private static ComparisonRule? RuleOf(Dtos.BinaryOperator x) =>
-        x is { RuleLhs: { } lhs, RuleComparison: { } comparison, RuleRhs: { } rhs }
+        x is { RuleLhs: { } lhs, RuleMustBe: { } comparison, RuleRhs: { } rhs }
             ? new ComparisonRule(lhs, comparison, rhs)
             : null;
 
-    public Variable MapVariable(Dtos.SingleVariable v) => Variable.FromState(
-        new VariableState(
+    public Variable MapVariable(Dtos.SingleVariable v) => Variable.FromSnapshot(
+        new VariableSnapshot(
             v.Id,
             v.Symbol,
             DimensionalityCodec.Decode(v.Dimensionality),
             v.KmsValue is { } kms
-                ? new MeasurandState(
-                    new QuantityState(kms, DimensionalityCodec.Decode(v.Dimensionality)),
+                ? new MeasurandSnapshot(
+                    new QuantitySnapshot(kms, DimensionalityCodec.Decode(v.Dimensionality)),
                     MapUncertainty(v.Uncertainty))
                 : null,
             MapProvenance(v.Provenance)));
 
-    private static ProvenanceState? MapProvenance(Dtos.Provenance? provenance)
+    private static ProvenanceSnapshot? MapProvenance(Dtos.Provenance? provenance)
     {
         if (provenance is null) return null;
 
-        return WireNames.ProvenanceKindOf(provenance.Type) switch
+        return WireNames.ProvenanceTypeOf(provenance.Type) switch
         {
-            ProvenanceKind.Measured => ProvenanceState.Measured(
+            ProvenanceType.Measured => ProvenanceSnapshot.Measured(
                 provenance.Id, provenance.InstrumentId, provenance.CalibrationDate),
-            ProvenanceKind.Reference => ProvenanceState.Reference(
+            ProvenanceType.Reference => ProvenanceSnapshot.Reference(
                 provenance.Id, provenance.Citation!, provenance.Url, provenance.Year),
-            ProvenanceKind.Design => ProvenanceState.Design(
+            ProvenanceType.Design => ProvenanceSnapshot.Design(
                 provenance.Id, provenance.SpecReference),
-            ProvenanceKind.Model => ProvenanceState.Model(
+            ProvenanceType.Model => ProvenanceSnapshot.Model(
                 provenance.Id, provenance.ModelName!, provenance.FittingReference),
             var kind => throw new NotImplementedException($"No state mapping for provenance kind {kind}")
         };
     }
 
-    private static UncertaintyState MapUncertainty(Dtos.Uncertainty? uncertainty)
+    private static UncertaintySnapshot MapUncertainty(Dtos.Uncertainty? uncertainty)
     {
-        if (uncertainty is null) return UncertaintyState.Symmetric(false, 0);
+        if (uncertainty is null) return UncertaintySnapshot.Symmetric(false, 0);
 
         return uncertainty.Type switch
         {
-            nameof(SymmetricUncertainty) => UncertaintyState.Symmetric(
+            nameof(SymmetricUncertainty) => UncertaintySnapshot.Symmetric(
                 uncertainty.IsStoredAsAbs,
                 Required(uncertainty.Magnitude, nameof(uncertainty.Magnitude), uncertainty.Type)),
 
-            nameof(AsymmetricUncertainty) => UncertaintyState.Asymmetric(
+            nameof(AsymmetricUncertainty) => UncertaintySnapshot.Asymmetric(
                 uncertainty.IsStoredAsAbs,
                 Required(uncertainty.UpperMagnitude, nameof(uncertainty.UpperMagnitude), uncertainty.Type),
                 Required(uncertainty.LowerMagnitude, nameof(uncertainty.LowerMagnitude), uncertainty.Type)),

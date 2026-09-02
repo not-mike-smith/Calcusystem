@@ -38,7 +38,7 @@ public class ExpressionStateRoundTripTests
 
     private static Variable Dimensionless(string id, double value) => new(
         id,
-        Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+        Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelative(0.01)),
         id);
 
     [Fact]
@@ -47,7 +47,7 @@ public class ExpressionStateRoundTripTests
         var area = new Variable(
             "a",
             (Dimensionality.Length * Dimensionality.Length).Quantity(9).Measurand(
-                SymmetricUncertainty.FromRelErr(0.02)),
+                SymmetricUncertainty.FromRelative(0.02)),
             "a");
 
         var restored = RoundTrip(SystemWith(area, new SqrtExpression(area, "root"), "sqrt"));
@@ -55,7 +55,7 @@ public class ExpressionStateRoundTripTests
         var root = restored.DerivedExpressions.Single();
         root.Should().BeOfType<SqrtExpression>();
         root.Id.Should().Be("root");
-        root.ComputeIfDetermined()!.In(Length.Meter).Should().BeApproximately(3, 1e-12);
+        root.ComputeIfFullyDescribed()!.In(Length.Meter).Should().BeApproximately(3, 1e-12);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class ExpressionStateRoundTripTests
         var exp = restored.DerivedExpressions.Single();
         exp.Should().BeOfType<ExponentialExpression>();
         exp.Id.Should().Be("exp");
-        exp.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(System.Math.E * System.Math.E, 1e-12);
+        exp.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(System.Math.E * System.Math.E, 1e-12);
     }
 
     [Fact]
@@ -81,13 +81,13 @@ public class ExpressionStateRoundTripTests
         var ln = restored.DerivedExpressions.Single();
         ln.Should().BeOfType<NaturalLogExpression>();
         ln.Id.Should().Be("ln");
-        ln.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(1, 1e-12);
+        ln.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(1, 1e-12);
     }
 
     [Fact]
-    public void QuotientKeepsItsErrorPropagationMethod()
+    public void QuotientKeepsItsUncertaintyPropagation()
     {
-        // PairDerivedVariable carried no ErrorPropagation, so a quotient configured as Correlated came back
+        // PairDerivedVariable carried no UncertaintyPropagation, so a quotient configured as Correlated came back
         // Uncorrelated with no indication anything had changed.
         var numerator = Dimensionless("n", 6);
         var denominator = Dimensionless("d", 3);
@@ -100,13 +100,13 @@ public class ExpressionStateRoundTripTests
             Id = "q",
             Numerator = numerator,
             Denominator = denominator,
-            ErrorPropagation = ErrorPropagationMethod.Correlated,
+            UncertaintyPropagation = UncertaintyPropagation.Correlated,
         });
 
         var restored = (QuotientExpression)RoundTrip(system).DerivedExpressions.Single();
 
-        restored.ErrorPropagation.Should().Be(ErrorPropagationMethod.Correlated);
-        restored.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
+        restored.UncertaintyPropagation.Should().Be(UncertaintyPropagation.Correlated);
+        restored.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 
     [Fact]
@@ -149,6 +149,6 @@ public class ExpressionStateRoundTripTests
         var restored = RoundTrip(system);
 
         var restoredRoot = restored.DerivedExpressions.OfType<SqrtExpression>().Single();
-        restoredRoot.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(2, 1e-12);
+        restoredRoot.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 }

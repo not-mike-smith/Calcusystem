@@ -1,7 +1,8 @@
 using Calcusystem.Measurement.Extensions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
+using Calcusystem.Measurement.Factories;
 
 namespace Calcusystem.Measurement.Uncertainties;
 
@@ -15,7 +16,7 @@ public sealed class AsymmetricUncertainty : IUncertainty
 {
     /// <summary>Whether the magnitudes are relative fractions or absolute KMS errors.</summary>
     /// <remarks>An implementation detail of the storage convention; it leaves the assembly only as part of
-    /// <see cref="UncertaintyState"/>.</remarks>
+    /// <see cref="UncertaintySnapshot"/>.</remarks>
     internal bool IsStoredAsAbs { get; }
 
     /// <summary>The stored error above the nominal value — relative or absolute per <see cref="IsStoredAsAbs"/>.</summary>
@@ -34,61 +35,61 @@ public sealed class AsymmetricUncertainty : IUncertainty
         LowerMagnitude = lower;
     }
 
-    public double UpperAbsoluteError(double nominalKmsValue) => IsStoredAsAbs switch
+    public double UpperAbsoluteUncertainty(double nominalKmsValue) => IsStoredAsAbs switch
     {
         true => UpperMagnitude,
         false => UpperMagnitude * Math.Abs(nominalKmsValue),
     };
 
-    public double LowerAbsoluteError(double nominalKmsValue) => IsStoredAsAbs switch
+    public double LowerAbsoluteUncertainty(double nominalKmsValue) => IsStoredAsAbs switch
     {
         true => LowerMagnitude,
         false => LowerMagnitude * Math.Abs(nominalKmsValue),
     };
 
-    public double UpperRelativeError(double nominalKmsValue) => IsStoredAsAbs switch
+    public double UpperRelativeUncertainty(double nominalKmsValue) => IsStoredAsAbs switch
     {
         true => UpperMagnitude.SafeDivide(Math.Abs(nominalKmsValue)),
         false => UpperMagnitude,
     };
 
-    public double LowerRelativeError(double nominalKmsValue) => IsStoredAsAbs switch
+    public double LowerRelativeUncertainty(double nominalKmsValue) => IsStoredAsAbs switch
     {
         true => LowerMagnitude.SafeDivide(Math.Abs(nominalKmsValue)),
         false => LowerMagnitude,
     };
 
-    public double RelativeError(double nominalKmsValue) => 
-        Math.Max(UpperRelativeError(nominalKmsValue), LowerRelativeError(nominalKmsValue));
+    public double RelativeUncertainty(double nominalKmsValue) => 
+        Math.Max(UpperRelativeUncertainty(nominalKmsValue), LowerRelativeUncertainty(nominalKmsValue));
 
-    public double AbsoluteError(double nominalKmsValue) =>
-        Math.Max(UpperAbsoluteError(nominalKmsValue), LowerAbsoluteError(nominalKmsValue));
+    public double AbsoluteUncertainty(double nominalKmsValue) =>
+        Math.Max(UpperAbsoluteUncertainty(nominalKmsValue), LowerAbsoluteUncertainty(nominalKmsValue));
 
     /// <summary>Rebuilds an uncertainty from its stored form. Reached from outside the assembly only through
-    /// <see cref="UncertaintyFactory.FromState"/>.</summary>
+    /// <see cref="UncertaintyFactory.FromSnapshot"/>.</summary>
     internal static AsymmetricUncertainty From(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) =>
         new(isStoredAsAbs, upperMagnitude, lowerMagnitude);
 
     /// <summary>
     /// Creates an asymmetric uncertainty from independent upper/lower absolute errors.
     /// </summary>
-    public static AsymmetricUncertainty FromAbsErr(Quantity upperAbsoluteError, Quantity lowerAbsoluteError)
+    public static AsymmetricUncertainty FromAbsolute(Quantity upperAbsoluteUncertainty, Quantity lowerAbsoluteUncertainty)
     {
         return new AsymmetricUncertainty(
             true,
-            upperAbsoluteError.KmsValue,
-            lowerAbsoluteError.KmsValue);
+            upperAbsoluteUncertainty.KmsValue,
+            lowerAbsoluteUncertainty.KmsValue);
     }
 
     /// <summary>
     /// Creates an asymmetric uncertainty from independent upper/lower relative errors (fractions).
     /// </summary>
-    public static AsymmetricUncertainty FromRelErr(double upperRelativeError, double lowerRelativeError)
+    public static AsymmetricUncertainty FromRelative(double upperRelativeUncertainty, double lowerRelativeUncertainty)
     {
         return new AsymmetricUncertainty(
             false,
-            upperRelativeError,
-            lowerRelativeError);
+            upperRelativeUncertainty,
+            lowerRelativeUncertainty);
     }
 
     public IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator)
@@ -96,8 +97,8 @@ public sealed class AsymmetricUncertainty : IUncertainty
         // Relative error of x^p is |p| times the relative error of x; a negative p makes x^p decreasing,
         // swapping the directional bounds.
         var factor = Math.Abs((double)exponentNumerator / exponentDenominator);
-        var upper = UpperRelativeError(nominalKmsValue) * factor;
-        var lower = LowerRelativeError(nominalKmsValue) * factor;
+        var upper = UpperRelativeUncertainty(nominalKmsValue) * factor;
+        var lower = LowerRelativeUncertainty(nominalKmsValue) * factor;
 
         var decreasing = (exponentNumerator < 0) ^ (exponentDenominator < 0);
         return decreasing ? From(false, lower, upper) : From(false, upper, lower);
@@ -107,8 +108,8 @@ public sealed class AsymmetricUncertainty : IUncertainty
     {
         return new AsymmetricUncertainty(
             false,
-            LowerRelativeError(nominalKmsValue),
-            UpperRelativeError(nominalKmsValue));
+            LowerRelativeUncertainty(nominalKmsValue),
+            UpperRelativeUncertainty(nominalKmsValue));
     }
 
     public IUncertainty Negated(double nominalKmsValue) =>
@@ -116,6 +117,6 @@ public sealed class AsymmetricUncertainty : IUncertainty
 
     /// <remarks>Explicit implementation: the storage form is reachable through <see cref="IUncertainty"/>, but is
     /// not part of this class's own public surface.</remarks>
-    UncertaintyState IUncertainty.GetState() =>
-        UncertaintyState.Asymmetric(IsStoredAsAbs, UpperMagnitude, LowerMagnitude);
+    UncertaintySnapshot IUncertainty.GetSnapshot() =>
+        UncertaintySnapshot.Asymmetric(IsStoredAsAbs, UpperMagnitude, LowerMagnitude);
 }

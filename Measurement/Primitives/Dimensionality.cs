@@ -1,8 +1,9 @@
 using Calcusystem.Core.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Extensions;
-using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Snapshots;
 using ExponentDict = System.Collections.Generic.IReadOnlyDictionary<Calcusystem.Measurement.Primitives.FundamentalDimension, int>;
+using Calcusystem.Measurement.Units;
 
 namespace Calcusystem.Measurement.Primitives;
 
@@ -19,7 +20,7 @@ namespace Calcusystem.Measurement.Primitives;
 /// the algebra operators, not directly. Combine the fields to express derived dimensions, e.g.
 /// <c>Mass * Length / (Time * Time)</c> for force.
 /// </remarks>
-public readonly struct Dimensionality : IStateful<Dimensionality, DimensionalityState>
+public readonly struct Dimensionality : ISnapshotting<Dimensionality, DimensionalitySnapshot>
 {
     /// <summary>The empty dimension (all exponents zero) — a pure number such as a ratio or count.</summary>
     public static readonly Dimensionality Dimensionless = new Dimensionality(
@@ -71,13 +72,13 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
     /// The largest magnitude meaningful for this dimension, composed the same way. The counterpart to
     /// <see cref="Epsilon"/>: past it a value is not large, it is wrong.
     /// </summary>
-    internal readonly double MaxValue;
+    internal readonly double PlausibleMaximum;
 
     private Dimensionality(ExponentDict fundamentalDimensions)
     {
         _fundamentalDimensions = Reduce(fundamentalDimensions);
         Epsilon = CalculateEpsilon();
-        MaxValue = CalculateMaxValue();
+        PlausibleMaximum = CalculateMaxValue();
     }
 
     private Dimensionality(FundamentalDimension fundamentalDimension)
@@ -88,7 +89,7 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
         };
 
         Epsilon = CalculateEpsilon();
-        MaxValue = CalculateMaxValue();
+        PlausibleMaximum = CalculateMaxValue();
     }
 
     private Dimensionality(IEnumerable<KeyValuePair<FundamentalDimension, int>> pairs)
@@ -112,7 +113,7 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
         _fundamentalDimensions = Reduce(dictionary);
 
         Epsilon = CalculateEpsilon();
-        MaxValue = CalculateMaxValue();
+        PlausibleMaximum = CalculateMaxValue();
     }
 
     private double CalculateEpsilon()
@@ -123,7 +124,7 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
             1d,
             (double x, KeyValuePair<FundamentalDimension, int> pair) =>
                 pair.Value < 0
-                    ? x / Math.Pow(pair.Key.MaxValue, -pair.Value)
+                    ? x / Math.Pow(pair.Key.PlausibleMaximum, -pair.Value)
                     : x * Math.Pow(pair.Key.QuantumValue, pair.Value));
     }
 
@@ -136,21 +137,21 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
             (double x, KeyValuePair<FundamentalDimension, int> pair) =>
                 pair.Value < 0
                     ? x / Math.Pow(pair.Key.QuantumValue, -pair.Value)
-                    : x * Math.Pow(pair.Key.MaxValue, pair.Value));
+                    : x * Math.Pow(pair.Key.PlausibleMaximum, pair.Value));
     }
 
     /// <inheritdoc/>
     /// <remarks>Ordered by <see cref="FundamentalDimension.Order"/>, so a consumer that writes the pairs out in
     /// iteration order gets a stable result for dimensionally-equal values without having to sort them itself.
     /// </remarks>
-    public DimensionalityState GetState()
+    public DimensionalitySnapshot GetSnapshot()
     {
         var me = this;
-        return new DimensionalityState(OrderedKeys.ToDictionary(key => key, key => me[key]));
+        return new DimensionalitySnapshot(OrderedKeys.ToDictionary(key => key, key => me[key]));
     }
 
     /// <inheritdoc/>
-    public static Dimensionality FromState(DimensionalityState state) => new(state.Pairs);
+    public static Dimensionality FromSnapshot(DimensionalitySnapshot state) => new(state.Pairs);
 
     private static ExponentDict Reduce(ExponentDict fundamentalDimensions)
     {
@@ -169,7 +170,7 @@ public readonly struct Dimensionality : IStateful<Dimensionality, Dimensionality
             : 0;
 
     /// <summary>
-    /// Creates a <see cref="Quantity"/> of this dimensionality directly from a raw KMS value. Unlike
+    /// Creates a <see cref="Primitives.Quantity"/> of this dimensionality directly from a raw KMS value. Unlike
     /// <see cref="UnitOfMeasure.Quantity"/>, no unit conversion is applied — the value is taken as already
     /// KMS-normalized.
     /// </summary>

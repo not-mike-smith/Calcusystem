@@ -10,16 +10,16 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 
 public class ToleranceOperatorTests
 {
-    // Creates a bound Variable: kmsValue kg, symmetric relativeError
-    private static Variable Symmetric(double kmsValue, double relativeError = 0) =>
-        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
+    // Creates a bound Variable: kmsValue kg, symmetric relativeUncertainty
+    private static Variable Symmetric(double kmsValue, double relativeUncertainty = 0) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
     // Creates a bound Variable with independent upper/lower absolute errors (kg)
     private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
-            AsymmetricUncertainty.FromAbsErr(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
+            AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
 
-    private static Variable Unbound() =>
+    private static Variable Unset() =>
         new("x", Mass.Kilogram.Dimensionality);
 
     private static WithinBindingToleranceOperator PointOp(Variable lhs, Variable rhs) =>
@@ -38,25 +38,25 @@ public class ToleranceOperatorTests
     // ── Null / not-fully-described ────────────────────────────────────────────
 
     [Fact]
-    public void AllOperators_ReturnNull_WhenLhsIsUnbound()
+    public void AllOperators_ReturnNull_WhenLhsIsUnset()
     {
-        PointOp(Unbound(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
-        MutualOp(Unbound(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
-        WhollyOp(Unbound(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
-        AnyOp(Unbound(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
-        UpperOp(Unbound(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
-        LowerOp(Unbound(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
+        PointOp(Unset(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
+        MutualOp(Unset(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
+        WhollyOp(Unset(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
+        AnyOp(Unset(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
+        UpperOp(Unset(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
+        LowerOp(Unset(), Symmetric(10, 0.1)).IsSatisfied().Should().BeNull();
     }
 
     [Fact]
-    public void AllOperators_ReturnNull_WhenRhsIsUnbound()
+    public void AllOperators_ReturnNull_WhenRhsIsUnset()
     {
-        PointOp(Symmetric(10, 0.1), Unbound()).IsSatisfied().Should().BeNull();
-        MutualOp(Symmetric(10, 0.1), Unbound()).IsSatisfied().Should().BeNull();
-        WhollyOp(Symmetric(10, 0.1), Unbound()).IsSatisfied().Should().BeNull();
-        AnyOp(Symmetric(10, 0.1), Unbound()).IsSatisfied().Should().BeNull();
-        UpperOp(Symmetric(10, 0.1), Unbound()).IsSatisfied().Should().BeNull();
-        LowerOp(Symmetric(10, 0.1), Unbound()).IsSatisfied().Should().BeNull();
+        PointOp(Symmetric(10, 0.1), Unset()).IsSatisfied().Should().BeNull();
+        MutualOp(Symmetric(10, 0.1), Unset()).IsSatisfied().Should().BeNull();
+        WhollyOp(Symmetric(10, 0.1), Unset()).IsSatisfied().Should().BeNull();
+        AnyOp(Symmetric(10, 0.1), Unset()).IsSatisfied().Should().BeNull();
+        UpperOp(Symmetric(10, 0.1), Unset()).IsSatisfied().Should().BeNull();
+        LowerOp(Symmetric(10, 0.1), Unset()).IsSatisfied().Should().BeNull();
     }
 
     // ── WithinBindingToleranceOperator (=}) ──────────────────────────────────
@@ -203,7 +203,7 @@ public class ToleranceOperatorTests
     // test point >= binding lower AND test upper <= binding upper
 
     [Fact]
-    public void PointAndUpperBound_BothConditionsMet_IsTrue()
+    public void PointAndUpperValued_BothConditionsMet_IsTrue()
     {
         // test: 10 ± 1 → upper=11;  binding: 10 ± 2 → [8, 12]
         // 10 >= 8 ✓ and 11 <= 12 ✓
@@ -212,7 +212,7 @@ public class ToleranceOperatorTests
     }
 
     [Fact]
-    public void PointAndUpperBound_TestUpperExceedsBinding_IsFalse()
+    public void PointAndUpperValued_TestUpperExceedsBinding_IsFalse()
     {
         // test: 11 ± 2 → upper=13;  binding: 10 ± 2 → [8, 12]
         // 13 > 12 → false
@@ -221,7 +221,7 @@ public class ToleranceOperatorTests
     }
 
     [Fact]
-    public void PointAndUpperBound_TestPointBelowBindingLower_IsFalse()
+    public void PointAndUpperValued_TestPointBelowBindingLower_IsFalse()
     {
         // test: 7 ± 0.1;  binding: 10 ± 2 → lower=8
         // 7 < 8 → false
@@ -233,7 +233,7 @@ public class ToleranceOperatorTests
     // test point <= binding upper AND test lower >= binding lower
 
     [Fact]
-    public void PointAndLowerBound_BothConditionsMet_IsTrue()
+    public void PointAndLowerValued_BothConditionsMet_IsTrue()
     {
         // test: 10 ± 1 → lower=9;  binding: 10 ± 2 → [8, 12]
         // 10 <= 12 ✓ and 9 >= 8 ✓
@@ -242,7 +242,7 @@ public class ToleranceOperatorTests
     }
 
     [Fact]
-    public void PointAndLowerBound_TestLowerBelowBindingLower_IsFalse()
+    public void PointAndLowerValued_TestLowerBelowBindingLower_IsFalse()
     {
         // test: 9 ± 2 → lower=7;  binding: 10 ± 2 → lower=8
         // 7 < 8 → false
@@ -251,7 +251,7 @@ public class ToleranceOperatorTests
     }
 
     [Fact]
-    public void PointAndLowerBound_TestPointAboveBindingUpper_IsFalse()
+    public void PointAndLowerValued_TestPointAboveBindingUpper_IsFalse()
     {
         // test: 13 ± 0.1;  binding: 10 ± 2 → upper=12
         // 13 > 12 → false
@@ -311,7 +311,7 @@ public class ToleranceOperatorTests
         var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "test",
-            Lhs = Unbound(),
+            Lhs = Unset(),
             Rhs = Symmetric(10.0)
         };
         op.IsSatisfied().Should().BeNull();

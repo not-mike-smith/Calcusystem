@@ -11,4 +11,4 @@ namespace Calcusystem.Measurement.Uncertainties;
 /// extensions rather than by hand.
 /// </remarks>
 /// <param name="Value">The error as a fraction: 0.01 is one percent.</param>
-public readonly record struct RelativeError(double Value);
+public readonly record struct RelativeUncertainty(double Value);

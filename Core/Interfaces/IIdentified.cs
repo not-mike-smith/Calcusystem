@@ -6,7 +6,7 @@ namespace Calcusystem.Core.Interfaces;
 /// <remarks>
 /// <para>
 /// The id is what lets a flattened graph rebuild its references: parents name their children by id rather than
-/// containing them, so identity has to outlive a round trip. <see cref="IdBase"/> is the usual implementation.
+/// containing them, so identity has to outlive a round trip. <see cref="Identity.IdBase"/> is the usual implementation.
 /// </para>
 /// <para>
 /// Being identified does not imply being <i>referenceable</i>. Provenance has an id that round-trips for

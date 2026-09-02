@@ -1,7 +1,7 @@
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
@@ -13,9 +13,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <see cref="AddAddend"/>; the constructor can seed a fixed dimensionality for an otherwise-empty sum).
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> addition using the
-/// <see cref="ComputedExpressionBase.ErrorPropagation"/> method.
+/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method.
 /// </summary>
-public class SumExpression : ComputedExpressionBase, IComputedExpression, IStatefulNode<SumExpression, NaryExpressionState>
+public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<SumExpression, NaryExpressionSnapshot>
 {
     private readonly List<IExpression> _addends = new();
 
@@ -40,13 +40,13 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     /// <remarks>Addends are read in declaration order, so an addend listed twice contributes twice.</remarks>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null)
+        IUncertaintyPropagator? propagator = null)
     {
         if (_addends.Count == 0 || _addends.Any(a => ! known.ContainsKey(a))) return null;
 
         // One n-ary call rather than folding pairwise: the propagator combines all the errors at once instead
         // of building an intermediate Measurand per addend.
-        return Measurand.Sum(ErrorPropagation, propagator, _addends.Select(a => known[a]));
+        return Measurand.Sum(UncertaintyPropagation, propagator, _addends.Select(a => known[a]));
     }
 
     public override string ToString()
@@ -58,14 +58,14 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
     public override IEnumerable<IExpression> Children => _addends;
 
     /// <inheritdoc/>
-    public NaryExpressionState GetState() =>
-        new(NaryExpressionKind.Sum, Id, Addends.Select(a => a.Id).ToList(), ErrorPropagation);
+    public NaryExpressionSnapshot GetSnapshot() =>
+        new(NaryExpressionType.Sum, Id, Addends.Select(a => a.Id).ToList(), UncertaintyPropagation);
 
     /// <inheritdoc/>
-    public static SumExpression FromState(NaryExpressionState state, INodeResolver resolve) =>
+    public static SumExpression FromSnapshot(NaryExpressionSnapshot state, INodeResolver resolve) =>
         new(state.InnerIds.Select(resolve.Resolve<IExpression>))
         {
             Id = state.Id,
-            ErrorPropagation = state.ErrorPropagation,
+            UncertaintyPropagation = state.UncertaintyPropagation,
         };
 }

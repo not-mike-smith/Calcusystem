@@ -1,7 +1,7 @@
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
@@ -44,7 +44,7 @@ public interface IBinaryOperator : IIdentified
     /// <remarks>
     /// On the interface because it is how a relationship identifies itself to a reader — <c>ToString()</c> is
     /// <c>{Lhs} {Symbol} {Rhs}</c> — so anything holding an <see cref="IBinaryOperator"/> and reporting on it
-    /// needs it. Presentation only: nothing dispatches on it, and <c>BinaryOperatorKind</c> is what the wire
+    /// needs it. Presentation only: nothing dispatches on it, and <c>BinaryOperatorType</c> is what the wire
     /// carries.
     /// </remarks>
     string Symbol { get; }
@@ -134,21 +134,21 @@ public interface IBinaryOperator : IIdentified
     /// </remarks>
     /// <param name="overrides">
     /// Values supplied for this evaluation only, taking precedence over a variable's own — the same bindings
-    /// <see cref="IExpression.ComputeIfDetermined"/> takes.
+    /// <see cref="IExpression.ComputeIfFullyDescribed"/> takes.
     /// </param>
     /// <param name="propagator">How uncertainties are combined, or null for the conservative default.</param>
     bool? IsSatisfied(
         IReadOnlyDictionary<Variable, Measurand>? overrides = null,
-        IErrorPropagator? propagator = null);
+        IUncertaintyPropagator? propagator = null);
 
     /// <summary>Whether both operands have values, so <see cref="IsSatisfied"/> can return a definite result.</summary>
     bool AreBothSidesFullyDescribed { get; }
 
     /// <summary>
-    /// The distinct unbound variables reachable from either side — the unknowns this relationship is incident
+    /// The distinct unset variables reachable from either side — the unknowns this relationship is incident
     /// on, and its row of the incidence structure a structural analysis matches over.
     /// </summary>
-    IEnumerable<Variable> FreeVariables();
+    IEnumerable<Variable> UnsetVariables();
 
     /// <summary>
     /// Optional audit annotation describing where this relationship came from (e.g. a citation for a
@@ -158,7 +158,7 @@ public interface IBinaryOperator : IIdentified
 
     /// <summary>
     /// Returns the complete stored state of this operator — which operator it is, its operand ids, and its
-    /// annotations. Rebuild via <c>BinaryOperatorFactory.FromState</c>.
+    /// annotations. Rebuild via <c>BinaryOperatorFactory.FromSnapshot</c>.
     /// </summary>
-    BinaryOperatorState GetState();
+    BinaryOperatorSnapshot GetSnapshot();
 }

@@ -47,7 +47,7 @@ public static class SystemFlattener
         // an interval, which no solver can turn into a point, so counting one here would claim a degree of
         // freedom had been removed when it had not.
         var equations = system.Relationships.Where(r => r.IsDetermining)
-            .Select(r => new Equation(r, r.FreeVariables().Where(IsUnknown).Distinct().ToList()))
+            .Select(r => new Equation(r, r.UnsetVariables().Where(IsUnknown).Distinct().ToList()))
             .ToList();
 
         return new FlatSystem(unknowns, equations);

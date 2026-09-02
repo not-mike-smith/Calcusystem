@@ -34,7 +34,7 @@ public class SingleVariable : ExpressionBase
 
     /// <summary>
     /// The variable's dimension in its canonical encoded form (e.g. <c>"M1,L1,T-2"</c>); empty for a
-    /// dimensionless variable. See <see cref="DimensionalityState"/>.
+    /// dimensionless variable. See <see cref="DimensionalitySnapshot"/>.
     /// </summary>
     /// <remarks>
     /// A string, not the <c>Dimensionality</c> struct. The struct's exponent map is private, so a serializer
@@ -60,16 +60,16 @@ public class PairDerivedVariable : ExpressionBase
 
     /// <summary>
     /// How child uncertainties are combined. Not <c>required</c>: payloads written before this field existed
-    /// simply lack it, and <see cref="ErrorPropagationMethod.Uncorrelated"/> — the default both here and on the
+    /// simply lack it, and <see cref="UncertaintyPropagation.Uncorrelated"/> — the default both here and on the
     /// expression itself — is what they meant.
     /// </summary>
-    // TODO: renaming `ErrorPropagationMethod`/`ErrorPropagation` (see the note on the enum) changes this
+    // TODO: renaming `UncertaintyPropagation`/`UncertaintyPropagation` (see the note on the enum) changes this
     // property name, which is on the wire — the one part of that rename that breaks stored payloads.
-    public ErrorPropagationMethod ErrorPropagation { get; init; }
+    public UncertaintyPropagation UncertaintyPropagation { get; init; }
 }
 
 public class ListDerivedVariable : ExpressionBase
 {
     public required List<string> InnerIds { get; init; }
-    public required ErrorPropagationMethod  ErrorPropagation { get; init; }
+    public required UncertaintyPropagation  UncertaintyPropagation { get; init; }
 }

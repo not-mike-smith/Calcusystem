@@ -31,7 +31,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// <param name="Lhs">Which landmark of the left value is compared.</param>
 /// <param name="Type">Which outcomes count as satisfying the rule.</param>
 /// <param name="Rhs">Which landmark of the right value it is compared against.</param>
-public readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, Landmark Rhs)
+public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landmark Rhs)
 {
     /// <summary>
     /// Whether this rule holds for the two values supplied, or <see langword="null"/> when the comparison has no
@@ -47,7 +47,7 @@ public readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, 
     {
         var result = MeasurandComparer.Compare(lhs, Lhs, rhs, Rhs);
 
-        return result is ComparisonResult.Incomparable ? null : (result & (ComparisonResult)Type) != 0;
+        return result is ComparisonResult.Incomparable ? null : (result & (ComparisonResult)MustBe) != 0;
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, 
     /// two hand-written declarations rather than something the code states and a test can check.
     /// </para>
     /// </remarks>
-    public ComparisonRule Mirrored => new(Rhs, Reverse(Type), Lhs);
+    public ComparisonRule Mirrored => new(Rhs, Reverse(MustBe), Lhs);
 
     /// <summary>
     /// This rule written in the operator notation — the left glyph, the relation, the right glyph.
@@ -84,7 +84,7 @@ public readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, 
     /// its two rules would lose the thing the notation exists to convey.
     /// </para>
     /// </remarks>
-    public string Symbol => $"{LeftGlyph(Lhs)}{RelationGlyph(Type)}{RightGlyph(Rhs)}";
+    public string Symbol => $"{LeftGlyph(Lhs)}{RelationGlyph(MustBe)}{RightGlyph(Rhs)}";
 
     public override string ToString() => Symbol;
 
@@ -120,12 +120,12 @@ public readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, 
     /// side. As a mask this is a permutation, so <c>≤</c> reverses to <c>≥</c> and <c>≠</c> to itself with no
     /// case analysis beyond the two bits.
     /// </remarks>
-    private static ComparisonType Reverse(ComparisonType type)
+    private static MustBe Reverse(MustBe type)
     {
-        var reversed = type & ComparisonType.EqualTo;
+        var reversed = type & MustBe.EqualTo;
 
-        if (type.HasFlag(ComparisonType.LessThan)) reversed |= ComparisonType.GreaterThan;
-        if (type.HasFlag(ComparisonType.GreaterThan)) reversed |= ComparisonType.LessThan;
+        if (type.HasFlag(MustBe.LessThan)) reversed |= MustBe.GreaterThan;
+        if (type.HasFlag(MustBe.GreaterThan)) reversed |= MustBe.LessThan;
 
         return reversed;
     }
@@ -146,16 +146,16 @@ public readonly record struct ComparisonRule(Landmark Lhs, ComparisonType Type, 
         _ => throw new ArgumentOutOfRangeException(nameof(landmark), landmark, "Unknown landmark."),
     };
 
-    private static string RelationGlyph(ComparisonType type) => type switch
+    private static string RelationGlyph(MustBe type) => type switch
     {
-        ComparisonType.None => "∅",
-        ComparisonType.GreaterThan => ">",
-        ComparisonType.LessThan => "<",
-        ComparisonType.InequalTo => "≠",
-        ComparisonType.EqualTo => "=",
-        ComparisonType.GreaterThanOrEqualTo => "≥",
-        ComparisonType.LessThanOrEqualTo => "≤",
-        ComparisonType.Any => "?",
+        MustBe.Impossible => "∅",
+        MustBe.GreaterThan => ">",
+        MustBe.LessThan => "<",
+        MustBe.InequalTo => "≠",
+        MustBe.EqualTo => "=",
+        MustBe.GreaterThanOrEqualTo => "≥",
+        MustBe.LessThanOrEqualTo => "≤",
+        MustBe.Comparable => "?",
         _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown comparison type."),
     };
 }

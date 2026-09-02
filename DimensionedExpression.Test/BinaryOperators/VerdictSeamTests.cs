@@ -18,13 +18,13 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 /// </summary>
 public class VerdictSeamTests
 {
-    private static Variable Bound(double kmsValue, double relErr = 0) =>
-        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelErr(relErr)));
+    private static Variable Valued(double kmsValue, double relErr = 0) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relErr)));
 
-    private static Variable Unbound() => new("x", Mass.Kilogram.Dimensionality);
+    private static Variable Unset() => new("x", Mass.Kilogram.Dimensionality);
 
     private static Measurand Kg(double kmsValue, double relErr = 0) =>
-        Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelErr(relErr));
+        Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relErr));
 
     /// <summary>One of each operator, all over the same two operands.</summary>
     private static IEnumerable<IBinaryOperator> AllOperators(IExpression lhs, IExpression rhs) =>
@@ -42,7 +42,7 @@ public class VerdictSeamTests
         new AnyToleranceOverlapOperator { Id = "k", Lhs = lhs, Rhs = rhs },
         new WhollyWithinToleranceOperator { Id = "l", Lhs = lhs, Rhs = rhs },
         new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement) { Id = "m", Lhs = lhs, Rhs = rhs },
-        new SimpleComparison(new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound))
+        new SimpleComparison(new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound))
             { Id = "n", Lhs = lhs, Rhs = rhs },
     ];
 
@@ -50,7 +50,7 @@ public class VerdictSeamTests
     public void ThereAreFourteenOperatorsAndTheListIsComplete()
     {
         // Guards the sweeps below: a fifteenth operator that skipped this list would be silently untested.
-        var covered = AllOperators(Bound(1), Bound(1)).Select(o => o.GetType()).ToHashSet();
+        var covered = AllOperators(Valued(1), Valued(1)).Select(o => o.GetType()).ToHashSet();
 
         var declared = typeof(DefinitelyLessThanOperator).Assembly.GetTypes()
             .Where(t => ! t.IsAbstract && typeof(IBinaryOperator).IsAssignableFrom(t))
@@ -100,7 +100,7 @@ public class VerdictSeamTests
     [Fact]
     public void ACommutativeOperatorIsExactlyOneWhoseSymbolReadsTheSameBothWays()
     {
-        foreach (var op in AllOperators(Bound(1), Bound(1)))
+        foreach (var op in AllOperators(Valued(1), Valued(1)))
         {
             (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(
                 op.IsCommutative,
@@ -123,7 +123,7 @@ public class VerdictSeamTests
     public void AnEqualitySymbolIsItsConditionsSymbolWithACentredEquals(
         AgreementRule rule, string counterpart)
     {
-        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Valued(1), Rhs = Valued(1) };
 
         op.Symbol.Should().Be(counterpart.Insert(counterpart.Length / 2, "="));
     }
@@ -137,7 +137,7 @@ public class VerdictSeamTests
             // The condition is one rule, so its counterpart is that rule's own generated symbol.
             {
                 AgreementRule.Nominal,
-                new ComparisonRule(Landmark.Nominal, ComparisonType.EqualTo, Landmark.Nominal).Symbol
+                new ComparisonRule(Landmark.Nominal, MustBe.EqualTo, Landmark.Nominal).Symbol
             },
             {
                 AgreementRule.Mutual,
@@ -161,7 +161,7 @@ public class VerdictSeamTests
     [InlineData(AgreementRule.Overlapping)]
     public void EveryAgreementRuleSpellsACommutativeSymbol(AgreementRule rule)
     {
-        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var op = new EqualityOperator(rule, SolvingRole.Requirement) { Id = "eq", Lhs = Valued(1), Rhs = Valued(1) };
 
         op.IsCommutative.Should().BeTrue("an equality reads the same from either side");
         MirrorReverse(op.Symbol).Should().Be(op.Symbol, $"{rule} spells {op.Symbol}");
@@ -174,14 +174,14 @@ public class VerdictSeamTests
     [Fact]
     public void ASimpleComparisonIsCommutativeExactlyWhenItsRuleHasNoSide()
     {
-        var x = Bound(1);
+        var x = Valued(1);
 
         foreach (var landmark in Enum.GetValues<Landmark>())
-        foreach (var mask in Enum.GetValues<ComparisonType>())
+        foreach (var mask in Enum.GetValues<MustBe>())
         foreach (var other in Enum.GetValues<Landmark>())
         {
             // `None` accepts no outcome and is refused at construction — see ComparisonRuleTests.
-            if (mask is ComparisonType.None) continue;
+            if (mask is MustBe.Impossible) continue;
 
             var op = new SimpleComparison(new ComparisonRule(landmark, mask, other))
             {
@@ -191,7 +191,7 @@ public class VerdictSeamTests
             (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(op.IsCommutative, op.Symbol);
             op.IsCommutative.Should().Be(
                 landmark == other
-                    && mask is ComparisonType.EqualTo or ComparisonType.InequalTo or ComparisonType.Any,
+                    && mask is MustBe.EqualTo or MustBe.InequalTo or MustBe.Comparable,
                 op.Symbol);
         }
     }
@@ -211,7 +211,7 @@ public class VerdictSeamTests
     [Fact]
     public void EveryNamedOperatorHasItsOwnSymbol()
     {
-        var symbols = AllOperators(Bound(1), Bound(1))
+        var symbols = AllOperators(Valued(1), Valued(1))
             .Where(o => o is not SimpleComparison)
             .Select(o => o.Symbol)
             .ToList();
@@ -235,8 +235,8 @@ public class VerdictSeamTests
         // Every operator is built over operands saying 3 kg vs 7 kg, then asked about entirely different values.
         // Its answer must match the same operator built over operands that really do hold those values — which
         // is the property that lets a calculation judge at trial values, and stops it re-walking the graph.
-        var decoys = AllOperators(Bound(3), Bound(7)).ToList();
-        var honest = AllOperators(Bound(lhsValue, lhsErr), Bound(rhsValue, rhsErr)).ToList();
+        var decoys = AllOperators(Valued(3), Valued(7)).ToList();
+        var honest = AllOperators(Valued(lhsValue, lhsErr), Valued(rhsValue, rhsErr)).ToList();
 
         foreach (var (decoy, reference) in decoys.Zip(honest))
         {
@@ -253,10 +253,10 @@ public class VerdictSeamTests
     [Theory]
     [InlineData(true, false)]
     [InlineData(false, true)]
-    public void EveryOperatorAnswersUnknownWhenASideDoesNotResolve(bool lhsUnbound, bool rhsUnbound)
+    public void EveryOperatorAnswersUnknownWhenASideDoesNotResolve(bool lhsUnset, bool rhsUnset)
     {
-        var lhs = lhsUnbound ? Unbound() : Bound(1);
-        var rhs = rhsUnbound ? Unbound() : Bound(1);
+        var lhs = lhsUnset ? Unset() : Valued(1);
+        var rhs = rhsUnset ? Unset() : Valued(1);
 
         foreach (var op in AllOperators(lhs, rhs))
         {
@@ -271,8 +271,8 @@ public class VerdictSeamTests
     [Fact]
     public void IsSatisfiedTakesOverridesAndPrefersThemToStoredValues()
     {
-        var measured = Bound(1);
-        var limit = Bound(10);
+        var measured = Valued(1);
+        var limit = Valued(10);
         var op = new DefinitelyLessThanOperator { Id = "lt", Lhs = measured, Rhs = limit };
 
         op.IsSatisfied().Should().BeTrue();
@@ -285,10 +285,10 @@ public class VerdictSeamTests
     }
 
     [Fact]
-    public void IsSatisfiedCanResolveAnUnboundOperandFromAnOverride()
+    public void IsSatisfiedCanResolveAnUnsetOperandFromAnOverride()
     {
-        var measured = Unbound();
-        var op = new DefinitelyLessThanOperator { Id = "lt", Lhs = measured, Rhs = Bound(10) };
+        var measured = Unset();
+        var op = new DefinitelyLessThanOperator { Id = "lt", Lhs = measured, Rhs = Valued(10) };
 
         op.IsSatisfied().Should().BeNull();
         op.IsSatisfied(new Dictionary<Variable, Measurand> { [measured] = Kg(1) }).Should().BeTrue();
@@ -303,8 +303,8 @@ public class VerdictSeamTests
     [Fact]
     public void ARequirementJudgesItsLhsAgainstItsRhs()
     {
-        var lhs = Bound(1);
-        var rhs = Bound(10);
+        var lhs = Valued(1);
+        var rhs = Valued(10);
 
         foreach (var op in AllOperators(lhs, rhs).Where(o => o.SolvingRole is SolvingRole.Requirement))
         {
@@ -323,7 +323,7 @@ public class VerdictSeamTests
     [InlineData(SolvingRole.Coherence)]
     public void ADeterminingRelationshipHasNeitherASubjectNorACriterion(SolvingRole role)
     {
-        var op = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var op = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Valued(1), Rhs = Valued(1) };
 
         op.Subject.Should().BeNull();
         op.Criterion.Should().BeNull();
@@ -336,8 +336,8 @@ public class VerdictSeamTests
     [Fact]
     public void AnEqualityActingAsARequirementDoesHaveThem()
     {
-        var lhs = Bound(1);
-        var rhs = Bound(1);
+        var lhs = Valued(1);
+        var rhs = Valued(1);
         var op = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
             Id = "eq", Lhs = lhs, Rhs = rhs
@@ -357,12 +357,12 @@ public class VerdictSeamTests
     [InlineData(SolvingRole.Coherence)]
     public void HavingACriterionIsExactlyBeingARequirement(SolvingRole role)
     {
-        var equality = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Bound(1), Rhs = Bound(1) };
+        var equality = new EqualityOperator(AgreementRule.Nominal, role) { Id = "eq", Lhs = Valued(1), Rhs = Valued(1) };
 
         (equality.Criterion is not null).Should().Be(role is SolvingRole.Requirement);
         (equality.Subject is not null).Should().Be(equality.Criterion is not null);
 
-        foreach (var op in AllOperators(Bound(1), Bound(1)))
+        foreach (var op in AllOperators(Valued(1), Valued(1)))
         {
             (op.Criterion is not null).Should().Be(op.SolvingRole is SolvingRole.Requirement, op.Symbol);
             (op.Criterion is not null).Should().Be(! op.IsDetermining, op.Symbol);

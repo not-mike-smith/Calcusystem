@@ -6,7 +6,7 @@ namespace Calcusystem.Core.Interfaces;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The counterpart to <see cref="IStateful{TSelf,TState}"/> for types that cannot be rebuilt from their own
+/// The counterpart to <see cref="ISnapshotting{TSelf,TSnapshot}"/> for types that cannot be rebuilt from their own
 /// state alone. A graph is not a tree: one node can be shared by several parents, so nesting children inside a
 /// parent's state would duplicate the shared ones and could not express the sharing at all. Referring to them by
 /// id keeps the state flat and the graph intact — at the cost of needing something that can turn an id back into
@@ -23,11 +23,11 @@ namespace Calcusystem.Core.Interfaces;
 /// </para>
 /// </remarks>
 /// <typeparam name="TSelf">The implementing type.</typeparam>
-/// <typeparam name="TState">The state record describing this node, referring to neighbours by id.</typeparam>
-public interface IStatefulNode<TSelf, TState> where TSelf : IStatefulNode<TSelf, TState>
+/// <typeparam name="TSnapshot">The state record describing this node, referring to neighbours by id.</typeparam>
+public interface ISnapshottingNode<TSelf, TSnapshot> where TSelf : ISnapshottingNode<TSelf, TSnapshot>
 {
     /// <summary>Returns the complete state defining this node, referring to its neighbours by id.</summary>
-    TState GetState();
+    TSnapshot GetSnapshot();
 
     /// <summary>
     /// Rebuilds a node from previously captured state. Not part of the normal construction API.
@@ -37,5 +37,5 @@ public interface IStatefulNode<TSelf, TState> where TSelf : IStatefulNode<TSelf,
     /// Looks up the nodes this state references. The caller is responsible for rebuilding in an order that makes
     /// every referenced node available before it is asked for.
     /// </param>
-    static abstract TSelf FromState(TState state, INodeResolver resolve);
+    static abstract TSelf FromSnapshot(TSnapshot state, INodeResolver resolve);
 }

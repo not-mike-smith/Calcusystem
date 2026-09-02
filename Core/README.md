@@ -28,31 +28,31 @@ Identity lives here rather than in `DimensionedExpression` because it is not an 
 
 The layers above own **what state defines an object**. `Calcusystem.Serialization` owns **how that state is encoded, versioned, and migrated**. These interfaces are the joint between those two questions, and the reason a DTO never has to appear in a domain assembly.
 
-The state records themselves (`QuantityState`, `VariableState`, …) live with the types they describe, not here — only the shape of the seam is shared.
+The state records themselves (`QuantitySnapshot`, `VariableSnapshot`, …) live with the types they describe, not here — only the shape of the seam is shared.
 
-### `IStateful<TSelf, TState>` — self-contained
+### `ISnapshotting<TSelf, TSnapshot>` — self-contained
 
 For a type that can be rebuilt from its own state alone:
 
 ```csharp
-TState GetState();
-static abstract TSelf FromState(TState state);
+TSnapshot GetSnapshot();
+static abstract TSelf FromSnapshot(TSnapshot state);
 ```
 
 Implemented by `Quantity`, `Measurand`, `Dimensionality`, and `Variable`.
 
-### `IStatefulNode<TSelf, TState>` — part of a graph
+### `ISnapshottingNode<TSelf, TSnapshot>` — part of a graph
 
 For a type whose state names *other* objects by id rather than containing them:
 
 ```csharp
-TState GetState();
-static abstract TSelf FromState(TState state, INodeResolver resolve);
+TSnapshot GetSnapshot();
+static abstract TSelf FromSnapshot(TSnapshot state, INodeResolver resolve);
 ```
 
 A graph is not a tree — one node can be shared by several parents — so nesting children inside a parent's state would duplicate the shared ones and could not express the sharing at all. Referring to them by id keeps the state flat and the graph intact, at the cost of needing something to turn an id back into an object.
 
-**The axis is whether rebuilding needs outside help, not where a type sits in a tree.** `Variable` is a genuine leaf of the expression graph and uses `IStateful`; that it is a leaf is incidental — what matters is that it has no references to resolve.
+**The axis is whether rebuilding needs outside help, not where a type sits in a tree.** `Variable` is a genuine leaf of the expression graph and uses `ISnapshotting`; that it is a leaf is incidental — what matters is that it has no references to resolve.
 
 ### `INodeResolver`
 
@@ -70,7 +70,7 @@ The type argument is a claim about what the id names, checked when it is resolve
 
 ## Why polymorphic hierarchies use factories instead
 
-Neither seam suits a hierarchy where the concrete type is chosen by *inspecting* the state — a `static abstract FromState` has to be declared on a type already known to the caller. Those reconstruct through a static gateway over the closed set instead: `UncertaintyFactory`, `ProvenanceFactory`, `ExpressionFactory`, `BinaryOperatorFactory`. Each pairs with a `GetState()` on the interface, which is the half that *is* declared here in spirit even when the type does not implement `IStateful`.
+Neither seam suits a hierarchy where the concrete type is chosen by *inspecting* the state — a `static abstract FromSnapshot` has to be declared on a type already known to the caller. Those reconstruct through a static gateway over the closed set instead: `UncertaintyFactory`, `ProvenanceFactory`, `ExpressionFactory`, `BinaryOperatorFactory`. Each pairs with a `GetSnapshot()` on the interface, which is the half that *is* declared here in spirit even when the type does not implement `ISnapshotting`.
 
 ---
 
@@ -83,4 +83,4 @@ Neither seam suits a hierarchy where the concrete type is chosen by *inspecting*
 - State records themselves → the assembly that owns the type they describe
 - DTOs, wire formats, type discriminators, schema migration → `Calcusystem.Serialization`
 - Anything with real behaviour. This assembly is a vocabulary; if a change here needs a test, it probably belongs a layer up.
-- Types only one layer uses. `ErrorPropagationMethod` is a standing example: `DimensionedExpression` and the serializer both touch it, but [`project-plan.md`](../project-plan.md) records a deliberate decision that it stays in `Measurement`, because uncertainty propagation is a first-class concern of that layer rather than something to be exiled into a shared bucket.
+- Types only one layer uses. `UncertaintyPropagation` is a standing example: `DimensionedExpression` and the serializer both touch it, but [`project-plan.md`](../project-plan.md) records a deliberate decision that it stays in `Measurement`, because uncertainty propagation is a first-class concern of that layer rather than something to be exiled into a shared bucket.

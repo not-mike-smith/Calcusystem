@@ -1,7 +1,7 @@
 using System;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Provenance;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
@@ -53,12 +53,12 @@ public class ProvenanceTests
     }
 
     [Fact]
-    public void FromState_RestoresIdentityAndMetadata()
+    public void FromSnapshot_RestoresIdentityAndMetadata()
     {
         // Restoring a persisted identity goes through the state gateway; the creation methods above only ever
         // mint a fresh one, so no caller building a provenance is offered an id parameter.
-        var restored = ProvenanceFactory.FromState(
-            ProvenanceState.Measured("prov-1", "SN-42", new DateOnly(2026, 1, 15)));
+        var restored = ProvenanceFactory.FromSnapshot(
+            ProvenanceSnapshot.Measured("prov-1", "SN-42", new DateOnly(2026, 1, 15)));
 
         restored.Id.Should().Be("prov-1");
         restored.Should().BeOfType<MeasuredProvenance>();
@@ -70,11 +70,11 @@ public class ProvenanceTests
     {
         var original = ProvenanceFactory.Model("Dittus-Boelter", "fit-2021");
 
-        var restored = ProvenanceFactory.FromState(original.GetState());
+        var restored = ProvenanceFactory.FromSnapshot(original.GetSnapshot());
 
         restored.Id.Should().Be(original.Id);
         restored.Summary().Should().Be(original.Summary());
-        restored.GetState().Should().Be(original.GetState());
+        restored.GetSnapshot().Should().Be(original.GetSnapshot());
     }
 
     [Fact]
@@ -91,10 +91,10 @@ public class ProvenanceTests
     [Fact]
     public void Variable_Provenance_DoesNotAffectEvaluation()
     {
-        var bound = Measurement.Units.Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelErr(0.01));
+        var bound = Measurement.Units.Mass.Kilogram.Quantity(2).Measurand(SymmetricUncertainty.FromRelative(0.01));
         var variable = new Variable("m", bound) { Provenance = ProvenanceFactory.Design() };
 
-        variable.FreeVariables().Should().BeEmpty();
+        variable.UnsetVariables().Should().BeEmpty();
         variable.Value!.KmsValue.Should().BeApproximately(2, 1E-9);
     }
 }

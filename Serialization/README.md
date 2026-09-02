@@ -27,17 +27,17 @@ Instead the graph is **flattened into id-keyed lists**. Every node keeps its str
 
 DTOs are bucketed by **structural arity**, not by domain type — the concrete type is recovered from a `Type` discriminator string within each bucket:
 
-| DTO (`Dtos/`) | Shape | Domain types it carries |
+| DTO (`Dtos/`) | Type | Domain types it carries |
 | --- | --- | --- |
 | `SingleVariable` | leaf: `Symbol`, `Dimensionality` (encoded string), `KmsValue?`, `Uncertainty?`, `Provenance?` | `Variable` |
 | `SingleDerivedVariable` | one child: `InnerId` | `ReciprocalExpression`, `NegatedExpression`, `SqrtExpression`, `ExponentialExpression`, `NaturalLogExpression` |
-| `PairDerivedVariable` | two children: `InnerId1`, `InnerId2`, plus `ErrorPropagation` | `QuotientExpression` |
-| `ListDerivedVariable` | n children: `InnerIds`, plus `ErrorPropagation` | `ProductExpression`, `SumExpression` |
+| `PairDerivedVariable` | two children: `InnerId1`, `InnerId2`, plus `UncertaintyPropagation` | `QuotientExpression` |
+| `ListDerivedVariable` | n children: `InnerIds`, plus `UncertaintyPropagation` | `ProductExpression`, `SumExpression` |
 | `BinaryOperator` | `LhsId`, `RhsId`, `Name?`, `Description?`, `Provenance?` | all equality / tolerance / inequality operators |
 
 Uncertainty is a single flat `Dtos.Uncertainty` (`Dtos/Expression.cs`): a `Type` discriminator, an `IsStoredAsAbs` flag recording whether the magnitudes are relative fractions or absolute KMS values, and the union of the shapes' nullable fields — `Magnitude` for the symmetric case, `UpperMagnitude`/`LowerMagnitude` for the asymmetric one. Fields required by the named shape are validated on read rather than defaulted, since a missing magnitude would silently change the error band.
 
-**Everything crosses the boundary as domain *state*, never as domain internals.** The mappers construct no domain object and read no domain property: each one calls `GetState()` on the way out, and on the way in translates a DTO into the matching state record and hands it to that type's own reconstruction — `Variable.FromState`, `ExpressionFactory.FromState`, `BinaryOperatorFactory.FromState`, `ExpressionSystem.FromState`, `UncertaintyFactory.FromState`, `Dimensionality.FromState`, `ProvenanceFactory.FromState`. See the persistence sections of the [Measurement](../Measurement/README.md) and [DimensionedExpression](../DimensionedExpression/README.md) READMEs.
+**Everything crosses the boundary as domain *state*, never as domain internals.** The mappers construct no domain object and read no domain property: each one calls `GetSnapshot()` on the way out, and on the way in translates a DTO into the matching state record and hands it to that type's own reconstruction — `Variable.FromSnapshot`, `ExpressionFactory.FromSnapshot`, `BinaryOperatorFactory.FromSnapshot`, `ExpressionSystem.FromSnapshot`, `UncertaintyFactory.FromSnapshot`, `Dimensionality.FromSnapshot`, `ProvenanceFactory.FromSnapshot`. See the persistence sections of the [Measurement](../Measurement/README.md) and [DimensionedExpression](../DimensionedExpression/README.md) READMEs.
 
 Those state records are structural and carry no format concerns, which is exactly what leaves this layer free to own the format: the `Type` strings, the dimensionality encoding, and any fix-up of older payloads are all decided here. Neither domain assembly ever sees a schema version.
 
@@ -45,7 +45,7 @@ Those state records are structural and carry no format concerns, which is exactl
 
 Two things that look like they could move into the domain but should not:
 
-- **Rebuild order.** The flattened lists arrive in arbitrary order, so `DeserializingMapper` rebuilds leaves first, then derived expressions as their dependencies appear, then operators, then the system. By the time any `FromState` asks the resolver for a neighbour, it is present. Choosing that order is a persistence strategy.
+- **Rebuild order.** The flattened lists arrive in arbitrary order, so `DeserializingMapper` rebuilds leaves first, then derived expressions as their dependencies appear, then operators, then the system. By the time any `FromSnapshot` asks the resolver for a neighbour, it is present. Choosing that order is a persistence strategy.
 - **What a dangling reference means.** `DeserializationContext` implements `INodeResolver` and throws `ReferencedNodeNotFoundException` when an id names nothing, or names a node of the wrong type. A domain object is never handed a null and asked to decide.
 
 ### The `WireNames` table

@@ -20,7 +20,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </remarks>
 public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.WhollyWithinTolerance;
+    protected override BinaryOperatorType Type => BinaryOperatorType.WhollyWithinTolerance;
 
     public override string Symbol => "[=}";
 
@@ -31,7 +31,7 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
     /// </remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
     [
-        new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.LowerBound),
-        new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.UpperBound),
+        new(Landmark.LowerBound, MustBe.GreaterThan, Landmark.LowerBound),
+        new(Landmark.UpperBound, MustBe.LessThan, Landmark.UpperBound),
     ];
 }

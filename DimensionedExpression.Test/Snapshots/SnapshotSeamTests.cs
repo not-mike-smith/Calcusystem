@@ -7,7 +7,7 @@ using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Primitives;
@@ -15,13 +15,13 @@ using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
 using Xunit;
 
-namespace Calcusystem.DimensionedExpression.Test.State;
+namespace Calcusystem.DimensionedExpression.Test.Snapshots;
 
 /// <summary>
 /// The state seam on its own terms, with no serializer involved — these types hand out their state and rebuild
 /// from it given only a way to look up neighbours by id.
 /// </summary>
-public class StateSeamTests
+public class SnapshotSeamTests
 {
     /// <summary>Minimal stand-in for whatever a persistence layer uses to resolve id references.</summary>
     private sealed class StubResolver : INodeResolver
@@ -42,14 +42,14 @@ public class StateSeamTests
 
     private static Variable Leaf(string id, double value) => new(
         id,
-        Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+        Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelative(0.01)),
         id);
 
-    /// <summary>A leaf with an absolute error bar, for tests that need the bands to overlap or not.</summary>
-    private static Variable Leaf(string id, double value, double absoluteError) => new(
+    /// <summary>A leaf with an absolute uncertainty bar, for tests that need the bands to overlap or not.</summary>
+    private static Variable Leaf(string id, double value, double absoluteUncertainty) => new(
         id,
         Dimensionality.Dimensionless.Quantity(value)
-            .Measurand(SymmetricUncertainty.FromAbsErr(Dimensionality.Dimensionless.Quantity(absoluteError))),
+            .Measurand(SymmetricUncertainty.FromAbsolute(Dimensionality.Dimensionless.Quantity(absoluteUncertainty))),
         id);
 
     [Fact]
@@ -58,7 +58,7 @@ public class StateSeamTests
         var original = Leaf("m", 2);
         original.Provenance = ProvenanceFactory.Measured("SN-1");
 
-        var restored = Variable.FromState(original.GetState());
+        var restored = Variable.FromSnapshot(original.GetSnapshot());
 
         restored.Id.Should().Be("m");
         restored.Symbol.Should().Be("m");
@@ -67,15 +67,15 @@ public class StateSeamTests
     }
 
     [Fact]
-    public void UnboundVariableKeepsItsDimensionalityWithNoValue()
+    public void UnsetVariableKeepsItsDimensionalityWithNoValue()
     {
         var original = new Variable("F", Dimensionality.Mass * Dimensionality.Length, "F");
 
-        var restored = Variable.FromState(original.GetState());
+        var restored = Variable.FromSnapshot(original.GetSnapshot());
 
         restored.Value.Should().BeNull();
         restored.Dimensionality.Should().Be(original.Dimensionality);
-        restored.FreeVariables().Should().Equal(restored);
+        restored.UnsetVariables().Should().Equal(restored);
     }
 
     [Fact]
@@ -85,28 +85,28 @@ public class StateSeamTests
         var b = Leaf("b", 4);
 
         var product = new ProductExpression([a, b]) { Id = "p" };
-        var state = product.GetState();
-        state.Kind.Should().Be(NaryExpressionKind.Product);
+        var state = product.GetSnapshot();
+        state.Type.Should().Be(NaryExpressionType.Product);
         state.InnerIds.Should().Equal("a", "b");
 
-        var restored = ProductExpression.FromState(state, new StubResolver().With("a", a).With("b", b));
+        var restored = ProductExpression.FromSnapshot(state, new StubResolver().With("a", a).With("b", b));
 
         restored.Id.Should().Be("p");
-        restored.ComputeIfDetermined()!.KmsValue.Should().BeApproximately(12, 1e-12);
+        restored.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(12, 1e-12);
     }
 
     [Theory]
-    [InlineData(UnaryExpressionKind.Reciprocal, typeof(ReciprocalExpression))]
-    [InlineData(UnaryExpressionKind.Negated, typeof(NegatedExpression))]
-    [InlineData(UnaryExpressionKind.Sqrt, typeof(SqrtExpression))]
-    [InlineData(UnaryExpressionKind.Exponential, typeof(ExponentialExpression))]
-    [InlineData(UnaryExpressionKind.NaturalLog, typeof(NaturalLogExpression))]
-    public void UnaryFactoryPicksTheTypeNamedByTheKind(UnaryExpressionKind kind, Type expected)
+    [InlineData(UnaryExpressionType.Reciprocal, typeof(ReciprocalExpression))]
+    [InlineData(UnaryExpressionType.Negated, typeof(NegatedExpression))]
+    [InlineData(UnaryExpressionType.Sqrt, typeof(SqrtExpression))]
+    [InlineData(UnaryExpressionType.Exponential, typeof(ExponentialExpression))]
+    [InlineData(UnaryExpressionType.NaturalLog, typeof(NaturalLogExpression))]
+    public void UnaryFactoryPicksTheTypeNamedByTheKind(UnaryExpressionType kind, Type expected)
     {
         var inner = Leaf("x", 1);
 
-        var rebuilt = ExpressionFactory.FromState(
-            new UnaryExpressionState(kind, "u", "x"),
+        var rebuilt = ExpressionFactory.FromSnapshot(
+            new UnaryExpressionSnapshot(kind, "u", "x"),
             new StubResolver().With("x", inner));
 
         rebuilt.Should().BeOfType(expected);
@@ -128,12 +128,12 @@ public class StateSeamTests
             Description = "a check",
         };
 
-        var state = op.GetState();
-        state.Kind.Should().Be(BinaryOperatorKind.WhollyWithinTolerance);
+        var state = op.GetSnapshot();
+        state.Type.Should().Be(BinaryOperatorType.WhollyWithinTolerance);
         state.LhsId.Should().Be("l");
         state.RhsId.Should().Be("r");
 
-        var restored = BinaryOperatorFactory.FromState(
+        var restored = BinaryOperatorFactory.FromSnapshot(
             state, new StubResolver().With("l", lhs).With("r", rhs));
 
         restored.Should().BeOfType<WhollyWithinToleranceOperator>();
@@ -156,9 +156,9 @@ public class StateSeamTests
         var lhs = Leaf("l", 1, 1);
         var rhs = Leaf("r", 2, 1);
 
-        var restored = BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(
-                BinaryOperatorKind.Equality, "eq", "l", "r", SolvingRole.Requirement, rule, null, null, null, null),
+        var restored = BinaryOperatorFactory.FromSnapshot(
+            new BinaryOperatorSnapshot(
+                BinaryOperatorType.Equality, "eq", "l", "r", SolvingRole.Requirement, rule, null, null, null, null),
             new StubResolver().With("l", lhs).With("r", rhs));
 
         restored.Should().BeOfType<EqualityOperator>().Which.Agreement.Should().Be(rule);
@@ -174,9 +174,9 @@ public class StateSeamTests
     {
         var resolve = new StubResolver().With("l", Leaf("l", 1)).With("r", Leaf("r", 1));
 
-        var act = () => BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(
-                BinaryOperatorKind.Equality, "eq", "l", "r", SolvingRole.Requirement, null, null, null, null, null),
+        var act = () => BinaryOperatorFactory.FromSnapshot(
+            new BinaryOperatorSnapshot(
+                BinaryOperatorType.Equality, "eq", "l", "r", SolvingRole.Requirement, null, null, null, null, null),
             resolve);
 
         act.Should().Throw<ArgumentException>().WithMessage("*agreement rule*");
@@ -192,12 +192,12 @@ public class StateSeamTests
     {
         var lhs = Leaf("l", 1);
         var rhs = Leaf("r", 1);
-        var rule = new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.LowerBound);
+        var rule = new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound);
 
-        var state = new SimpleComparison(rule) { Id = "c", Lhs = lhs, Rhs = rhs }.GetState();
+        var state = new SimpleComparison(rule) { Id = "c", Lhs = lhs, Rhs = rhs }.GetSnapshot();
         state.Rule.Should().Be(rule);
 
-        var restored = BinaryOperatorFactory.FromState(
+        var restored = BinaryOperatorFactory.FromSnapshot(
             state, new StubResolver().With("l", lhs).With("r", rhs));
 
         restored.Should().BeOfType<SimpleComparison>().Which.Rule.Should().Be(rule);
@@ -209,9 +209,9 @@ public class StateSeamTests
     {
         var resolve = new StubResolver().With("l", Leaf("l", 1)).With("r", Leaf("r", 1));
 
-        var act = () => BinaryOperatorFactory.FromState(
-            new BinaryOperatorState(
-                BinaryOperatorKind.SimpleComparison, "c", "l", "r", SolvingRole.Requirement,
+        var act = () => BinaryOperatorFactory.FromSnapshot(
+            new BinaryOperatorSnapshot(
+                BinaryOperatorType.SimpleComparison, "c", "l", "r", SolvingRole.Requirement,
                 null, null, null, null, null),
             resolve);
 
@@ -234,7 +234,7 @@ public class StateSeamTests
         original.Add(op);
 
         var resolver = new StubResolver().With("a", a).With("b", b).With("s", sum).With("op", op);
-        var restored = ExpressionSystem.FromState(original.GetState(), resolver);
+        var restored = ExpressionSystem.FromSnapshot(original.GetSnapshot(), resolver);
 
         restored.Name.Should().Be("sys");
         restored.Variables.Should().HaveCount(2);

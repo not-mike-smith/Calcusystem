@@ -1,8 +1,8 @@
 
 namespace Calcusystem.DimensionedExpression.Enums;
 
-/// <summary>Which provenance kind a <see cref="ProvenanceState"/> describes — the type it rebuilds into.</summary>
-public enum ProvenanceKind
+/// <summary>Which provenance kind a <see cref="ProvenanceSnapshot"/> describes — the type it rebuilds into.</summary>
+public enum ProvenanceType
 {
     /// <summary>An instrument or sensor reading.</summary>
     Measured,

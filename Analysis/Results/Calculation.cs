@@ -40,7 +40,7 @@ namespace Calcusystem.Analysis.Results;
 /// The expressions the system contains that could not be computed. That includes both operands of every
 /// relationship, since a check whose bound cannot be evaluated is as outstanding as a value that will not resolve.
 /// </param>
-/// <param name="MissingValues">The unbound variables responsible — supply these and more will resolve.</param>
+/// <param name="MissingValues">The unset variables responsible — supply these and more will resolve.</param>
 /// <param name="Outcomes">
 /// What each of the system's relationships did — one entry per relationship, including the ones that could not
 /// be judged.

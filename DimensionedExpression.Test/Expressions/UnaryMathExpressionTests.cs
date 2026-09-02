@@ -12,14 +12,14 @@ public class UnaryMathExpressionTests
 {
     private static readonly Dimensionality Area = Dimensionality.Length * 2;
 
-    private static Variable Dimensionless(double value, double relativeError) =>
-        new("x", Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
+    private static Variable Dimensionless(double value, double relativeUncertainty) =>
+        new("x", Dimensionality.Dimensionless.Quantity(value).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
-    private static Variable UnboundDimensionless() =>
+    private static Variable UnsetDimensionless() =>
         new("x", Dimensionality.Dimensionless);
 
-    private static Variable BoundArea(double squareMeters, double relativeError) =>
-        new("a", Area.Quantity(squareMeters).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
+    private static Variable BoundArea(double squareMeters, double relativeUncertainty) =>
+        new("a", Area.Quantity(squareMeters).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
     // ---- SqrtExpression ----
 
@@ -30,11 +30,11 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Sqrt_ComputesRootAndHalvesRelativeError()
+    public void Sqrt_ComputesRootAndHalvesRelativeUncertainty()
     {
-        var root = new SqrtExpression(BoundArea(9, 0.02)).ComputeIfDetermined()!;
+        var root = new SqrtExpression(BoundArea(9, 0.02)).ComputeIfFullyDescribed()!;
         root.KmsValue.Should().BeApproximately(3, 1E-9);
-        root.RelativeError.Should().BeApproximately(0.01, 1E-9);
+        root.RelativeUncertainty.Should().BeApproximately(0.01, 1E-9);
     }
 
     [Fact]
@@ -46,12 +46,12 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Sqrt_Unbound_IsNullAndPropagatesDoF()
+    public void Sqrt_Unset_IsNullAndPropagatesDoF()
     {
         var sqrt = new SqrtExpression(new Variable("a", Area));
         sqrt.IsFullyDescribed.Should().BeFalse();
-        sqrt.ComputeIfDetermined().Should().BeNull();
-        sqrt.FreeVariables().Should().HaveCount(1);
+        sqrt.ComputeIfFullyDescribed().Should().BeNull();
+        sqrt.UnsetVariables().Should().HaveCount(1);
     }
 
     // ---- ExponentialExpression ----
@@ -63,11 +63,11 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Exp_ComputesExpAndPropagatesRelativeError()
+    public void Exp_ComputesExpAndPropagatesRelativeUncertainty()
     {
-        var result = new ExponentialExpression(Dimensionless(2, 0.01)).ComputeIfDetermined()!;
+        var result = new ExponentialExpression(Dimensionless(2, 0.01)).ComputeIfFullyDescribed()!;
         result.KmsValue.Should().BeApproximately(Math.Exp(2), 1E-9);
-        result.RelativeError.Should().BeApproximately(0.02, 1E-9); // |x| * relErr(x)
+        result.RelativeUncertainty.Should().BeApproximately(0.02, 1E-9); // |x| * relErr(x)
     }
 
     [Fact]
@@ -78,11 +78,11 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Exp_Unbound_IsNullAndPropagatesDoF()
+    public void Exp_Unset_IsNullAndPropagatesDoF()
     {
-        var exp = new ExponentialExpression(UnboundDimensionless());
-        exp.ComputeIfDetermined().Should().BeNull();
-        exp.FreeVariables().Should().HaveCount(1);
+        var exp = new ExponentialExpression(UnsetDimensionless());
+        exp.ComputeIfFullyDescribed().Should().BeNull();
+        exp.UnsetVariables().Should().HaveCount(1);
     }
 
     // ---- NaturalLogExpression ----
@@ -94,21 +94,21 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Ln_ComputesLogWithAbsoluteError()
+    public void Ln_ComputesLogWithAbsoluteUncertainty()
     {
-        // ln(e) = 1, AbsoluteError(ln x) ≈ RelativeError(x) = 0.1 → result RelativeError = 0.1 / |1|
-        var result = new NaturalLogExpression(Dimensionless(Math.E, 0.1)).ComputeIfDetermined()!;
+        // ln(e) = 1, AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x) = 0.1 → result RelativeUncertainty = 0.1 / |1|
+        var result = new NaturalLogExpression(Dimensionless(Math.E, 0.1)).ComputeIfFullyDescribed()!;
         result.KmsValue.Should().BeApproximately(1, 1E-9);
-        result.RelativeError.Should().BeApproximately(0.1, 1E-9);
+        result.RelativeUncertainty.Should().BeApproximately(0.1, 1E-9);
     }
 
     [Fact]
-    public void Ln_AbsoluteErrorScalesInverselyWithResult()
+    public void Ln_AbsoluteUncertaintyScalesInverselyWithResult()
     {
         // ln(e²) = 2, absolute error 0.1 → relative error 0.1 / 2
-        var result = new NaturalLogExpression(Dimensionless(Math.Exp(2), 0.1)).ComputeIfDetermined()!;
+        var result = new NaturalLogExpression(Dimensionless(Math.Exp(2), 0.1)).ComputeIfFullyDescribed()!;
         result.KmsValue.Should().BeApproximately(2, 1E-9);
-        result.RelativeError.Should().BeApproximately(0.05, 1E-9);
+        result.RelativeUncertainty.Should().BeApproximately(0.05, 1E-9);
     }
 
     [Fact]
@@ -119,21 +119,21 @@ public class UnaryMathExpressionTests
     }
 
     [Fact]
-    public void Ln_AtOne_ProducesZeroValueWithAbsoluteError()
+    public void Ln_AtOne_ProducesZeroValueWithAbsoluteUncertainty()
     {
-        // ln(1) = 0. The absolute error (= RelativeError(x) = 0.05) is preserved as an absolute error; the
+        // ln(1) = 0. The absolute error (= RelativeUncertainty(x) = 0.05) is preserved as an absolute error; the
         // relative error of a zero-valued result is undefined (+inf) but no longer throws.
-        var result = new NaturalLogExpression(Dimensionless(1, 0.05)).ComputeIfDetermined()!;
+        var result = new NaturalLogExpression(Dimensionless(1, 0.05)).ComputeIfFullyDescribed()!;
         result.KmsValue.Should().Be(0);
-        result.KmsAbsoluteError.Should().BeApproximately(0.05, 1E-9);
-        double.IsPositiveInfinity(result.RelativeError).Should().BeTrue();
+        result.KmsAbsoluteUncertainty.Should().BeApproximately(0.05, 1E-9);
+        double.IsPositiveInfinity(result.RelativeUncertainty).Should().BeTrue();
     }
 
     [Fact]
-    public void Ln_Unbound_IsNullAndPropagatesDoF()
+    public void Ln_Unset_IsNullAndPropagatesDoF()
     {
-        var ln = new NaturalLogExpression(UnboundDimensionless());
-        ln.ComputeIfDetermined().Should().BeNull();
-        ln.FreeVariables().Should().HaveCount(1);
+        var ln = new NaturalLogExpression(UnsetDimensionless());
+        ln.ComputeIfFullyDescribed().Should().BeNull();
+        ln.UnsetVariables().Should().HaveCount(1);
     }
 }

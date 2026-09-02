@@ -85,11 +85,11 @@ public static class OrderingLadder
         var below = confidence switch
         {
             OrderingConfidence.Possible =>
-                new ComparisonRule(Landmark.LowerBound, ComparisonType.LessThan, Landmark.UpperBound),
+                new ComparisonRule(Landmark.LowerBound, MustBe.LessThan, Landmark.UpperBound),
             OrderingConfidence.Nominal =>
-                new ComparisonRule(Landmark.Nominal, ComparisonType.LessThan, Landmark.Nominal),
+                new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.Nominal),
             OrderingConfidence.Certain =>
-                new ComparisonRule(Landmark.UpperBound, ComparisonType.LessThan, Landmark.LowerBound),
+                new ComparisonRule(Landmark.UpperBound, MustBe.LessThan, Landmark.LowerBound),
             OrderingConfidence.Contradicted => throw new ArgumentOutOfRangeException(
                 nameof(confidence), confidence, "Contradicted is the absence of every rung, not a rung."),
             _ => throw new ArgumentOutOfRangeException(

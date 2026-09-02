@@ -14,12 +14,12 @@ namespace Calcusystem.Analysis.Test;
 
 public class FlatSystemTests
 {
-    private static Variable Unbound(string symbol, Dimensionality? dim = null) =>
+    private static Variable Unset(string symbol, Dimensionality? dim = null) =>
         new(symbol, dim ?? Dimensionality.Mass, symbol);
 
-    private static Variable Bound(string symbol, double kmsValue, Dimensionality? dim = null) =>
+    private static Variable Valued(string symbol, double kmsValue, Dimensionality? dim = null) =>
         new(symbol,
-            new Quantity(kmsValue, dim ?? Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+            new Quantity(kmsValue, dim ?? Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0.01)),
             symbol);
 
     private static EqualityOperator Equation(string id, IExpression lhs, IExpression rhs) =>
@@ -35,10 +35,10 @@ public class FlatSystemTests
     [Fact]
     public void ComputedNodesAreNeitherUnknownsNorEquations()
     {
-        var a = Unbound("a", Dimensionality.Time.Reciprocal());
+        var a = Unset("a", Dimensionality.Time.Reciprocal());
         var b = new ReciprocalExpression(a) { Id = "b" };
-        var c = Unbound("c", Dimensionality.Time);
-        var twoSeconds = Bound("two_s", 2, Dimensionality.Time);
+        var c = Unset("c", Dimensionality.Time);
+        var twoSeconds = Valued("two_s", 2, Dimensionality.Time);
 
         var system = ExpressionSystem.Create("worked example", "");
         system.Add(a);
@@ -67,9 +67,9 @@ public class FlatSystemTests
     [Fact]
     public void ValuingALeafAndAssertingAnEquationAgreeOnDegreesOfFreedom()
     {
-        var a = Unbound("a", Dimensionality.Time.Reciprocal());
+        var a = Unset("a", Dimensionality.Time.Reciprocal());
         var b = new ReciprocalExpression(a) { Id = "b" };
-        var c = Bound("c", 2, Dimensionality.Time);
+        var c = Valued("c", 2, Dimensionality.Time);
 
         var system = ExpressionSystem.Create("bound leaf", "");
         system.Add(a);
@@ -87,8 +87,8 @@ public class FlatSystemTests
     [Fact]
     public void VariablesReachableOnlyThroughDerivedExpressionsAreStillUnknowns()
     {
-        var m = Unbound("m");
-        var product = new ProductExpression([m, Unbound("a")]) { Id = "p" };
+        var m = Unset("m");
+        var product = new ProductExpression([m, Unset("a")]) { Id = "p" };
         var system = ExpressionSystem.Create("derived only", "");
         system.Add(product);
 
@@ -103,7 +103,7 @@ public class FlatSystemTests
     public void AnUnknownSharedAcrossExpressionsIsOneColumn()
     {
         // m appears in a derived expression and on both sides of a relationship: still one unknown.
-        var m = Unbound("m");
+        var m = Unset("m");
         var negated = new NegatedExpression(m) { Id = "neg" };
 
         var system = ExpressionSystem.Create("shared", "");
@@ -123,8 +123,8 @@ public class FlatSystemTests
     [Fact]
     public void ConstraintsAreNotEquations()
     {
-        var m = Unbound("m");
-        var spec = Bound("spec", 5);
+        var m = Unset("m");
+        var spec = Valued("spec", 5);
 
         var system = ExpressionSystem.Create("checks only", "");
         system.Add(m);
@@ -146,7 +146,7 @@ public class FlatSystemTests
 
     /// <remarks>
     /// Whether a variable is an unknown depends on whether it has a value, not on what kind of relationship
-    /// mentions it. A bound length under <c>l &lt; 3 m</c> is known and checkable; the same length unbound is
+    /// mentions it. A bound length under <c>l &lt; 3 m</c> is known and checkable; the same length unset is
     /// still unknown, because a constraint bounds a value rather than producing one — and so it also appears in
     /// <c>UnknownsWithNoEquation</c> despite carrying a constraint.
     /// </remarks>
@@ -156,9 +156,9 @@ public class FlatSystemTests
     public void AConstraintNeverDeterminesItsSubject(bool lengthIsKnown)
     {
         var length = lengthIsKnown
-            ? Bound("l", 2, Dimensionality.Length)
-            : Unbound("l", Dimensionality.Length);
-        var limit = Bound("3m", 3, Dimensionality.Length);
+            ? Valued("l", 2, Dimensionality.Length)
+            : Unset("l", Dimensionality.Length);
+        var limit = Valued("3m", 3, Dimensionality.Length);
 
         var system = ExpressionSystem.Create("bounded length", "");
         system.Add(length);
@@ -188,9 +188,9 @@ public class FlatSystemTests
     [Fact]
     public void MoreEquationsThanUnknownsIsOverdeterminedRatherThanAnError()
     {
-        var m = Unbound("m");
-        var a = Bound("a", 5);
-        var b = Bound("b", 5);
+        var m = Unset("m");
+        var a = Valued("a", 5);
+        var b = Valued("b", 5);
 
         var system = ExpressionSystem.Create("redundant", "");
         system.Add(m);
@@ -208,10 +208,10 @@ public class FlatSystemTests
     public void UnknownsWithNoEquationAreReportedSeparatelyFromTheCount()
     {
         // Square overall, but `orphan` has no equation on it and `m` has two — the aggregate hides both.
-        var m = Unbound("m");
-        var orphan = Unbound("orphan");
-        var a = Bound("a", 5);
-        var b = Bound("b", 5);
+        var m = Unset("m");
+        var orphan = Unset("orphan");
+        var a = Valued("a", 5);
+        var b = Valued("b", 5);
 
         var system = ExpressionSystem.Create("hidden singularity", "");
         system.Add(m);
@@ -229,10 +229,10 @@ public class FlatSystemTests
     // ── Bindings ─────────────────────────────────────────────────────────────
 
     [Fact]
-    public void ABoundVariableIsNotAnUnknown()
+    public void AVariableWithAValueIsNotAnUnknown()
     {
-        var m = Unbound("m");
-        var a = Unbound("a");
+        var m = Unset("m");
+        var a = Unset("a");
         var product = new ProductExpression([m, a]) { Id = "p" };
         var system = ExpressionSystem.Create("bindings", "");
         system.Add(m);
@@ -245,7 +245,7 @@ public class FlatSystemTests
         var pinned = system.Flatten(
             new Dictionary<Variable, Measurand>
             {
-                [m] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+                [m] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0.01)),
             });
 
         pinned.Unknowns.Select(u => u.Id).Should().Equal("a");
@@ -254,14 +254,14 @@ public class FlatSystemTests
     [Fact]
     public void BindingsDoNotMutateTheModel()
     {
-        var m = Unbound("m");
+        var m = Unset("m");
         var system = ExpressionSystem.Create("no mutation", "");
         system.Add(m);
 
         system.Flatten(
             new Dictionary<Variable, Measurand>
             {
-                [m] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+                [m] = new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0.01)),
             });
 
         // The whole point of passing bindings rather than assigning: a solver can probe a system at trial values
@@ -277,9 +277,9 @@ public class FlatSystemTests
         // one unknown. Pinning that unknown leaves nothing to determine, so *both* equations become redundancy
         // checks — they still hold values to compare, which is the entry point for reconciliation, but neither
         // removes a degree of freedom from a system that has none left.
-        var m = Unbound("m");
-        var a = Bound("a", 5);
-        var b = Bound("b", 5);
+        var m = Unset("m");
+        var a = Valued("a", 5);
+        var b = Valued("b", 5);
 
         var system = ExpressionSystem.Create("reconciliation shape", "");
         system.Add(m);
@@ -291,7 +291,7 @@ public class FlatSystemTests
         var pinned = system.Flatten(
             new Dictionary<Variable, Measurand>
             {
-                [m] = new Quantity(5, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0.01)),
+                [m] = new Quantity(5, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0.01)),
             });
 
         pinned.Unknowns.Should().BeEmpty();
@@ -311,9 +311,9 @@ public class FlatSystemTests
     [Fact]
     public void AnEquationWithNoIncidentUnknownsRemovesNoDegreeOfFreedom()
     {
-        var x = Unbound("x");
-        var a = Bound("a", 5);
-        var b = Bound("b", 5);
+        var x = Unset("x");
+        var a = Valued("a", 5);
+        var b = Valued("b", 5);
 
         var system = ExpressionSystem.Create("redundant check beside a free variable", "");
         system.Add(x);
@@ -341,18 +341,18 @@ public class FlatSystemTests
     public void ARedundantCheckDoesNotChangeDeterminationWhateverTheSystem(
         int liveEquations, int expectedDoF, Determination expected)
     {
-        var m = Unbound("m");
+        var m = Unset("m");
         var system = ExpressionSystem.Create("orthogonality", "");
         system.Add(m);
 
         // 0, 1, or 2 equations competing to determine the single unknown.
         for (var i = 0; i < liveEquations; i++)
-            system.Add(Equation($"m==spec{i}", m, Bound($"spec{i}", 5)));
+            system.Add(Equation($"m==spec{i}", m, Valued($"spec{i}", 5)));
 
         var withoutCheck = system.Flatten();
 
         // The same redundancy check, over values that were already known, appended to each.
-        system.Add(Equation("a==b", Bound("a", 5), Bound("b", 5)));
+        system.Add(Equation("a==b", Valued("a", 5), Valued("b", 5)));
         var withCheck = system.Flatten();
 
         withoutCheck.DegreesOfFreedom.Should().Be(expectedDoF);

@@ -24,7 +24,7 @@ public class FundamentalDimension : IComparable<FundamentalDimension>
     /// <summary>Short symbol used when formatting a dimensionality (e.g. "M", "L", "t").</summary>
     public string Symbol { get; }
     internal double QuantumValue { get; }
-    internal double MaxValue { get; }
+    internal double PlausibleMaximum { get; }
 
     private FundamentalDimension(
         string name,
@@ -35,7 +35,7 @@ public class FundamentalDimension : IComparable<FundamentalDimension>
         Name = name;
         Symbol = symbol;
         QuantumValue = quantumValue;
-        MaxValue = maxValue;
+        PlausibleMaximum = maxValue;
     }
 
     /// <summary>Mass (symbol M).</summary>

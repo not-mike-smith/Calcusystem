@@ -2,15 +2,15 @@ using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
-/// Rebuilds binary operators from captured state. The counterpart to <c>BinaryOperatorBase.GetState</c>.
+/// Rebuilds binary operators from captured state. The counterpart to <c>BinaryOperatorBase.GetSnapshot</c>.
 /// </summary>
 /// <remarks>
-/// A gateway rather than a per-type <c>FromState</c>: construction is identical across all thirteen operators
+/// A gateway rather than a per-type <c>FromSnapshot</c>: construction is identical across all thirteen operators
 /// apart from which type is instantiated, so per-type implementations would be pure duplication.
 /// </remarks>
 public static class BinaryOperatorFactory
@@ -22,57 +22,57 @@ public static class BinaryOperatorFactory
     /// An equality whose state names no agreement rule. Equality semantics come from the document, so a
     /// document that omits them describes no particular relationship and is not guessed at.
     /// </exception>
-    public static IBinaryOperator FromState(BinaryOperatorState state, INodeResolver resolve)
+    public static IBinaryOperator FromSnapshot(BinaryOperatorSnapshot state, INodeResolver resolve)
     {
         var lhs = resolve.Resolve<IExpression>(state.LhsId);
         var rhs = resolve.Resolve<IExpression>(state.RhsId);
 
-        BinaryOperatorBase op = state.Kind switch
+        BinaryOperatorBase op = state.Type switch
         {
-            BinaryOperatorKind.Equality =>
+            BinaryOperatorType.Equality =>
                 new EqualityOperator(AgreementOf(state), state.SolvingRole)
                     { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.AnyToleranceOverlap =>
+            BinaryOperatorType.AnyToleranceOverlap =>
                 new AnyToleranceOverlapOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.MutuallyWithinTolerance =>
+            BinaryOperatorType.MutuallyWithinTolerance =>
                 new MutuallyWithinToleranceOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.WhollyWithinTolerance =>
+            BinaryOperatorType.WhollyWithinTolerance =>
                 new WhollyWithinToleranceOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.WithinBindingTolerance =>
+            BinaryOperatorType.WithinBindingTolerance =>
                 new WithinBindingToleranceOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.PointAndUpperBoundWithinTolerance =>
+            BinaryOperatorType.PointAndUpperBoundWithinTolerance =>
                 new PointAndUpperBoundWithinToleranceOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.PointAndLowerBoundWithinTolerance =>
+            BinaryOperatorType.PointAndLowerBoundWithinTolerance =>
                 new PointAndLowerBoundWithinToleranceOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.DefinitelyLessThan =>
+            BinaryOperatorType.DefinitelyLessThan =>
                 new DefinitelyLessThanOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.UpperBoundsLessThan =>
+            BinaryOperatorType.UpperBoundsLessThan =>
                 new UpperBoundsLessThanOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.NominallyLessThan =>
+            BinaryOperatorType.NominallyLessThan =>
                 new NominallyLessThanOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.DefinitelyGreaterThan =>
+            BinaryOperatorType.DefinitelyGreaterThan =>
                 new DefinitelyGreaterThanOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.LowerBoundsGreaterThan =>
+            BinaryOperatorType.LowerBoundsGreaterThan =>
                 new LowerBoundsGreaterThanOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.NominallyGreaterThan =>
+            BinaryOperatorType.NominallyGreaterThan =>
                 new NominallyGreaterThanOperator { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            BinaryOperatorKind.SimpleComparison =>
+            BinaryOperatorType.SimpleComparison =>
                 new SimpleComparison(RuleOf(state)) { Id = state.Id, Lhs = lhs, Rhs = rhs },
-            _ => throw new ArgumentOutOfRangeException(nameof(state), state.Kind, "Unknown operator kind."),
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state.Type, "Unknown operator kind."),
         };
 
         op.Name = state.Name;
         op.Description = state.Description;
-        op.Provenance = state.Provenance is { } p ? ProvenanceFactory.FromState(p) : null;
+        op.Provenance = state.Provenance is { } p ? ProvenanceFactory.FromSnapshot(p) : null;
         return op;
     }
 
-    private static ComparisonRule RuleOf(BinaryOperatorState state) =>
+    private static ComparisonRule RuleOf(BinaryOperatorSnapshot state) =>
         state.Rule
         ?? throw new ArgumentException(
             $"Simple comparison '{state.Id}' has no rule.", nameof(state));
 
-    private static AgreementRule AgreementOf(BinaryOperatorState state) =>
+    private static AgreementRule AgreementOf(BinaryOperatorSnapshot state) =>
         state.Agreement
         ?? throw new ArgumentException(
             $"Equality operator '{state.Id}' has no agreement rule.", nameof(state));

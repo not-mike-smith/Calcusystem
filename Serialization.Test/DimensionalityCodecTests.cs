@@ -14,10 +14,10 @@ namespace Calcusystem.Serialization.Test;
 public class DimensionalityCodecTests
 {
     private static string Encode(Dimensionality dimensionality) =>
-        DimensionalityCodec.Encode(dimensionality.GetState());
+        DimensionalityCodec.Encode(dimensionality.GetSnapshot());
 
     private static Dimensionality Decode(string encoded) =>
-        Dimensionality.FromState(DimensionalityCodec.Decode(encoded));
+        Dimensionality.FromSnapshot(DimensionalityCodec.Decode(encoded));
 
     [Fact]
     public void EncodesSymbolAndExponentPerEntry()

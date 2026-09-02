@@ -13,14 +13,14 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.DefinitelyLessThan;
+    protected override BinaryOperatorType Type => BinaryOperatorType.DefinitelyLessThan;
 
     public override string Symbol => "⌜<⌟";
 
     /// <inheritdoc/>
     /// <remarks>The ordering ladder's <c>Below</c>/<c>Certain</c> rung, though it is stated here as itself.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        [new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.LowerBound)];
+        [new(Landmark.UpperBound, MustBe.LessThan, Landmark.LowerBound)];
 }
 
 /// <summary>
@@ -37,13 +37,13 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.UpperBoundsLessThan;
+    protected override BinaryOperatorType Type => BinaryOperatorType.UpperBoundsLessThan;
 
     public override string Symbol => "⌜<⌝";
 
     /// <inheritdoc/>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        [new(Landmark.UpperBound, ComparisonType.LessThan, Landmark.UpperBound)];
+        [new(Landmark.UpperBound, MustBe.LessThan, Landmark.UpperBound)];
 }
 
 /// <summary>
@@ -56,14 +56,14 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class NominallyLessThanOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.NominallyLessThan;
+    protected override BinaryOperatorType Type => BinaryOperatorType.NominallyLessThan;
 
     public override string Symbol => "·<·";
 
     /// <inheritdoc/>
     /// <remarks>The ordering ladder's <c>Below</c>/<c>Nominal</c> rung.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        [new(Landmark.Nominal, ComparisonType.LessThan, Landmark.Nominal)];
+        [new(Landmark.Nominal, MustBe.LessThan, Landmark.Nominal)];
 }
 
 /// <summary>
@@ -76,7 +76,7 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.DefinitelyGreaterThan;
+    protected override BinaryOperatorType Type => BinaryOperatorType.DefinitelyGreaterThan;
 
     public override string Symbol => "⌞>⌝";
 
@@ -87,7 +87,7 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
     /// beats making a reader apply a mirroring convention to find out.
     /// </remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        [new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.UpperBound)];
+        [new(Landmark.LowerBound, MustBe.GreaterThan, Landmark.UpperBound)];
 }
 
 /// <summary>
@@ -105,13 +105,13 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.LowerBoundsGreaterThan;
+    protected override BinaryOperatorType Type => BinaryOperatorType.LowerBoundsGreaterThan;
 
     public override string Symbol => "⌞>⌟";
 
     /// <inheritdoc/>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        [new(Landmark.LowerBound, ComparisonType.GreaterThan, Landmark.LowerBound)];
+        [new(Landmark.LowerBound, MustBe.GreaterThan, Landmark.LowerBound)];
 }
 
 /// <summary>
@@ -124,12 +124,12 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 /// </summary>
 public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 {
-    protected override BinaryOperatorKind Kind => BinaryOperatorKind.NominallyGreaterThan;
+    protected override BinaryOperatorType Type => BinaryOperatorType.NominallyGreaterThan;
 
     public override string Symbol => "·>·";
 
     /// <inheritdoc/>
     /// <remarks>The ordering ladder's <c>Above</c>/<c>Nominal</c> rung.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
-        [new(Landmark.Nominal, ComparisonType.GreaterThan, Landmark.Nominal)];
+        [new(Landmark.Nominal, MustBe.GreaterThan, Landmark.Nominal)];
 }

@@ -16,7 +16,7 @@ namespace Calcusystem.Measurement.Interfaces;
 /// otherwise. (Unary transforms — negation, reciprocal, exponentiation — are not here; they live on
 /// <see cref="IUncertainty"/> since they act on a single uncertainty.)
 /// </remarks>
-public interface IErrorPropagator
+public interface IUncertaintyPropagator
 {
     /// <summary>
     /// Propagates uncertainty through the product (and quotient, via reciprocal operands) of the operands.
@@ -24,7 +24,7 @@ public interface IErrorPropagator
     /// <param name="method">Whether the operands' errors are treated as correlated or uncorrelated.</param>
     /// <param name="measurands">The factors whose product's uncertainty is being computed.</param>
     /// <returns>The uncertainty of the product.</returns>
-    IUncertainty PropagateErrorThroughProduct(ErrorPropagationMethod method, params Measurand[] measurands);
+    IUncertainty PropagateErrorThroughProduct(UncertaintyPropagation method, params Measurand[] measurands);
 
     /// <summary>
     /// Propagates uncertainty through the sum (and difference, via negated operands) of the operands.
@@ -32,5 +32,5 @@ public interface IErrorPropagator
     /// <param name="method">Whether the operands' errors are treated as correlated or uncorrelated.</param>
     /// <param name="measurands">The addends whose sum's uncertainty is being computed.</param>
     /// <returns>The uncertainty of the sum.</returns>
-    IUncertainty PropagateErrorThroughSum(ErrorPropagationMethod method, params Measurand[] measurands);
+    IUncertainty PropagateErrorThroughSum(UncertaintyPropagation method, params Measurand[] measurands);
 }

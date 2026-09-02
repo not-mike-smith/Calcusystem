@@ -3,7 +3,7 @@ using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
@@ -16,9 +16,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// on construction, which is the only point it can be supplied) and the result is dimensionless.
 /// <br/>
 /// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
-/// RelativeError(eˣ) ≈ |x|·RelativeError(x) (i.e. the absolute error of x).
+/// RelativeUncertainty(eˣ) ≈ |x|·RelativeUncertainty(x) (i.e. the absolute error of x).
 /// </summary>
-public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<ExponentialExpression, UnaryExpressionState>
+public class ExponentialExpression : ExpressionBase, IExpression, ISnapshottingNode<ExponentialExpression, UnaryExpressionSnapshot>
 {
     private readonly IExpression _argument;
 
@@ -37,16 +37,16 @@ public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null)
+        IUncertaintyPropagator? propagator = null)
     {
         if (! known.TryGetValue(Argument, out var argument)) return null;
 
         var x = argument.KmsValue;
-        var relativeError = Math.Abs(x) * argument.RelativeError;
+        var relativeUncertainty = Math.Abs(x) * argument.RelativeUncertainty;
 
         return Dimensionality.Dimensionless
             .Quantity(Math.Exp(x))
-            .Measurand(SymmetricUncertainty.FromRelErr(relativeError));
+            .Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty));
     }
 
     public override string ToString()
@@ -65,10 +65,10 @@ public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<
     }
 
     /// <inheritdoc/>
-    public UnaryExpressionState GetState() =>
-        new(UnaryExpressionKind.Exponential, Id, Argument.Id);
+    public UnaryExpressionSnapshot GetSnapshot() =>
+        new(UnaryExpressionType.Exponential, Id, Argument.Id);
 
     /// <inheritdoc/>
-    public static ExponentialExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+    public static ExponentialExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
         new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }
