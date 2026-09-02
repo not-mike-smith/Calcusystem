@@ -12,7 +12,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// dimensionality is the numerator's divided by the denominator's.
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> division using the
-/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method.
+/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/> method.
 /// </summary>
 public class QuotientExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<QuotientExpression, BinaryExpressionSnapshot>
 {
@@ -32,7 +32,7 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
         IReadOnlyDictionary<IExpression, Measurand> known,
         IUncertaintyPropagator? propagator = null) =>
         known.TryGetValue(Numerator, out var numerator) && known.TryGetValue(Denominator, out var denominator)
-            ? numerator.DividedBy(denominator, UncertaintyPropagation, propagator)
+            ? numerator.DividedBy(denominator, UncertaintyCorrelation, propagator)
             : null;
 
     public override string ToString()
@@ -45,7 +45,7 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
 
     /// <inheritdoc/>
     public BinaryExpressionSnapshot GetSnapshot() =>
-        new(BinaryExpressionType.Quotient, Id, Numerator.Id, Denominator.Id, UncertaintyPropagation);
+        new(BinaryExpressionType.Quotient, Id, Numerator.Id, Denominator.Id, UncertaintyCorrelation);
 
     /// <inheritdoc/>
     public static QuotientExpression FromSnapshot(BinaryExpressionSnapshot state, INodeResolver resolve) =>
@@ -54,6 +54,6 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
             Id = state.Id,
             Numerator = resolve.Resolve<IExpression>(state.InnerId1),
             Denominator = resolve.Resolve<IExpression>(state.InnerId2),
-            UncertaintyPropagation = state.UncertaintyPropagation,
+            UncertaintyCorrelation = state.UncertaintyCorrelation,
         };
 }

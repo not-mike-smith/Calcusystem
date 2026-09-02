@@ -83,4 +83,4 @@ Neither seam suits a hierarchy where the concrete type is chosen by *inspecting*
 - State records themselves → the assembly that owns the type they describe
 - DTOs, wire formats, type discriminators, schema migration → `Calcusystem.Serialization`
 - Anything with real behaviour. This assembly is a vocabulary; if a change here needs a test, it probably belongs a layer up.
-- Types only one layer uses. `UncertaintyPropagation` is a standing example: `DimensionedExpression` and the serializer both touch it, but [`project-plan.md`](../project-plan.md) records a deliberate decision that it stays in `Measurement`, because uncertainty propagation is a first-class concern of that layer rather than something to be exiled into a shared bucket.
+- Types only one layer uses. `UncertaintyCorrelation` is a standing example: `DimensionedExpression` and the serializer both touch it, but [`project-plan.md`](../project-plan.md) records a deliberate decision that it stays in `Measurement`, because uncertainty propagation is a first-class concern of that layer rather than something to be exiled into a shared bucket.

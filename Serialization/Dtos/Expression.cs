@@ -61,16 +61,14 @@ public class PairDerivedVariable : ExpressionBase
 
     /// <summary>
     /// How child uncertainties are combined. Not <c>required</c>: payloads written before this field existed
-    /// simply lack it, and <see cref="UncertaintyPropagation.Uncorrelated"/> — the default both here and on the
+    /// simply lack it, and <see cref="UncertaintyCorrelation.Uncorrelated"/> — the default both here and on the
     /// expression itself — is what they meant.
     /// </summary>
-    // TODO: renaming `UncertaintyPropagation`/`UncertaintyPropagation` (see the note on the enum) changes this
-    // property name, which is on the wire — the one part of that rename that breaks stored payloads.
-    public UncertaintyPropagation UncertaintyPropagation { get; init; }
+    public UncertaintyCorrelation UncertaintyCorrelation { get; init; }
 }
 
 public class ListDerivedVariable : ExpressionBase
 {
     public required List<string> InnerIds { get; init; }
-    public required UncertaintyPropagation  UncertaintyPropagation { get; init; }
+    public required UncertaintyCorrelation UncertaintyCorrelation { get; init; }
 }

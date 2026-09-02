@@ -18,10 +18,10 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 /// </summary>
 public class ComparisonRuleTests
 {
-    private static Measurand M(double value, double lowerError, double upperError) =>
+    private static Measurand M(double value, double lowerUncertainty, double upperUncertainty) =>
         Mass.Kilogram.Quantity(value).Measurand(
             AsymmetricUncertainty.FromAbsolute(
-                Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError)));
+                Mass.Kilogram.Quantity(upperUncertainty), Mass.Kilogram.Quantity(lowerUncertainty)));
 
     private static Measurand Metres(double value) =>
         Length.Meter.Quantity(value).Measurand(SymmetricUncertainty.FromRelative(0));

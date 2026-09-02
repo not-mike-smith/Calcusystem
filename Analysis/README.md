@@ -115,11 +115,11 @@ Calling the second instead would be wrong twice. It re-walks both subgraphs this
 
 `Calculate` also takes an optional `IUncertaintyPropagator`, defaulting to the conservative Gaussian one. This is the seam for an alternative uncertainty model — Monte Carlo, correlation-aware — applied to a whole calculation.
 
-It is deliberately a *different axis* from a computed node's `UncertaintyPropagation`:
+It is deliberately a *different axis* from a computed node's `UncertaintyCorrelation`:
 
 | | Says | Belongs to |
 | --- | --- | --- |
-| `IComputedExpression.UncertaintyPropagation` | are *these* operands correlated? | the **model** — a physical fact about the quantities |
+| `IComputedExpression.UncertaintyCorrelation` | are *these* operands correlated? | the **model** — a physical fact about the quantities |
 | `IUncertaintyPropagator` | how do uncertainties combine at all? | the **calculation** — a numerical method |
 
 Both are passed through together, so choosing a propagator never discards what the model records about correlation. A global switch that flattened everything to "assume correlated" would be the opposite: it would silently throw away modelling knowledge, e.g. a node marked correlated because both its inputs come off the same instrument. There is a test that an injected propagator still sees `Correlated` where the model said so.
