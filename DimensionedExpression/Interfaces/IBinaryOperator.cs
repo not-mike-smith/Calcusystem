@@ -1,9 +1,10 @@
+using Calcusystem.Core.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.State;
-using Calcusystem.Core;
-using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
-using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Measurement.Primitives;
+
 namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
@@ -54,7 +55,7 @@ public interface IBinaryOperator : IIdentified
     /// <remarks>
     /// Read-only, and settable only where it can meaningfully be anything else. Ordering and tolerance relations
     /// confine a value to an interval rather than producing a point, so nothing can be derived from them: their
-    /// implementations return <see cref="DimensionedExpression.SolvingRole.Requirement"/> unconditionally and
+    /// implementations return <see cref="Enums.SolvingRole.Requirement"/> unconditionally and
     /// their constructors offer no way to say otherwise. This is why the property needs no validation — an
     /// operator that cannot determine cannot be built claiming it does.
     /// </remarks>
@@ -62,8 +63,8 @@ public interface IBinaryOperator : IIdentified
 
     /// <summary>
     /// Whether this relationship contributes a residual, and so is counted against the unknowns when degrees of
-    /// freedom are calculated. True for <see cref="DimensionedExpression.SolvingRole.Equation"/> and
-    /// <see cref="DimensionedExpression.SolvingRole.Coherence"/> alike.
+    /// freedom are calculated. True for <see cref="Enums.SolvingRole.Equation"/> and
+    /// <see cref="Enums.SolvingRole.Coherence"/> alike.
     /// </summary>
     /// <remarks>
     /// Derived from <see cref="SolvingRole"/> rather than stored beside it, so the two cannot disagree. It stays
@@ -78,10 +79,10 @@ public interface IBinaryOperator : IIdentified
     /// <remarks>
     /// <para>
     /// Derived from <see cref="SolvingRole"/> and the operand positions, never stored. A
-    /// <see cref="DimensionedExpression.SolvingRole.Requirement"/> tests one thing against another, and by
+    /// <see cref="Enums.SolvingRole.Requirement"/> tests one thing against another, and by
     /// construction the thing under test is <see cref="Lhs"/>; an
-    /// <see cref="DimensionedExpression.SolvingRole.Equation"/> or
-    /// <see cref="DimensionedExpression.SolvingRole.Coherence"/> has no such asymmetry — neither side of
+    /// <see cref="Enums.SolvingRole.Equation"/> or
+    /// <see cref="Enums.SolvingRole.Coherence"/> has no such asymmetry — neither side of
     /// <c>T_eos == T_path</c> is the one being judged — so both are null there.
     /// </para>
     /// <para>

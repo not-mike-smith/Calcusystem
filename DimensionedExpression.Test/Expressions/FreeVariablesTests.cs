@@ -1,7 +1,7 @@
 using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
-using Calcusystem.Measurement;
-using Calcusystem.Measurement.Units;
 using Xunit;
 
 namespace Calcusystem.DimensionedExpression.Test.Expressions;

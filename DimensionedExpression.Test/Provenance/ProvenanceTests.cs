@@ -2,8 +2,9 @@ using System;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
+using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
-using Calcusystem.Measurement;
 using Xunit;
 
 namespace Calcusystem.DimensionedExpression.Test.Provenance;

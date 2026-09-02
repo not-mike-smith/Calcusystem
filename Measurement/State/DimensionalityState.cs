@@ -1,3 +1,5 @@
+using Calcusystem.Measurement.Primitives;
+
 namespace Calcusystem.Measurement.State;
 
 /// <summary>

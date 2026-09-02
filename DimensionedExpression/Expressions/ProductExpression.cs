@@ -1,10 +1,9 @@
-﻿using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
-using Calcusystem.Core;
-using Calcusystem.DimensionedExpression.BaseModels;
-using Calcusystem.Measurement;
-using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.State;
+using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 

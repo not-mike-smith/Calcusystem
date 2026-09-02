@@ -1,4 +1,3 @@
-using Calcusystem.DimensionedExpression.BinaryOperators;
 
 namespace Calcusystem.DimensionedExpression.Enums;
 

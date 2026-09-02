@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using Calcusystem.Measurement.Exceptions;
+using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
 
