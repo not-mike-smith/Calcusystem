@@ -45,19 +45,17 @@ calc.Violations;         // requirements that failed against a criterion
 
 ## Surprises
 
-- **A failed check is not one thing.** `IsViolation` is a relationship that failed *against
-  a criterion* — a measurement outside its spec. `IsInconsistency` is one that failed with
-  no criterion, meaning both sides were computed and they disagree. The first is a finding
-  about the world, the second about the model.
+- **`RelationshipOutcome` can fail in more than one way.** `IsViolation` is true for a
+  relationship with a non-null `Criterion` whose subject falls outside the bounds the
+  criterion allows. `IsInconsistency` is true for one with a null `Criterion`, meaning the
+  model itself disagrees with itself.
 - **An equation with no unknowns removes no degree of freedom.** It is still evaluated and
-  still reported; it appears in `RedundantEquations`. Vacuity and determination are
-  orthogonal.
-- **A square system can still be ill-posed.** `DegreesOfFreedom` of zero is an aggregate.
-  `UnknownsWithNoEquation` can be non-empty at the same time, paired with a redundancy
-  elsewhere, which is why it is surfaced separately from the count.
-- **Only equalities can determine anything.** Ordering and tolerance relationships confine a
-  value to an interval, and no solver turns an interval into a point, so they never count
-  toward `Equations`.
+  still reported; it appears in `RedundantEquations`.
+- **A system with `DegreesOfFreedom == 0` can still leave variables unknown.** The count
+  does not check that the equations are independent, so two equations reaching the same
+  unknown — alongside a variable no equation reaches — also lands on zero.
+  `UnknownsWithNoEquation` names that variable. Equations with no unknowns are *not* the
+  cause: the count already excludes them.
 
 ## What does not belong here
 
