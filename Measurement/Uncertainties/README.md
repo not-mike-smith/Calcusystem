@@ -42,18 +42,19 @@ this library exists to remove. Use `1.0.Percent()` or `0.01.Fraction()` to make 
 ## Guarantees
 
 - **Storage form is preserved.** An uncertainty given as relative stays relative; one given
-  as absolute stays absolute. The two answers diverge at and near zero — a relative
-  uncertainty on a value of zero is zero, an absolute one is not — so the form is recorded
-  rather than normalised to one of them.
+  as absolute stays absolute.
 - **Both readings are always available.** `RelativeUncertainty(nominal)` and
   `AbsoluteUncertainty(nominal)` answer whichever form was stored, converting on demand.
 - **A non-finite magnitude sets no scale.** `MeasurandComparer` skips it, so an unbounded
   uncertainty does not make every value compare equal to every other.
-- **Negation preserves the stored form.** `Negated` returns a symmetric uncertainty
-  unchanged, because flipping a value's sign changes neither its fraction nor its amount.
 
 ## Surprises
 
+- **Every member takes a nominal value, and some ignore it.** An uncertainty holds one
+  magnitude in one form; the other form is that magnitude times or divided by the nominal
+  value. It does not hold that value — `Measurand` is what pairs the two — so the caller
+  supplies it on each call. The signature is uniform across `IUncertainty`, so members that
+  cannot need it still ask: `Negated(nominalKmsValue)` returns the uncertainty unchanged.
 - **Rebuilding a stored uncertainty does not start here.** `Factories.UncertaintyFactory` is
   that door, kept separate so nobody describing a measurement is offered a storage-form flag
   that only means something to a deserializer.
