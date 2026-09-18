@@ -301,7 +301,7 @@ public class FlatSystemTests
         pinned.Determination.Should().Be(Determination.ExactlyDetermined);
     }
 
-    // ── Vacuous equations ────────────────────────────────────────────────────
+    // ── Redundant equations ────────────────────────────────────────────────────
 
     /// <remarks>
     /// An equation over values that are all already known determines nothing, so it must not be subtracted.
@@ -329,8 +329,8 @@ public class FlatSystemTests
 
     /// <remarks>
     /// Why <c>Determination</c> reads the count alone rather than also weighing redundancy: the two are
-    /// orthogonal. A vacuous equation touches no unknown, so the same redundancy check appended to an under-,
-    /// exactly-, or over-determined system leaves each of them exactly as it was. Folding vacuity into the
+    /// orthogonal. A redundant equation touches no unknown, so the same redundancy check appended to an under-,
+    /// exactly-, or over-determined system leaves each of them exactly as it was. Folding redundancy into the
     /// classification would report the middle case as over-determined, when its solve is square and the check
     /// concerns values that were already known.
     /// </remarks>
@@ -356,7 +356,7 @@ public class FlatSystemTests
         var withCheck = system.Flatten();
 
         withoutCheck.DegreesOfFreedom.Should().Be(expectedDoF);
-        withCheck.DegreesOfFreedom.Should().Be(expectedDoF, "a vacuous equation determines nothing");
+        withCheck.DegreesOfFreedom.Should().Be(expectedDoF, "a redundant equation determines nothing");
         withCheck.Determination.Should().Be(expected);
         withCheck.RedundantEquations.Select(e => e.Relationship.Id).Should().Equal("a==b");
     }

@@ -48,7 +48,7 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
     /// <summary>How <see cref="DegreesOfFreedom"/> classifies this system.</summary>
     /// <remarks>
     /// A verdict on the <i>solve</i>, and a pure function of the count — deliberately not also a verdict on how
-    /// much redundancy the model carries. The two are orthogonal: a vacuous equation touches no unknown, so it
+    /// much redundancy the model carries. The two are orthogonal: a redundant equation touches no unknown, so it
     /// can sit on an under-, exactly-, or over-determined system alike without changing any of them. Folding it
     /// in here would report a square system with one redundant check as over-determined, which is false — its
     /// solve is square, and the check is about values that were already known. Redundancy is reported by
