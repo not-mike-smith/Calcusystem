@@ -41,9 +41,9 @@ var trial = system.Calculate(overrides: new Dictionary<Variable, Measurand> { [m
 ## Surprises
 
 - **These are extension methods, so `Analysis.Outcomes` has no constructor you can reach.**
-  Every result type there is produced here and nowhere else. <!-- TO_REVIEW: this is the
-  least-surprise violation flagged for the M4 boundary review — reword or drop once that
-  is settled. -->
+  Every result type there is produced here and nowhere else, which means the namespace holding
+  the results is not the one you call. That split is under review and may not survive the
+  Milestone 4 structural analysis.
 - **Only determining relationships become equations.** Ordering and tolerance relationships
   bound a value rather than producing one, so they never appear in `FlatSystem.Equations`,
   however many of them a system carries. They are still evaluated by `Calculate` and still

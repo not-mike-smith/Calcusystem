@@ -221,8 +221,6 @@ Defined in `Measurement/Exceptions/`:
 | `IncompatibleDimensionsException` | `Quantity`/`Measurand` `+`/`-`/`Plus`/`Minus`; `In(unit)`/`Measurand.In(unit)` | Dimensionalities don't match (or the target unit's dimensionality doesn't match the value's) |
 | `NondiscreteDimensionalityException` | `Dimensionality` `/` (root); `Quantity`/`Measurand` `ToRoot` | A fundamental-dimension exponent isn't evenly divisible by the requested root |
 
-`NegativeMagnitudeException` also exists in this namespace but nothing in the codebase throws it anymore — a leftover from the removed `Magnitude` type; safe to ignore, and a candidate for deletion.
-
 ---
 
 ## Persistence: state, not DTOs

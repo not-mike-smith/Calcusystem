@@ -1,6 +1,6 @@
-using Calcusystem.Core.Extensions;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Extensions;
 
 namespace Calcusystem.Measurement.Comparison;
 

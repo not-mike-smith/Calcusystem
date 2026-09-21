@@ -58,8 +58,7 @@ var back     = energy / 2;                                    // integer root
   `Epsilon` is read by `MeasurandComparer` as a near-zero floor. `PlausibleMaximum` is
   `internal` and currently has no reader at all — the composed ceiling is over-permissive,
   because a product over independent maxima cannot see a coupling constraint like the speed of
-  light. <!-- TO_REVIEW: this is future work, not a usage note. Keep here, move to the
-  assembly README, or drop until PhysicalBounds exists? -->
+  light.
 - **Currency is a fundamental dimension.** It is not physical, but it is dimensionally
   independent and engineering models cost things, so it sits alongside the SI seven plus angle.
 

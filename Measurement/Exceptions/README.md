@@ -8,9 +8,8 @@ What measurement arithmetic throws when an operation is not meaningful.
 | --- | --- | --- |
 | `IncompatibleDimensionsException` | class | Adding, subtracting, or converting across different dimensionalities. |
 | `NondiscreteDimensionalityException` | class | A root that would leave a fractional exponent. |
-| `NegativeMagnitudeException` | class | Never thrown. <!-- TO_REVIEW: dead type — the constructor is `internal` and nothing constructs it. Delete, or is it reserved for planned work? --> |
 
-All three derive from `InvalidOperationException`: the operands are individually valid, and it
+Both derive from `InvalidOperationException`: the operands are individually valid, and it
 is the combination that is not.
 
 ## Start here
