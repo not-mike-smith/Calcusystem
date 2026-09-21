@@ -43,12 +43,6 @@ something to turn an id back into an object.
 
 ## Surprises
 
-- **The axis is whether rebuilding needs outside help, not where a type sits in a tree.**
-  `Variable` is a genuine leaf of the expression graph and uses `ISnapshotting`; being a leaf is
-  incidental. What matters is that it has no references to resolve.
-- **`INodeResolver.Resolve` is a generic method, not a typed delegate.** A node's neighbours
-  need not all be the same type — an `ExpressionSystem` refers to expressions in some of its
-  lists and to operators in others.
 - **Neither interface suits a polymorphic hierarchy.** `static abstract FromSnapshot` has to be
   declared on a type the caller already knows, so where the concrete type is chosen by
   *inspecting* the snapshot, reconstruction goes through a factory instead —

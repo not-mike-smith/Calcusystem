@@ -44,8 +44,6 @@ Every constructor is internal; the factory is the only way in.
 - **`IProvenance` does not implement `ISnapshotting`.** The concrete kind is chosen by
   inspecting the snapshot, and `static abstract FromSnapshot` must be declared on a type the
   caller already knows, so reconstruction goes through `ProvenanceFactory.FromSnapshot`.
-- **A provenance is `IIdentified` but is never referred to by id.** It is owned inline by a
-  single node; the id exists so a round trip is faithful, not so anything can point at it.
 - **Uncertainty is not here.** A measured value's uncertainty characterises the instrument, but
   it lives on the `Measurand`. This records *what the source was*, not *how good it was*.
 

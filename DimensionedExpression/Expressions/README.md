@@ -35,7 +35,7 @@ force.UnsetVariables();           // [m, a]
 force.ComputeIfFullyDescribed();  // null until both leaves are set
 ```
 
-Operands are constructor arguments; the two-child types use required initialisers:
+Operands are constructor arguments; the two-child types use required initializers:
 
 ```csharp
 var q = new QuotientExpression { Numerator = work, Denominator = time };

@@ -52,6 +52,7 @@ var back     = energy / 2;                                    // integer root
 - **`Try*` returns a `NaN`-valued result rather than throwing or returning null.** `TryAdd`,
   `TrySubtract`, and `TryIn` still carry a dimensionality, so an unchecked result propagates a
   `NaN` instead of failing loudly.
+- **Angle is a `FundamentalDimension` and is present in dimensionalities like Torque and AngularInertia.**  While the angular aspect of these kind of units is often ignored, treating radians as a length ratio, the angular aspect is preserved by default.
 - **Exponents are integers, so some roots are refused.** `energy / 3` throws
   `NondiscreteDimensionalityException` rather than producing a fractional exponent.
 - **`Dimensionality` carries `Epsilon` and `PlausibleMaximum`, composed from the fundamentals.**

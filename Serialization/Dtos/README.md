@@ -6,7 +6,7 @@ The wire shape of a saved system: flat, id-referenced, and holding no behaviour.
 
 | Type | Kind | Role |
 | --- | --- | --- |
-| `ExpressionSystem` | class | The document root. Holds the four expression lists and the relationships. |
+| `ExpressionSystem` | class | The document root. Holds all lists of expressions and relationships. |
 | `SingleVariable` | class | A leaf, with its value, dimensionality, and provenance. |
 | `SingleDerivedVariable` | class | A one-argument expression, by the id of its inner node. |
 | `PairDerivedVariable` | class | A two-argument expression, by two ids. |

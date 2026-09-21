@@ -46,7 +46,7 @@ var trial = system.Calculate(overrides: new Dictionary<Variable, Measurand> { [m
   Milestone 4 structural analysis.
 - **Only determining relationships become equations.** Ordering and tolerance relationships
   bound a value rather than producing one, so they never appear in `FlatSystem.Equations`,
-  however many of them a system carries. They are still evaluated by `Calculate` and still
+  regardless of many of them a system carries. They are still evaluated by `Calculate` and still
   produce an outcome.
 
 ## What does not belong here
