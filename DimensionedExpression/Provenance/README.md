@@ -38,13 +38,13 @@ Every constructor is internal; the factory is the only way in.
 
 ## Surprises
 
-- **The kinds differ in metadata, not in behaviour.** None of them changes how a value is
+- **The kinds differ in metadata, not in behavior.** None of them changes how a value is
   computed or compared. Provenance is for the audit trail, and choosing the wrong kind is a
   documentation error, not an arithmetic one.
 - **`IProvenance` does not implement `ISnapshotting`.** The concrete kind is chosen by
   inspecting the snapshot, and `static abstract FromSnapshot` must be declared on a type the
   caller already knows, so reconstruction goes through `ProvenanceFactory.FromSnapshot`.
-- **Uncertainty is not here.** A measured value's uncertainty characterises the instrument, but
+- **Uncertainty is not here.** A measured value's uncertainty characterizes the instrument, but
   it lives on the `Measurand`. This records *what the source was*, not *how good it was*.
 
 ## What does not belong here

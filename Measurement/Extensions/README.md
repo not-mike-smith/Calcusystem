@@ -32,7 +32,7 @@ difference is visible at the call site rather than buried in a convention.
   lets an absolute uncertainty be reported as a relative one on a value of zero without
   producing a non-finite result.
 - **`RootSumOfSquares` is the quadrature sum** used for uncorrelated propagation; the generic
-  overload projects first, so a caller need not materialise an intermediate list.
+  overload projects first, so a caller need not materialize an intermediate list.
 
 ## Surprises
 

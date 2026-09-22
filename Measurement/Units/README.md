@@ -1,6 +1,6 @@
 # Calcusystem.Measurement.Units
 
-Everything about units: the type, the offset variant, the catalogue of 43 quantity families,
+Everything about units: the type, the offset variant, the catalog of 43 quantity families,
 and the registry that finds them.
 
 ## What's here

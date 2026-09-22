@@ -1,6 +1,6 @@
 # Calcusystem.Serialization.Dtos
 
-The wire shape of a saved system: flat, id-referenced, and holding no behaviour.
+The wire shape of a saved system: flat, id-referenced, and holding no behavior.
 
 ## What's here
 
@@ -41,7 +41,7 @@ var json = JsonSerializer.Serialize(dto);
   in this assembly, which is why the mappers spell the wire one `Dtos.ExpressionSystem` and
   import the domain one. Keep that habit in any new code here.
 - **`Provenance` is the union of all four kinds' fields**, discriminated by `Type`, and only the
-  fields belonging to that kind are populated. The kinds differ in metadata, not behaviour, so
+  fields belonging to that kind are populated. The kinds differ in metadata, not behavior, so
   a flat shape costs nothing and keeps the seam non-generic.
 - **Not everything is `required`.** A field added after payloads were already written is
   deliberately optional, so that older documents still load with the default that matches what

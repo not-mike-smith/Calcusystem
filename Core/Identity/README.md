@@ -44,7 +44,7 @@ so every reconstruction path passes the stored id rather than defaulting.
 
 - The `IIdentified` contract itself → `Interfaces/`
 - Resolving an id back into an object → `Interfaces/INodeResolver`
-- Anything with domain behaviour. This holds identity and nothing else.
+- Anything with domain behavior. This holds identity and nothing else.
 
 ## Related
 

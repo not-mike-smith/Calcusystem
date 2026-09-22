@@ -5,7 +5,7 @@ where a comparison sits on a ladder, and which type a snapshot rebuilds into.
 
 ## What's here
 
-**Modelling choices** — a modeller picks these, and they change what the model asserts.
+**Modelling choices** — a modeler picks these, and they change what the model asserts.
 
 | Type | Role |
 | --- | --- |

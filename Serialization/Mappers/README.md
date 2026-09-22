@@ -1,7 +1,7 @@
 # Calcusystem.Serialization.Mappers
 
 Turns a live `ExpressionSystem` into DTOs and back. This is the whole of the assembly's
-behaviour; everything else here is shape.
+behavior; everything else here is shape.
 
 ## What's here
 
@@ -58,7 +58,7 @@ fails.
 ## What does not belong here
 
 - The DTO shapes → `Dtos/`
-- What state defines a domain object → that object's assembly, as a snapshot
+- What data defines a domain object → that object's assembly, as a snapshot
 - Byte encoding. This layer maps objects; a serializer turns the DTOs into JSON.
 
 ## Related

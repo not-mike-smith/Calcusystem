@@ -1,8 +1,8 @@
-# Measurement
+# Calcusystem.Measurement
 
 The foundation layer of Calcusystem. Provides physical quantities with units, dimensions, and measurement uncertainty as first-class concerns. All other assemblies depend on this one; it has no Calcusystem dependencies of its own.
 
-> **Using this assembly:** as with every project, this README plus the interfaces in `Interfaces/` cover what you need to *use* Measurement without reading implementation. Measurement is an exception in one respect — several non-interface types also carry essential contract docstrings worth reading directly: the `Quantity` and `Dimensionality` structs and the `FundamentalDimension` class.
+> **Using this assembly:** this README covers the invariants that span the whole layer. Each folder carries its own README describing the namespace it holds, which is what you read to *use* that namespace. `Primitives/` is the one to start with — `Quantity`, `Measurand`, `Dimensionality`, and `FundamentalDimension` are the types every other folder is expressed in terms of.
 
 ---
 
@@ -26,9 +26,9 @@ Listed from user-facing at the top to foundational primitive at the bottom.
 | ---- | ---- | ------- | ----------- |
 | Measurand | class | | Quantity + IUncertainty |
 | IUncertainty | interface | | describes the uncertainty interval around a KMS value |
-| ISymmetricUncertainty | interface | IUncertainty | symmetric uncertainty; absolute error = relative error × \|v\| |
-| SymmetricUncertainty | class | ISymmetricUncertainty | symmetric error (same above and below), stored as a relative fraction or an absolute KMS value |
-| AsymmetricUncertainty | class | IUncertainty | independent upper/lower relative errors |
+| ISymmetricUncertainty | interface | IUncertainty | symmetric uncertainty; absolute = relative × \|v\| |
+| SymmetricUncertainty | class | ISymmetricUncertainty | the same magnitude above and below, stored as a relative fraction or an absolute KMS value |
+| AsymmetricUncertainty | class | IUncertainty | independent upper and lower magnitudes |
 | Quantity | struct | | raw KMS value + Dimensionality; internal currency; no uncertainty |
 | OffsetUnitOfMeasure | class | UnitOfMeasure | extends UnitOfMeasure with a fixed zero-point offset; see note below |
 | UnitOfMeasure | class | | symbol + Dimensionality + KMS conversion factor (constructed via UnitFactory) |
@@ -85,7 +85,7 @@ Note `T` is time and `Θ` is temperature — the reverse of the convention some 
 
 The uncertainty interval around a nominal KMS value `v` is `[v − LowerAbsoluteUncertainty(v), v + UpperAbsoluteUncertainty(v)]`.
 
-**Relative or absolute storage.** Each uncertainty stores its error as *either* a relative fraction *or* an absolute KMS value, distinguished by an internal `bool IsStoredAsAbs`. This is purely a **convention on what the stored magnitude means** — both encode the same error band, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how errors *propagate*, handled at the `IUncertaintyPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative error through `IUncertainty` — but it matters at zero: an **absolute error is well-defined when the value is 0; a relative one is not**. `RelativeUncertainty(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful error.
+**Relative or absolute storage.** Each uncertainty stores its magnitude as *either* a relative fraction *or* an absolute KMS value, distinguished by an internal `bool IsStoredAsAbs`. This is purely a **convention on what the stored magnitude means** — both encode the same interval, and converting between them is just multiplying or dividing by `|v|`. (A genuinely different model such as interval bounds is not another value of this flag; it would be a change in how uncertainties *propagate*, handled at the `IUncertaintyPropagator` level.) Which form is stored is invisible to consumers — you always read absolute or relative through `IUncertainty` — but it matters at zero: an **absolute magnitude is well-defined when the value is 0; a relative one is not**. `RelativeUncertainty(0)` returns `+∞` rather than throwing, which is what lets a sum that cancels to zero, or `ln(1)`, carry a meaningful uncertainty.
 
 ### Building one
 
@@ -93,15 +93,15 @@ The concrete constructors are private. `Uncertainty` is the whole construction v
 
 | Factory | Returns | Stored as |
 | --- | --- | --- |
-| `Uncertainty.Exact()` | `SymmetricUncertainty` | — (no error) |
-| `Uncertainty.Relative(error)` | `SymmetricUncertainty` | relative fraction |
-| `Uncertainty.Absolute(error: Quantity)` | `SymmetricUncertainty` | absolute KMS error |
+| `Uncertainty.Exact()` | `SymmetricUncertainty` | — (none) |
+| `Uncertainty.Relative(RelativeUncertainty)` | `SymmetricUncertainty` | relative fraction |
+| `Uncertainty.Absolute(Quantity)` | `SymmetricUncertainty` | absolute KMS magnitude |
 | `Uncertainty.Relative(upper, lower)` | `AsymmetricUncertainty` | relative fractions |
-| `Uncertainty.Absolute(upper, lower: Quantity)` | `AsymmetricUncertainty` | absolute KMS errors |
+| `Uncertainty.Absolute(upper, lower)` | `AsymmetricUncertainty` | absolute KMS magnitudes |
 
-The storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a *persisted* uncertainty is a separate concern with a separate door — `UncertaintyFactory.FromSnapshot`, see [Persistence](#persistence-state-not-dtos).
+The storage flag and the raw magnitude are `internal`, so there is no `(bool, double)` overload to reach for. Rebuilding a *persisted* uncertainty is a separate concern with a separate door — `UncertaintyFactory.FromSnapshot`, see [Persistence](#persistence-snapshots-not-dtos).
 
-**Relative error is a `RelativeUncertainty`, not a bare `double`.** A number on its own cannot say whether it means a fraction of a value or an amount of it: given a mass in kilograms, `0.001` reads equally well as one gram or as one tenth of a percent. Build one with `Percent()` or `Fraction()`:
+**A relative uncertainty is a `RelativeUncertainty`, not a bare `double`.** A number on its own cannot say whether it means a fraction of a value or an amount of it: given a mass in kilograms, `0.001` reads equally well as one gram or as one tenth of a percent. Build one with `Percent()` or `Fraction()`:
 
 ```csharp
 0.1.Percent()     // 0.001 — one tenth of one percent
@@ -122,7 +122,7 @@ var lopsided = Mass.Kilogram.Quantity(1).WithAsymmetricUncertainty(
     lower: 2.0.Percent());
 ```
 
-`WithUncertainty` is symmetric and `WithAsymmetricUncertainty` takes both bounds at once — there is no way to supply one bound and not the other, and no way to mix a relative bound with an absolute one, because no overload accepts that. **Pass the asymmetric arguments by name.** Which bound is which is otherwise invisible at the call site, and swapping them produces a plausible-looking error band rather than an obvious fault.
+`WithUncertainty` is symmetric and `WithAsymmetricUncertainty` takes both bounds at once — there is no way to supply one bound and not the other, and no way to mix a relative bound with an absolute one, because no overload accepts that. **Pass the asymmetric arguments by name.** Which bound is which is otherwise invisible at the call site, and swapping them produces a plausible-looking interval rather than an obvious fault.
 
 For anything else, `Quantity.Measurand(IUncertainty)` takes an uncertainty built from the table above.
 
@@ -130,42 +130,43 @@ For anything else, `Quantity.Measurand(IUncertainty)` takes an uncertainty built
 var mass = Mass.Kilogram.Quantity(1).WithUncertainty(1.0.Units(Mass.Milligram));
 ```
 
-Propagation follows the storage: **sums/differences produce an absolute-error result** (no dividing by the possibly-zero sum), while products compose relative errors. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.
+Propagation follows the storage: **sums and differences produce an absolute result** (no dividing by the possibly-zero sum), while products compose relative ones. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.
 
 **`ISymmetricUncertainty`** extends `IUncertainty` and adds default interface implementations of the directional members (`UpperAbsoluteUncertainty`/`LowerAbsoluteUncertainty` and their relative equivalents) in terms of the single `AbsoluteUncertainty`/`RelativeUncertainty`. Only `SymmetricUncertainty` implements this.
 
 `Measurand` exposes:
 
-- `KmsUpperAbsoluteUncertainty` / `KmsLowerAbsoluteUncertainty` — directional errors; use these in operators and checks
+- `KmsUpperAbsoluteUncertainty` / `KmsLowerAbsoluteUncertainty` — the directional magnitudes; use these in operators and checks
 - `KmsAbsoluteUncertainty` — `Max(upper, lower)`; conservative single value for propagation formulas
 - `RelativeUncertainty` — `KmsAbsoluteUncertainty / |KmsValue|`; conservative for propagation
 - `Uncertainty` — the raw `IUncertainty` instance; preserved through negation and `Reciprocal()`
 
 ---
 
-## Error propagation
+## Uncertainty propagation
 
-`Measurand` arithmetic (`Plus`, `Minus`, `Times`, `DividedBy`, `ToPower`, `ToRoot`) propagates uncertainty through an `IUncertaintyPropagator` (`Measurement/Interfaces/IUncertaintyPropagator.cs`):
+`Measurand` arithmetic (`Plus`, `Minus`, `Times`, `DividedBy`) propagates uncertainty through an `IUncertaintyPropagator` (`Interfaces/IUncertaintyPropagator.cs`):
 
 | Method | Used for |
 | --- | --- |
-| `PropagateThroughSum(method, measurands)` | `Plus` / `Minus` |
-| `PropagateThroughProduct(method, measurands)` | `Times` / `DividedBy` |
-| `PropagateErrorThroughExponentiation(measurand, exponentNumerator, exponentDenominator)` | `ToPower` / `ToRoot` |
+| `PropagateThroughSum(correlation, measurands)` | `Plus` / `Minus` |
+| `PropagateThroughProduct(correlation, measurands)` | `Times` / `DividedBy` |
 
-Each takes an `UncertaintyCorrelation`, defaulting to `Uncorrelated`:
+`ToPower` and `ToRoot` do **not** go through the propagator. Raising one value to a power has no second operand to be correlated with, so the whole of it is `IUncertainty.Exponentiated(nominalKmsValue, numerator, denominator)`, alongside the other unary transforms.
 
-| Method | Sum error | Product relative error |
+Each propagator method takes an `UncertaintyCorrelation`, defaulting to `Uncorrelated`:
+
+| Correlation | Sum, absolute | Product, relative |
 | --- | --- | --- |
-| `Uncorrelated` (default) | RSS: `sqrt(Σ absErrᵢ²)` | RSS: `sqrt(Σ relErrᵢ²)` |
-| `Correlated` | Direct sum: `Σ absErrᵢ` | Direct sum: `Σ relErrᵢ` |
+| `Uncorrelated` (default) | RSS: `sqrt(Σ uᵢ²)` | RSS: `sqrt(Σ uᵢ²)` |
+| `Correlated` | Direct sum: `Σ uᵢ` | Direct sum: `Σ uᵢ` |
 
-`Uncorrelated` is the standard assumption for independent errors; `Correlated` is for the rarer case where inputs are known to share an error source (e.g. two readings taken from the same miscalibrated instrument).
+`Uncorrelated` is the standard assumption for independent measurements; `Correlated` is for the rarer case where inputs are known to share a source of uncertainty (e.g. two readings taken from the same miscalibrated instrument).
 
 **`ConservativeGaussianPropagator`** is the only implementation today and covers the large majority of cases — this is what you get, and what you should assume, unless you have a specific reason to reach for something else:
 
-- When every operand is symmetric it returns a `SymmetricUncertainty`; if any operand is asymmetric it preserves the asymmetry, returning an `AsymmetricUncertainty` built from the directional upper/lower errors. (Unary transforms — negation, reciprocal, exponentiation — likewise preserve asymmetry; they live on `IUncertainty` rather than the propagator.)
-- Full Monte Carlo propagation is still deferred to Milestone 4; the current propagator combines errors by RSS / direct sum per the table above.
+- When every operand is symmetric it returns a `SymmetricUncertainty`; if any operand is asymmetric it preserves the asymmetry, returning an `AsymmetricUncertainty` built from the directional upper and lower magnitudes. (Unary transforms — negation, reciprocal, exponentiation — likewise preserve asymmetry; they live on `IUncertainty` rather than the propagator.)
+- Full Monte Carlo propagation is still deferred to Milestone 4; the current propagator combines magnitudes by RSS or direct sum per the table above.
 
 **Why `IUncertaintyPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IUncertaintyPropagator` is the intended seam for that. As it stands, `Measurand.ResolveUncertaintyPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
 
@@ -173,7 +174,7 @@ Each takes an `UncertaintyCorrelation`, defaulting to `Uncorrelated`:
 
 ## Unit library
 
-Units live in `Measurement/Units/`. Each unit class follows the `ReflectiveUnitList<T>` pattern:
+Units live in `Units/`. Each unit class follows the `ReflectiveUnitList<T>` pattern:
 
 ```csharp
 public class Force : ReflectiveUnitList<Force>
@@ -206,7 +207,7 @@ var microfarad = Metric.micro(ElectricCapacitance.Farad);
 
 Named constants span the full SI range, `Yocto` (10⁻²⁴) to `Yotta` (10²⁴), each with a matching static helper method (`Metric.k`, `Metric.M`, `Metric.G`, `Metric.m`, `Metric.micro`, `Metric.n`, …). Watch for a naming collision: `Metric.M`/`Metric.Mega` is the SI prefix (10⁶), while `Metric.ThousandM`/`Metric.MInRomanNumerals` (10³) and `Metric.MM`/`Metric.MegaMega` (10⁶) instead follow the oilfield convention where Roman-numeral `M` = thousand and `MM` = million. `Mega` and `MegaMega` share the same numeric factor but are not interchangeable — pick whichever convention matches the domain you're modeling.
 
-**Available unit classes (40+):** Acceleration, Angle, AngularMomentum, AngularVelocity, Area, Density, Dimensionless, DynamicViscosity, ElectricCapacitance, ElectricCharge, ElectricConductance, ElectricCurrent, ElectricInductance, ElectricPotential, ElectricResistance, Energy, Force, Frequency, HeatTransferCoefficient, Jerk, KinematicViscosity, Length, LuminousIntensity, MagneticFlux, MagneticFluxDensity, Mass, MassFlow, MolecularMass, Moles, MomentOfInertia, Momentum, Power, Pressure, SpecificEnergy, SpecificHeatCapacity, Speed, SurfaceTension, Temperature, ThermalConductivity, Time, Torque, Volume, VolumetricFlow.
+**The available unit classes are the files in `Units/`** — mechanical, electrical, thermal, and fluid quantities, plus `Dimensionless`. `Lists.UnitTypes.All` enumerates them at runtime, which is the answer that cannot go stale.
 
 Note: `Torque` has dimension `M·L²·A·T⁻²` (angle in numerator), distinct from `Energy` (`M·L²·T⁻²`). This is intentional — torque and energy are semantically different even though they are dimensionally equivalent in many systems.
 
@@ -214,7 +215,7 @@ Note: `Torque` has dimension `M·L²·A·T⁻²` (angle in numerator), distinct 
 
 ## Exceptions
 
-Defined in `Measurement/Exceptions/`:
+Defined in `Exceptions/`:
 
 | Exception | Thrown by | When |
 | --- | --- | --- |
@@ -223,47 +224,48 @@ Defined in `Measurement/Exceptions/`:
 
 ---
 
-## Persistence: state, not DTOs
+## Persistence: snapshots, not DTOs
 
-Measurement owns **what state defines a value**; it does not own **how that state is encoded, versioned, or migrated**. Those are different questions with different release cadences, and conflating them is what previously put serialization-only members on the public surface. The seam between them is a set of plain state records in `Measurement/State/`:
+Measurement owns **what data defines a value**; it does not own **how that data is encoded, versioned, or migrated**. Those are different questions with different release cadences, and conflating them is what previously put serialization-only members on the public surface. The seam between them is a set of plain records in `Snapshots/`:
 
-| Type | State record | Contents |
+| Type | Snapshot | Contents |
 | --- | --- | --- |
-| `IUncertainty` | `UncertaintySnapshot` | shape (symmetric/asymmetric), storage flag, magnitudes |
+| `IUncertainty` | `UncertaintySnapshot` | symmetric or asymmetric, storage flag, magnitudes |
 | `Quantity` | `QuantitySnapshot` | KMS value + `DimensionalitySnapshot` |
 | `Measurand` | `MeasurandSnapshot` | `QuantitySnapshot` + `UncertaintySnapshot` |
 | `Dimensionality` | `DimensionalitySnapshot` | exponent of each present fundamental dimension |
 
-These are **mementos, not DTOs**: no type discriminator, no schema version, no encoding choices. A persistence layer maps them to whatever wire format it likes and owns any fix-up of older payloads — Measurement never sees a version number.
+These carry no type discriminator, no schema version, and no encoding choices. A persistence layer maps them to whatever wire format it likes and owns any fix-up of older payloads — Measurement never sees a version number.
 
 ```csharp
-var state = measurand.GetSnapshot();          // hand to Calcusystem.Serialization
-var restored = Measurand.FromSnapshot(state); // rebuild
+var snapshot = measurand.GetSnapshot();          // hand to Calcusystem.Serialization
+var restored = Measurand.FromSnapshot(snapshot); // rebuild
 ```
 
-`Quantity`, `Measurand`, and `Dimensionality` implement `ISnapshotting<TSelf, TSnapshot>` (`Interfaces/ISnapshotting.cs`), which pairs an instance `GetSnapshot()` with a `static abstract FromSnapshot`.
+`Quantity`, `Measurand`, and `Dimensionality` implement `ISnapshotting<TSelf, TSnapshot>` (from `Calcusystem.Core`), which pairs an instance `GetSnapshot()` with a `static abstract FromSnapshot`.
 
-**`IUncertainty` deliberately does not.** Its concrete type is chosen by *inspecting* the state, so reconstruction cannot be a per-type `static abstract`; it is a static gateway over the closed set instead — `UncertaintyFactory.FromSnapshot(state)`, mirroring how `DimensionedExpression` rebuilds provenance through `ProvenanceFactory`. `IUncertainty.GetSnapshot()` is implemented **explicitly** by both concrete types, so the storage form is reachable through the interface but stays off `SymmetricUncertainty`'s and `AsymmetricUncertainty`'s own public surfaces. `Quantity` and `Measurand` implement `GetSnapshot()` publicly — their state is value and dimension, both already public concepts, so there is nothing to protect.
+**`IUncertainty` deliberately does not.** Its concrete type is chosen by *inspecting* the snapshot, so reconstruction cannot be a per-type `static abstract`; it is a static gateway over the closed set instead — `UncertaintyFactory.FromSnapshot(snapshot)`, mirroring how `DimensionedExpression` rebuilds provenance through `ProvenanceFactory`. `IUncertainty.GetSnapshot()` is implemented **explicitly** by both concrete types, so the storage form is reachable through the interface but stays off `SymmetricUncertainty`'s and `AsymmetricUncertainty`'s own public surfaces. `Quantity` and `Measurand` implement `GetSnapshot()` publicly — what defines them is value and dimension, both already public concepts, so there is nothing to protect.
 
-**`DimensionalitySnapshot` carries the exponent pairs**, zero exponents stripped, so an empty map is a dimensionless value. It does *not* carry an encoded string: choosing to write those pairs as `"M1,L1,T-2"` versus a nested object, keying them on symbols versus names, and repairing a payload written before a symbol changed are all format decisions, and they live in `Calcusystem.Serialization` (see `DimensionalityCodec` there). This is also why the state is not `ToString()`, which is a human-readable form (`M·L/T²`) with middots and superscripts that does not round-trip.
+**`DimensionalitySnapshot` carries the exponent pairs**, zero exponents stripped, so an empty map is a dimensionless value. It does *not* carry an encoded string: choosing to write those pairs as `"M1,L1,T-2"` versus a nested object, keying them on symbols versus names, and repairing a payload written before a symbol changed are all format decisions, and they live in `Calcusystem.Serialization` (see `DimensionalityCodec` there). This is also why the snapshot is not `ToString()`, which is a human-readable form (`M·L/T²`) with middots and superscripts that does not round-trip.
 
 ```csharp
+var force = Dimensionality.Mass * Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 var pairs = force.GetSnapshot().Pairs;   // { Mass: 1, Length: 1, Time: -2 }, in canonical order
 ```
 
-A map is affordable because a state object lives only for the duration of a serialization pass — it is not something the rest of the library computes with. `GetSnapshot()` yields its pairs in canonical dimension order, so a consumer writing them out gets a stable result for dimensionally-equal values without sorting them itself. `DimensionalitySnapshot` compares its maps set-wise rather than by reference; the compiler-generated equality would otherwise make two states describing the same dimension unequal, and that would propagate into `QuantitySnapshot` and `MeasurandSnapshot`.
+A map is affordable because a snapshot lives only for the duration of a serialization pass — it is not something the rest of the library computes with. `GetSnapshot()` yields its pairs in canonical dimension order, so a consumer writing them out gets a stable result for dimensionally-equal values without sorting them itself. `DimensionalitySnapshot` compares its maps set-wise rather than by reference; the compiler-generated equality would otherwise make two snapshots describing the same dimension unequal, and that would propagate into `QuantitySnapshot` and `MeasurandSnapshot`.
 
 ---
 
 ## Scope boundaries
 
-**What belongs here:** physical quantities, units, dimensionality algebra, uncertainty types, error propagation, and the state records describing them.
+**What belongs here:** physical quantities, units, dimensionality algebra, uncertainty types, uncertainty propagation, and the snapshots describing them.
 
 **What does NOT belong here:**
 
 - Expression trees or variables that represent unknowns → `DimensionedExpression`
-- Binary operators (equality, tolerance, unequality) → `DimensionedExpression`
+- Binary operators (equality, tolerance, inequality) → `DimensionedExpression`
 - Serialization DTOs or mappers → `Calcusystem.Serialization`
-
-The state records in `Measurement/State/` are not an exception to that last line. A state record says *what data defines a value*, which only this assembly can answer; a DTO adds *how that data is labelled, versioned, and encoded*, which is the persistence layer's business. Wire formats, type discriminators, and schema migrations stay out of here.
 - Evaluation engine, solver → future assemblies
+
+The snapshots in `Snapshots/` are not an exception to the third line. A snapshot says *what data defines a value*, which only this assembly can answer; a DTO adds *how that data is labeled, versioned, and encoded*, which is the persistence layer's business. Wire formats, type discriminators, and schema migrations stay out of here.

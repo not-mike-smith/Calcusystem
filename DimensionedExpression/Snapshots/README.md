@@ -46,7 +46,7 @@ ProvenanceFactory.FromSnapshot(provenanceSnapshot);
 
 ## Surprises
 
-- **These are mementos, not DTOs.** No wire type-name, no schema version, no encoding. That is
+- **These are snapshots, not DTOs.** No wire type-name, no schema version, no encoding. That is
   what lets the concrete types keep their metadata `internal` — before snapshots existed, those
   properties were public solely so a mapper in another assembly could read them.
 - **`BinaryOperatorSnapshot` carries two fields most operators never use.** `Agreement` is set

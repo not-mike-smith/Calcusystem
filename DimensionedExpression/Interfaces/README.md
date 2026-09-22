@@ -49,7 +49,7 @@ rel.SolvingRole;                    // Requirement / Equation / Coherence
   graph beneath the node on every call and caches nothing, so a sub-expression shared by three
   parents is computed three times. For anything beyond a one-off read, use
   `Calcusystem.Analysis`'s `system.Calculate()`, which computes each node once.
-- **Nothing is memoised, deliberately.** A node cannot learn that a leaf beneath it was
+- **Nothing is memoized, deliberately.** A node cannot learn that a leaf beneath it was
   reassigned, so a cached answer there could silently go stale. Caching belongs to a caller
   that knows over what scope the graph is unchanged.
 - **Only `IDirectExpression` has a settable `Value`.** Structure is fixed at construction —

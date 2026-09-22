@@ -1,7 +1,7 @@
 # Calcusystem.Core.Interfaces
 
 The contracts every layer above shares: what it means to have an identity, and how an object
-hands out the state that defines it.
+hands out the data that defines it.
 
 ## What's here
 
@@ -19,11 +19,11 @@ Pick between the two snapshot interfaces by asking whether rebuilding needs outs
 ```csharp
 // self-contained — Quantity, Measurand, Dimensionality, Variable
 TSnapshot GetSnapshot();
-static abstract TSelf FromSnapshot(TSnapshot snapshot);
+static abstract TSelf FromSnapshot(TSnapshot state);
 
 // part of a graph — anything whose snapshot holds ids of other nodes
 TSnapshot GetSnapshot();
-static abstract TSelf FromSnapshot(TSnapshot snapshot, INodeResolver resolve);
+static abstract TSelf FromSnapshot(TSnapshot state, INodeResolver resolve);
 ```
 
 A graph is not a tree — one node can be shared by several parents — so nesting children inside

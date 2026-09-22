@@ -30,7 +30,7 @@ var trial = system.Calculate(overrides: new Dictionary<Variable, Measurand> { [m
 ## Guarantees
 
 - **Both are pure in `(system, overrides)`.** Neither writes to the system, so trial values can
-  be probed freely and independent calls parallelise.
+  be probed freely and independent calls parallelize.
 - **`Calculate` computes each node exactly once per run**, walking in dependency order. A
   sub-expression shared by three parents costs one evaluation. Prefer it to calling
   `ComputeIfFullyDescribed()` per node, which re-walks to the leaves every time and caches
@@ -46,7 +46,7 @@ var trial = system.Calculate(overrides: new Dictionary<Variable, Measurand> { [m
   Milestone 4 structural analysis.
 - **Only determining relationships become equations.** Ordering and tolerance relationships
   bound a value rather than producing one, so they never appear in `FlatSystem.Equations`,
-  regardless of many of them a system carries. They are still evaluated by `Calculate` and still
+  regardless of how many of them a system carries. They are still evaluated by `Calculate` and still
   produce an outcome.
 
 ## What does not belong here

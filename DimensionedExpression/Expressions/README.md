@@ -57,7 +57,7 @@ var q = new QuotientExpression { Numerator = work, Denominator = time };
 ## Surprises
 
 - **`ComputeIfFullyDescribed()` re-walks to the leaves on every call and caches nothing.** A
-  sub-expression shared by three parents is computed three times. Nothing is memoised
+  sub-expression shared by three parents is computed three times. Nothing is memoized
   deliberately — a node cannot learn that a leaf beneath it was reassigned, so a cached answer
   there could go stale. Use `Calcusystem.Analysis`'s `system.Calculate()` for anything beyond a
   one-off read.

@@ -13,7 +13,7 @@ be asked, and how two of them combine.
 
 ## Start here
 
-You implement these only to add a new uncertainty shape or a new propagation method. To *use*
+You implement these only to add a new uncertainty form or a new propagation method. To *use*
 them, ask an interval for the reading you need:
 
 ```csharp

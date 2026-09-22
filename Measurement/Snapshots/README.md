@@ -31,7 +31,7 @@ snapshot, so it rebuilds through `Factories.UncertaintyFactory.FromSnapshot` ins
   encoding be diffed, compared, or hashed.
 - **`UncertaintySnapshot` records the storage form**, not just the magnitude. An uncertainty
   given as relative comes back relative.
-- **These are mementos, not DTOs.** No wire type-name, no schema version, no encoding. Adding a
+- **These are snapshots, not DTOs.** No wire type-name, no schema version, no encoding. Adding a
   third storage form changes this record and every consumer gets a compile error at its mapping
   site, which is exactly where the decision about migrating old data belongs.
 

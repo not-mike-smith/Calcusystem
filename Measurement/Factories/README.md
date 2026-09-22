@@ -55,7 +55,7 @@ correction to `Kilogram` reaches everything derived from it.
 
 ## What does not belong here
 
-- The unit catalogue itself → `Units/`
+- The unit catalog itself → `Units/`
 - The `UnitOfMeasure` type → `Units/`
 - Making an uncertainty from a measurement → `Uncertainties/Uncertainty`
 

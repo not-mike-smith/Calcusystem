@@ -26,14 +26,14 @@ The closed sets this assembly names.
   three-valued seam it answers `true` when the two landmarks can be compared and `null` when
   they cannot — an assertion that both are well-defined quantities.
 - **`MustBe.Impossible` is satisfied by nothing**, and is the enum's zero, so it is also what an
-  uninitialised field reads as. `SimpleComparison` refuses it at construction.
+  uninitialized field reads as. `SimpleComparison` refuses it at construction.
 - **`UncertaintyCorrelation` is not a propagation method.** It states a fact about the
   quantities — two readings off one instrument share its calibration uncertainty. The numerical
   method is `IUncertaintyPropagator`, and the two are passed together.
 
 ## What does not belong here
 
-- Anything with behaviour. `MustBe` is evaluated by `ComparisonRule`, not here.
+- Anything with behavior. `MustBe` is evaluated by `ComparisonRule`, not here.
 - Comparison itself → `Comparison/`
 
 ## Related

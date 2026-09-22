@@ -30,7 +30,7 @@ calc.Violations;         // requirements that failed against a criterion
 ## Guarantees
 
 - **A calculation is pure in `(system, overrides)`.** Trial values can be probed without
-  writing them into the model, and independent calculations parallelise.
+  writing them into the model, and independent calculations parallelize.
 - **Each node is computed exactly once per run.** A sub-expression shared by three parents
   costs one evaluation, not three. This is why `Calculate` is preferred over calling
   `ComputeIfFullyDescribed()` on individual nodes.
