@@ -260,7 +260,7 @@ An optional audit annotation recording *where a value came from* — carried by 
 | `ProvenanceFactory.Design(specReference?)` | engineer-specified value | spec/drawing reference |
 | `ProvenanceFactory.Model(modelName, fittingReference?)` | fitted constitutive constant | model name, fitting reference |
 
-The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so callers can pattern-match on a kind, but their constructors **and their metadata** are **internal** — construction always flows through the factory, and the metadata leaves the assembly only as a `ProvenanceSnapshot`. The factory methods above mint a fresh identity and take no `id`; restoring a persisted one is `ProvenanceFactory.FromSnapshot(state)`, deliberately kept apart from the creation vocabulary so a caller recording where a value came from is never offered a parameter that only makes sense to a deserializer.
+The concrete kinds (`MeasuredProvenance`, `ReferenceProvenance`, `DesignProvenance`, `ModelProvenance`) are **public** so callers can pattern-match on a kind, but their constructors **and their metadata** are **internal** — construction always flows through the factory, and the metadata leaves the assembly only as a `ProvenanceSnapshot`. The factory methods above mint a fresh identity and take no `id`; restoring a persisted one is `ProvenanceFactory.FromSnapshot(snapshot)`, deliberately kept apart from the creation vocabulary so a caller recording where a value came from is never offered a parameter that only makes sense to a deserializer.
 
 `IProvenance.GetSnapshot()` is implemented *explicitly*, so a consumer holding a `MeasuredProvenance` sees `Summary()` and `Id`, not the raw fields. Reading them is a persistence concern and this is its one door.
 
@@ -287,11 +287,11 @@ Grouped by **arity, not by type** — the kinds within a group differ in what th
 `Variable` rebuilds from its own snapshot alone, so it uses `ISnapshotting<Variable, VariableSnapshot>` (from `Calcusystem.Core`). Every other node references neighbors **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `ISnapshottingNode<TSelf, TSnapshot>`, whose `FromSnapshot` also takes an `INodeResolver` to turn those ids back into nodes:
 
 ```csharp
-public static ProductExpression FromSnapshot(NaryExpressionSnapshot state, INodeResolver resolve) =>
-    new(state.InnerIds.Select(resolve.Resolve<IExpression>))
+public static ProductExpression FromSnapshot(NaryExpressionSnapshot snapshot, INodeResolver resolve) =>
+    new(snapshot.InnerIds.Select(resolve.Resolve<IExpression>))
     {
-        Id = state.Id,
-        UncertaintyCorrelation = state.UncertaintyCorrelation,
+        Id = snapshot.Id,
+        UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
     };
 ```
 
@@ -303,9 +303,9 @@ The axis is *does rebuilding need outside help*, not where a node sits in the tr
 
 Where a snapshot carries a discriminator, the concrete type is chosen by inspecting it, so reconstruction is a static gateway over the closed set rather than a `static abstract` on each type — the same treatment `IUncertainty` and `IProvenance` get:
 
-- `ExpressionFactory.FromSnapshot(state, resolve)` — one overload per arity, each delegating to the concrete type's own `FromSnapshot`, which is where per-type construction actually lives.
-- `BinaryOperatorFactory.FromSnapshot(state, resolve)` — a gateway rather than per-type implementations, because construction is identical across all fourteen apart from which type is instantiated. `BinaryOperatorSnapshot.SolvingRole` is read only for the equality kind; the others have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation. Two kinds carry data of their own — an equality's `AgreementRule` and a simple comparison's `ComparisonRule` — and reconstruction *refuses* a snapshot missing either rather than guessing, since a guessed reading is exactly the ambiguity storing them removed.
-- `ProvenanceFactory.FromSnapshot(state)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
+- `ExpressionFactory.FromSnapshot(snapshot, resolve)` — one overload per arity, each delegating to the concrete type's own `FromSnapshot`, which is where per-type construction actually lives.
+- `BinaryOperatorFactory.FromSnapshot(snapshot, resolve)` — a gateway rather than per-type implementations, because construction is identical across all fourteen apart from which type is instantiated. `BinaryOperatorSnapshot.SolvingRole` is read only for the equality kind; the others have no way to represent anything but `Requirement`, so reconstruction drops it rather than inventing an equation. Two kinds carry data of their own — an equality's `AgreementRule` and a simple comparison's `ComparisonRule` — and reconstruction *refuses* a snapshot missing either rather than guessing, since a guessed reading is exactly the ambiguity storing them removed.
+- `ProvenanceFactory.FromSnapshot(snapshot)` — see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs).
 
 If you are round-tripping an `ExpressionSystem` to storage, `Calcusystem.Serialization` is still the assembly to reach for; it consumes these seams.
 

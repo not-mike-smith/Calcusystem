@@ -1,7 +1,7 @@
 namespace Calcusystem.Core.Interfaces;
 
 /// <summary>
-/// Turns an id reference back into the node it names, while a graph is being rebuilt from state.
+/// Turns an id reference back into the node it names, while a graph is being rebuilt from a snapshot.
 /// </summary>
 /// <remarks>
 /// <para>

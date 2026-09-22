@@ -5,7 +5,7 @@ using Calcusystem.Measurement.Factories;
 namespace Calcusystem.Measurement.Snapshots;
 
 /// <summary>
-/// The complete stored state of an <see cref="IUncertainty"/> — enough to rebuild it, and nothing more.
+/// The complete snapshot of an <see cref="IUncertainty"/> — enough to rebuild it, and nothing more.
 /// Read it via <see cref="IUncertainty.GetSnapshot"/>; rebuild via <see cref="UncertaintyFactory.FromSnapshot"/>.
 /// </summary>
 /// <remarks>
@@ -23,7 +23,7 @@ namespace Calcusystem.Measurement.Snapshots;
 /// </remarks>
 public readonly record struct UncertaintySnapshot
 {
-    /// <summary>Which concrete uncertainty this state rebuilds into.</summary>
+    /// <summary>Which concrete uncertainty this snapshot rebuilds into.</summary>
     public UncertaintyType Type { get; private init; }
 
     /// <summary>Whether the magnitudes are absolute KMS errors (<c>true</c>) or relative fractions (<c>false</c>).</summary>
@@ -36,7 +36,7 @@ public readonly record struct UncertaintySnapshot
     /// <summary>The stored error below the nominal value.</summary>
     public double LowerMagnitude { get; private init; }
 
-    /// <summary>Captures the state of a symmetric uncertainty.</summary>
+    /// <summary>Captures a symmetric uncertainty.</summary>
     public static UncertaintySnapshot Symmetric(bool isStoredAsAbs, double magnitude) => new()
     {
         Type = UncertaintyType.Symmetric,
@@ -45,7 +45,7 @@ public readonly record struct UncertaintySnapshot
         LowerMagnitude = magnitude,
     };
 
-    /// <summary>Captures the state of an asymmetric uncertainty.</summary>
+    /// <summary>Captures an asymmetric uncertainty.</summary>
     public static UncertaintySnapshot Asymmetric(bool isStoredAsAbs, double upperMagnitude, double lowerMagnitude) => new()
     {
         Type = UncertaintyType.Asymmetric,

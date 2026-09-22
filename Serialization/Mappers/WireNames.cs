@@ -6,12 +6,12 @@ using Calcusystem.DimensionedExpression.Provenance;
 namespace Calcusystem.Serialization.Mappers;
 
 /// <summary>
-/// Translates between the domain's state discriminators and the <c>Type</c> strings written to the wire.
+/// Translates between the domain's snapshot discriminators and the <c>Type</c> strings written to the wire.
 /// </summary>
 /// <remarks>
 /// <para>
 /// This is the whole of the coupling between the two vocabularies, and it lives here because the strings are a
-/// storage format decision. The state records use enums, which say nothing about how they are persisted; the
+/// storage format decision. The snapshots use enums, which say nothing about how they are persisted; the
 /// payload uses concrete type names, which is what previously-written data already contains.
 /// </para>
 /// <para>

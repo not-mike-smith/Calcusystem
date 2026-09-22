@@ -52,6 +52,6 @@ public class SqrtExpression : ExpressionBase, IExpression, ISnapshottingNode<Sqr
         new(UnaryExpressionType.Sqrt, Id, Argument.Id);
 
     /// <inheritdoc/>
-    public static SqrtExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
+    public static SqrtExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
 }

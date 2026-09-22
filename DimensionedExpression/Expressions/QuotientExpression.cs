@@ -48,12 +48,12 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
         new(BinaryExpressionType.Quotient, Id, Numerator.Id, Denominator.Id, UncertaintyCorrelation);
 
     /// <inheritdoc/>
-    public static QuotientExpression FromSnapshot(BinaryExpressionSnapshot state, INodeResolver resolve) =>
+    public static QuotientExpression FromSnapshot(BinaryExpressionSnapshot snapshot, INodeResolver resolve) =>
         new()
         {
-            Id = state.Id,
-            Numerator = resolve.Resolve<IExpression>(state.InnerId1),
-            Denominator = resolve.Resolve<IExpression>(state.InnerId2),
-            UncertaintyCorrelation = state.UncertaintyCorrelation,
+            Id = snapshot.Id,
+            Numerator = resolve.Resolve<IExpression>(snapshot.InnerId1),
+            Denominator = resolve.Resolve<IExpression>(snapshot.InnerId2),
+            UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
         };
 }

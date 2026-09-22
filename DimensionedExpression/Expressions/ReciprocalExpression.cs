@@ -48,6 +48,6 @@ public class ReciprocalExpression : ExpressionBase, IExpression, ISnapshottingNo
         new(UnaryExpressionType.Reciprocal, Id, Reciprocand.Id);
 
     /// <inheritdoc/>
-    public static ReciprocalExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
+    public static ReciprocalExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
 }

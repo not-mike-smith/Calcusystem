@@ -32,7 +32,7 @@ For a type that can be rebuilt from its own snapshot alone:
 
 ```csharp
 TSnapshot GetSnapshot();
-static abstract TSelf FromSnapshot(TSnapshot state);
+static abstract TSelf FromSnapshot(TSnapshot snapshot);
 ```
 
 Implemented by `Quantity`, `Measurand`, `Dimensionality`, and `Variable`.
@@ -43,7 +43,7 @@ For a type whose snapshot names *other* objects by id rather than containing the
 
 ```csharp
 TSnapshot GetSnapshot();
-static abstract TSelf FromSnapshot(TSnapshot state, INodeResolver resolve);
+static abstract TSelf FromSnapshot(TSnapshot snapshot, INodeResolver resolve);
 ```
 
 **The axis is whether rebuilding needs outside help, not where a type sits in a tree.** `Variable` is a genuine leaf of the expression graph and uses `ISnapshotting`; that it is a leaf is incidental — what matters is that it has no references to resolve.

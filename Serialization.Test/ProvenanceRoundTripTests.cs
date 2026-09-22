@@ -39,11 +39,11 @@ public class ProvenanceRoundTripTests
         var restored = (Variable)RoundTrip(system).GetAllExpressions().Single(e => e.Id == "m");
 
         restored.Provenance.Should().BeOfType<MeasuredProvenance>();
-        var state = restored.Provenance!.GetSnapshot();
-        state.Id.Should().Be("prov-m");
-        state.Type.Should().Be(ProvenanceType.Measured);
-        state.InstrumentId.Should().Be("SN-42");
-        state.CalibrationDate.Should().Be(new DateOnly(2026, 1, 15));
+        var snapshot = restored.Provenance!.GetSnapshot();
+        snapshot.Id.Should().Be("prov-m");
+        snapshot.Type.Should().Be(ProvenanceType.Measured);
+        snapshot.InstrumentId.Should().Be("SN-42");
+        snapshot.CalibrationDate.Should().Be(new DateOnly(2026, 1, 15));
         restored.Provenance.Summary().Should().Be(measured.Provenance!.Summary());
     }
 
@@ -78,11 +78,11 @@ public class ProvenanceRoundTripTests
         var restored = RoundTrip(system).Relationships.Single();
 
         restored.Provenance.Should().BeOfType<ReferenceProvenance>();
-        var state = restored.Provenance!.GetSnapshot();
-        state.Id.Should().Be("prov-op");
-        state.Type.Should().Be(ProvenanceType.Reference);
-        state.Citation.Should().Be("NIST SP 811");
-        state.Url.Should().Be("https://nist.gov");
-        state.Year.Should().Be(2008);
+        var snapshot = restored.Provenance!.GetSnapshot();
+        snapshot.Id.Should().Be("prov-op");
+        snapshot.Type.Should().Be(ProvenanceType.Reference);
+        snapshot.Citation.Should().Be("NIST SP 811");
+        snapshot.Url.Should().Be("https://nist.gov");
+        snapshot.Year.Should().Be(2008);
     }
 }

@@ -71,7 +71,7 @@ public interface IUncertainty
     IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator);
 
     /// <summary>
-    /// Returns the complete stored state of this uncertainty — the storage convention and magnitudes needed to
+    /// Returns the complete snapshot of this uncertainty — the storage convention and magnitudes needed to
     /// rebuild it via <see cref="UncertaintyFactory.FromSnapshot"/>, and nothing more.
     /// </summary>
     /// <remarks>

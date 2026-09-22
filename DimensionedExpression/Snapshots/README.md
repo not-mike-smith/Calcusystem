@@ -12,7 +12,7 @@ grouped by arity.
 | `UnaryExpressionSnapshot` | readonly record struct | One-argument node: type, id, inner id. |
 | `BinaryExpressionSnapshot` | readonly record struct | Two ordered children, plus the correlation assumption. |
 | `NaryExpressionSnapshot` | readonly record struct | Ordered child ids, plus the correlation assumption. |
-| `BinaryOperatorSnapshot` | readonly record struct | A relationship: both operand ids, role, and any extra state. |
+| `BinaryOperatorSnapshot` | readonly record struct | A relationship: both operand ids, role, and anything extra the kind carries. |
 | `ProvenanceSnapshot` | readonly record struct | The union of every provenance kind's metadata. |
 
 ## Start here

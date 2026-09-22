@@ -69,6 +69,6 @@ public class ExponentialExpression : ExpressionBase, IExpression, ISnapshottingN
         new(UnaryExpressionType.Exponential, Id, Argument.Id);
 
     /// <inheritdoc/>
-    public static ExponentialExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
+    public static ExponentialExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
 }

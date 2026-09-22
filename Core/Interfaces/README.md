@@ -19,11 +19,11 @@ Pick between the two snapshot interfaces by asking whether rebuilding needs outs
 ```csharp
 // self-contained — Quantity, Measurand, Dimensionality, Variable
 TSnapshot GetSnapshot();
-static abstract TSelf FromSnapshot(TSnapshot state);
+static abstract TSelf FromSnapshot(TSnapshot snapshot);
 
 // part of a graph — anything whose snapshot holds ids of other nodes
 TSnapshot GetSnapshot();
-static abstract TSelf FromSnapshot(TSnapshot state, INodeResolver resolve);
+static abstract TSelf FromSnapshot(TSnapshot snapshot, INodeResolver resolve);
 ```
 
 A graph is not a tree — one node can be shared by several parents — so nesting children inside

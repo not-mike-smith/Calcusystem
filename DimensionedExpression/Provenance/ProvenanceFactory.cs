@@ -45,23 +45,23 @@ public static class ProvenanceFactory
         new ModelProvenance(modelName, fittingReference, Constants.CREATE_NEW_ID);
 
     /// <summary>
-    /// Rebuilds a provenance from previously captured state, preserving its original identity. The counterpart to
+    /// Rebuilds a provenance from a previously captured snapshot, preserving its original identity. The counterpart to
     /// <see cref="IProvenance.GetSnapshot"/>, and the reason <see cref="IProvenance"/> does not implement
-    /// <see cref="ISnapshotting{TSelf,TSnapshot}"/>: the concrete kind is chosen by inspecting the state, so reconstruction is a static
+    /// <see cref="ISnapshotting{TSelf,TSnapshot}"/>: the concrete kind is chosen by inspecting the snapshot, so reconstruction is a static
     /// gateway over the closed set rather than a <c>static abstract</c> on each kind.
     /// </summary>
     /// <remarks>A persistence entry point, deliberately apart from the creation methods above.</remarks>
-    public static IProvenance FromSnapshot(ProvenanceSnapshot state) => state.Type switch
+    public static IProvenance FromSnapshot(ProvenanceSnapshot snapshot) => snapshot.Type switch
     {
         ProvenanceType.Measured =>
-            new MeasuredProvenance(state.InstrumentId, state.CalibrationDate, state.Id),
+            new MeasuredProvenance(snapshot.InstrumentId, snapshot.CalibrationDate, snapshot.Id),
         ProvenanceType.Reference =>
-            new ReferenceProvenance(state.Citation!, state.Url, state.Year, state.Id),
+            new ReferenceProvenance(snapshot.Citation!, snapshot.Url, snapshot.Year, snapshot.Id),
         ProvenanceType.Design =>
-            new DesignProvenance(state.SpecReference, state.Id),
+            new DesignProvenance(snapshot.SpecReference, snapshot.Id),
         ProvenanceType.Model =>
-            new ModelProvenance(state.ModelName!, state.FittingReference, state.Id),
+            new ModelProvenance(snapshot.ModelName!, snapshot.FittingReference, snapshot.Id),
         _ => throw new ArgumentOutOfRangeException(
-            nameof(state), state.Type, "Unknown provenance kind."),
+            nameof(snapshot), snapshot.Type, "Unknown provenance kind."),
     };
 }

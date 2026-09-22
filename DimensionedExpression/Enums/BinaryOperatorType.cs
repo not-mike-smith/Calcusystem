@@ -10,7 +10,7 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// </remarks>
 public enum BinaryOperatorType
 {
-    /// <summary>Values agree, to the strictness the state's agreement rule names.</summary>
+    /// <summary>Values agree, to the strictness the snapshot's agreement rule names.</summary>
     Equality,
 
     /// <summary>The uncertainty intervals overlap at all.</summary>

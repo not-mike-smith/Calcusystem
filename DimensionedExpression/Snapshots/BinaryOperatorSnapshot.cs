@@ -4,10 +4,10 @@ using Calcusystem.DimensionedExpression.Enums;
 namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
-/// The complete stored state of any binary operator. Every operator has the same shape — two operand references
+/// The complete snapshot of any binary operator. Every operator has the same shape — two operand references
 /// plus annotations — so one record with a <see cref="Type"/> discriminator covers all thirteen.
 /// </summary>
-/// <param name="Type">Which operator this state rebuilds into.</param>
+/// <param name="Type">Which operator this snapshot rebuilds into.</param>
 /// <param name="Id">Stable identity.</param>
 /// <param name="LhsId">Id of the left-hand expression.</param>
 /// <param name="RhsId">Id of the right-hand expression.</param>

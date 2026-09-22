@@ -3,7 +3,7 @@ using Calcusystem.Measurement.Primitives;
 namespace Calcusystem.Measurement.Snapshots;
 
 /// <summary>
-/// The complete stored state of a <see cref="Dimensionality"/>: the exponent of each fundamental dimension
+/// The complete snapshot of a <see cref="Dimensionality"/>: the exponent of each fundamental dimension
 /// present. Zero exponents are stripped, so an empty map is a dimensionless value.
 /// </summary>
 /// <remarks>
@@ -13,7 +13,7 @@ namespace Calcusystem.Measurement.Snapshots;
 /// persistence layer's decision, and lives there. This assembly only answers what data defines the value.
 /// </para>
 /// <para>
-/// A map is affordable here because a state object lives only for the duration of a serialization or
+/// A map is affordable here because a snapshot lives only for the duration of a serialization or
 /// deserialization pass; it is not a representation the rest of the library computes with.
 /// </para>
 /// </remarks>

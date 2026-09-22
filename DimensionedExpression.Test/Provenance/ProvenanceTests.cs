@@ -55,7 +55,7 @@ public class ProvenanceTests
     [Fact]
     public void FromSnapshot_RestoresIdentityAndMetadata()
     {
-        // Restoring a persisted identity goes through the state gateway; the creation methods above only ever
+        // Restoring a persisted identity goes through the snapshot gateway; the creation methods above only ever
         // mint a fresh one, so no caller building a provenance is offered an id parameter.
         var restored = ProvenanceFactory.FromSnapshot(
             ProvenanceSnapshot.Measured("prov-1", "SN-42", new DateOnly(2026, 1, 15)));

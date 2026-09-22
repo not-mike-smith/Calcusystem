@@ -151,7 +151,7 @@ public readonly struct Dimensionality : ISnapshotting<Dimensionality, Dimensiona
     }
 
     /// <inheritdoc/>
-    public static Dimensionality FromSnapshot(DimensionalitySnapshot state) => new(state.Pairs);
+    public static Dimensionality FromSnapshot(DimensionalitySnapshot snapshot) => new(snapshot.Pairs);
 
     private static ExponentDict Reduce(ExponentDict fundamentalDimensions)
     {

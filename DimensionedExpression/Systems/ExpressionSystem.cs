@@ -153,17 +153,17 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// The system resolves two different node types — expressions in two of its lists, operators in the third.
     /// That is why resolution is a per-reference query rather than one typed delegate.
     /// </remarks>
-    public static ExpressionSystem FromSnapshot(ExpressionSystemSnapshot state, INodeResolver resolve)
+    public static ExpressionSystem FromSnapshot(ExpressionSystemSnapshot snapshot, INodeResolver resolve)
     {
-        var system = new ExpressionSystem(state.Id)
+        var system = new ExpressionSystem(snapshot.Id)
         {
-            Name = state.Name,
-            Description = state.Description,
+            Name = snapshot.Name,
+            Description = snapshot.Description,
         };
 
-        foreach (var id in state.VariableIds) system.Add(resolve.Resolve<Variable>(id));
-        foreach (var id in state.DerivedExpressionIds) system.Add(resolve.Resolve<IExpression>(id));
-        foreach (var id in state.RelationshipIds) system.Add(resolve.Resolve<IBinaryOperator>(id));
+        foreach (var id in snapshot.VariableIds) system.Add(resolve.Resolve<Variable>(id));
+        foreach (var id in snapshot.DerivedExpressionIds) system.Add(resolve.Resolve<IExpression>(id));
+        foreach (var id in snapshot.RelationshipIds) system.Add(resolve.Resolve<IBinaryOperator>(id));
         return system;
     }
 }

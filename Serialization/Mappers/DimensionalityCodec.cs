@@ -33,8 +33,8 @@ public static class DimensionalityCodec
     /// Writes the canonical encoding. <see cref="Dimensionality.GetSnapshot"/> yields its pairs in canonical order,
     /// so dimensionally-equal values always produce the identical string — safe to diff, compare, or hash.
     /// </summary>
-    public static string Encode(DimensionalitySnapshot state) =>
-        string.Join(',', state.Pairs.Select(pair => $"{pair.Key.Symbol}{pair.Value}"));
+    public static string Encode(DimensionalitySnapshot snapshot) =>
+        string.Join(',', snapshot.Pairs.Select(pair => $"{pair.Key.Symbol}{pair.Value}"));
 
     /// <summary>
     /// Reads an encoding produced by <see cref="Encode"/>. Entry order is not significant on the way in;
