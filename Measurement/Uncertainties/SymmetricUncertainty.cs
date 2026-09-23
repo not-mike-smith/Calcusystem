@@ -7,19 +7,19 @@ using Calcusystem.Measurement.Factories;
 namespace Calcusystem.Measurement.Uncertainties;
 
 /// <summary>
-/// Symmetric uncertainty: the same error above and below the nominal value. The error is stored either as a
+/// Symmetric uncertainty: the same magnitude above and below the nominal value. The magnitude is stored either as a
 /// relative fraction or as an absolute KMS value (see <see cref="IsStoredAsAbs"/>) — absolute storage is what lets a
 /// zero-valued quantity carry a meaningful uncertainty. Which form is stored is invisible to consumers, who read
-/// absolute or relative error through <see cref="IUncertainty"/>.
+/// absolute or relative uncertainty through <see cref="IUncertainty"/>.
 /// </summary>
 public sealed class SymmetricUncertainty : ISymmetricUncertainty
 {
-    /// <summary>Whether <see cref="Magnitude"/> is a relative fraction or an absolute KMS error.</summary>
+    /// <summary>Whether <see cref="Magnitude"/> is a relative fraction or an absolute KMS uncertainty.</summary>
     /// <remarks>An implementation detail of the storage convention; it leaves the assembly only as part of
     /// <see cref="UncertaintySnapshot"/>.</remarks>
     internal bool IsStoredAsAbs { get; }
 
-    /// <summary>The stored error — a relative fraction or an absolute KMS value, per <see cref="IsStoredAsAbs"/>.</summary>
+    /// <summary>The stored uncertainty — a relative fraction or an absolute KMS value, per <see cref="IsStoredAsAbs"/>.</summary>
     internal double Magnitude { get; }
 
     private SymmetricUncertainty(bool isStoredAsAbs, double magnitude)
@@ -31,20 +31,22 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
         Magnitude = magnitude;
     }
 
+    /// <inheritdoc/>
     public double RelativeUncertainty(double nominalKmsValue) =>
         IsStoredAsAbs
             ? Magnitude.SafeDivide(Math.Abs(nominalKmsValue))
             : Magnitude;
 
+    /// <inheritdoc/>
     public double AbsoluteUncertainty(double nominalKmsValue) =>
         IsStoredAsAbs
             ? Magnitude
             : Magnitude * Math.Abs(nominalKmsValue);
 
-    /// <summary>Creates a symmetric uncertainty from a relative error (a fraction).</summary>
+    /// <summary>Creates a symmetric uncertainty from a relative uncertainty (a fraction).</summary>
     public static SymmetricUncertainty FromRelative(double relativeUncertainty) => new(false, relativeUncertainty);
 
-    /// <summary>Creates a symmetric uncertainty from an absolute error already in KMS units.</summary>
+    /// <summary>Creates a symmetric uncertainty from an absolute uncertainty already in KMS units.</summary>
     internal static SymmetricUncertainty FromKmsAbsErr(double kmsAbsoluteUncertainty) =>
         new(true, Math.Abs(kmsAbsoluteUncertainty));
 
@@ -54,7 +56,7 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
         new(isStoredAsAbs, magnitude);
 
     /// <summary>
-    /// Creates a symmetric uncertainty from an absolute error, stored directly (the nominal value is not needed).
+    /// Creates a symmetric uncertainty from an absolute uncertainty, stored directly (the nominal value is not needed).
     /// </summary>
     public static SymmetricUncertainty FromAbsolute(Quantity absoluteUncertainty)
     {
@@ -63,16 +65,19 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
 
     public static SymmetricUncertainty Exact() => new(false, 0d);
 
+    /// <inheritdoc/>
     public IUncertainty Exponentiated(double nominalKmsValue, int exponentNumerator, int exponentDenominator)
     {
-        // Relative error of x^p is |p| times the relative error of x; the result is symmetric.
+        // Relative uncertainty of x^p is |p| times the relative uncertainty of x; the result is symmetric.
         var scaledRelativeUncertainty = RelativeUncertainty(nominalKmsValue) * exponentNumerator / exponentDenominator;
         return FromRelative(Math.Abs(scaledRelativeUncertainty));
     }
 
+    /// <inheritdoc/>
     public IUncertainty Reciprocal(double nominalKmsValue) =>
         new SymmetricUncertainty(false, RelativeUncertainty(nominalKmsValue)); // relative error is invariant under reciprocal
 
+    /// <inheritdoc/>
     public IUncertainty Negated(double nominalKmsValue) => this; // negation preserves both stored forms
 
     /// <remarks>Explicit implementation: the storage form is reachable through <see cref="IUncertainty"/>, but is

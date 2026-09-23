@@ -39,7 +39,7 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
     {
         if (_factors.Count == 0 || _factors.Any(f => ! known.ContainsKey(f))) return null;
 
-        // One n-ary call rather than folding pairwise: the propagator combines all the relative errors at once
+        // One n-ary call rather than folding pairwise: the propagator combines all the relative uncertainties at once
         // instead of building an intermediate Measurand per factor.
         return Measurand.Product(UncertaintyCorrelation, propagator, _factors.Select(f => known[f]).ToArray());
     }

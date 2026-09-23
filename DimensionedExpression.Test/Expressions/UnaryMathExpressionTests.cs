@@ -105,7 +105,7 @@ public class UnaryMathExpressionTests
     [Fact]
     public void Ln_AbsoluteUncertaintyScalesInverselyWithResult()
     {
-        // ln(e²) = 2, absolute error 0.1 → relative error 0.1 / 2
+        // ln(e²) = 2, absolute uncertainty 0.1 → relative uncertainty 0.1 / 2
         var result = new NaturalLogExpression(Dimensionless(Math.Exp(2), 0.1)).ComputeIfFullyDescribed()!;
         result.KmsValue.Should().BeApproximately(2, 1E-9);
         result.RelativeUncertainty.Should().BeApproximately(0.05, 1E-9);
@@ -121,8 +121,8 @@ public class UnaryMathExpressionTests
     [Fact]
     public void Ln_AtOne_ProducesZeroValueWithAbsoluteUncertainty()
     {
-        // ln(1) = 0. The absolute error (= RelativeUncertainty(x) = 0.05) is preserved as an absolute error; the
-        // relative error of a zero-valued result is undefined (+inf) but no longer throws.
+        // ln(1) = 0. The absolute uncertainty (= RelativeUncertainty(x) = 0.05) is preserved as an absolute uncertainty; the
+        // relative uncertainty of a zero-valued result is undefined (+inf) but no longer throws.
         var result = new NaturalLogExpression(Dimensionless(1, 0.05)).ComputeIfFullyDescribed()!;
         result.KmsValue.Should().Be(0);
         result.KmsAbsoluteUncertainty.Should().BeApproximately(0.05, 1E-9);

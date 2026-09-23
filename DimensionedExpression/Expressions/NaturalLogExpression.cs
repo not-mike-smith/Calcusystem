@@ -20,8 +20,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x).
 /// </summary>
 /// <remarks>
-/// The uncertainty is inherently an absolute error and is stored as one (via <c>FromAbsolute</c>). At <c>x = 1</c>
-/// the result is 0; its <em>relative</em> error is undefined, but the absolute error is retained and
+/// The uncertainty is inherently an absolute uncertainty and is stored as one (via <c>FromAbsolute</c>). At <c>x = 1</c>
+/// the result is 0; its <em>relative</em> uncertainty is undefined, but the absolute uncertainty is retained and
 /// <c>RelativeUncertainty</c> reports <c>+∞</c> rather than throwing.
 /// </remarks>
 public class NaturalLogExpression : ExpressionBase, IExpression, ISnapshottingNode<NaturalLogExpression, UnaryExpressionSnapshot>

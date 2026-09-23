@@ -11,9 +11,8 @@ namespace Calcusystem.Serialization.Exceptions;
 /// operators, sub-systems, and anything else the graph refers to by id.
 /// </para>
 /// <para>
-/// This means the payload is not internally consistent, so deserialization stops. Loading a partial graph and
-/// letting a caller repair the dangling references is a plausible future mode, but not the default one — see the
-/// tolerant-load item on the Milestone 5 wishlist.
+/// This means the payload is not internally consistent, so deserialization stops rather than loading a partial
+/// graph.
 /// </para>
 /// </remarks>
 public class ReferencedNodeNotFoundException : Exception

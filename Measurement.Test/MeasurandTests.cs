@@ -56,7 +56,7 @@ public class MeasurandTests
     [Fact]
     public void Minus_CancelingToZero_KeepsAbsoluteUncertaintyWithoutThrowing()
     {
-        // 2m ± 0.02 (abs) minus itself → value 0. The propagated error is stored as an absolute error rather
+        // 2m ± 0.02 (abs) minus itself → value 0. The propagated uncertainty is stored as an absolute uncertainty rather
         // than dividing by the (zero) sum, so this no longer throws.
         var difference = Meters(2, 0.01).Minus(Meters(2, 0.01));
 

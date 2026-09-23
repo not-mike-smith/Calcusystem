@@ -16,7 +16,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// on construction, which is the only point it can be supplied) and the result is dimensionless.
 /// <br/>
 /// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
-/// RelativeUncertainty(eˣ) ≈ |x|·RelativeUncertainty(x) (i.e. the absolute error of x).
+/// RelativeUncertainty(eˣ) ≈ |x|·RelativeUncertainty(x) (i.e. the absolute uncertainty of x).
 /// </summary>
 public class ExponentialExpression : ExpressionBase, IExpression, ISnapshottingNode<ExponentialExpression, UnaryExpressionSnapshot>
 {

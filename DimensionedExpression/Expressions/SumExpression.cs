@@ -44,7 +44,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnaps
     {
         if (_addends.Count == 0 || _addends.Any(a => ! known.ContainsKey(a))) return null;
 
-        // One n-ary call rather than folding pairwise: the propagator combines all the errors at once instead
+        // One n-ary call rather than folding pairwise: the propagator combines all the uncertainties at once instead
         // of building an intermediate Measurand per addend.
         return Measurand.Sum(UncertaintyCorrelation, propagator, _addends.Select(a => known[a]));
     }

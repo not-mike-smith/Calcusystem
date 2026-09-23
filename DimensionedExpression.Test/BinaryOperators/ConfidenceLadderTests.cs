@@ -231,7 +231,7 @@ public class ConfidenceLadderTests
 
     /// <remarks>
     /// <c>Contradicted</c> is what is left when the weakest rung fails, so no rule tests it. Asking for one is a
-    /// caller error rather than a lookup that quietly returns something plausible.
+    /// caller uncertainty rather than a lookup that quietly returns something plausible.
     /// </remarks>
     [Fact]
     public void ContradictedIsAResultAndNotARung()

@@ -9,9 +9,9 @@ namespace Calcusystem.Measurement.Enums;
 /// <see cref="IUncertainty"/> it rebuilds into.</summary>
 public enum UncertaintyType
 {
-    /// <summary>Equal error above and below the nominal value; rebuilds a <see cref="SymmetricUncertainty"/>.</summary>
+    /// <summary>Equal uncertainty above and below the nominal value; rebuilds a <see cref="SymmetricUncertainty"/>.</summary>
     Symmetric,
 
-    /// <summary>Independent upper/lower errors; rebuilds an <see cref="AsymmetricUncertainty"/>.</summary>
+    /// <summary>Independent upper/lower uncertainties; rebuilds an <see cref="AsymmetricUncertainty"/>.</summary>
     Asymmetric,
 }

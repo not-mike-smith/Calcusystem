@@ -1,9 +1,9 @@
 namespace Calcusystem.Measurement.Interfaces;
 
 /// <summary>
-/// Marker specialization of <see cref="IUncertainty"/> for the symmetric case, where the error above and
+/// Marker specialization of <see cref="IUncertainty"/> for the symmetric case, where the uncertainty above and
 /// below the nominal value is identical. It declares no new members; instead it supplies default interface
-/// implementations of Upper and Lower error members in terms of the single Absolute and Relative error members,
+/// implementations of Upper and Lower uncertainty members in terms of the single Absolute and Relative uncertainty members,
 /// so that implementers of symmetric uncertainty only need to define those two.
 /// </summary>
 public interface ISymmetricUncertainty : IUncertainty

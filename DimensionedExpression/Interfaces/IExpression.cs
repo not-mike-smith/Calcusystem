@@ -140,7 +140,7 @@ public interface IExpression : IIdentified
 public interface IComputedExpression : IExpression
 {
     /// <summary>
-    /// Whether this node's children are treated as having correlated or uncorrelated errors when their
+    /// Whether this node's children are treated as having correlated or uncorrelated uncertainties when their
     /// uncertainties are combined into its value.
     /// </summary>
     /// <remarks>

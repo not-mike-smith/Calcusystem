@@ -5,7 +5,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Satisfied when each side's nominal value falls within the other side's tolerance band — i.e.
-/// Lhs ∈ [Rhs ± Rhs.error] AND Rhs ∈ [Lhs ± Lhs.error]. The check is symmetric.
+/// Lhs ∈ [Rhs ± Rhs.uncertainty] AND Rhs ∈ [Lhs ± Lhs.uncertainty]. The check is symmetric.
 /// <br/>
 /// Symbol: <b>{·=·}</b>
 /// <br/>

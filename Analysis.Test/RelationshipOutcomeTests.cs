@@ -176,7 +176,7 @@ public class RelationshipOutcomeTests
 
     /// <remarks>
     /// A relationship missing from the report is indistinguishable from one that passed, which is the reading
-    /// error worth designing against: an engineer scanning a clean result must be able to see that a check
+    /// uncertainty worth designing against: an engineer scanning a clean result must be able to see that a check
     /// never ran.
     /// </remarks>
     [Fact]

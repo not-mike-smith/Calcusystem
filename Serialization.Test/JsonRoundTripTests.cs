@@ -131,7 +131,7 @@ public class JsonRoundTripTests
     [Fact]
     public void AbsoluteUncertaintyKeepsItsStorageFormThroughJson()
     {
-        // An absolute error is the only form that stays meaningful at zero; if JSON silently converted it to a
+        // An absolute uncertainty is the only form that stays meaningful at zero; if JSON silently converted it to a
         // relative one, RelativeUncertainty(0) would be the only symptom.
         var system = ExpressionSystem.Create("json", "absolute error at zero");
         system.Add(new Variable(

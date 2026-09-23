@@ -4,8 +4,8 @@ using Calcusystem.Measurement.Enums;
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
-/// Satisfied when the entire Lhs uncertainty interval [Lhs ± Lhs.error] is strictly contained within
-/// the Rhs tolerance band [Rhs ± Rhs.error]. Both the lower and upper bounds of Lhs must lie inside
+/// Satisfied when the entire Lhs uncertainty interval [Lhs ± Lhs.uncertainty] is strictly contained within
+/// the Rhs tolerance band [Rhs ± Rhs.uncertainty]. Both the lower and upper bounds of Lhs must lie inside
 /// the Rhs interval; the Lhs interval touching the Rhs boundary does not satisfy this operator.
 /// <br/>
 /// Symbol: <b>[=}</b>
