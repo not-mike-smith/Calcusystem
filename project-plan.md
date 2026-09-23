@@ -121,7 +121,7 @@ No `≤` / `≥` variants — floating point equality is essentially unreachable
 
 **Documentation and tests:**
 
-- [x] Add `DimensionedExpression/BinaryOperators/OPERATORS.md` — a taxonomy table covering all operators (equality, the six tolerance operators from M2, and the six inequality operators above), with a one-line geometric description and the exact interval condition for each
+- [x] Add `DimensionedExpression/BinaryOperators/OPERATORS.md` — a taxonomy table covering all operators (equality, the six tolerance operators from M2, and the six unequality operators above), with a one-line geometric description and the exact interval condition for each
 - [x] Unit tests in `DimensionedExpression.Test` covering all six operators (symmetric and asymmetric uncertainty, boundary conditions, null returns for unset expressions)
 
 ---

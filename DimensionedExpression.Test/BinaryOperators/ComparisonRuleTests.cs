@@ -32,7 +32,7 @@ public class ComparisonRuleTests
     private static readonly MustBe[] Masks =
     [
         MustBe.LessThan, MustBe.EqualTo, MustBe.GreaterThan,
-        MustBe.LessThanOrEqualTo, MustBe.GreaterThanOrEqualTo, MustBe.InequalTo,
+        MustBe.LessThanOrEqualTo, MustBe.GreaterThanOrEqualTo, MustBe.UnequalTo,
         MustBe.Comparable,
     ];
 

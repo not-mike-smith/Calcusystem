@@ -191,7 +191,7 @@ public class VerdictSeamTests
             (MirrorReverse(op.Symbol) == op.Symbol).Should().Be(op.IsCommutative, op.Symbol);
             op.IsCommutative.Should().Be(
                 landmark == other
-                    && mask is MustBe.EqualTo or MustBe.InequalTo or MustBe.Comparable,
+                    && mask is MustBe.EqualTo or MustBe.UnequalTo or MustBe.Comparable,
                 op.Symbol);
         }
     }

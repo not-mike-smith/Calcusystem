@@ -9,6 +9,7 @@ using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
 using FluentAssertions;
 using Xunit;
+using Calcusystem.Core.Interfaces;
 
 namespace Calcusystem.Measurement.Test;
 

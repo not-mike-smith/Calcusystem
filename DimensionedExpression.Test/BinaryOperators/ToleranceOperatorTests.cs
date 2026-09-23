@@ -139,7 +139,7 @@ public class ToleranceOperatorTests
     [Fact]
     public void WhollyWithinTolerance_EqualIntervals_IsFalse()
     {
-        // strictly inside — equal boundaries do not satisfy the strict inequality
+        // strictly inside — equal boundaries do not satisfy the strict unequality
         WhollyOp(Symmetric(10.0, 0.1), Symmetric(10.0, 0.1))
             .IsSatisfied().Should().BeFalse();
     }

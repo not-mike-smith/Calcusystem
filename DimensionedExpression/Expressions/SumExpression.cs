@@ -9,8 +9,8 @@ using Calcusystem.Measurement.Primitives;
 namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
-/// N-ary sum (<c>+</c>) over its <see cref="Addends"/>, which must all share a dimensionality (enforced on
-/// <see cref="AddAddend"/>; the constructor can seed a fixed dimensionality for an otherwise-empty sum).
+/// N-ary sum (<c>+</c>) over its <see cref="Addends"/>, which must all share a dimensionality (enforced in the
+/// constructor, which can also seed a fixed dimensionality for an otherwise-empty sum).
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> addition using the
 /// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method.
