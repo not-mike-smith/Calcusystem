@@ -10,9 +10,8 @@ namespace Calcusystem.Analysis.Extensions;
 /// from.
 /// </summary>
 /// <remarks>
-/// An extension rather than a method on <see cref="ExpressionSystem"/> so that it reads as one
-/// (<c>system.Flatten()</c>) without the expression layer having to know about this one — the same arrangement
-/// as <c>Calculate</c>, and for the same reason.
+/// An extension rather than a method on <see cref="ExpressionSystem"/>, so it reads as <c>system.Flatten()</c>
+/// without the expression layer having to know about this one.
 /// </remarks>
 public static class SystemFlattener
 {
@@ -27,10 +26,9 @@ public static class SystemFlattener
     /// subsets and compare what each one resolves to.
     /// </param>
     /// <remarks>
-    /// Unknowns are simply the system's unvalued variables. That is a complete answer because
+    /// Unknowns are simply the system's unvalued variables. That is complete because
     /// <c>ExpressionSystem.Variables</c> already holds every variable the system reaches, including ones only a
-    /// derived expression or a relationship's operand refers to — this used to gather from three places and
-    /// deduplicate, which was the same question asked three times.
+    /// derived expression or a relationship's operand refers to.
     /// </remarks>
     public static FlatSystem Flatten(
         this ExpressionSystem system,

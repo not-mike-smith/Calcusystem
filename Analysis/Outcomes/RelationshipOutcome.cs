@@ -8,15 +8,8 @@ namespace Calcusystem.Analysis.Outcomes;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every relationship the system carries gets one of these, including the ones that could not be judged. A
-/// silently absent verdict is the failure mode worth designing against — an engineer scanning a clean report
-/// should be able to tell "the check passed" from "the check never ran", and only listing outcomes for the
-/// relationships that resolved makes those two indistinguishable.
-/// </para>
-/// <para>
-/// The two values are stored <i>positionally</i>, as <see cref="Lhs"/> and <see cref="Rhs"/>, because that is
-/// what was compared and what the operator's predicate was handed. <see cref="Subject"/> and
-/// <see cref="Criterion"/> are views over them, so the presentation and the arithmetic cannot drift apart.
+/// Every relationship the system carries gets one, including the ones that could not be judged — so a
+/// relationship missing from a report never means it passed.
 /// </para>
 /// <para>
 /// Everything on this record is a <i>value</i>; everything on <see cref="Relationship"/> is an

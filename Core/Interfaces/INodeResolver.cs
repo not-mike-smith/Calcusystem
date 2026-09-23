@@ -6,19 +6,16 @@ namespace Calcusystem.Core.Interfaces;
 /// <remarks>
 /// <para>
 /// A generic method rather than a typed delegate, because a node's neighbours are not necessarily all the same
-/// type — an <c>ExpressionSystem</c> refers to both expressions and operators by id, and a composed system would
-/// refer to sub-systems as well. A <c>Func&lt;string, TNode&gt;</c> can express only the homogeneous case.
+/// type — an <c>ExpressionSystem</c> refers to both expressions and operators by id, and a composed system
+/// would refer to sub-systems as well. A <c>Func&lt;string, TNode&gt;</c> can express only the homogeneous case.
 /// </para>
 /// <para>
-/// The type argument is a claim about what the referenced id names, checked when it is resolved. That check is
-/// necessarily a runtime one: an id reference carries no type information, so no signature could have proved it
-/// statically.
+/// The type argument is a claim about what the id names, checked when it is resolved — necessarily at runtime,
+/// since an id reference carries no type information.
 /// </para>
 /// <para>
-/// Implementations throw when an id cannot be resolved, or names a node of a different type. Callers rebuilding
-/// a graph are expected to order the work so that every referenced node already exists — a failure here means
-/// the source data is not internally consistent, which is not something a domain type should be asked to paper
-/// over.
+/// Implementations throw when an id cannot be resolved, or names a node of a different type. Order the rebuild
+/// so every referenced node already exists; a failure here means the source data is not internally consistent.
 /// </para>
 /// </remarks>
 public interface INodeResolver

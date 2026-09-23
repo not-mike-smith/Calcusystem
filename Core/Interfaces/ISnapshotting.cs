@@ -6,11 +6,10 @@ namespace Calcusystem.Core.Interfaces;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <typeparamref name="TSnapshot"/> is a plain record. It deliberately carries no format concerns: no type
-/// discriminator, no schema version, no encoding. The owning assembly answers "what data defines this object";
-/// the persistence layer answers "how is that data encoded, versioned, and migrated".
-/// Keeping those two questions apart is the whole point of this interface — a DTO here would drag the file
-/// format into the domain.
+/// <typeparamref name="TSnapshot"/> is a plain record carrying no format concerns: no type discriminator, no
+/// schema version, no encoding. The owning assembly answers "what data defines this object"; the persistence
+/// layer answers "how is that data encoded, versioned, and migrated". A DTO here would drag the file format
+/// into the domain.
 /// </para>
 /// <para>
 /// Use this when an instance can be rebuilt from its own snapshot alone. When rebuilding requires resolving

@@ -8,31 +8,8 @@ namespace Calcusystem.Analysis.Outcomes;
 /// One calculation of a system: the values it was given, the values it produced, and what it could not reach.
 /// </summary>
 /// <remarks>
-/// <para>
-/// Named for the engineering artefact rather than the operation — a calculation is something an engineer
-/// produces, keeps, and hands to a reviewer, and it is defined as much by its inputs as its outputs. That is why
-/// <see cref="Overrides"/> is on the record: a bare set of values is not reproducible or reviewable without the
-/// assumptions that produced it, and carrying both means two calculations of the same system can be compared on
-/// equal terms.
-/// </para>
-/// <para>
-/// A snapshot, not a live view. It is a pure function of the system and <see cref="Overrides"/>, and every
-/// <see cref="Measurand"/> in it is an immutable value: later assignments to a <see cref="Variable"/> cannot
-/// change what is recorded here, and re-running is how a newer one is obtained.
-/// </para>
-/// <para>
-/// <see cref="Values"/> covers every node reached, not only the ones the system lists, which is what makes it
-/// the natural home for caching. Within a run it already means a shared sub-expression is computed once; across
-/// runs it is what a staleness check would reuse. Nothing is cached on the nodes themselves, so a node can
-/// always be asked directly without risking a stale answer.
-/// </para>
-/// <para>
-/// It reports on the model's relationships as well as its values. Every relationship yields a
-/// <see cref="RelationshipOutcome"/>, judged against the values in <see cref="Values"/> — including the
-/// <see cref="Overrides"/>, which is the whole reason the verdict is computed here rather than by asking each
-/// operator. An operator asked in isolation reads the stored model, so under trial values it would answer a
-/// question nobody asked.
-/// </para>
+/// A record of one run, not a live view: every <see cref="Measurand"/> here is an immutable value, so later
+/// assignments to a <see cref="Variable"/> do not change it. Re-run to get a newer one.
 /// </remarks>
 /// <param name="Overrides">The values supplied for this calculation, which took precedence over stored ones.</param>
 /// <param name="Values">Every node that resolved.</param>
@@ -54,9 +31,8 @@ public sealed record Calculation(
 {
     /// <summary>Whether every expression the system references produced a value.</summary>
     /// <remarks>
-    /// About <i>values</i>, deliberately, and unaffected by whether the checks passed. A calculation in which a
-    /// requirement was violated is complete and has a finding — those are different questions, and folding them
-    /// together would leave a caller unable to ask the first one.
+    /// About <i>values</i> only. A calculation whose requirement was violated is still complete, and has a
+    /// finding; <see cref="AllRelationshipsHold"/> is the other question.
     /// </remarks>
     public bool IsComplete => Unresolved.Count == 0;
 
@@ -74,9 +50,8 @@ public sealed record Calculation(
     public IEnumerable<RelationshipOutcome> Violations => Outcomes.Where(o => o.IsViolation);
 
     /// <summary>
-    /// Equations and coherence assertions that did not hold. Distinguished from <see cref="Violations"/> because
-    /// nothing here identifies a side at fault: the finding is against the model or its inputs, not against one
-    /// operand. This is also what an over-determined system's redundancy checks report through.
+    /// Equations and coherence assertions that did not hold. Unlike a <see cref="Violations">violation</see>,
+    /// nothing here identifies a side at fault: the finding is against the model or its inputs.
     /// </summary>
     public IEnumerable<RelationshipOutcome> Inconsistencies => Outcomes.Where(o => o.IsInconsistency);
 
