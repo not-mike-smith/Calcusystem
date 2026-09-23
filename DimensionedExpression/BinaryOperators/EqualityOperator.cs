@@ -6,23 +6,28 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Satisfied when the Lhs and Rhs agree, to the strictness named by <see cref="AgreementRule"/>.
-/// <br/>
-/// Symbol: <b>·==·</b>, <b>{·==·}</b> or <b>{&gt;=&lt;}</b> — each is the tolerance operator asserting the same
-/// condition with an <c>=</c> inserted at its centre, which is what marks the equality family.
-/// <br/>
-/// Use when two quantities are expected to be the same, and say how nearly the same they must be.
+/// <br/><br/>
+/// Symbol: <b>·==·</b>, <b>{·==·}</b>, or <b>{&gt;=&lt;}</b>
 /// </summary>
 /// <remarks>
-/// The only operator whose <see cref="SolvingRole"/> can be anything but a requirement. Neither constructor
-/// argument has a default: both readings are the modeller's to state, and neither is safe to assume.
+/// The only operator whose <see cref="SolvingRole"/> can be anything but a requirement.
 /// </remarks>
 /// <param name="agreementRule">How strictly "equal" is read — see <see cref="Enums.AgreementRule"/>.</param>
 /// <param name="solvingRole">
+/// <list type="bullet">
+/// <item>
 /// <see cref="Enums.SolvingRole.Equation"/> when this defines a quantity the solver may compute
-/// (<c>mass_in == mass_out</c>); <see cref="Enums.SolvingRole.Coherence"/> when it asserts that
-/// two independently computed routes to one quantity agree (<c>T_eos == T_path</c>);
+/// (<c>mass_in == mass_out</c>).
+/// </item>
+/// <item>
+/// <see cref="Enums.SolvingRole.Coherence"/> when it asserts that
+/// two independently computed routes to one quantity agree (<c>T_eos == T_path</c>).
+/// </item>
+/// <item>
 /// <see cref="Enums.SolvingRole.Requirement"/> when it checks a value against a criterion
 /// (<c>measured_T == design_T</c>).
+/// </item>
+/// </list>
 /// </param>
 public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRole)
     : CommutativeOperatorBase
@@ -40,7 +45,7 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// </remarks>
     public AgreementRule Agreement { get; } = agreementRule;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// <para>
     /// One rule, applied three times: <b>take the symbol of the operator asserting the same condition and insert
@@ -65,7 +70,7 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// <inheritdoc/>
     public override SolvingRole SolvingRole { get; } = solvingRole;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The looser two readings borrow their rules from <see cref="ContainmentLadder"/>, so an equality asserting
     /// mutual containment and the operator named after that rung are the same condition rather than two

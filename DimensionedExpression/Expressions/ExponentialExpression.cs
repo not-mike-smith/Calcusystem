@@ -12,11 +12,11 @@ using Calcusystem.Measurement.Uncertainties;
 namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
-/// Unary <c>e^x</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless (enforced
-/// on construction, which is the only point it can be supplied) and the result is dimensionless.
-/// <br/>
-/// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>,
-/// RelativeUncertainty(eˣ) ≈ |x|·RelativeUncertainty(x) (i.e. the absolute uncertainty of x).
+/// Unary <c>e^x</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless
+/// and the result is dimensionless.
+/// <br/><br/>
+/// Uncertainty: because <c>d(eˣ)/eˣ = dx</c>, RelativeUncertainty(eˣ) ≈ |x|·RelativeUncertainty(x)
+/// (i.e. the absolute uncertainty of x).
 /// </summary>
 public class ExponentialExpression : ExpressionBase, IExpression, ISnapshottingNode<ExponentialExpression, UnaryExpressionSnapshot>
 {

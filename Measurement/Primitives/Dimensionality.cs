@@ -136,7 +136,7 @@ public readonly struct Dimensionality : ISnapshotting<Dimensionality, Dimensiona
                     : x * Math.Pow(pair.Key.PlausibleMaximum, pair.Value));
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>Ordered by <see cref="FundamentalDimension.Order"/>, so a consumer that writes the pairs out in
     /// iteration order gets a stable result for dimensionally-equal values without having to sort them itself.
     /// </remarks>

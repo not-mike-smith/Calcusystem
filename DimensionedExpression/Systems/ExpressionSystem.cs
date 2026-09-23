@@ -148,7 +148,7 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         _derivedExpressions.Select(x => x.Id).ToList(),
         _relationships.Select(x => x.Id).ToList());
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The system resolves two different node types — expressions in two of its lists, operators in the third.
     /// That is why resolution is a per-reference query rather than one typed delegate.

@@ -27,7 +27,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// <remarks>Public so a report can name <i>which</i> comparison failed, not just that one did.</remarks>
     public abstract IReadOnlyList<ComparisonRule> Rules { get; }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Implemented once over <see cref="Rules"/>. Kleene conjunction, so a rule that cannot be answered leaves
     /// the verdict unknown rather than failing it — see <see cref="ComparisonRule.AllSatisfied"/>.
@@ -35,7 +35,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public virtual bool? IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         ComparisonRule.AllSatisfied(Rules, lhs, rhs);
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Implemented once here rather than on each operator: resolving both sides and answering null if either is
     /// missing is identical for every operator, and only the comparison below the guard differs. That comparison is
@@ -55,7 +55,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
         return IsSatisfiedGiven(lhs, rhs);
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Virtual rather than abstract, and a requirement by default, because anything else is the exception: only
     /// the equality family can derive a value. An operator that overrides this takes the role through its own

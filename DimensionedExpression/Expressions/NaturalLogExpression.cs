@@ -13,9 +13,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary <c>ln(x)</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless
-/// (enforced on construction, the only point it can be supplied) and, to be meaningful, positive; a non-positive value yields a
+/// and, to be meaningful, positive; a non-positive value yields a
 /// NaN or negative-infinity result. The result is dimensionless.
-/// <br/>
+/// <br/><br/>
 /// Uncertainty: because <c>d(ln x) = dx/x</c>,
 /// AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x).
 /// </summary>

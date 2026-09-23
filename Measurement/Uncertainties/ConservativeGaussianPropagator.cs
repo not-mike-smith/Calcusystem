@@ -19,7 +19,7 @@ public class ConservativeGaussianPropagator : IUncertaintyPropagator
     /// <summary>The shared instance. The propagator holds no state, so one serves every caller.</summary>
     public static ConservativeGaussianPropagator Instance { get; } = new ConservativeGaussianPropagator();
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Sums combine <i>absolute</i> magnitudes, and the result stores one. Relative magnitudes would need
     /// dividing by the sum, which is not defined when the addends cancel to zero.
@@ -64,7 +64,7 @@ public class ConservativeGaussianPropagator : IUncertaintyPropagator
         return SymmetricUncertainty.FromKmsAbsErr(absoluteUncertainty);
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Products combine <i>relative</i> magnitudes, and the result stores one.
     /// </remarks>

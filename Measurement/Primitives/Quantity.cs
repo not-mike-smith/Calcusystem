@@ -251,7 +251,7 @@ public readonly struct Quantity : ISnapshotting<Quantity, QuantitySnapshot>
         return new Quantity(value, Dimensionality);
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's data is its value
     /// and its dimension, both of which are already public concepts here. Nothing is being hidden to protect.</remarks>
     public QuantitySnapshot GetSnapshot() => new(KmsValue, Dimensionality.GetSnapshot());

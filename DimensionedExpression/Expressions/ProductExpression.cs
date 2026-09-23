@@ -10,8 +10,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// N-ary product (<c>×</c>) over its <see cref="Factors"/>; the result dimensionality is the product of the
 /// factors' dimensionalities.
-/// <br/>
-/// A computed node: uncertainty is propagated through <see cref="Measurand"/> multiplication under this
+/// <br/><br/>
+/// Uncertainty is propagated through <see cref="Measurand"/> multiplication under this
 /// node's <see cref="ComputedExpressionBase.UncertaintyCorrelation"/>.
 /// </summary>
 public class ProductExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<ProductExpression, NaryExpressionSnapshot>
@@ -30,7 +30,7 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
         Dimensionality.Dimensionless,
         (productDimensions, current) => productDimensions * current.Dimensionality);
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>Factors are read in declaration order, so a factor listed twice contributes twice.</remarks>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,

@@ -11,8 +11,6 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// Unary reciprocal (<c>1/x</c>) of any <see cref="IExpression"/> (its <see cref="Reciprocand"/>); the result
 /// dimensionality is the reciprocand's inverted (e.g. t → t⁻¹).
-/// <br/>
-/// Not directly mutable; <see cref="IExpression.ComputeIfFullyDescribed"/> returns null until the reciprocand is fully described.
 /// </summary>
 public class ReciprocalExpression : ExpressionBase, IExpression, ISnapshottingNode<ReciprocalExpression, UnaryExpressionSnapshot>
 {

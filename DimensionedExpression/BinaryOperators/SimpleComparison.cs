@@ -10,12 +10,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The general form of the ordering family. The comparisons engineers reach for constantly have named types;
-/// this covers the rest without a class apiece. "My reported value must stay
-/// below your guaranteed floor" — <c>·&lt;⌟</c> — is an ordinary conservative acceptance criterion with no named
-/// operator, and it is three bytes of state here.
-/// </para>
-/// <para>
+/// The general form of the ordering family.
 /// <b>It deliberately overlaps the named types.</b> Configured with the nominal-against-nominal rule it is
 /// <c>NominallyLessThanOperator</c> in every respect including its symbol — the two spell the same relation.
 /// </para>
@@ -58,7 +53,7 @@ public class SimpleComparison : BinaryOperatorBase
     /// <summary>The single comparison this relationship asserts.</summary>
     public ComparisonRule Rule { get; }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// A rule is commutative exactly when mirroring leaves it unchanged — when its mask carries no ordering
     /// bias, so swapping the operands cannot change the answer. <c>·=·</c> and <c>·≠·</c> qualify; nothing with
@@ -66,7 +61,7 @@ public class SimpleComparison : BinaryOperatorBase
     /// </remarks>
     public override bool IsCommutative => Rule == Rule.Mirrored;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Generated from the rule rather than declared, since there is no fixed relation to name. This is the one
     /// operator whose notation is computed end to end, and the reason the glyph alphabet had to be systematic.

@@ -10,9 +10,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// Binary quotient of a <see cref="Numerator"/> over a <see cref="Denominator"/> (both required); the result
 /// dimensionality is the numerator's divided by the denominator's.
-/// <br/>
+/// <br/><br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> division using the
-/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/> method.
+/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/>.
 /// </summary>
 public class QuotientExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<QuotientExpression, BinaryExpressionSnapshot>
 {
@@ -23,7 +23,7 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
     public override bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public override Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The case the keyed lookup exists for: numerator and denominator are told apart by identity, not by
     /// which slot a caller happened to put them in.
