@@ -6,6 +6,7 @@ using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
 using Calcusystem.DimensionedExpression.Exceptions;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -30,14 +31,12 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
             throw new IncompatibleDimensionsException("SumExpression addends must all have same dimensionaltiy");
     }
 
-
     private readonly Dimensionality _dimensionality;
 
     /// <inheritdoc/>
     public override Dimensionality Dimensionality => _dimensionality;
     public IReadOnlyList<IExpression> Addends => _addends;
     public override bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
-
 
     /// <inheritdoc/>
     /// <remarks>Addends are read in declaration order, so an addend listed twice contributes twice.</remarks>
@@ -51,7 +50,6 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, IState
         // of building an intermediate Measurand per addend.
         return Measurand.Sum(ErrorPropagation, propagator, _addends.Select(a => known[a]));
     }
-
 
     public override string ToString()
     {

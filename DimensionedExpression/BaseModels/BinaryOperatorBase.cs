@@ -5,6 +5,7 @@ using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.BaseModels;
 

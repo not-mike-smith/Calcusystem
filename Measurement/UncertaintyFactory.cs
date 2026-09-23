@@ -1,6 +1,7 @@
 using Calcusystem.Core;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Measurement;
 

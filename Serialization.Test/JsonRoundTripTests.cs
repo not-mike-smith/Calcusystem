@@ -7,8 +7,9 @@ using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
 using Calcusystem.Measurement;
-using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Units;
+using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Serialization.Test;
 

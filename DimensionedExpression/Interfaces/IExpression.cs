@@ -2,6 +2,7 @@ using Calcusystem.Core;
 using Calcusystem.Measurement;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.Interfaces;
 

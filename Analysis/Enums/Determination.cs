@@ -1,4 +1,4 @@
-namespace Calcusystem.Analysis;
+namespace Calcusystem.Analysis.Enums;
 
 /// <summary>
 /// How a system's equation count stands against its unknown count — the gate for what can be done with it.

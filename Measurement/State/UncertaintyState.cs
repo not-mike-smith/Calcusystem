@@ -1,17 +1,7 @@
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Measurement.State;
-
-/// <summary>The directional shape an <see cref="UncertaintyState"/> describes — which concrete
-/// <see cref="IUncertainty"/> it rebuilds into.</summary>
-public enum UncertaintyShape
-{
-    /// <summary>Equal error above and below the nominal value; rebuilds a <see cref="SymmetricUncertainty"/>.</summary>
-    Symmetric,
-
-    /// <summary>Independent upper/lower errors; rebuilds an <see cref="AsymmetricUncertainty"/>.</summary>
-    Asymmetric,
-}
 
 /// <summary>
 /// The complete stored state of an <see cref="IUncertainty"/> — enough to rebuild it, and nothing more.

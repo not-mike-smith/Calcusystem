@@ -1,4 +1,4 @@
-namespace Calcusystem.Measurement;
+namespace Calcusystem.Measurement.Enums;
 
 // TODO: rename to `ErrorCorrelation`. This enum does not name a method of propagating error — it states
 // whether two operands' errors are correlated, which is a fact about the quantities being combined. The method

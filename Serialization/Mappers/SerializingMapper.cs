@@ -5,6 +5,7 @@ using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.State;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Serialization.Mappers;
 

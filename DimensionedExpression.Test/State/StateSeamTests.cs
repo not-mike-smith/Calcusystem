@@ -10,8 +10,9 @@ using Calcusystem.DimensionedExpression.State;
 using Calcusystem.DimensionedExpression.Systems;
 using FluentAssertions;
 using Calcusystem.Measurement;
-using Calcusystem.Measurement.Enums;
 using Xunit;
+using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.Test.State;
 

@@ -1,6 +1,7 @@
-using Calcusystem.Measurement.Enums;
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression;
+using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.Measurement.Enums;
 
 ﻿using Calcusystem.Serialization.Interfaces;
 

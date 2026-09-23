@@ -6,6 +6,7 @@ using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Exceptions;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -31,7 +32,6 @@ public class ExponentialExpression : ExpressionBase, IExpression, IStatefulNode<
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Argument.IsFullyDescribed;
     public override Dimensionality Dimensionality => Dimensionality.Dimensionless;
-
 
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(

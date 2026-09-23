@@ -1,5 +1,6 @@
 using Calcusystem.Core;
 using Calcusystem.Measurement;
+using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BaseModels;
 

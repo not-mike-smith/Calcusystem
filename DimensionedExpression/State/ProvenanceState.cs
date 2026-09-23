@@ -1,22 +1,7 @@
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.State;
-
-/// <summary>Which provenance kind a <see cref="ProvenanceState"/> describes — the type it rebuilds into.</summary>
-public enum ProvenanceKind
-{
-    /// <summary>An instrument or sensor reading.</summary>
-    Measured,
-
-    /// <summary>A literature or tabulated value.</summary>
-    Reference,
-
-    /// <summary>An engineer-specified value.</summary>
-    Design,
-
-    /// <summary>An empirically fitted constant within a constitutive relationship.</summary>
-    Model,
-}
 
 /// <summary>
 /// The complete stored state of an <see cref="IProvenance"/>: its identity, its kind, and that kind's audit

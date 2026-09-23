@@ -4,6 +4,7 @@ using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -31,7 +32,6 @@ public class SqrtExpression : ExpressionBase, IExpression, IStatefulNode<SqrtExp
 
     // Each exponent halved; throws NondiscreteDimensionalityException if any argument exponent is odd.
     public override Dimensionality Dimensionality => Argument.Dimensionality / 2;
-
 
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(

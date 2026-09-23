@@ -1,4 +1,4 @@
-namespace Calcusystem.DimensionedExpression.BinaryOperators;
+namespace Calcusystem.DimensionedExpression.Enums;
 
 /// <summary>
 /// How strictly an <see cref="EqualityOperator"/> reads "equal" — which of the nested agreements between two

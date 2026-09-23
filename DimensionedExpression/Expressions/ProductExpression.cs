@@ -4,6 +4,7 @@ using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -30,7 +31,6 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
     public override Dimensionality Dimensionality => Factors.Aggregate(
         Dimensionality.Dimensionless,
         (productDimensions, current) => productDimensions * current.Dimensionality);
-
 
     /// <inheritdoc/>
     /// <remarks>Factors are read in declaration order, so a factor listed twice contributes twice.</remarks>

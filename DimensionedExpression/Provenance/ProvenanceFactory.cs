@@ -2,6 +2,7 @@ using Calcusystem.Core;
 using System;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 

@@ -4,6 +4,7 @@ using Calcusystem.Core;
 using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.Measurement;
 using Calcusystem.Measurement.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.DimensionedExpression.Expressions;
 
@@ -22,7 +23,6 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
 
     public override bool IsFullyDescribed => Numerator.IsFullyDescribed && Denominator.IsFullyDescribed;
     public override Dimensionality Dimensionality => Numerator.Dimensionality / Denominator.Dimensionality;
-
 
     /// <inheritdoc/>
     /// <remarks>
