@@ -5,10 +5,10 @@ using Xunit;
 namespace Calcusystem.Measurement.Test;
 
 /// <summary>
-/// <see cref="ComparisonType"/> is a mask over <see cref="ComparisonResult"/>'s bits. Nothing in the type system
+/// <see cref="MustBe"/> is a mask over <see cref="ComparisonResult"/>'s bits. Nothing in the type system
 /// says so, and everything above depends on it, so it is asserted here.
 /// </summary>
-public class ComparisonTypeTests
+public class MustBeTests
 {
     private static readonly ComparisonResult[] Determinate =
         [ComparisonResult.LessThan, ComparisonResult.Equal, ComparisonResult.GreaterThan];
@@ -19,11 +19,11 @@ public class ComparisonTypeTests
     /// wrong verdicts. This is the only thing standing between that and a release.
     /// </remarks>
     [Theory]
-    [InlineData(ComparisonResult.LessThan, ComparisonType.LessThan)]
-    [InlineData(ComparisonResult.Equal, ComparisonType.EqualTo)]
-    [InlineData(ComparisonResult.GreaterThan, ComparisonType.GreaterThan)]
-    [InlineData(ComparisonResult.Incomparable, ComparisonType.None)]
-    public void EachResultSharesItsBitWithTheTypeThatNamesIt(ComparisonResult result, ComparisonType type) =>
+    [InlineData(ComparisonResult.LessThan, MustBe.LessThan)]
+    [InlineData(ComparisonResult.Equal, MustBe.EqualTo)]
+    [InlineData(ComparisonResult.GreaterThan, MustBe.GreaterThan)]
+    [InlineData(ComparisonResult.Incomparable, MustBe.Impossible)]
+    public void EachResultSharesItsBitWithTheTypeThatNamesIt(ComparisonResult result, MustBe type) =>
         ((byte)result).Should().Be((byte)type);
 
     /// <remarks>
@@ -39,7 +39,7 @@ public class ComparisonTypeTests
             (bits & (bits - 1)).Should().Be(0, $"{result} should be a single bit");
         }
 
-        Determinate.Aggregate(0, (all, r) => all | (byte)r).Should().Be((byte)ComparisonType.Any);
+        Determinate.Aggregate(0, (all, r) => all | (byte)r).Should().Be((byte)MustBe.Comparable);
     }
 
     /// <remarks>
@@ -50,9 +50,9 @@ public class ComparisonTypeTests
     [Fact]
     public void IncomparableSatisfiesNoMaskAtAllIncludingAny()
     {
-        foreach (var type in Enum.GetValues<ComparisonType>())
+        foreach (var type in Enum.GetValues<MustBe>())
         {
-            ((ComparisonType)ComparisonResult.Incomparable & type).Should().Be(ComparisonType.None);
+            ((MustBe)ComparisonResult.Incomparable & type).Should().Be(MustBe.Impossible);
         }
     }
 
@@ -61,11 +61,11 @@ public class ComparisonTypeTests
     /// <c>≤</c> cost nothing to support beyond naming it.
     /// </remarks>
     [Theory]
-    [InlineData(ComparisonType.LessThanOrEqualTo, ComparisonResult.LessThan, ComparisonResult.Equal)]
-    [InlineData(ComparisonType.GreaterThanOrEqualTo, ComparisonResult.GreaterThan, ComparisonResult.Equal)]
-    [InlineData(ComparisonType.InequalTo, ComparisonResult.LessThan, ComparisonResult.GreaterThan)]
+    [InlineData(MustBe.LessThanOrEqualTo, ComparisonResult.LessThan, ComparisonResult.Equal)]
+    [InlineData(MustBe.GreaterThanOrEqualTo, ComparisonResult.GreaterThan, ComparisonResult.Equal)]
+    [InlineData(MustBe.InequalTo, ComparisonResult.LessThan, ComparisonResult.GreaterThan)]
     public void ACompositeMaskAcceptsExactlyTheTwoResultsItUnions(
-        ComparisonType type, ComparisonResult first, ComparisonResult second)
+        MustBe type, ComparisonResult first, ComparisonResult second)
     {
         var accepted = Determinate.Where(r => (r & (ComparisonResult)type) != 0).ToList();
 
@@ -73,13 +73,13 @@ public class ComparisonTypeTests
     }
 
     /// <remarks>
-    /// Negation is complement against <see cref="ComparisonType.Any"/> and needs no case analysis — the reason
+    /// Negation is complement against <see cref="MustBe.Comparable"/> and needs no case analysis — the reason
     /// the zero-is-empty layout was worth having over one where <c>EqualTo</c> was zero.
     /// </remarks>
     [Theory]
-    [InlineData(ComparisonType.LessThan, ComparisonType.GreaterThanOrEqualTo)]
-    [InlineData(ComparisonType.EqualTo, ComparisonType.InequalTo)]
-    [InlineData(ComparisonType.None, ComparisonType.Any)]
-    public void ComplementingAMaskNegatesTheRelationItNames(ComparisonType type, ComparisonType expected) =>
-        (ComparisonType.Any & ~type).Should().Be(expected);
+    [InlineData(MustBe.LessThan, MustBe.GreaterThanOrEqualTo)]
+    [InlineData(MustBe.EqualTo, MustBe.InequalTo)]
+    [InlineData(MustBe.Impossible, MustBe.Comparable)]
+    public void ComplementingAMaskNegatesTheRelationItNames(MustBe type, MustBe expected) =>
+        (MustBe.Comparable & ~type).Should().Be(expected);
 }

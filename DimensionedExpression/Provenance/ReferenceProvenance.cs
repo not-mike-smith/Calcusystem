@@ -1,6 +1,6 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 
@@ -25,6 +25,6 @@ public sealed class ReferenceProvenance : IdBase, IProvenance
     public string Summary() =>
         $"Reference: {Citation}{(Year is null ? "" : $" ({Year})")}";
 
-    ProvenanceState IProvenance.GetState() =>
-        ProvenanceState.Reference(Id, Citation, Url, Year);
+    ProvenanceSnapshot IProvenance.GetSnapshot() =>
+        ProvenanceSnapshot.Reference(Id, Citation, Url, Year);
 }

@@ -4,7 +4,7 @@ Asks whether an `ExpressionSystem` is well-posed. Given a system, it reports how
 
 Depends on `DimensionedExpression` and `Measurement`. It reads the expression graph and never mutates it.
 
-This is where the evaluation walk (Milestone 3) and the solver abstraction (Milestone 4) will live. It exists as its own assembly because `DimensionedExpression` deliberately performs no orchestration — it supplies `Value`, `IsFullyDescribed`, `Children`, and `FreeVariables()`, and stops there.
+This is where the evaluation walk (Milestone 3) and the solver abstraction (Milestone 4) will live. It exists as its own assembly because `DimensionedExpression` deliberately performs no orchestration — it supplies `Value`, `IsFullyDescribed`, `Children`, and `UnsetVariables()`, and stops there.
 
 ---
 
@@ -59,7 +59,7 @@ calc.Overrides;      // the values supplied — the assumptions this calculation
 calc.Values;         // every node that resolved
 calc.ValueOf(f);     // one node's value, or null
 calc.Unresolved;     // the expressions it references that could not be computed
-calc.MissingValues;  // the unbound variables responsible
+calc.MissingValues;  // the unset variables responsible
 calc.IsComplete;     // nothing outstanding
 
 calc.Outcomes;       // what each relationship did — one entry per relationship
@@ -76,9 +76,9 @@ It *does* throw on a **cyclic** graph — `CyclicExpressionGraphException`. That
 
 **It covers everything the system contains, which is everything it reaches.** `ExpressionSystem.Add` absorbs the subgraph beneath whatever it is given, so a limit compared against but never filed separately, or an expression assembled purely for a comparison, is a member like any other. `Calculate` and `Flatten` therefore read the same collections and cannot disagree about what the model holds — they previously could, and did.
 
-That also makes both cheap: `MissingValues` and `Flatten`'s unknowns are the system's unvalued `Variables`, read directly. Asking each expression for its `FreeVariables()` instead would re-walk the same subgraphs once per node, which is quadratic on a deep graph.
+That also makes both cheap: `MissingValues` and `Flatten`'s unknowns are the system's unvalued `Variables`, read directly. Asking each expression for its `UnsetVariables()` instead would re-walk the same subgraphs once per node, which is quadratic on a deep graph.
 
-**Each node is computed once.** Nodes are visited in dependency order and handed the values already established, via `IExpression.ComputeFrom`. Contrast `CalculateValueIfDetermined()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here. This is the caching a node deliberately cannot do for itself: a node has no way to learn that a leaf beneath it was reassigned, whereas `Calculate` knows the graph is unchanged for the duration of a run.
+**Each node is computed once.** Nodes are visited in dependency order and handed the values already established, via `IExpression.ComputeFrom`. Contrast `ComputeIfFullyDescribed()`, which re-walks to the leaves on every call — a sub-expression shared by three parents costs three walks there and one here. This is the caching a node deliberately cannot do for itself: a node has no way to learn that a leaf beneath it was reassigned, whereas `Calculate` knows the graph is unchanged for the duration of a run.
 
 `Calculation` is a snapshot, not a live view: a pure function of the system and its overrides, holding immutable `Measurand`s. Later assignments do not change it; re-running is how you get a newer one. `Values` covers every node reached, which is what makes it the natural home for caching across runs too.
 
@@ -113,14 +113,14 @@ Calling the second instead would be wrong twice. It re-walks both subgraphs this
 
 ### Uncertainty treatment
 
-`Calculate` also takes an optional `IErrorPropagator`, defaulting to the conservative Gaussian one. This is the seam for an alternative uncertainty model — Monte Carlo, correlation-aware — applied to a whole calculation.
+`Calculate` also takes an optional `IUncertaintyPropagator`, defaulting to the conservative Gaussian one. This is the seam for an alternative uncertainty model — Monte Carlo, correlation-aware — applied to a whole calculation.
 
-It is deliberately a *different axis* from a computed node's `ErrorPropagation`:
+It is deliberately a *different axis* from a computed node's `UncertaintyPropagation`:
 
 | | Says | Belongs to |
 | --- | --- | --- |
-| `IComputedExpression.ErrorPropagation` | are *these* operands correlated? | the **model** — a physical fact about the quantities |
-| `IErrorPropagator` | how do uncertainties combine at all? | the **calculation** — a numerical method |
+| `IComputedExpression.UncertaintyPropagation` | are *these* operands correlated? | the **model** — a physical fact about the quantities |
+| `IUncertaintyPropagator` | how do uncertainties combine at all? | the **calculation** — a numerical method |
 
 Both are passed through together, so choosing a propagator never discards what the model records about correlation. A global switch that flattened everything to "assume correlated" would be the opposite: it would silently throw away modelling knowledge, e.g. a node marked correlated because both its inputs come off the same instrument. There is a test that an injected propagator still sees `Correlated` where the model said so.
 

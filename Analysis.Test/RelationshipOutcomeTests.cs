@@ -18,25 +18,25 @@ namespace Calcusystem.Analysis.Test;
 /// </summary>
 public class RelationshipOutcomeTests
 {
-    private static Variable Bound(string symbol, double kmsValue, double relErr = 0) =>
+    private static Variable Valued(string symbol, double kmsValue, double relErr = 0) =>
         new(symbol,
-            new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelErr(relErr)),
+            new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelative(relErr)),
             symbol);
 
     /// <summary>A length whose uncertainty is unbounded upward, so its ceiling has no comparable value.</summary>
     private static Variable NoCeiling(string symbol, double kmsValue) =>
         new(symbol,
             new Quantity(kmsValue, Dimensionality.Length).Measurand(
-                AsymmetricUncertainty.FromAbsErr(
+                AsymmetricUncertainty.FromAbsolute(
                     new Quantity(double.PositiveInfinity, Dimensionality.Length),
                     new Quantity(0, Dimensionality.Length))),
             symbol);
 
-    private static Variable Unbound(string symbol) =>
+    private static Variable Unset(string symbol) =>
         new(symbol, Dimensionality.Length, symbol);
 
     private static Measurand Length(double kmsValue) =>
-        new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelErr(0));
+        new Quantity(kmsValue, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelative(0));
 
     private static ExpressionSystem SystemOf(params object[] members)
     {
@@ -62,8 +62,8 @@ public class RelationshipOutcomeTests
     [Fact]
     public void AVerdictIsJudgedOnTheOverridesRatherThanTheStoredValues()
     {
-        var measured = Bound("measured", 5);
-        var limit = Bound("limit", 10);
+        var measured = Valued("measured", 5);
+        var limit = Valued("limit", 10);
         var under = new DefinitelyLessThanOperator { Id = "under", Lhs = measured, Rhs = limit };
         var system = SystemOf(under);
 
@@ -86,8 +86,8 @@ public class RelationshipOutcomeTests
     [Fact]
     public void TheOutcomeCarriesTheValuesItWasJudgedOn()
     {
-        var measured = Bound("measured", 5);
-        var limit = Bound("limit", 10);
+        var measured = Valued("measured", 5);
+        var limit = Valued("limit", 10);
         var system = SystemOf(new DefinitelyLessThanOperator { Id = "under", Lhs = measured, Rhs = limit });
 
         var outcome = system
@@ -103,7 +103,7 @@ public class RelationshipOutcomeTests
     {
         var system = SystemOf(new DefinitelyLessThanOperator
         {
-            Id = "under", Lhs = Bound("measured", 5), Rhs = Bound("limit", 10)
+            Id = "under", Lhs = Valued("measured", 5), Rhs = Valued("limit", 10)
         });
 
         var calc = system.Calculate();
@@ -122,8 +122,8 @@ public class RelationshipOutcomeTests
     [Fact]
     public void AFailedRequirementIsAViolationAndAFailedEquationIsAnInconsistency()
     {
-        var measured = Bound("measured", 50);
-        var limit = Bound("limit", 10);
+        var measured = Valued("measured", 50);
+        var limit = Valued("limit", 10);
         var equation = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
             Id = "eq", Lhs = measured, Rhs = limit
@@ -147,7 +147,7 @@ public class RelationshipOutcomeTests
     {
         var system = SystemOf(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Coherence)
         {
-            Id = "routes-agree", Lhs = Bound("t_eos", 300), Rhs = Bound("t_path", 305)
+            Id = "routes-agree", Lhs = Valued("t_eos", 300), Rhs = Valued("t_path", 305)
         });
 
         var calc = system.Calculate();
@@ -165,7 +165,7 @@ public class RelationshipOutcomeTests
     {
         var system = SystemOf(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Requirement)
         {
-            Id = "as-designed", Lhs = Bound("measured", 5), Rhs = Bound("design", 6)
+            Id = "as-designed", Lhs = Valued("measured", 5), Rhs = Valued("design", 6)
         });
 
         var calc = system.Calculate();
@@ -182,10 +182,10 @@ public class RelationshipOutcomeTests
     [Fact]
     public void ARelationshipWhoseSideDidNotResolveIsUndeterminedRatherThanFailed()
     {
-        var unbound = Unbound("measured");
+        var unset = Unset("measured");
         var system = SystemOf(new DefinitelyLessThanOperator
         {
-            Id = "under", Lhs = unbound, Rhs = Bound("limit", 10)
+            Id = "under", Lhs = unset, Rhs = Valued("limit", 10)
         });
 
         var calc = system.Calculate();
@@ -207,14 +207,14 @@ public class RelationshipOutcomeTests
     [Fact]
     public void EveryRelationshipAppearsExactlyOnceIncludingTheUndeterminedOnes()
     {
-        var measured = Bound("measured", 50);
-        var limit = Bound("limit", 10);
-        var unbound = Unbound("unknown");
+        var measured = Valued("measured", 50);
+        var limit = Valued("limit", 10);
+        var unset = Unset("unknown");
 
         var system = SystemOf(
             new DefinitelyLessThanOperator { Id = "fails", Lhs = measured, Rhs = limit },
             new DefinitelyGreaterThanOperator { Id = "holds", Lhs = measured, Rhs = limit },
-            new DefinitelyLessThanOperator { Id = "unjudgeable", Lhs = unbound, Rhs = limit });
+            new DefinitelyLessThanOperator { Id = "unjudgeable", Lhs = unset, Rhs = limit });
 
         var calc = system.Calculate();
 
@@ -232,7 +232,7 @@ public class RelationshipOutcomeTests
     {
         var system = SystemOf(new DefinitelyLessThanOperator
         {
-            Id = "under", Lhs = Bound("measured", 50), Rhs = Bound("limit", 10)
+            Id = "under", Lhs = Valued("measured", 50), Rhs = Valued("limit", 10)
         });
 
         var calc = system.Calculate();
@@ -252,7 +252,7 @@ public class RelationshipOutcomeTests
     {
         var system = SystemOf(new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
         {
-            Id = "redundant", Lhs = Bound("a", 10), Rhs = Bound("b", 12)
+            Id = "redundant", Lhs = Valued("a", 10), Rhs = Valued("b", 12)
         });
 
         system.Flatten().RedundantEquations.Should().ContainSingle();
@@ -270,10 +270,10 @@ public class RelationshipOutcomeTests
     [Fact]
     public void ARelationshipOverComputedExpressionsIsJudgedOnTheComputedValues()
     {
-        var a = Bound("a", 3);
-        var b = Bound("b", 4);
+        var a = Valued("a", 3);
+        var b = Valued("b", 4);
         var total = new SumExpression([a, b]) { Id = "total" };
-        var limit = Bound("limit", 10);
+        var limit = Valued("limit", 10);
         var system = SystemOf(new DefinitelyLessThanOperator { Id = "under", Lhs = total, Rhs = limit });
 
         var outcome = system.Calculate().Outcomes.Single();
@@ -285,8 +285,8 @@ public class RelationshipOutcomeTests
     [Fact]
     public void OutcomeForFindsARelationshipAndAnswersNullForAStranger()
     {
-        var measured = Bound("measured", 5);
-        var limit = Bound("limit", 10);
+        var measured = Valued("measured", 5);
+        var limit = Valued("limit", 10);
         var mine = new DefinitelyLessThanOperator { Id = "mine", Lhs = measured, Rhs = limit };
         var stranger = new DefinitelyLessThanOperator { Id = "stranger", Lhs = measured, Rhs = limit };
 
@@ -304,8 +304,8 @@ public class RelationshipOutcomeTests
     [Fact]
     public void SubjectAndCriterionAreTheValuesOfTheSidesTheRelationshipDistinguishes()
     {
-        var measured = Bound("measured", 50);
-        var limit = Bound("limit", 10);
+        var measured = Valued("measured", 50);
+        var limit = Valued("limit", 10);
         var system = SystemOf(
             new DefinitelyLessThanOperator { Id = "requirement", Lhs = measured, Rhs = limit },
             new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
@@ -359,17 +359,17 @@ public class RelationshipOutcomeTests
     [Fact]
     public void OutcomesAreASnapshotAndDoNotFollowLaterAssignments()
     {
-        var measured = Bound("measured", 5);
+        var measured = Valued("measured", 5);
         var system = SystemOf(new DefinitelyLessThanOperator
         {
-            Id = "under", Lhs = measured, Rhs = Bound("limit", 10)
+            Id = "under", Lhs = measured, Rhs = Valued("limit", 10)
         });
 
         var calc = system.Calculate();
         calc.Outcomes.Single().IsSatisfied.Should().BeTrue();
 
         measured.Value = new Quantity(50, Dimensionality.Length)
-            .Measurand(SymmetricUncertainty.FromRelErr(0));
+            .Measurand(SymmetricUncertainty.FromRelative(0));
 
         calc.Outcomes.Single().IsSatisfied.Should().BeTrue();
         system.Calculate().Outcomes.Single().IsSatisfied.Should().BeFalse();

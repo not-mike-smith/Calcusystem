@@ -15,9 +15,9 @@ namespace Calcusystem.DimensionedExpression.Test.Systems;
 /// </summary>
 public class ExpressionSystemMembershipTests
 {
-    private static Variable Bound(string symbol, double kmsValue) =>
+    private static Variable Valued(string symbol, double kmsValue) =>
         new(symbol,
-            new Quantity(kmsValue, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelErr(0)),
+            new Quantity(kmsValue, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0)),
             symbol);
 
     /// <remarks>
@@ -29,7 +29,7 @@ public class ExpressionSystemMembershipTests
     [Fact]
     public void ARelationshipAcrossDimensionsIsRefusedWhenItIsAdded()
     {
-        var mass = Bound("m", 10);
+        var mass = Valued("m", 10);
         var length = new Variable("l", Dimensionality.Length, "l");
         var system = ExpressionSystem.Create("mismatched", "");
 
@@ -63,8 +63,8 @@ public class ExpressionSystemMembershipTests
     [Fact]
     public void AddingACompositeAbsorbsTheOperandsBeneathIt()
     {
-        var a = Bound("a", 1);
-        var b = Bound("b", 2);
+        var a = Valued("a", 1);
+        var b = Valued("b", 2);
         var sum = new SumExpression([a, b]) { Id = "s" };
 
         var system = ExpressionSystem.Create("composite", "");
@@ -77,9 +77,9 @@ public class ExpressionSystemMembershipTests
     [Fact]
     public void AddingACompositeAbsorbsNodesNestedInsideOtherNodes()
     {
-        var a = Bound("a", 1);
-        var b = Bound("b", 2);
-        var c = Bound("c", 3);
+        var a = Valued("a", 1);
+        var b = Valued("b", 2);
+        var c = Valued("c", 3);
         var inner = new SumExpression([a, b]) { Id = "inner" };
         var outer = new ProductExpression([inner, c]) { Id = "outer" };
 
@@ -93,8 +93,8 @@ public class ExpressionSystemMembershipTests
     [Fact]
     public void AddingARelationshipAbsorbsBothSides()
     {
-        var measured = Bound("measured", 1);
-        var limit = Bound("limit", 3);
+        var measured = Valued("measured", 1);
+        var limit = Valued("limit", 3);
 
         var system = ExpressionSystem.Create("check", "");
         system.Add(new DefinitelyLessThanOperator { Id = "lt", Lhs = measured, Rhs = limit });
@@ -106,8 +106,8 @@ public class ExpressionSystemMembershipTests
     [Fact]
     public void AbsorbingIsIdempotentAndSharedNodesAppearOnce()
     {
-        var shared = Bound("shared", 1);
-        var other = Bound("other", 2);
+        var shared = Valued("shared", 1);
+        var other = Valued("other", 2);
         var left = new SumExpression([shared, other]) { Id = "left" };
         var right = new ProductExpression([shared, other]) { Id = "right" };
 

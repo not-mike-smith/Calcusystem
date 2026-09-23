@@ -9,14 +9,14 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 
 public class InequalityOperatorTests
 {
-    private static Variable Symmetric(double kmsValue, double relativeError = 0) =>
-        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelErr(relativeError)));
+    private static Variable Symmetric(double kmsValue, double relativeUncertainty = 0) =>
+        new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
     private static Variable Asymmetric(double kmsValue, double upperError, double lowerError) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
-            AsymmetricUncertainty.FromAbsErr(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
+            AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError))));
 
-    private static Variable Unbound() =>
+    private static Variable Unset() =>
         new("x", Mass.Kilogram.Dimensionality);
 
     private static DefinitelyLessThanOperator DefLess(Variable lhs, Variable rhs) =>
@@ -35,27 +35,27 @@ public class InequalityOperatorTests
     // ── Null / not-fully-described ────────────────────────────────────────────
 
     [Fact]
-    public void AllOperators_ReturnNull_WhenLhsIsUnbound()
+    public void AllOperators_ReturnNull_WhenLhsIsUnset()
     {
         var rhs = Symmetric(10, 0.1);
-        DefLess(Unbound(), rhs).IsSatisfied().Should().BeNull();
-        UpperLess(Unbound(), rhs).IsSatisfied().Should().BeNull();
-        NomLess(Unbound(), rhs).IsSatisfied().Should().BeNull();
-        DefGreater(Unbound(), rhs).IsSatisfied().Should().BeNull();
-        LowerGreater(Unbound(), rhs).IsSatisfied().Should().BeNull();
-        NomGreater(Unbound(), rhs).IsSatisfied().Should().BeNull();
+        DefLess(Unset(), rhs).IsSatisfied().Should().BeNull();
+        UpperLess(Unset(), rhs).IsSatisfied().Should().BeNull();
+        NomLess(Unset(), rhs).IsSatisfied().Should().BeNull();
+        DefGreater(Unset(), rhs).IsSatisfied().Should().BeNull();
+        LowerGreater(Unset(), rhs).IsSatisfied().Should().BeNull();
+        NomGreater(Unset(), rhs).IsSatisfied().Should().BeNull();
     }
 
     [Fact]
-    public void AllOperators_ReturnNull_WhenRhsIsUnbound()
+    public void AllOperators_ReturnNull_WhenRhsIsUnset()
     {
         var lhs = Symmetric(10, 0.1);
-        DefLess(lhs, Unbound()).IsSatisfied().Should().BeNull();
-        UpperLess(lhs, Unbound()).IsSatisfied().Should().BeNull();
-        NomLess(lhs, Unbound()).IsSatisfied().Should().BeNull();
-        DefGreater(lhs, Unbound()).IsSatisfied().Should().BeNull();
-        LowerGreater(lhs, Unbound()).IsSatisfied().Should().BeNull();
-        NomGreater(lhs, Unbound()).IsSatisfied().Should().BeNull();
+        DefLess(lhs, Unset()).IsSatisfied().Should().BeNull();
+        UpperLess(lhs, Unset()).IsSatisfied().Should().BeNull();
+        NomLess(lhs, Unset()).IsSatisfied().Should().BeNull();
+        DefGreater(lhs, Unset()).IsSatisfied().Should().BeNull();
+        LowerGreater(lhs, Unset()).IsSatisfied().Should().BeNull();
+        NomGreater(lhs, Unset()).IsSatisfied().Should().BeNull();
     }
 
     // ── DefinitelyLessThanOperator (<<) ──────────────────────────────────────

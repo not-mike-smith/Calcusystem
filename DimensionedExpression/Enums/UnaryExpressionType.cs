@@ -1,8 +1,8 @@
 
 namespace Calcusystem.DimensionedExpression.Enums;
 
-/// <summary>Which single-argument expression a <see cref="UnaryExpressionState"/> rebuilds into.</summary>
-public enum UnaryExpressionKind
+/// <summary>Which single-argument expression a <see cref="UnaryExpressionSnapshot"/> rebuilds into.</summary>
+public enum UnaryExpressionType
 {
     /// <summary><c>1/x</c>.</summary>
     Reciprocal,

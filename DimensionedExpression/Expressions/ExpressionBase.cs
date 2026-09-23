@@ -41,12 +41,12 @@ public abstract class ExpressionBase : IdBase, IExpression
     /// <inheritdoc/>
     public abstract Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null);
+        IUncertaintyPropagator? propagator = null);
 
     /// <inheritdoc/>
-    public Measurand? ComputeIfDetermined(
+    public Measurand? ComputeIfFullyDescribed(
         IReadOnlyDictionary<Variable, Measurand>? overrides = null,
-        IErrorPropagator? propagator = null)
+        IUncertaintyPropagator? propagator = null)
     {
         var known = new Dictionary<IExpression, Measurand>();
 
@@ -85,7 +85,7 @@ public abstract class ExpressionBase : IdBase, IExpression
     }
 
     /// <inheritdoc/>
-    public IEnumerable<Variable> FreeVariables() =>
+    public IEnumerable<Variable> UnsetVariables() =>
         SelfAndDescendants().OfType<Variable>().Where(v => ! v.IsFullyDescribed);
 
     /// <inheritdoc/>

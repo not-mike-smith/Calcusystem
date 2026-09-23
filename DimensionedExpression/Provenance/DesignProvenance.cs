@@ -1,6 +1,6 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 
@@ -21,6 +21,6 @@ public sealed class DesignProvenance : IdBase, IProvenance
     public string Summary() =>
         $"Design parameter{(SpecReference is null ? "" : $" (spec {SpecReference})")}";
 
-    ProvenanceState IProvenance.GetState() =>
-        ProvenanceState.Design(Id, SpecReference);
+    ProvenanceSnapshot IProvenance.GetSnapshot() =>
+        ProvenanceSnapshot.Design(Id, SpecReference);
 }

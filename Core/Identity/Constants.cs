@@ -3,7 +3,7 @@ namespace Calcusystem.Core.Identity;
 public static class Constants
 {
     /// <summary>
-    /// Sentinel id meaning "mint a fresh identity for this object" — see <see cref="IdBase"/>, which interprets
+    /// Sentinel id meaning "mint a fresh identity for this object" — see <see cref="Identity.IdBase"/>, which interprets
     /// it. Passing any other non-blank string preserves that id instead, which is what lets a persisted graph
     /// rebuild its references.
     /// </summary>

@@ -65,7 +65,7 @@ public interface IExpression : IIdentified
     /// and a child referenced twice needs only one entry.
     /// </para>
     /// <para>
-    /// <c>ComputeIfDetermined()</c> is this applied to children that computed themselves recursively; an
+    /// <c>ComputeIfFullyDescribed()</c> is this applied to children that computed themselves recursively; an
     /// evaluator is the same function applied to operands it computed in dependency order and kept. A node owns
     /// how values combine, and a caller owns the order they are produced in and whether any are worth keeping.
     /// </para>
@@ -73,17 +73,17 @@ public interface IExpression : IIdentified
     /// <param name="known">Values already established, by node. Missing entries mean not yet computed.</param>
     /// <param name="propagator">
     /// How uncertainties are combined, or null for the conservative Gaussian default. A different axis from a
-    /// computed node's <c>ErrorPropagation</c>: that says whether <i>these</i> operands are correlated, which is
+    /// computed node's <c>UncertaintyPropagation</c>: that says whether <i>these</i> operands are correlated, which is
     /// a statement about the model, while this is the numerical method and belongs to the calculation. Both are
     /// passed on together, so supplying one never discards the other.
     /// </param>
     Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null);
+        IUncertaintyPropagator? propagator = null);
 
     /// <summary>
     /// Computes this node's value with propagated uncertainty, or returns <see langword="null"/> if any leaf it
-    /// depends on is still unbound.
+    /// depends on is still unset.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -104,9 +104,9 @@ public interface IExpression : IIdentified
     /// </param>
     /// <param name="propagator">How uncertainties are combined, or null for the conservative Gaussian default.</param>
     /// <exception cref="Exceptions.CyclicExpressionGraphException">The graph beneath this node has a cycle.</exception>
-    Measurand? ComputeIfDetermined(
+    Measurand? ComputeIfFullyDescribed(
         IReadOnlyDictionary<Variable, Measurand>? overrides = null,
-        IErrorPropagator? propagator = null);
+        IUncertaintyPropagator? propagator = null);
 
     /// <summary>
     /// This node and every node reachable from it, each yielded exactly once however many parents reference it.
@@ -115,15 +115,15 @@ public interface IExpression : IIdentified
     IEnumerable<IExpression> SelfAndDescendants();
 
     /// <summary>
-    /// The distinct unbound leaf variables reachable from this node — the values that must be supplied before it
+    /// The distinct unset leaf variables reachable from this node — the values that must be supplied before it
     /// can produce one, and the unknowns it contributes to a system's degrees of freedom.
     /// </summary>
     /// <remarks>
     /// Only a <see cref="Expressions.Variable"/> can be free: it is the sole node whose value is assigned rather
-    /// than computed, so it is the only thing a solver could be asked to determine. A computed node with unbound
+    /// than computed, so it is the only thing a solver could be asked to determine. A computed node with unset
     /// leaves beneath it is not itself an unknown — it is the path by which those leaves are reached.
     /// </remarks>
-    IEnumerable<Variable> FreeVariables();
+    IEnumerable<Variable> UnsetVariables();
 
     /// <summary>
     /// This node and everything reachable from it, each once, children before parents — the order values can be
@@ -135,7 +135,7 @@ public interface IExpression : IIdentified
 
 /// <summary>
 /// An <see cref="IExpression"/> that computes its value from child nodes and therefore needs an
-/// <see cref="ErrorPropagation"/> policy for combining their uncertainties.
+/// <see cref="UncertaintyPropagation"/> policy for combining their uncertainties.
 /// </summary>
 public interface IComputedExpression : IExpression
 {
@@ -145,13 +145,13 @@ public interface IComputedExpression : IExpression
     /// </summary>
     /// <remarks>
     /// Part of the model: it records something known about where the children's values came from. Distinct from
-    /// the <see cref="IErrorPropagator"/> a calculation supplies, which is the numerical method for combining
+    /// the <see cref="IUncertaintyPropagator"/> a calculation supplies, which is the numerical method for combining
     /// uncertainties — see the remarks on <see cref="IExpression.ComputeFrom"/>, which passes both.
     /// </remarks>
-    // TODO: rename to `ErrorCorrelation`, with `ErrorPropagationMethod`. The current name says "propagation
-    // method", which is now what `IErrorPropagator` is; this is the correlation assumption. See the note on
-    // `ErrorPropagationMethod` for everything a rename touches, including a wire-format break.
-    ErrorPropagationMethod ErrorPropagation { get; set; }
+    // TODO: rename to `ErrorCorrelation`, with `UncertaintyPropagation`. The current name says "propagation
+    // method", which is now what `IUncertaintyPropagator` is; this is the correlation assumption. See the note on
+    // `UncertaintyPropagation` for everything a rename touches, including a wire-format break.
+    UncertaintyPropagation UncertaintyPropagation { get; set; }
 }
 
 /// <summary>
@@ -162,10 +162,10 @@ public interface IDirectExpression : IExpression
     /// <summary>
     /// The leaf's stored value, settable. Assigning a <see cref="Measurand"/> whose dimensionality does not
     /// match this node's throws <c>IncompatibleDimensionsException</c>; assigning <see langword="null"/> makes
-    /// the leaf unbound again.
+    /// the leaf unset again.
     /// </summary>
     /// <remarks>
-    /// A genuine property, unlike <see cref="IExpression.CalculateValueIfDetermined"/>: there is nothing beneath
+    /// A genuine property, unlike <see cref="IExpression.ComputeIfFullyDescribed"/>: there is nothing beneath
     /// a leaf to walk, so reading it really is field access. The two used to share a name, which forced this one
     /// to shadow the other with <c>new</c> and hid the difference in cost between them.
     /// </remarks>

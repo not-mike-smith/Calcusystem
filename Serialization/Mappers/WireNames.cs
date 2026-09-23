@@ -22,109 +22,109 @@ namespace Calcusystem.Serialization.Mappers;
 /// </remarks>
 internal static class WireNames
 {
-    internal static string Of(UnaryExpressionKind kind) => kind switch
+    internal static string Of(UnaryExpressionType kind) => kind switch
     {
-        UnaryExpressionKind.Reciprocal => nameof(ReciprocalExpression),
-        UnaryExpressionKind.Negated => nameof(NegatedExpression),
-        UnaryExpressionKind.Sqrt => nameof(SqrtExpression),
-        UnaryExpressionKind.Exponential => nameof(ExponentialExpression),
-        UnaryExpressionKind.NaturalLog => nameof(NaturalLogExpression),
+        UnaryExpressionType.Reciprocal => nameof(ReciprocalExpression),
+        UnaryExpressionType.Negated => nameof(NegatedExpression),
+        UnaryExpressionType.Sqrt => nameof(SqrtExpression),
+        UnaryExpressionType.Exponential => nameof(ExponentialExpression),
+        UnaryExpressionType.NaturalLog => nameof(NaturalLogExpression),
         _ => throw new NotImplementedException($"No wire name for unary expression kind {kind}"),
     };
 
-    internal static UnaryExpressionKind UnaryKind(string type) => type switch
+    internal static UnaryExpressionType UnaryType(string type) => type switch
     {
-        nameof(ReciprocalExpression) => UnaryExpressionKind.Reciprocal,
-        nameof(NegatedExpression) => UnaryExpressionKind.Negated,
-        nameof(SqrtExpression) => UnaryExpressionKind.Sqrt,
-        nameof(ExponentialExpression) => UnaryExpressionKind.Exponential,
-        nameof(NaturalLogExpression) => UnaryExpressionKind.NaturalLog,
+        nameof(ReciprocalExpression) => UnaryExpressionType.Reciprocal,
+        nameof(NegatedExpression) => UnaryExpressionType.Negated,
+        nameof(SqrtExpression) => UnaryExpressionType.Sqrt,
+        nameof(ExponentialExpression) => UnaryExpressionType.Exponential,
+        nameof(NaturalLogExpression) => UnaryExpressionType.NaturalLog,
         _ => throw new NotImplementedException(
             $"No deserialization method defined for SingleDerivedVariable object with saved type, {type}"),
     };
 
-    internal static string Of(NaryExpressionKind kind) => kind switch
+    internal static string Of(NaryExpressionType kind) => kind switch
     {
-        NaryExpressionKind.Product => nameof(ProductExpression),
-        NaryExpressionKind.Sum => nameof(SumExpression),
+        NaryExpressionType.Product => nameof(ProductExpression),
+        NaryExpressionType.Sum => nameof(SumExpression),
         _ => throw new NotImplementedException($"No wire name for n-ary expression kind {kind}"),
     };
 
-    internal static NaryExpressionKind NaryKind(string type) => type switch
+    internal static NaryExpressionType NaryType(string type) => type switch
     {
-        nameof(ProductExpression) => NaryExpressionKind.Product,
-        nameof(SumExpression) => NaryExpressionKind.Sum,
+        nameof(ProductExpression) => NaryExpressionType.Product,
+        nameof(SumExpression) => NaryExpressionType.Sum,
         _ => throw new NotImplementedException(
             $"No deserialization method defined for ListDerivedVariable object with saved type, {type}"),
     };
 
-    internal static string Of(BinaryExpressionKind kind) => kind switch
+    internal static string Of(BinaryExpressionType kind) => kind switch
     {
-        BinaryExpressionKind.Quotient => nameof(QuotientExpression),
+        BinaryExpressionType.Quotient => nameof(QuotientExpression),
         _ => throw new NotImplementedException($"No wire name for binary expression kind {kind}"),
     };
 
-    internal static BinaryExpressionKind BinaryKind(string type) => type switch
+    internal static BinaryExpressionType BinaryType(string type) => type switch
     {
-        nameof(QuotientExpression) => BinaryExpressionKind.Quotient,
+        nameof(QuotientExpression) => BinaryExpressionType.Quotient,
         _ => throw new NotImplementedException(
             $"No deserialization method defined for PairDerivedVariable object with saved type, {type}"),
     };
 
-    internal static string Of(BinaryOperatorKind kind) => kind switch
+    internal static string Of(BinaryOperatorType kind) => kind switch
     {
-        BinaryOperatorKind.Equality => nameof(EqualityOperator),
-        BinaryOperatorKind.AnyToleranceOverlap => nameof(AnyToleranceOverlapOperator),
-        BinaryOperatorKind.MutuallyWithinTolerance => nameof(MutuallyWithinToleranceOperator),
-        BinaryOperatorKind.WhollyWithinTolerance => nameof(WhollyWithinToleranceOperator),
-        BinaryOperatorKind.WithinBindingTolerance => nameof(WithinBindingToleranceOperator),
-        BinaryOperatorKind.PointAndUpperBoundWithinTolerance => nameof(PointAndUpperBoundWithinToleranceOperator),
-        BinaryOperatorKind.PointAndLowerBoundWithinTolerance => nameof(PointAndLowerBoundWithinToleranceOperator),
-        BinaryOperatorKind.DefinitelyLessThan => nameof(DefinitelyLessThanOperator),
-        BinaryOperatorKind.UpperBoundsLessThan => nameof(UpperBoundsLessThanOperator),
-        BinaryOperatorKind.NominallyLessThan => nameof(NominallyLessThanOperator),
-        BinaryOperatorKind.DefinitelyGreaterThan => nameof(DefinitelyGreaterThanOperator),
-        BinaryOperatorKind.LowerBoundsGreaterThan => nameof(LowerBoundsGreaterThanOperator),
-        BinaryOperatorKind.NominallyGreaterThan => nameof(NominallyGreaterThanOperator),
-        BinaryOperatorKind.SimpleComparison => nameof(SimpleComparison),
+        BinaryOperatorType.Equality => nameof(EqualityOperator),
+        BinaryOperatorType.AnyToleranceOverlap => nameof(AnyToleranceOverlapOperator),
+        BinaryOperatorType.MutuallyWithinTolerance => nameof(MutuallyWithinToleranceOperator),
+        BinaryOperatorType.WhollyWithinTolerance => nameof(WhollyWithinToleranceOperator),
+        BinaryOperatorType.WithinBindingTolerance => nameof(WithinBindingToleranceOperator),
+        BinaryOperatorType.PointAndUpperBoundWithinTolerance => nameof(PointAndUpperBoundWithinToleranceOperator),
+        BinaryOperatorType.PointAndLowerBoundWithinTolerance => nameof(PointAndLowerBoundWithinToleranceOperator),
+        BinaryOperatorType.DefinitelyLessThan => nameof(DefinitelyLessThanOperator),
+        BinaryOperatorType.UpperBoundsLessThan => nameof(UpperBoundsLessThanOperator),
+        BinaryOperatorType.NominallyLessThan => nameof(NominallyLessThanOperator),
+        BinaryOperatorType.DefinitelyGreaterThan => nameof(DefinitelyGreaterThanOperator),
+        BinaryOperatorType.LowerBoundsGreaterThan => nameof(LowerBoundsGreaterThanOperator),
+        BinaryOperatorType.NominallyGreaterThan => nameof(NominallyGreaterThanOperator),
+        BinaryOperatorType.SimpleComparison => nameof(SimpleComparison),
         _ => throw new NotImplementedException($"No wire name for operator kind {kind}"),
     };
 
-    internal static BinaryOperatorKind OperatorKind(string type) => type switch
+    internal static BinaryOperatorType OperatorType(string type) => type switch
     {
-        nameof(EqualityOperator) => BinaryOperatorKind.Equality,
-        nameof(AnyToleranceOverlapOperator) => BinaryOperatorKind.AnyToleranceOverlap,
-        nameof(MutuallyWithinToleranceOperator) => BinaryOperatorKind.MutuallyWithinTolerance,
-        nameof(WhollyWithinToleranceOperator) => BinaryOperatorKind.WhollyWithinTolerance,
-        nameof(WithinBindingToleranceOperator) => BinaryOperatorKind.WithinBindingTolerance,
-        nameof(PointAndUpperBoundWithinToleranceOperator) => BinaryOperatorKind.PointAndUpperBoundWithinTolerance,
-        nameof(PointAndLowerBoundWithinToleranceOperator) => BinaryOperatorKind.PointAndLowerBoundWithinTolerance,
-        nameof(DefinitelyLessThanOperator) => BinaryOperatorKind.DefinitelyLessThan,
-        nameof(UpperBoundsLessThanOperator) => BinaryOperatorKind.UpperBoundsLessThan,
-        nameof(NominallyLessThanOperator) => BinaryOperatorKind.NominallyLessThan,
-        nameof(DefinitelyGreaterThanOperator) => BinaryOperatorKind.DefinitelyGreaterThan,
-        nameof(LowerBoundsGreaterThanOperator) => BinaryOperatorKind.LowerBoundsGreaterThan,
-        nameof(NominallyGreaterThanOperator) => BinaryOperatorKind.NominallyGreaterThan,
-        nameof(SimpleComparison) => BinaryOperatorKind.SimpleComparison,
+        nameof(EqualityOperator) => BinaryOperatorType.Equality,
+        nameof(AnyToleranceOverlapOperator) => BinaryOperatorType.AnyToleranceOverlap,
+        nameof(MutuallyWithinToleranceOperator) => BinaryOperatorType.MutuallyWithinTolerance,
+        nameof(WhollyWithinToleranceOperator) => BinaryOperatorType.WhollyWithinTolerance,
+        nameof(WithinBindingToleranceOperator) => BinaryOperatorType.WithinBindingTolerance,
+        nameof(PointAndUpperBoundWithinToleranceOperator) => BinaryOperatorType.PointAndUpperBoundWithinTolerance,
+        nameof(PointAndLowerBoundWithinToleranceOperator) => BinaryOperatorType.PointAndLowerBoundWithinTolerance,
+        nameof(DefinitelyLessThanOperator) => BinaryOperatorType.DefinitelyLessThan,
+        nameof(UpperBoundsLessThanOperator) => BinaryOperatorType.UpperBoundsLessThan,
+        nameof(NominallyLessThanOperator) => BinaryOperatorType.NominallyLessThan,
+        nameof(DefinitelyGreaterThanOperator) => BinaryOperatorType.DefinitelyGreaterThan,
+        nameof(LowerBoundsGreaterThanOperator) => BinaryOperatorType.LowerBoundsGreaterThan,
+        nameof(NominallyGreaterThanOperator) => BinaryOperatorType.NominallyGreaterThan,
+        nameof(SimpleComparison) => BinaryOperatorType.SimpleComparison,
         _ => throw new NotImplementedException(
             $"No deserialization method defined for BinaryOperator object with saved type, {type}"),
     };
 
-    internal static string Of(ProvenanceKind kind) => kind switch
+    internal static string Of(ProvenanceType kind) => kind switch
     {
-        ProvenanceKind.Measured => nameof(MeasuredProvenance),
-        ProvenanceKind.Reference => nameof(ReferenceProvenance),
-        ProvenanceKind.Design => nameof(DesignProvenance),
-        ProvenanceKind.Model => nameof(ModelProvenance),
+        ProvenanceType.Measured => nameof(MeasuredProvenance),
+        ProvenanceType.Reference => nameof(ReferenceProvenance),
+        ProvenanceType.Design => nameof(DesignProvenance),
+        ProvenanceType.Model => nameof(ModelProvenance),
         _ => throw new NotImplementedException($"No wire name for provenance kind {kind}"),
     };
 
-    internal static ProvenanceKind ProvenanceKindOf(string type) => type switch
+    internal static ProvenanceType ProvenanceTypeOf(string type) => type switch
     {
-        nameof(MeasuredProvenance) => ProvenanceKind.Measured,
-        nameof(ReferenceProvenance) => ProvenanceKind.Reference,
-        nameof(DesignProvenance) => ProvenanceKind.Design,
-        nameof(ModelProvenance) => ProvenanceKind.Model,
+        nameof(MeasuredProvenance) => ProvenanceType.Measured,
+        nameof(ReferenceProvenance) => ProvenanceType.Reference,
+        nameof(DesignProvenance) => ProvenanceType.Design,
+        nameof(ModelProvenance) => ProvenanceType.Model,
         _ => throw new NotImplementedException(
             $"No deserialization method defined for provenance type {type}"),
     };

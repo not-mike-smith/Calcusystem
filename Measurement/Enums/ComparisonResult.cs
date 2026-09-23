@@ -6,7 +6,7 @@ namespace Calcusystem.Measurement.Enums;
 /// <remarks>
 /// <para>
 /// One bit each, and mutually exclusive — a comparison produces exactly one of these. The single-bit layout is
-/// what lets <see cref="ComparisonType"/> be a mask of acceptable outcomes; see that enum for why the two are
+/// what lets <see cref="MustBe"/> be a mask of acceptable outcomes; see that enum for why the two are
 /// kept together.
 /// </para>
 /// <para>

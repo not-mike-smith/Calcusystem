@@ -16,8 +16,8 @@ public class RoundTripTests
     private static readonly Dimensionality Acceleration =
         Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time);
 
-    private static Variable Bound(string symbol, Dimensionality dim, double kmsValue, double relativeError) =>
-        new(symbol, new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelErr(relativeError)), symbol);
+    private static Variable Valued(string symbol, Dimensionality dim, double kmsValue, double relativeUncertainty) =>
+        new(symbol, new Quantity(kmsValue, dim).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)), symbol);
 
     /// <summary>Round-trips a whole system through both mappers and returns the rebuilt system.</summary>
     private static ExpressionSystem RoundTrip(ExpressionSystem system)
@@ -34,8 +34,8 @@ public class RoundTripTests
     public void LeafVariables_RoundTrip()
     {
         var system = ExpressionSystem.Create("leaves", "just direct variables");
-        system.Add(Bound("m", Dimensionality.Mass, 2, 0.01));
-        system.Add(new Variable("u", Dimensionality.Time, "u")); // intentionally unbound
+        system.Add(Valued("m", Dimensionality.Mass, 2, 0.01));
+        system.Add(new Variable("u", Dimensionality.Time, "u")); // intentionally unset
 
         var restored = RoundTrip(system);
 
@@ -47,7 +47,7 @@ public class RoundTripTests
         m.Symbol.Should().Be("m");
         m.Dimensionality.Should().Be(Dimensionality.Mass);
         m.Value!.KmsValue.Should().BeApproximately(2, 1E-9);
-        m.Value!.RelativeError.Should().BeApproximately(0.01, 1E-9);
+        m.Value!.RelativeUncertainty.Should().BeApproximately(0.01, 1E-9);
 
         ((Variable)ById(restored, "u")).IsFullyDescribed.Should().BeFalse();
     }
@@ -59,14 +59,14 @@ public class RoundTripTests
         // value 0 carrying an absolute error — the case relative-only storage could not represent
         system.Add(new Variable(
             "z",
-            new Quantity(0, Dimensionality.Length).Measurand(SymmetricUncertainty.FromAbsErr(new Quantity(0.5, Dimensionality.Length))),
+            new Quantity(0, Dimensionality.Length).Measurand(SymmetricUncertainty.FromAbsolute(new Quantity(0.5, Dimensionality.Length))),
             "z"));
 
         var restored = (Variable)ById(RoundTrip(system), "z");
 
         restored.Value!.KmsValue.Should().Be(0);
-        restored.Value!.KmsAbsoluteError.Should().BeApproximately(0.5, 1E-9); // survives round-trip as absolute
-        double.IsPositiveInfinity(restored.Value!.RelativeError).Should().BeTrue();
+        restored.Value!.KmsAbsoluteUncertainty.Should().BeApproximately(0.5, 1E-9); // survives round-trip as absolute
+        double.IsPositiveInfinity(restored.Value!.RelativeUncertainty).Should().BeTrue();
     }
 
     [Fact]
@@ -74,9 +74,9 @@ public class RoundTripTests
     {
         var system = ExpressionSystem.Create("derived", "one of each derived shape");
 
-        var m = Bound("m", Dimensionality.Mass, 2, 0.01);
-        var m2 = Bound("m2", Dimensionality.Mass, 5, 0.0);
-        var a = Bound("a", Acceleration, 3, 0.02);
+        var m = Valued("m", Dimensionality.Mass, 2, 0.01);
+        var m2 = Valued("m2", Dimensionality.Mass, 5, 0.0);
+        var a = Valued("a", Acceleration, 3, 0.02);
         system.Add(m);
         system.Add(m2);
         system.Add(a);
@@ -100,11 +100,11 @@ public class RoundTripTests
 
         var restored = RoundTrip(system);
 
-        ById(restored, "force").ComputeIfDetermined()!.KmsValue.Should().BeApproximately(6, 1E-9);      // 2 * 3
-        ById(restored, "totalMass").ComputeIfDetermined()!.KmsValue.Should().BeApproximately(7, 1E-9);  // 2 + 5
-        ById(restored, "q").ComputeIfDetermined()!.KmsValue.Should().BeApproximately(3, 1E-9);          // 6 / 2
-        ById(restored, "recip").ComputeIfDetermined()!.KmsValue.Should().BeApproximately(0.5, 1E-9);    // 1 / 2
-        ById(restored, "neg").ComputeIfDetermined()!.KmsValue.Should().BeApproximately(-3, 1E-9);       // -3
+        ById(restored, "force").ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(6, 1E-9);      // 2 * 3
+        ById(restored, "totalMass").ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(7, 1E-9);  // 2 + 5
+        ById(restored, "q").ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(3, 1E-9);          // 6 / 2
+        ById(restored, "recip").ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(0.5, 1E-9);    // 1 / 2
+        ById(restored, "neg").ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(-3, 1E-9);       // -3
 
         // Shared-reference integrity: the quotient's denominator is the same restored 'm' leaf.
         var restoredM = ById(restored, "m");
@@ -117,8 +117,8 @@ public class RoundTripTests
     {
         var system = ExpressionSystem.Create("operators", "definitions and constraints");
 
-        var lhs = Bound("x", Dimensionality.Length, 10, 0.01);
-        var rhs = Bound("y", Dimensionality.Length, 10, 0.02);
+        var lhs = Valued("x", Dimensionality.Length, 10, 0.01);
+        var rhs = Valued("y", Dimensionality.Length, 10, 0.02);
         system.Add(lhs);
         system.Add(rhs);
 
@@ -164,9 +164,9 @@ public class RoundTripTests
     [Fact]
     public void ANodeNestedInsideAnotherRoundTripsWithoutBeingAddedSeparately()
     {
-        var a = Bound("a", Dimensionality.Mass, 1, 0);
-        var b = Bound("b", Dimensionality.Mass, 2, 0);
-        var c = Bound("c", Dimensionality.Mass, 3, 0);
+        var a = Valued("a", Dimensionality.Mass, 1, 0);
+        var b = Valued("b", Dimensionality.Mass, 2, 0);
+        var c = Valued("c", Dimensionality.Mass, 3, 0);
 
         var inner = new SumExpression([a, b]) { Id = "inner" };
         var outer = new ProductExpression([inner, c]) { Id = "outer" };

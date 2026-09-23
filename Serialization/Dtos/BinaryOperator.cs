@@ -29,7 +29,7 @@ public class BinaryOperator : ISerializedObject
     public Landmark? RuleLhs { get; init; }
 
     /// <inheritdoc cref="RuleLhs"/>
-    public ComparisonType? RuleComparison { get; init; }
+    public MustBe? RuleMustBe { get; init; }
 
     /// <inheritdoc cref="RuleLhs"/>
     public Landmark? RuleRhs { get; init; }

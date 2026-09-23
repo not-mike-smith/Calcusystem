@@ -1,7 +1,7 @@
 using System;
 using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 
@@ -32,6 +32,6 @@ public sealed class MeasuredProvenance : IdBase, IProvenance
         return $"Measured{detail}";
     }
 
-    ProvenanceState IProvenance.GetState() =>
-        ProvenanceState.Measured(Id, InstrumentId, CalibrationDate);
+    ProvenanceSnapshot IProvenance.GetSnapshot() =>
+        ProvenanceSnapshot.Measured(Id, InstrumentId, CalibrationDate);
 }

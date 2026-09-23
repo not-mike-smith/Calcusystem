@@ -2,7 +2,7 @@ using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
@@ -14,9 +14,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <see cref="Measurement.Exceptions.NondiscreteDimensionalityException"/>. A negative argument value yields a
 /// NaN result.
 /// <br/>
-/// Uncertainty follows the power rule: RelativeError(√x) = ½·RelativeError(x).
+/// Uncertainty follows the power rule: RelativeUncertainty(√x) = ½·RelativeUncertainty(x).
 /// </summary>
-public class SqrtExpression : ExpressionBase, IExpression, IStatefulNode<SqrtExpression, UnaryExpressionState>
+public class SqrtExpression : ExpressionBase, IExpression, ISnapshottingNode<SqrtExpression, UnaryExpressionSnapshot>
 {
     private readonly IExpression _argument;
 
@@ -36,7 +36,7 @@ public class SqrtExpression : ExpressionBase, IExpression, IStatefulNode<SqrtExp
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
-        IErrorPropagator? propagator = null) =>
+        IUncertaintyPropagator? propagator = null) =>
         known.TryGetValue(Argument, out var operand) ? operand.ToRoot(2) : null;
 
     public override string ToString()
@@ -48,10 +48,10 @@ public class SqrtExpression : ExpressionBase, IExpression, IStatefulNode<SqrtExp
     public override IEnumerable<IExpression> Children => [Argument];
 
     /// <inheritdoc/>
-    public UnaryExpressionState GetState() =>
-        new(UnaryExpressionKind.Sqrt, Id, Argument.Id);
+    public UnaryExpressionSnapshot GetSnapshot() =>
+        new(UnaryExpressionType.Sqrt, Id, Argument.Id);
 
     /// <inheritdoc/>
-    public static SqrtExpression FromState(UnaryExpressionState state, INodeResolver resolve) =>
+    public static SqrtExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
         new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
 }

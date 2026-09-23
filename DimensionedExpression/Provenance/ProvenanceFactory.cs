@@ -2,7 +2,7 @@ using System;
 using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.State;
+using Calcusystem.DimensionedExpression.Snapshots;
 
 namespace Calcusystem.DimensionedExpression.Provenance;
 
@@ -10,11 +10,11 @@ namespace Calcusystem.DimensionedExpression.Provenance;
 /// The single creation point for <see cref="IProvenance"/> values. Every provenance kind is created here —
 /// read this class to see the full set available. The concrete types are public so callers can pattern-match on
 /// a kind, but their constructors are internal and their metadata is internal, so construction always flows
-/// through this factory and the metadata leaves the assembly only as a <see cref="ProvenanceState"/>.
+/// through this factory and the metadata leaves the assembly only as a <see cref="ProvenanceSnapshot"/>.
 /// </summary>
 /// <remarks>
 /// Every method here generates a fresh identity. Restoring a persisted one is a separate concern with its own
-/// door — <see cref="FromState"/> — kept apart from the creation vocabulary so that a caller recording where a
+/// door — <see cref="FromSnapshot"/> — kept apart from the creation vocabulary so that a caller recording where a
 /// value came from is never offered an <c>id</c> parameter that only makes sense to a deserializer.
 /// </remarks>
 public static class ProvenanceFactory
@@ -45,22 +45,22 @@ public static class ProvenanceFactory
 
     /// <summary>
     /// Rebuilds a provenance from previously captured state, preserving its original identity. The counterpart to
-    /// <see cref="IProvenance.GetState"/>, and the reason <see cref="IProvenance"/> does not implement
-    /// <see cref="IStateful{TSelf,TState}"/>: the concrete kind is chosen by inspecting the state, so reconstruction is a static
+    /// <see cref="IProvenance.GetSnapshot"/>, and the reason <see cref="IProvenance"/> does not implement
+    /// <see cref="ISnapshotting{TSelf,TSnapshot}"/>: the concrete kind is chosen by inspecting the state, so reconstruction is a static
     /// gateway over the closed set rather than a <c>static abstract</c> on each kind.
     /// </summary>
     /// <remarks>A persistence entry point, deliberately apart from the creation methods above.</remarks>
-    public static IProvenance FromState(ProvenanceState state) => state.Kind switch
+    public static IProvenance FromSnapshot(ProvenanceSnapshot state) => state.Type switch
     {
-        ProvenanceKind.Measured =>
+        ProvenanceType.Measured =>
             new MeasuredProvenance(state.InstrumentId, state.CalibrationDate, state.Id),
-        ProvenanceKind.Reference =>
+        ProvenanceType.Reference =>
             new ReferenceProvenance(state.Citation!, state.Url, state.Year, state.Id),
-        ProvenanceKind.Design =>
+        ProvenanceType.Design =>
             new DesignProvenance(state.SpecReference, state.Id),
-        ProvenanceKind.Model =>
+        ProvenanceType.Model =>
             new ModelProvenance(state.ModelName!, state.FittingReference, state.Id),
         _ => throw new ArgumentOutOfRangeException(
-            nameof(state), state.Kind, "Unknown provenance kind."),
+            nameof(state), state.Type, "Unknown provenance kind."),
     };
 }

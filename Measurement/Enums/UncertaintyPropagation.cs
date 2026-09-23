@@ -2,12 +2,12 @@ namespace Calcusystem.Measurement.Enums;
 
 // TODO: rename to `ErrorCorrelation`. This enum does not name a method of propagating error — it states
 // whether two operands' errors are correlated, which is a fact about the quantities being combined. The method
-// is `IErrorPropagator`, and the two now sit side by side in every arithmetic signature, where the current name
+// is `IUncertaintyPropagator`, and the two now sit side by side in every arithmetic signature, where the current name
 // reads as though one were a variant of the other.
 //
-// Rename touches: this type, `IComputedExpression.ErrorPropagation` and its `ComputedExpressionBase` backing,
-// the `ErrorPropagation` fields on `NaryExpressionState`/`BinaryExpressionState`, the matching DTO properties
-// in `Serialization/Dtos/Expression.cs`, and the `method` parameters on `Measurand`/`IErrorPropagator`. The DTO
+// Rename touches: this type, `IComputedExpression.UncertaintyPropagation` and its `ComputedExpressionBase` backing,
+// the `UncertaintyPropagation` fields on `NaryExpressionSnapshot`/`BinaryExpressionSnapshot`, the matching DTO properties
+// in `Serialization/Dtos/Expression.cs`, and the `method` parameters on `Measurand`/`IUncertaintyPropagator`. The DTO
 // property name is on the wire, so this breaks stored payloads — acceptable while there is no corpus, but it is
 // the part to notice.
 /// <summary>
@@ -17,10 +17,10 @@ namespace Calcusystem.Measurement.Enums;
 /// <remarks>
 /// A statement about the model, not about arithmetic: it records something known about where the quantities came
 /// from — two readings off one instrument share its calibration error, two independent instruments do not.
-/// Distinct from <see cref="Interfaces.IErrorPropagator"/>, which is the numerical method for combining
+/// Distinct from <see cref="Interfaces.IUncertaintyPropagator"/>, which is the numerical method for combining
 /// uncertainties and belongs to a calculation rather than to the model.
 /// </remarks>
-public enum ErrorPropagationMethod : byte
+public enum UncertaintyPropagation : byte
 {
     /// <summary>Errors are independent; they combine in quadrature.</summary>
     Uncorrelated = 0,

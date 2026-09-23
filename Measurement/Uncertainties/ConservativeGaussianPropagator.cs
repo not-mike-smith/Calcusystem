@@ -5,12 +5,12 @@ using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Uncertainties;
 
-public class ConservativeGaussianPropagator : IErrorPropagator
+public class ConservativeGaussianPropagator : IUncertaintyPropagator
 {
     public static ConservativeGaussianPropagator Instance { get; } = new ConservativeGaussianPropagator();
 
     public IUncertainty PropagateErrorThroughSum(
-        ErrorPropagationMethod method,
+        UncertaintyPropagation method,
         params Measurand[] measurands)
     {
         if (measurands.All(m => m.Uncertainty is ISymmetricUncertainty))
@@ -18,41 +18,41 @@ public class ConservativeGaussianPropagator : IErrorPropagator
             return PropagateSymmetricErrorThroughSum(method, measurands);
         }
 
-        double upperAbsoluteError = method switch
+        double upperAbsoluteUncertainty = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsUpperAbsoluteError),
-            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsUpperAbsoluteError),
+            UncertaintyPropagation.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsUpperAbsoluteUncertainty),
+            UncertaintyPropagation.Correlated => measurands.Sum(m => m.KmsUpperAbsoluteUncertainty),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        double lowerAbsoluteError = method switch
+        double lowerAbsoluteUncertainty = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsLowerAbsoluteError),
-            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsLowerAbsoluteError),
+            UncertaintyPropagation.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsLowerAbsoluteUncertainty),
+            UncertaintyPropagation.Correlated => measurands.Sum(m => m.KmsLowerAbsoluteUncertainty),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        return AsymmetricUncertainty.From(true, upperAbsoluteError, lowerAbsoluteError);
+        return AsymmetricUncertainty.From(true, upperAbsoluteUncertainty, lowerAbsoluteUncertainty);
     }
 
     private IUncertainty PropagateSymmetricErrorThroughSum(
-        ErrorPropagationMethod method,
+        UncertaintyPropagation method,
         params Measurand[] measurands)
     {
-        double absoluteError = method switch
+        double absoluteUncertainty = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsAbsoluteError),
-            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.KmsAbsoluteError),
+            UncertaintyPropagation.Uncorrelated => measurands.RootSumOfSquares(m => m.KmsAbsoluteUncertainty),
+            UncertaintyPropagation.Correlated => measurands.Sum(m => m.KmsAbsoluteUncertainty),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
         // Store the propagated error as an absolute value rather than dividing by the (possibly zero) sum —
         // this is what keeps a sum that cancels to zero well-defined.
-        return SymmetricUncertainty.FromKmsAbsErr(absoluteError);
+        return SymmetricUncertainty.FromKmsAbsErr(absoluteUncertainty);
     }
 
     public IUncertainty PropagateErrorThroughProduct(
-        ErrorPropagationMethod method,
+        UncertaintyPropagation method,
         params Measurand[] measurands)
     {
         if (measurands.All(m => m.Uncertainty is ISymmetricUncertainty))
@@ -60,34 +60,34 @@ public class ConservativeGaussianPropagator : IErrorPropagator
             return PropagateSymmetricErrorThroughProduct(method, measurands);
         }
 
-        double upperRelativeError = method switch
+        double upperRelativeUncertainty = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.UpperRelativeError),
-            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.UpperRelativeError),
+            UncertaintyPropagation.Uncorrelated => measurands.RootSumOfSquares(m => m.UpperRelativeUncertainty),
+            UncertaintyPropagation.Correlated => measurands.Sum(m => m.UpperRelativeUncertainty),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        double lowerRelativeError = method switch
+        double lowerRelativeUncertainty = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.LowerRelativeError),
-            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.LowerRelativeError),
+            UncertaintyPropagation.Uncorrelated => measurands.RootSumOfSquares(m => m.LowerRelativeUncertainty),
+            UncertaintyPropagation.Correlated => measurands.Sum(m => m.LowerRelativeUncertainty),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        return AsymmetricUncertainty.From(false, upperRelativeError, lowerRelativeError);
+        return AsymmetricUncertainty.From(false, upperRelativeUncertainty, lowerRelativeUncertainty);
     }
 
     private IUncertainty PropagateSymmetricErrorThroughProduct(
-        ErrorPropagationMethod method,
+        UncertaintyPropagation method,
         params Measurand[] measurands)
     {
         var relErr = method switch
         {
-            ErrorPropagationMethod.Uncorrelated => measurands.RootSumOfSquares(m => m.RelativeError),
-            ErrorPropagationMethod.Correlated => measurands.Sum(m => m.RelativeError),
+            UncertaintyPropagation.Uncorrelated => measurands.RootSumOfSquares(m => m.RelativeUncertainty),
+            UncertaintyPropagation.Correlated => measurands.Sum(m => m.RelativeUncertainty),
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        return SymmetricUncertainty.FromRelErr(relErr);
+        return SymmetricUncertainty.FromRelative(relErr);
     }
 }

@@ -32,7 +32,7 @@ public static class MeasurandComparer
     public const double RelativeDifferenceEpsilon = 1e-12;
 
     /// <summary>
-    /// The fraction of the finest error bar below which a value is treated as zero. Uncertainty is what supplies
+    /// The fraction of the finest uncertainty bar below which a value is treated as zero. Uncertainty is what supplies
     /// a <i>scale</i> to the question "is this effectively nothing" — a quantity two orders finer than anything
     /// the measurement can resolve is not a small number, it is noise.
     /// </summary>
@@ -89,7 +89,7 @@ public static class MeasurandComparer
     /// <remarks>
     /// The relative test above cannot answer this: values straddling zero are always far apart in relative
     /// terms, however tiny they are, because the denominator shrinks with them. Whether that matters depends on
-    /// a scale, and the measurands carry one. Where neither does — an exact value has no error bar — the
+    /// a scale, and the measurands carry one. Where neither does — an exact value has no uncertainty bar — the
     /// dimension supplies a floor instead, so a length below the Planck length is still nothing.
     /// </remarks>
     private static bool AreBothIndistinguishableFromZero(Measurand l, Measurand r, double lhs, double rhs)
@@ -103,7 +103,7 @@ public static class MeasurandComparer
     }
 
     /// <summary>
-    /// The smallest finite error bar either measurand actually has, or zero if neither has one.
+    /// The smallest finite uncertainty bar either measurand actually has, or zero if neither has one.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -118,7 +118,7 @@ public static class MeasurandComparer
     /// exact <c>0</c>, though nothing about that measurement can tell the two apart.
     /// </para>
     /// <para>
-    /// Infinite error bars are skipped for the opposite reason, and the omission was a real defect: an infinite
+    /// Infinite uncertainty bars are skipped for the opposite reason, and the omission was a real defect: an infinite
     /// bar made the threshold infinite, so <i>every</i> pair of finite values came back
     /// <see cref="ComparisonResult.Equal"/> — 5 kg agreed with 10 kg. An unbounded uncertainty says the
     /// measurement resolves nothing, which is not the same as saying two values are the same, and it must not be
@@ -129,8 +129,8 @@ public static class MeasurandComparer
     {
         ReadOnlySpan<double> errors =
         [
-            l.KmsLowerAbsoluteError, l.KmsUpperAbsoluteError,
-            r.KmsLowerAbsoluteError, r.KmsUpperAbsoluteError,
+            l.KmsLowerAbsoluteUncertainty, l.KmsUpperAbsoluteUncertainty,
+            r.KmsLowerAbsoluteUncertainty, r.KmsUpperAbsoluteUncertainty,
         ];
 
         var finest = 0d;

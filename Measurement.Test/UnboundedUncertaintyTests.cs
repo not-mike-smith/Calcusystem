@@ -9,23 +9,23 @@ using Xunit;
 namespace Calcusystem.Measurement.Test;
 
 /// <summary>
-/// What an unbounded error bar does to a comparison. Uncertainty supplies the <i>scale</i> at which two values
+/// What an unbounded uncertainty bar does to a comparison. Uncertainty supplies the <i>scale</i> at which two values
 /// count as the same, so an uncertainty with no bound has to be kept from supplying one.
 /// </summary>
-public class UnboundedUncertaintyTests
+public class UnsetedUncertaintyTests
 {
-    private static Measurand Kg(double value, double absoluteError) =>
+    private static Measurand Kg(double value, double absoluteUncertainty) =>
         Mass.Kilogram.Quantity(value).Measurand(
-            SymmetricUncertainty.FromAbsErr(Mass.Kilogram.Quantity(absoluteError)));
+            SymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(absoluteUncertainty)));
 
     /// <remarks>
-    /// A regression, and it was not subtle: the near-zero threshold is a fraction of the finest error bar, so an
+    /// A regression, and it was not subtle: the near-zero threshold is a fraction of the finest uncertainty bar, so an
     /// infinite bar made the threshold infinite and <i>every</i> finite value fell below it. Five kilograms
     /// compared equal to ten. An unbounded uncertainty means the measurement resolves nothing, which is a
     /// different claim from the two values agreeing.
     /// </remarks>
     [Fact]
-    public void AnUnboundedErrorBarDoesNotMakeEveryValueAgreeWithEveryOther()
+    public void AnUnsetedUncertaintyBarDoesNotMakeEveryValueAgreeWithEveryOther()
     {
         var five = Kg(5, double.PositiveInfinity);
         var ten = Kg(10, double.PositiveInfinity);
@@ -39,7 +39,7 @@ public class UnboundedUncertaintyTests
     /// quantities that both grew without bound say nothing about which outgrew the other.
     /// </remarks>
     [Fact]
-    public void TwoUnboundedCeilingsAreIncomparableRatherThanEqual() =>
+    public void TwoUnsetedCeilingsAreIncomparableRatherThanEqual() =>
         MeasurandComparer.Compare(
             Kg(5, double.PositiveInfinity), Landmark.UpperBound,
             Kg(10, double.PositiveInfinity), Landmark.UpperBound)
@@ -50,7 +50,7 @@ public class UnboundedUncertaintyTests
     /// resolution, exactly as an exact value has none — both are skipped when the threshold is chosen.
     /// </remarks>
     [Fact]
-    public void AFiniteErrorBarStillSetsTheScaleWhenTheOtherIsUnbounded()
+    public void AFiniteUncertaintyBarStillSetsTheScaleWhenTheOtherIsUnseted()
     {
         var tiny = Kg(1e-20, 1e-9);
         var alsoTiny = Kg(-1e-20, double.PositiveInfinity);
