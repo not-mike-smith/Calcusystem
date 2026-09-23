@@ -17,14 +17,12 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// handled.
 /// </para>
 /// <para>
-/// <b>Pure, and deliberately not an <c>IBinaryOperator</c>.</b> A rule has no identity, no operands and no
-/// provenance; composing operators out of child operators would duplicate all three and force the wire format to
-/// carry them twice. An operator holds rules; a rule holds nothing.
+/// A rule has no identity, no operands and no provenance: an operator holds rules, a rule holds nothing.
 /// </para>
 /// <para>
-/// Both landmarks are named independently, so all nine landmark pairs are expressible — including the ones no
-/// named operator asks for. That is what lets <c>SimpleComparison</c> offer spellings such as "my nominal is
-/// above your guaranteed floor" without a class per spelling.
+/// Both landmarks are named independently, so every landmark pair is expressible — including the ones no named
+/// operator asks for. That is what lets <c>SimpleComparison</c> offer spellings such as "my nominal is above
+/// your guaranteed floor" without a class per spelling.
 /// </para>
 /// </remarks>
 /// <param name="Lhs">Which landmark of the left value is compared.</param>
@@ -39,8 +37,7 @@ public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landma
     /// <remarks>
     /// Null is <see cref="ComparisonResult.Incomparable"/> reaching the caller intact — different dimensions, a
     /// <see cref="double.NaN"/>, or two same-signed infinities. It must not collapse to <see langword="false"/>:
-    /// a rule that cannot be evaluated has not been violated, and reporting it as violated would manufacture a
-    /// finding out of a missing answer.
+    /// a rule that cannot be evaluated has not been violated.
     /// </remarks>
     public bool? IsSatisfiedGiven(Measurand lhs, Measurand rhs)
     {
@@ -54,15 +51,8 @@ public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landma
     /// <c>(a, b)</c> exactly when <c>rule</c> holds for <c>(b, a)</c>.
     /// </summary>
     /// <remarks>
-    /// <para>
     /// Both landmarks swap sides and the relation reverses, so <c>⌜&lt;⌟</c> — my ceiling below your floor —
     /// mirrors to <c>⌞&gt;⌝</c>, my floor above your ceiling. Equality is untouched, being its own reverse.
-    /// </para>
-    /// <para>
-    /// This is what lets each mirrored pair of operators be declared once. Writing the greater-than family as
-    /// its own literal triples would work, but it would leave the mirror relationship as a coincidence between
-    /// two hand-written declarations rather than something the code states and a test can check.
-    /// </para>
     /// </remarks>
     public ComparisonRule Mirrored => new(Rhs, Reverse(MustBe), Lhs);
 
@@ -70,18 +60,9 @@ public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landma
     /// This rule written in the operator notation — the left glyph, the relation, the right glyph.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// Generated rather than declared, which is the test of whether the notation in <c>OPERATORS.md</c> is
-    /// actually systematic: the bar picks the statistic (top for a ceiling, bottom for a floor, a mid dot for the
-    /// reported value) and the corner opens toward the operator, so <c>⌜&lt;⌟</c> reads "my ceiling is below
-    /// your floor". The six ordering operators declare their symbols by hand and
-    /// <c>ComparisonRuleTests</c> asserts the generated ones match, so the alphabet cannot drift from the
-    /// operators it describes.
-    /// </para>
-    /// <para>
-    /// Compound operators keep hand-written symbols. <c>·=}</c> is a band, not a comparison, and spelling it as
-    /// its two rules would lose the thing the notation exists to convey.
-    /// </para>
+    /// The bar picks the statistic (top for a ceiling, bottom for a floor, a mid dot for the reported value) and
+    /// the corner opens toward the operator, so <c>⌜&lt;⌟</c> reads "my ceiling is below your floor". Compound
+    /// operators keep hand-written symbols instead. See <c>OPERATORS.md</c> for the alphabet.
     /// </remarks>
     public string Symbol => $"{LeftGlyph(Lhs)}{RelationGlyph(MustBe)}{RightGlyph(Rhs)}";
 
@@ -93,9 +74,9 @@ public readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landma
     /// <see langword="true"/>.
     /// </summary>
     /// <remarks>
-    /// Kleene conjunction, and the precedence of <see langword="false"/> over <see langword="null"/> is the
-    /// point: one rule definitively failing settles the conjunction whatever the others could not answer. An
-    /// empty set is vacuously satisfied; no operator declares one.
+    /// Kleene conjunction: <see langword="false"/> beats <see langword="null"/>, so one rule definitively
+    /// failing settles the conjunction whatever the others could not answer. An empty set is vacuously
+    /// satisfied; no operator declares one.
     /// </remarks>
     public static bool? AllSatisfied(IReadOnlyList<ComparisonRule> rules, Measurand lhs, Measurand rhs)
     {

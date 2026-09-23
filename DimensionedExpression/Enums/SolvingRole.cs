@@ -6,14 +6,9 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Named for the axis rather than the carrier. This is a relationship's role in <i>solving</i> — distinct from
-/// the roles of its two <i>sides</i> (subject and criterion), which are about presenting a result and say nothing
-/// about the shape of the problem.
-/// </para>
-/// <para>
-/// Three members rather than a boolean, because "not an equation" would be doing two jobs at once. Whether a
-/// relationship is <i>enforced or merely reported</i> is a fourth thing and deliberately not here: that is a
-/// search policy belonging to whoever asks for a solve, while this is structure the model owns.
+/// A relationship's role in <i>solving</i>, distinct from the roles of its two <i>sides</i> (subject and
+/// criterion), which are about presenting a result. Whether a relationship is <i>enforced or merely reported</i>
+/// is a third thing and deliberately not here: that is a search policy belonging to whoever asks for a solve.
 /// </para>
 /// <para>
 /// <b>No member is zero</b>, and none means "no role" — every relationship does something. So the default value
@@ -40,9 +35,8 @@ public enum SolvingRole : byte
     /// degrees of freedom are computed.
     /// </summary>
     /// <remarks>
-    /// Deliberately not called "determining", which implies a direction that need not exist. Nothing has to be
-    /// algebraically invertible: <c>T_eos - T_path = 0</c> is a perfectly good residual for a solver that cannot
-    /// isolate either side.
+    /// Nothing has to be algebraically invertible: <c>T_eos - T_path = 0</c> is a perfectly good residual for a
+    /// solver that cannot isolate either side.
     /// </remarks>
     Equation = 2,
 

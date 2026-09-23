@@ -17,10 +17,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </para>
 /// <para>
 /// <b>It deliberately overlaps the named types.</b> Configured with the nominal-against-nominal rule it is
-/// <c>NominallyLessThanOperator</c> in every respect including its symbol, which is why the symbol-uniqueness
-/// test excepts it: the two spell the same relation, so nothing is lost by a report that cannot tell them
-/// apart. The named types stay because they are the ergonomic spelling and because the wire format identifies
-/// operators by kind.
+/// <c>NominallyLessThanOperator</c> in every respect including its symbol — the two spell the same relation.
 /// </para>
 /// <para>
 /// Always a <see cref="SolvingRole.Requirement"/>. An ordering confines a value to an interval rather than

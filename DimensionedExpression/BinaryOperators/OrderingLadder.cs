@@ -63,9 +63,8 @@ public static class OrderingLadder
     /// <summary>The comparison that tests a given rung.</summary>
     /// <remarks>
     /// <para>
-    /// The <see cref="OrderingDirection.Below"/> rules are the definitions; <see cref="OrderingDirection.Above"/>
-    /// is each one mirrored. That is still one declaration serving two directions, but the mirroring now happens
-    /// where a direction was explicitly asked for rather than silently inside an operator's declaration.
+    /// The <see cref="OrderingDirection.Below"/> rules are the definitions and
+    /// <see cref="OrderingDirection.Above"/> is each one mirrored, so one declaration serves both directions.
     /// </para>
     /// <para>
     /// <see cref="OrderingConfidence.Certain"/> is <c>aU &lt; bL</c>, <see cref="OrderingConfidence.Nominal"/> is
