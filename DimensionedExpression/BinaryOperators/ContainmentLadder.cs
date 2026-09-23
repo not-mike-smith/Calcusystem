@@ -10,11 +10,9 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A classifier, like <see cref="OrderingLadder"/> and for the same reasons. It used to be a record struct that
-/// evaluated all five rungs eagerly — ten comparisons to answer whichever one was asked — and nothing outside
-/// the tests ever called it. Operators no longer route through it either: three of the five rungs had exactly
-/// one consumer, so pointing at a shared constant bought nothing and cost a reader the trip to find out what an
-/// operator checks.
+/// A classifier, like <see cref="OrderingLadder"/> and for the same reasons: nothing is computed until a rung
+/// is asked for. Operators do not route through it — each declares its own rules, and the ladder places them
+/// afterwards, so reading an operator does not mean a trip here to find out what it checks.
 /// </para>
 /// <para>
 /// The implications that hold all run downward, which is what makes the ladder sound:

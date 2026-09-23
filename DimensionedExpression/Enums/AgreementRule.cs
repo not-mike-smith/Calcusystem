@@ -8,10 +8,9 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A value, not a strategy, and that is the whole point. Equality used to take an injected
-/// <c>IEqualityEstimating</c>, which meant the wire format carried "this is an equality" and nothing about what
-/// equality <i>meant</i>: the reader supplied the semantics, so two readers could reach opposite verdicts from
-/// identical bytes. A strategy cannot be serialized; an enum can.
+/// A value, not a strategy, and that is the whole point: the reading travels with the model. Were the
+/// semantics supplied by whoever reads the document instead, two readers could reach opposite verdicts from
+/// identical bytes.
 /// </para>
 /// <para>
 /// Ordered from strictest to loosest, and each implies the one after it. <see cref="Nominal"/> is the reading

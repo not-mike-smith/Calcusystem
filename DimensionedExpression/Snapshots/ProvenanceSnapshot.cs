@@ -14,9 +14,8 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// <see cref="Type"/> are populated.
 /// </para>
 /// <para>
-/// A memento, not a DTO: no wire type-name, no schema version, no encoding. This is what lets the concrete kinds
-/// keep their metadata <c>internal</c> — before this existed, those properties were public solely so a mapper in
-/// another assembly could read them.
+/// A snapshot, not a DTO: no wire type-name, no schema version, no encoding. It is what lets the concrete
+/// kinds keep their metadata <c>internal</c> while a mapper in another assembly can still read it.
 /// </para>
 /// </remarks>
 public readonly record struct ProvenanceSnapshot

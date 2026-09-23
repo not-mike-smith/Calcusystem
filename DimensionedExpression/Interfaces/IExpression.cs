@@ -163,8 +163,8 @@ public interface IDirectExpression : IExpression
     /// </summary>
     /// <remarks>
     /// A genuine property, unlike <see cref="IExpression.ComputeIfFullyDescribed"/>: there is nothing beneath
-    /// a leaf to walk, so reading it really is field access. The two used to share a name, which forced this one
-    /// to shadow the other with <c>new</c> and hid the difference in cost between them.
+    /// a leaf to walk, so reading it really is field access. The names differ to keep that cost difference
+    /// visible.
     /// </remarks>
     Measurand? Value { get; set; }
 }

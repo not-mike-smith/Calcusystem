@@ -19,9 +19,8 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// modeller's call, so <paramref name="solvingRole"/> has no default — every construction states its intent.
 /// </para>
 /// <para>
-/// <paramref name="agreementRule"/> has no default for the same reason. "Equal" is not one thing for measured
-/// values, and picking a reading on the modeller's behalf is what let equality semantics go unrecorded for as
-/// long as they did.
+/// <paramref name="agreementRule"/> has no default for the same reason: "equal" is not one thing for measured
+/// values, and picking a reading on the modeller's behalf would leave it unrecorded.
 /// </para>
 /// </remarks>
 /// <param name="agreementRule">How strictly "equal" is read — see <see cref="Enums.AgreementRule"/>.</param>
@@ -57,20 +56,8 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// notation is for.
     /// </para>
     /// <para>
-    /// It also cannot break the commutativity invariant, and not by luck: <c>=</c> is its own mirror image and
-    /// the centre is the fixed point of mirror-reversal, so inserting one there maps a palindrome to a
-    /// palindrome. That is what ruled out the earlier <c>≃=</c> and <c>≈=</c> — a <i>trailing</i> marker reads
-    /// the same way round from one side only, which is exactly what a commutative relation must not do.
-    /// </para>
-    /// <para>
-    /// <c>·==·</c> rather than the conventional <c>==</c> deliberately. "Equal" is not one thing for measured
-    /// values — that is why <see cref="Enums.AgreementRule"/> exists — and <c>==</c> is silent about
-    /// which statistic participates, while <c>·==·</c> says the reported values and nothing else.
-    /// </para>
-    /// <para>
-    /// Asserting the same rules as the tolerance operators is deliberate too. Those state the condition as a
-    /// requirement; an equality can additionally be an <see cref="Enums.SolvingRole.Equation"/>
-    /// or a <see cref="Enums.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
+    /// Not the conventional <c>==</c>, which is silent about which statistic participates; <c>·==·</c> says the
+    /// reported values and nothing else. See <c>BinaryOperators/OPERATORS.md</c> for the notation in full.
     /// </para>
     /// </remarks>
     public override string Symbol => Agreement switch

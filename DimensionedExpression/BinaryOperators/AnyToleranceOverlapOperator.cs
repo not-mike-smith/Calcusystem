@@ -19,10 +19,9 @@ public class AnyToleranceOverlapOperator : CommutativeOperatorBase
 
     /// <inheritdoc/>
     /// <remarks>
-    /// The bands crossing: each interval reaches past where the other begins. <c>≈</c> used to sit here and
-    /// oversold the claim — two measurements with wildly different reported values overlap freely once their
-    /// uncertainty bars are fat enough, which is nothing like "approximately equal". <c>{&lt;&gt;}</c> would be the
-    /// obvious spelling for disjoint, should it ever be wanted.
+    /// The bands crossing: each interval reaches past where the other begins. Deliberately not spelled
+    /// <c>≈</c>, which would oversell it — two measurements with wildly different reported values overlap
+    /// freely once their uncertainty bars are fat enough, and that is nothing like "approximately equal".
     /// </remarks>
     public override string Symbol => "{><}";
 

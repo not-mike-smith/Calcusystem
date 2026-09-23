@@ -32,11 +32,9 @@ public readonly record struct OrderingRung(OrderingDirection Direction, Ordering
 /// <see cref="OrderingConfidence.Possible"/>, each following from a nominal value lying inside its own interval.
 /// </para>
 /// <para>
-/// <b>A classifier, not an evaluator.</b> It used to be a record struct that computed all three tiers eagerly,
-/// which was waste dressed up as insight: an operator asserts one rung and discards the rest, and nothing in the
-/// library ever wanted the other two. Worse, it put the ladder between an operator and the comparison it makes,
-/// so reading <c>DefinitelyLessThanOperator</c> meant knowing that tiers are less-than by convention unless
-/// marked otherwise. Operators now declare their own rules plainly, and the ladder is asked afterwards.
+/// <b>A classifier, not an evaluator.</b> Nothing is computed until a rung is asked for, and operators do not
+/// route through it: each declares its own rules plainly, and the ladder places them afterwards. That is why
+/// reading <c>DefinitelyLessThanOperator</c> does not require knowing which direction a tier implies.
 /// </para>
 /// <para>
 /// What the ladder is genuinely for is <i>reporting</i>. A modeller who writes <c>·&lt;·</c> and gets

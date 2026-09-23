@@ -10,8 +10,8 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The general form of the ordering family. Six of these comparisons have named types because they are the ones
-/// engineers reach for constantly; this covers the rest without a class apiece. "My reported value must stay
+/// The general form of the ordering family. The comparisons engineers reach for constantly have named types;
+/// this covers the rest without a class apiece. "My reported value must stay
 /// below your guaranteed floor" — <c>·&lt;⌟</c> — is an ordinary conservative acceptance criterion with no named
 /// operator, and it is three bytes of state here.
 /// </para>

@@ -10,12 +10,11 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every operator states its rules rather than writing interval arithmetic, and every one of them turns
-/// out to be a conjunction of comparisons between one of the subject's three landmarks and one of the
-/// criterion's. Declaring that conjunction rather than writing it means an operator can no longer disagree with
-/// its own documentation, and the comparison itself happens in exactly one place —
+/// Every operator states its rules rather than writing interval arithmetic, and every one of them is a
+/// conjunction of comparisons between one of the subject's three landmarks and one of the criterion's.
+/// Declaring the conjunction rather than writing it keeps the comparison itself in exactly one place —
 /// <see cref="MeasurandComparer"/> — which is where tolerance, dimensional mismatch and non-finite values are
-/// already handled.
+/// handled.
 /// </para>
 /// <para>
 /// <b>Pure, and deliberately not an <c>IBinaryOperator</c>.</b> A rule has no identity, no operands and no

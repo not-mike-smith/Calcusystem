@@ -11,7 +11,7 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// about the shape of the problem.
 /// </para>
 /// <para>
-/// Three members rather than a boolean because "not an equation" was previously doing two jobs. Whether a
+/// Three members rather than a boolean, because "not an equation" would be doing two jobs at once. Whether a
 /// relationship is <i>enforced or merely reported</i> is a fourth thing and deliberately not here: that is a
 /// search policy belonging to whoever asks for a solve, while this is structure the model owns.
 /// </para>
