@@ -7,8 +7,8 @@ using Xunit;
 namespace Calcusystem.DimensionedExpression.Test.Expressions;
 
 /// <summary>
-/// <c>UnsetVariables()</c> is what a node contributes to a system's unknowns, and the count of it replaced the
-/// per-type <c>DegreesOfFreedom()</c> each node used to hand-roll over its own child collection.
+/// <c>UnsetVariables()</c> is what a node contributes to a system's unknowns. It deduplicates across the
+/// graph, so a leaf reachable by two paths counts once — which a per-node sum over children cannot do.
 /// </summary>
 public class UnsetVariablesTests
 {

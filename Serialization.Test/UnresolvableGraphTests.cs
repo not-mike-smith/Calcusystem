@@ -11,8 +11,8 @@ namespace Calcusystem.Serialization.Test;
 
 /// <summary>
 /// The deferred-build loop retries an expression whose children are not loaded yet. A payload where some
-/// expression can never become buildable used to spin forever — iteratively, so not even a stack overflow would
-/// end it. These tests pin the no-progress guard that replaced that hang.
+/// expression can never become buildable would spin forever without a guard — iteratively, so not even a
+/// stack overflow would end it. These tests pin the no-progress guard that ends it instead.
 /// </summary>
 /// <remarks>
 /// Every test here carries a timeout: a regression would otherwise hang the suite rather than fail it.

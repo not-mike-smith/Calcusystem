@@ -118,10 +118,10 @@ public static class MeasurandComparer
     /// exact <c>0</c>, though nothing about that measurement can tell the two apart.
     /// </para>
     /// <para>
-    /// Infinite uncertainty bars are skipped for the opposite reason, and the omission was a real defect: an infinite
-    /// bar made the threshold infinite, so <i>every</i> pair of finite values came back
-    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreed with 10 kg. An unbounded uncertainty says the
-    /// measurement resolves nothing, which is not the same as saying two values are the same, and it must not be
+    /// Infinite uncertainty bars are skipped for the opposite reason. An infinite bar would make the threshold
+    /// infinite, so <i>every</i> pair of finite values would come back
+    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreeing with 10 kg. An unbounded uncertainty says the
+    /// measurement resolves nothing, which is not the same as saying two values are the same, so it must not be
     /// allowed to set a scale for anything.
     /// </para>
     /// </remarks>

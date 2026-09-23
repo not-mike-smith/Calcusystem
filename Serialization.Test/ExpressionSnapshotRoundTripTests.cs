@@ -13,8 +13,8 @@ using FluentAssertions;
 namespace Calcusystem.Serialization.Test;
 
 /// <summary>
-/// Round trips for expression types the mappers previously could not handle at all, plus the data the DTOs
-/// previously dropped. Every case goes through real JSON, since object-to-object mapping alone cannot show that
+/// Round trips for every expression type the mappers handle, and for the data the DTOs carry. Every case goes
+/// through real JSON, since object-to-object mapping alone cannot show that
 /// a payload survives storage.
 /// </summary>
 public class ExpressionStateRoundTripTests

@@ -38,10 +38,9 @@ public class SingleVariable : ExpressionBase
     /// dimensionless variable. See <see cref="DimensionalitySnapshot"/>.
     /// </summary>
     /// <remarks>
-    /// A string, not the <c>Dimensionality</c> struct. The struct's exponent map is private, so a serializer
-    /// handed one writes <c>{}</c> and reads back a dimensionless value with no error — which is what this
-    /// property used to do. If the fundamental-dimension symbols ever change, migrating previously persisted
-    /// values is this layer's responsibility.
+    /// A string, not the <c>Dimensionality</c> struct: the struct's exponent map is private, so a serializer
+    /// handed one would write <c>{}</c> and read back a dimensionless value with no error. If the
+    /// fundamental-dimension symbols ever change, migrating persisted values is this layer's responsibility.
     /// </remarks>
     public required string Dimensionality { get; init; }
     public required double? KmsValue { get; set; }

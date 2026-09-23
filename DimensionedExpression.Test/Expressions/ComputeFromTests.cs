@@ -9,8 +9,8 @@ namespace Calcusystem.DimensionedExpression.Test.Expressions;
 
 /// <summary>
 /// <c>ComputeFrom</c> returns <c>Measurand?</c>, and null is its answer for "not determinable" — a leaf with no
-/// value says so that way. A composite handed an incomplete map has the same answer available, and used to throw
-/// <c>KeyNotFoundException</c> instead: a public method whose nullable return already means "cannot tell".
+/// value says so that way. A composite handed an incomplete map has the same answer available and must use it
+/// rather than throwing <c>KeyNotFoundException</c>: the nullable return already means "cannot tell".
 /// </summary>
 public class ComputeFromTests
 {
