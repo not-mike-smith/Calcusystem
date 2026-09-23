@@ -130,5 +130,6 @@ The measurement, expression, serialization, and degrees-of-freedom layers are fu
 - **Every multi-file folder has one too**, covering just that namespace: What's here / Start here / Guarantees / Surprises / What does not belong here / Related.
 - **A new project is `Foo/Foo.csproj`** — short directory, no prefix. `Directory.Build.props` gives it the `Calcusystem.Foo` assembly and root namespace; do not set either in the `.csproj`.
 - **Public interfaces carry XML docstrings** on the interface and each member, articulating the contract — this is what lets a reader use a layer without opening its implementation.
+- **Doc comments and READMEs follow [`DOCUMENTATION.md`](DOCUMENTATION.md)** — what belongs on a hover, what belongs in a README, and the vocabulary both use.
 - **Tests live in the matching `*.Test` project** and reference only the layers they cover.
 - Prefer small, focused commits; keep behavior changes and documentation legible in the diff.
