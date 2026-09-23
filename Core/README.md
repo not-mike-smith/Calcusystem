@@ -2,9 +2,9 @@
 
 The basement. Contracts shared by every layer above: what it means to have an identity, and how an object hands out the data that defines it.
 
-Depends on nothing. Contains no behavior beyond `IdBase`'s id validation — everything else here is an interface or a constant, so there is nothing to test in isolation and no test project.
+Depends on nothing. Contains no behavior beyond `IdBase`'s id validation — everything else here is an interface, so there is nothing to test in isolation and no test project.
 
-> **Using this assembly:** two folders, each with its own README. [`Interfaces/`](Interfaces/README.md) holds the four contracts; [`Identity/`](Identity/README.md) holds the one implementation and its sentinel. This README covers why the seams are shaped the way they are — read it when a design question comes up, not to look up a signature.
+> **Using this assembly:** [`Interfaces/`](Interfaces/README.md) holds the contracts and has its own README; [`Identity/`](Identity/) holds `IdBase` alone, so the file is the shorter answer. This README covers why the seams are shaped the way they are — read it when a design question comes up, not to look up a signature.
 
 ---
 
