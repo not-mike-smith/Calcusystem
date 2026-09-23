@@ -97,25 +97,15 @@ public static class MeasurandComparer
     /// The smallest finite uncertainty bar either measurand actually has, or zero if neither has one.
     /// </summary>
     /// <remarks>
-    /// TODO: make more concise and clear
-    /// <para>
     /// The finest resolution present sets the threshold: if one instrument resolves to 1e-18, then 1e-15 is a
-    /// real quantity and not noise, whatever the other instrument can see.
-    /// </para>
-    /// <para>
-    /// Exact values are skipped rather than counted as zero. An operand with no uncertainty does not make the
-    /// other one better resolved — it simply has no opinion — and letting a zero win the minimum would collapse
-    /// the threshold to the dimensional floor. That matters because comparing a measurement against an exact
-    /// limit of zero is ordinary: with the zero counted, <c>1e-20 ± 1e-9</c> reports as strictly less than an
-    /// exact <c>0</c>, though nothing about that measurement can tell the two apart.
-    /// </para>
-    /// <para>
-    /// Infinite uncertainty bars are skipped for the opposite reason. An infinite bar would make the threshold
-    /// infinite, so <i>every</i> pair of finite values would come back
-    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreeing with 10 kg. An unbounded uncertainty says the
-    /// measurement resolves nothing, which is not the same as saying two values are the same, so it must not be
-    /// allowed to set a scale for anything.
-    /// </para>
+    /// real quantity rather than noise, whatever the other can see. A bar that is exact or infinite says
+    /// nothing about resolution, so neither is counted — and counting either would break the threshold:
+    /// <list type="bullet">
+    /// <item>A zero collapses it to the dimensional floor, making <c>1e-20 ± 1e-9</c> strictly less than an
+    /// exact <c>0</c>.</item>
+    /// <item>An infinity raises it without limit, making every pair of finite values
+    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreeing with 10 kg.</item>
+    /// </list>
     /// </remarks>
     private static double FinestNonZeroUncertainty(Measurand l, Measurand r)
     {
