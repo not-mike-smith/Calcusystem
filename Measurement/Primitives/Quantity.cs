@@ -252,11 +252,11 @@ public readonly struct Quantity : ISnapshotting<Quantity, QuantitySnapshot>
     }
 
     /// <inheritdoc/>
-    /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's state is its value
+    /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's data is its value
     /// and its dimension, both of which are already public concepts here. Nothing is being hidden to protect.</remarks>
     public QuantitySnapshot GetSnapshot() => new(KmsValue, Dimensionality.GetSnapshot());
 
     /// <inheritdoc/>
-    public static Quantity FromSnapshot(QuantitySnapshot state) =>
-        new(state.KmsValue, Dimensionality.FromSnapshot(state.Dimensionality));
+    public static Quantity FromSnapshot(QuantitySnapshot snapshot) =>
+        new(snapshot.KmsValue, Dimensionality.FromSnapshot(snapshot.Dimensionality));
 }

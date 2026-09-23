@@ -21,7 +21,7 @@ public interface IProvenance : IIdentified
     string Summary();
 
     /// <summary>
-    /// Returns the complete stored state of this provenance — its kind and that kind's audit metadata — for
+    /// Returns the complete snapshot of this provenance — its kind and that kind's audit metadata — for
     /// rebuilding via <c>ProvenanceFactory.FromSnapshot</c>.
     /// </summary>
     /// <remarks>

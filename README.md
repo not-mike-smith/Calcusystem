@@ -8,14 +8,16 @@ The goal is calculations that can't silently go wrong: adding a length to a mass
 
 ## How to read this codebase
 
-The code is organized so you rarely need to read implementation. **By default, each assembly's `README.md` plus the interfaces in its `Interfaces/` directory contain everything you need to _use_ that assembly. You only need its implementation files to _modify_ it.**
+The code is organized so you rarely need to read implementation. **If a folder has a `README.md`, you should not have to read anything else in it to use that namespace.** You only need the implementation files to _modify_ them.
+
+Every folder is a namespace and every namespace is a folder, with no exceptions — so a folder listing is a table of contents, and no assembly has loose `.cs` files at its root.
 
 So, depending on your task:
 
-- **Using an assembly** (calling it from another project, or from your own code): read its `README.md`, then the interfaces in `Interfaces/`. The interfaces carry XML docstrings describing each member's contract.
+- **Using an assembly**: read its `README.md` for the invariants that span the whole layer, then the `README.md` of the folder you need. Each folder README lists what is there, where to start, what you can rely on, and where a reasonable expectation turns out to be false.
 - **Modifying an assembly**: additionally read the implementation files for the types you're changing.
 
-A few assemblies note exceptions at the top of their README — types outside `Interfaces/` that also carry essential contract docstrings (for example, `Measurement` calls out its `Quantity` and `Dimensionality` structs and the `FundamentalDimension` class). `Calcusystem.Core` is the other exception: it has no `Interfaces/` directory because the interfaces *are* the assembly, and they sit at its root.
+A folder holding a single file has no README — reading the file is the shorter answer.
 
 ---
 
@@ -25,7 +27,7 @@ Five library assemblies stacked bottom-up; the upper four each have a matching t
 
 | Assembly / namespace | Directory | Depends on | What it does |
 | --- | --- | --- | --- |
-| `Calcusystem.Core` | [`Core/`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`ISnapshotting`, `ISnapshottingNode`, `INodeResolver`). Interfaces and constants only — no behaviour of its own. |
+| `Calcusystem.Core` | [`Core/`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`) and the persistence seams (`ISnapshotting`, `ISnapshottingNode`, `INodeResolver`). Interfaces and constants only — no behavior of its own. |
 | `Calcusystem.Measurement` | [`Measurement/`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | `Calcusystem.DimensionedExpression` | [`DimensionedExpression/`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
 | `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
@@ -53,9 +55,9 @@ The split exists because the two names answer to different audiences. On disk, t
 Compute with units and uncertainty (the `Measurement` layer):
 
 ```csharp
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Primitives;   // Quantity, Measurand, Dimensionality
 using Calcusystem.Measurement.Extensions;   // Percent(), Fraction(), Units()
-using Calcusystem.Measurement.Units;
+using Calcusystem.Measurement.Units;        // Mass, Force, Length, …
 
 // 2 kg ± 1% — supply and read values in whatever unit you like; storage is always KMS
 var mass = Mass.Kilogram.Quantity(2).WithUncertainty(1.0.Percent());
@@ -73,7 +75,7 @@ Assemble a reusable formula whose leaves get filled in later (the `DimensionedEx
 
 ```csharp
 using Calcusystem.DimensionedExpression.Expressions;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Primitives;
 
 var m = new Variable("m", Dimensionality.Mass);
 var a = new Variable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time));
@@ -88,7 +90,7 @@ f.IsFullyDescribed;    // false until both leaves are set
 Whether a whole system can be solved, and what it currently computes to, are answered one layer up:
 
 ```csharp
-using Calcusystem.Analysis;
+using Calcusystem.Analysis.Extensions;
 
 var flat = system.Flatten();
 flat.DegreesOfFreedom;  // unknowns − determining equations
@@ -124,7 +126,8 @@ The measurement, expression, serialization, and degrees-of-freedom layers are fu
 
 ## Contributing conventions
 
-- **Every assembly has a `README.md`** at its root, covering purpose, key types, invariants, dependencies, and explicit scope boundaries (what does _not_ belong there).
+- **Every assembly has a `README.md`** at its root, covering purpose, cross-cutting invariants, dependencies, and explicit scope boundaries (what does _not_ belong there).
+- **Every multi-file folder has one too**, covering just that namespace: What's here / Start here / Guarantees / Surprises / What does not belong here / Related.
 - **A new project is `Foo/Foo.csproj`** — short directory, no prefix. `Directory.Build.props` gives it the `Calcusystem.Foo` assembly and root namespace; do not set either in the `.csproj`.
 - **Public interfaces carry XML docstrings** on the interface and each member, articulating the contract — this is what lets a reader use a layer without opening its implementation.
 - **Tests live in the matching `*.Test` project** and reference only the layers they cover.

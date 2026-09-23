@@ -48,6 +48,6 @@ public class NegatedExpression : ExpressionBase, IExpression, ISnapshottingNode<
         new(UnaryExpressionType.Negated, Id, Operand.Id);
 
     /// <inheritdoc/>
-    public static NegatedExpression FromSnapshot(UnaryExpressionSnapshot state, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(state.InnerId), state.Id);
+    public static NegatedExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
 }

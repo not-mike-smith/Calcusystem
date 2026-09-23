@@ -109,13 +109,13 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     /// An unset variable keeps its declared dimensionality; a bound one takes its dimensionality from the
     /// measurand, which the constructor requires to agree with it anyway.
     /// </remarks>
-    public static Variable FromSnapshot(VariableSnapshot state)
+    public static Variable FromSnapshot(VariableSnapshot snapshot)
     {
-        var variable = state.Value is { } value
-            ? new Variable(state.Symbol, Measurand.FromSnapshot(value), state.Id)
-            : new Variable(state.Symbol, Dimensionality.FromSnapshot(state.Dimensionality), state.Id);
+        var variable = snapshot.Value is { } value
+            ? new Variable(snapshot.Symbol, Measurand.FromSnapshot(value), snapshot.Id)
+            : new Variable(snapshot.Symbol, Dimensionality.FromSnapshot(snapshot.Dimensionality), snapshot.Id);
 
-        if (state.Provenance is { } provenance)
+        if (snapshot.Provenance is { } provenance)
         {
             variable.Provenance = ProvenanceFactory.FromSnapshot(provenance);
         }

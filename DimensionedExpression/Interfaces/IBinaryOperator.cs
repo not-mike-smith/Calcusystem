@@ -157,7 +157,7 @@ public interface IBinaryOperator : IIdentified
     IProvenance? Provenance { get; set; }
 
     /// <summary>
-    /// Returns the complete stored state of this operator — which operator it is, its operand ids, and its
+    /// Returns the complete snapshot of this operator — which operator it is, its operand ids, and its
     /// annotations. Rebuild via <c>BinaryOperatorFactory.FromSnapshot</c>.
     /// </summary>
     BinaryOperatorSnapshot GetSnapshot();

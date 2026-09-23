@@ -121,7 +121,7 @@ public class DeterminingRelationshipTests
 
     /// <remarks>
     /// A role can only survive if the operator on the other end can represent it. Reconstruction dispatches on
-    /// the state's kind, so this pins that a non-equality operator comes back a requirement rather than picking
+    /// the snapshot's kind, so this pins that a non-equality operator comes back a requirement rather than picking
     /// the role up from a payload claiming otherwise — the wire cannot promote a check into an equation.
     /// </remarks>
     [Fact]

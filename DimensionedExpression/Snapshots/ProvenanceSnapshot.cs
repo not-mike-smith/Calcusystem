@@ -4,7 +4,7 @@ using Calcusystem.DimensionedExpression.Interfaces;
 namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
-/// The complete stored state of an <see cref="IProvenance"/>: its identity, its kind, and that kind's audit
+/// The complete snapshot of an <see cref="IProvenance"/>: its identity, its kind, and that kind's audit
 /// metadata. Read it via <see cref="IProvenance.GetSnapshot"/>; rebuild via <c>ProvenanceFactory.FromSnapshot</c>.
 /// </summary>
 /// <remarks>
@@ -21,7 +21,7 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// </remarks>
 public readonly record struct ProvenanceSnapshot
 {
-    /// <summary>Which concrete provenance this state rebuilds into.</summary>
+    /// <summary>Which concrete provenance this snapshot rebuilds into.</summary>
     public ProvenanceType Type { get; private init; }
 
     /// <summary>Stable identity, preserved across a round trip.</summary>
@@ -51,7 +51,7 @@ public readonly record struct ProvenanceSnapshot
     /// <summary><see cref="ProvenanceType.Model"/>: reference for the fitting that produced the constant.</summary>
     public string? FittingReference { get; private init; }
 
-    /// <summary>Captures the state of a measured provenance.</summary>
+    /// <summary>Captures a measured provenance.</summary>
     public static ProvenanceSnapshot Measured(string id, string? instrumentId, DateOnly? calibrationDate) => new()
     {
         Type = ProvenanceType.Measured,
@@ -60,7 +60,7 @@ public readonly record struct ProvenanceSnapshot
         CalibrationDate = calibrationDate,
     };
 
-    /// <summary>Captures the state of a reference provenance.</summary>
+    /// <summary>Captures a reference provenance.</summary>
     public static ProvenanceSnapshot Reference(string id, string citation, string? url, int? year) => new()
     {
         Type = ProvenanceType.Reference,
@@ -70,7 +70,7 @@ public readonly record struct ProvenanceSnapshot
         Year = year,
     };
 
-    /// <summary>Captures the state of a design provenance.</summary>
+    /// <summary>Captures a design provenance.</summary>
     public static ProvenanceSnapshot Design(string id, string? specReference) => new()
     {
         Type = ProvenanceType.Design,
@@ -78,7 +78,7 @@ public readonly record struct ProvenanceSnapshot
         SpecReference = specReference,
     };
 
-    /// <summary>Captures the state of a model provenance.</summary>
+    /// <summary>Captures a model provenance.</summary>
     public static ProvenanceSnapshot Model(string id, string modelName, string? fittingReference) => new()
     {
         Type = ProvenanceType.Model,

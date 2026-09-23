@@ -12,7 +12,7 @@ namespace Calcusystem.Serialization.Mappers;
 /// Maps a live <see cref="ExpressionSystem"/> to flat, id-referenced DTOs.
 /// </summary>
 /// <remarks>
-/// Reads nothing but state. Every domain type hands out a state record; this class decides only how that state
+/// Reads nothing but snapshots. Every domain type hands out a snapshot; this class decides only how that data
 /// is labelled and laid out on the wire. It never touches an expression's children, an operator's operands, or a
 /// value's internals directly.
 /// </remarks>
@@ -20,14 +20,14 @@ public class SerializingMapper
 {
     public Dtos.ExpressionSystem Map(ExpressionSystem system)
     {
-        var state = system.GetSnapshot();
+        var snapshot = system.GetSnapshot();
 
         var value = new Dtos.ExpressionSystem
         {
-            Id = state.Id,
+            Id = snapshot.Id,
             Type = nameof(ExpressionSystem),
-            Name = state.Name,
-            Description = state.Description,
+            Name = snapshot.Name,
+            Description = snapshot.Description,
         };
 
         value.Variables.AddRange(system.Variables.Select(MapVariable));
@@ -48,23 +48,23 @@ public class SerializingMapper
 
     public Dtos.SingleVariable MapVariable(Variable v)
     {
-        var state = v.GetSnapshot();
+        var snapshot = v.GetSnapshot();
 
         return new Dtos.SingleVariable
         {
-            Id = state.Id,
+            Id = snapshot.Id,
             Type = nameof(Variable),
-            Symbol = state.Symbol,
-            Dimensionality = DimensionalityCodec.Encode(state.Dimensionality),
-            KmsValue = state.Value?.Quantity.KmsValue,
-            Uncertainty = state.Value is { } value ? Map(value.Uncertainty) : null,
-            Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
+            Symbol = snapshot.Symbol,
+            Dimensionality = DimensionalityCodec.Encode(snapshot.Dimensionality),
+            KmsValue = snapshot.Value?.Quantity.KmsValue,
+            Uncertainty = snapshot.Value is { } value ? Map(value.Uncertainty) : null,
+            Provenance = snapshot.Provenance is { } provenance ? Map(provenance) : null,
         };
     }
 
     /// <remarks>
-    /// The type switch is only here to pick which state record to ask for — the kind discriminator inside that
-    /// state, not this switch, is what determines the wire name.
+    /// The type switch is only here to pick which snapshot to ask for — the kind discriminator inside that
+    /// snapshot, not this switch, is what determines the wire name.
     /// </remarks>
     private Dtos.ExpressionBase MapDerivedExpression(IExpression expression) => expression switch
     {
@@ -80,80 +80,80 @@ public class SerializingMapper
             $"No mapping for derived expression of type {expression.GetType().Name}")
     };
 
-    private Dtos.SingleDerivedVariable Map(UnaryExpressionSnapshot state) => new()
+    private Dtos.SingleDerivedVariable Map(UnaryExpressionSnapshot snapshot) => new()
     {
-        Id = state.Id,
-        Type = WireNames.Of(state.Type),
-        InnerId = state.InnerId,
+        Id = snapshot.Id,
+        Type = WireNames.Of(snapshot.Type),
+        InnerId = snapshot.InnerId,
     };
 
-    private Dtos.ListDerivedVariable Map(NaryExpressionSnapshot state) => new()
+    private Dtos.ListDerivedVariable Map(NaryExpressionSnapshot snapshot) => new()
     {
-        Id = state.Id,
-        Type = WireNames.Of(state.Type),
-        InnerIds = state.InnerIds.ToList(),
-        UncertaintyCorrelation = state.UncertaintyCorrelation,
+        Id = snapshot.Id,
+        Type = WireNames.Of(snapshot.Type),
+        InnerIds = snapshot.InnerIds.ToList(),
+        UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
     };
 
-    private Dtos.PairDerivedVariable Map(BinaryExpressionSnapshot state) => new()
+    private Dtos.PairDerivedVariable Map(BinaryExpressionSnapshot snapshot) => new()
     {
-        Id = state.Id,
-        Type = WireNames.Of(state.Type),
-        InnerId1 = state.InnerId1,
-        InnerId2 = state.InnerId2,
-        UncertaintyCorrelation = state.UncertaintyCorrelation,
+        Id = snapshot.Id,
+        Type = WireNames.Of(snapshot.Type),
+        InnerId1 = snapshot.InnerId1,
+        InnerId2 = snapshot.InnerId2,
+        UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
     };
 
     public Dtos.BinaryOperator Map(IBinaryOperator op)
     {
-        var state = op.GetSnapshot();
+        var snapshot = op.GetSnapshot();
 
         return new Dtos.BinaryOperator
         {
-            Id = state.Id,
-            Type = WireNames.Of(state.Type),
-            Name = state.Name,
-            Description = state.Description,
-            LhsId = state.LhsId,
-            RhsId = state.RhsId,
-            SolvingRole = state.SolvingRole,
-            Agreement = state.Agreement,
-            RuleLhs = state.Rule?.Lhs,
-            RuleMustBe = state.Rule?.MustBe,
-            RuleRhs = state.Rule?.Rhs,
-            Provenance = state.Provenance is { } provenance ? Map(provenance) : null,
+            Id = snapshot.Id,
+            Type = WireNames.Of(snapshot.Type),
+            Name = snapshot.Name,
+            Description = snapshot.Description,
+            LhsId = snapshot.LhsId,
+            RhsId = snapshot.RhsId,
+            SolvingRole = snapshot.SolvingRole,
+            Agreement = snapshot.Agreement,
+            RuleLhs = snapshot.Rule?.Lhs,
+            RuleMustBe = snapshot.Rule?.MustBe,
+            RuleRhs = snapshot.Rule?.Rhs,
+            Provenance = snapshot.Provenance is { } provenance ? Map(provenance) : null,
         };
     }
 
-    private Dtos.Provenance Map(ProvenanceSnapshot state) => new()
+    private Dtos.Provenance Map(ProvenanceSnapshot snapshot) => new()
     {
-        Id = state.Id,
-        Type = WireNames.Of(state.Type),
-        InstrumentId = state.InstrumentId,
-        CalibrationDate = state.CalibrationDate,
-        Citation = state.Citation,
-        Url = state.Url,
-        Year = state.Year,
-        SpecReference = state.SpecReference,
-        ModelName = state.ModelName,
-        FittingReference = state.FittingReference,
+        Id = snapshot.Id,
+        Type = WireNames.Of(snapshot.Type),
+        InstrumentId = snapshot.InstrumentId,
+        CalibrationDate = snapshot.CalibrationDate,
+        Citation = snapshot.Citation,
+        Url = snapshot.Url,
+        Year = snapshot.Year,
+        SpecReference = snapshot.SpecReference,
+        ModelName = snapshot.ModelName,
+        FittingReference = snapshot.FittingReference,
     };
 
-    private Dtos.Uncertainty Map(UncertaintySnapshot state) => state.Type switch
+    private Dtos.Uncertainty Map(UncertaintySnapshot snapshot) => snapshot.Type switch
     {
         UncertaintyType.Symmetric => new Dtos.Uncertainty
         {
             Type = nameof(SymmetricUncertainty),
-            IsStoredAsAbs = state.IsStoredAsAbs,
-            Magnitude = state.UpperMagnitude,
+            IsStoredAsAbs = snapshot.IsStoredAsAbs,
+            Magnitude = snapshot.UpperMagnitude,
         },
         UncertaintyType.Asymmetric => new Dtos.Uncertainty
         {
             Type = nameof(AsymmetricUncertainty),
-            IsStoredAsAbs = state.IsStoredAsAbs,
-            UpperMagnitude = state.UpperMagnitude,
-            LowerMagnitude = state.LowerMagnitude,
+            IsStoredAsAbs = snapshot.IsStoredAsAbs,
+            UpperMagnitude = snapshot.UpperMagnitude,
+            LowerMagnitude = snapshot.LowerMagnitude,
         },
-        _ => throw new NotImplementedException($"No mapping for uncertainty shape {state.Type}")
+        _ => throw new NotImplementedException($"No mapping for uncertainty shape {snapshot.Type}")
     };
 }

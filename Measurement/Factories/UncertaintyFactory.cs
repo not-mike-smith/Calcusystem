@@ -11,7 +11,7 @@ namespace Calcusystem.Measurement.Factories;
 /// </summary>
 /// <remarks>
 /// The counterpart to <see cref="IUncertainty.GetSnapshot"/>, and the reason <see cref="IUncertainty"/> does not
-/// implement <see cref="ISnapshotting{TSelf,TSnapshot}"/>: the concrete type is chosen by inspecting the state, so
+/// implement <see cref="ISnapshotting{TSelf,TSnapshot}"/>: the concrete type is chosen by inspecting the snapshot, so
 /// reconstruction is a static gateway over the closed set of shapes rather than a <c>static abstract</c> on each
 /// implementation. This mirrors how provenance rebuilds through <c>ProvenanceFactory</c>.
 /// <para>
@@ -22,14 +22,14 @@ namespace Calcusystem.Measurement.Factories;
 /// </remarks>
 public static class UncertaintyFactory
 {
-    /// <summary>Rebuilds the uncertainty described by <paramref name="state"/>.</summary>
-    public static IUncertainty FromSnapshot(UncertaintySnapshot state) => state.Type switch
+    /// <summary>Rebuilds the uncertainty described by <paramref name="snapshot"/>.</summary>
+    public static IUncertainty FromSnapshot(UncertaintySnapshot snapshot) => snapshot.Type switch
     {
         UncertaintyType.Symmetric =>
-            SymmetricUncertainty.From(state.IsStoredAsAbs, state.UpperMagnitude),
+            SymmetricUncertainty.From(snapshot.IsStoredAsAbs, snapshot.UpperMagnitude),
         UncertaintyType.Asymmetric =>
-            AsymmetricUncertainty.From(state.IsStoredAsAbs, state.UpperMagnitude, state.LowerMagnitude),
+            AsymmetricUncertainty.From(snapshot.IsStoredAsAbs, snapshot.UpperMagnitude, snapshot.LowerMagnitude),
         _ => throw new ArgumentOutOfRangeException(
-            nameof(state), state.Type, "Unknown uncertainty shape."),
+            nameof(snapshot), snapshot.Type, "Unknown uncertainty shape."),
     };
 }

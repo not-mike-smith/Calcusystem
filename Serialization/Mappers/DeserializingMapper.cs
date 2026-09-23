@@ -14,7 +14,7 @@ namespace Calcusystem.Serialization.Mappers;
 /// Rebuilds a live <see cref="ExpressionSystem"/> from flat, id-referenced DTOs.
 /// </summary>
 /// <remarks>
-/// Constructs nothing directly. Each DTO is translated into the corresponding domain state record and handed to
+/// Constructs nothing directly. Each DTO is translated into the corresponding domain snapshot and handed to
 /// that type's own reconstruction, so this class owns the wire format and the rebuild <i>order</i> — not how any
 /// domain object is assembled.
 /// </remarks>
@@ -246,7 +246,7 @@ public class DeserializingMapper
                 provenance.Id, provenance.SpecReference),
             ProvenanceType.Model => ProvenanceSnapshot.Model(
                 provenance.Id, provenance.ModelName!, provenance.FittingReference),
-            var kind => throw new NotImplementedException($"No state mapping for provenance kind {kind}")
+            var kind => throw new NotImplementedException($"No snapshot mapping for provenance kind {kind}")
         };
     }
 

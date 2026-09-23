@@ -9,7 +9,7 @@ namespace Calcusystem.Serialization.Test;
 /// <summary>
 /// The wire encoding for a dimensionality. This lives here rather than in <c>Measurement.Test</c> because the
 /// encoding is a format decision — which identity to key on, how to lay the pairs out, and what to reject —
-/// and format decisions belong to this layer. <c>Measurement</c> supplies only the structural state.
+/// and format decisions belong to this layer. <c>Measurement</c> supplies only the structural data.
 /// </summary>
 public class DimensionalityCodecTests
 {

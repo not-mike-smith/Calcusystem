@@ -15,14 +15,14 @@ Where the Commutative column says ✗, **`Lhs` is the value under test and `Rhs`
 ## `ComparisonRule` — the atom
 
 ```csharp
-readonly record struct ComparisonRule(Landmark Lhs, MustBe Type, Landmark Rhs)
+readonly record struct ComparisonRule(Landmark Lhs, MustBe MustBe, Landmark Rhs)
 ```
 
 One landmark of the subject against one landmark of the criterion, at a stated strictness. Nine landmark pairs × seven masks = 63 distinct rules, every one of which an operator may assert.
 
-`Type` is a **mask of acceptable `ComparisonResult` outcomes**, not a relation. `ComparisonResult` is single-bit (`Equal` `0b100`, `LessThan` `0b010`, `GreaterThan` `0b001`), so evaluation is `(result & type) != 0`. `≤` is a union rather than a relation of its own, and negation is complement.
+`MustBe` is a **mask of acceptable `ComparisonResult` outcomes**, not a relation. `ComparisonResult` is single-bit (`Equal` `0b100`, `LessThan` `0b010`, `GreaterThan` `0b001`), so evaluation is `(result & mustBe) != 0`. `≤` is a union rather than a relation of its own, and negation is complement.
 
-`Incomparable` is `0b000` and so satisfies **no** mask, including `Any`. A rule that cannot be answered returns `null`, never `false` — see *Three-valued verdicts* below.
+`Incomparable` is `0b000` and so satisfies **no** mask, including `MustBe.Comparable`. A rule that cannot be answered returns `null`, never `false` — see *Three-valued verdicts* below.
 
 `rule.Mirrored` swaps both landmarks and reverses the relation, so `rule.Mirrored` holds for `(a, b)` exactly when `rule` holds for `(b, a)`. Operators do **not** use it — each states its own rule outright — but `OrderingLadder.RuleFor` does, to derive one direction from the other.
 
@@ -48,7 +48,7 @@ Compound operators keep hand-written symbols: `·=}` is a *band*, not a comparis
 
 Plain string reversal will not do: `·<·` reverses to itself and is emphatically not commutative. Under mirror-reversal it becomes `·>·`, which is right.
 
-This retired two symbols. `≃=` and `≈=` marked the equality family with a trailing `=`, which reads the same way round from one side only — exactly what a commutative relation must not do. The family marker is a **centred** `=` instead, which cannot break the invariant: `=` is its own mirror and the centre is the fixed point of mirror-reversal, so inserting one there maps a palindrome to a palindrome.
+This retired two symbols. `≃=` and `≈=` marked the equality family with a trailing `=`, which reads the same way round from one side only — exactly what a commutative relation must not do. The family marker is a **centered** `=` instead, which cannot break the invariant: `=` is its own mirror and the center is the fixed point of mirror-reversal, so inserting one there maps a palindrome to a palindrome.
 
 It also caught a real defect: `SimpleComparison` declared itself non-commutative unconditionally, when `·=·` is commutative by any reading. Its commutativity now follows its rule — `Rule == Rule.Mirrored`.
 
@@ -93,7 +93,7 @@ bool? Reaches(lhs, rhs, OrderingRung)                           // one rung, one
 
 `RungOf` returning `null` is the honest answer for the comparisons genuinely off the ladder, and is what now stops a rung and the operator named after it drifting apart — a stronger check than asserting an operator was handed the ladder's own constant.
 
-`Possible` is the tier no named operator ever asked for, and the reason the ladder is worth keeping at all. A modeller who writes `·<·` and gets `false` cannot otherwise tell "comfortably the other way round" from "a hair's breadth away, and the uncertainty covers it".
+`Possible` is the tier no named operator ever asked for, and the reason the ladder is worth keeping at all. A modeler who writes `·<·` and gets `false` cannot otherwise tell "comfortably the other way round" from "a hair's breadth away, and the uncertainty covers it".
 
 ### `ContainmentLadder` — how far inside Rhs's band does Lhs sit?
 
@@ -142,7 +142,7 @@ These compare a derived **statistic** of each side rather than asking how the qu
 
 `EqualityOperator` takes an `AgreementRule` saying how strictly "equal" is read. It is the only operator whose `SolvingRole` can be `Equation` or `Coherence` — every other operator here yields an interval rather than a point, so no value can be derived from one, and all of them are `Requirement`.
 
-One rule, applied three times: **take the symbol of the operator asserting the same condition and insert an `=` at its centre.**
+One rule, applied three times: **take the symbol of the operator asserting the same condition and insert an `=` at its center.**
 
 | `AgreementRule` | Symbol | from | Rules |
 | --- | --- | --- | --- |
@@ -156,7 +156,7 @@ All three are mirror-palindromes, as every commutative operator's symbol must be
 
 The looser two assert exactly the rules of `{·=·}` and `{><}`, deliberately: those state the condition as a requirement, while an equality can additionally be an `Equation` or a `Coherence` check and so is the only place the condition can carry a solver's weight.
 
-**The rule is state, not a strategy.** Equality previously took an injected `IEqualityEstimating`, so the wire carried "this is an equality" and nothing about what equality *meant* — the reader supplied the semantics, and two readers could reach opposite verdicts from identical bytes. A strategy cannot be serialized; an enum can. Reconstruction refuses an equality whose state names no rule rather than guessing one.
+**The rule is state, not a strategy.** Equality previously took an injected `IEqualityEstimating`, so the wire carried "this is an equality" and nothing about what equality *meant* — the reader supplied the semantics, and two readers could reach opposite verdicts from identical bytes. A strategy cannot be serialized; an enum can. Reconstruction refuses an equality whose snapshot names no rule rather than guessing one.
 
 ---
 
@@ -168,7 +168,7 @@ It **deliberately overlaps** the named types: configured with `·<·` it is `Nom
 
 It is also the only operator whose **commutativity follows its rule** rather than its type: `Rule == Rule.Mirrored`, true exactly when the mask carries no ordering bias.
 
-`MustBe.Impossible` is refused at construction, and is the only mask that is. A rule accepting no outcome is never satisfied, so it reports as a *violation* on every calculation — a finding against the model that the model never asserted. It is also the mask enum's zero, so it is what an uninitialised field reads as, and refusing it turns a forgotten assignment into an error where it was forgotten.
+`MustBe.Impossible` is refused at construction, and is the only mask that is. A rule accepting no outcome is never satisfied, so it reports as a *violation* on every calculation — a finding against the model that the model never asserted. It is also the mask enum's zero, so it is what an uninitialized field reads as, and refusing it turns a forgotten assignment into an error where it was forgotten.
 
 `MustBe.Comparable` is **not** refused, though it looks like the same mistake. Under a three-valued seam it is not vacuous: it answers `true` when the landmarks can be compared and `null` when they cannot, so `⌜?⌝` asserts "both of these ceilings are well-defined quantities" — a real check that nothing else spells.
 
@@ -201,7 +201,7 @@ No `≤` / `≥` variants of the *ordering* tiers exist. Comparison is tolerance
 
 ```
 Two quantities should be the same?        → EqualityOperator, with the AgreementRule you mean
-Compatible within their errors?           → MutuallyWithinTolerance / AnyToleranceOverlap
+Compatible within their uncertainties?    → MutuallyWithinTolerance / AnyToleranceOverlap
 One interval contained by another?        → WhollyWithinTolerance / WithinBindingTolerance
 In range, and can't drift out of it?      → PointAndUpperBound / PointAndLowerBound
 Strict ordering, no overlap?              → DefinitelyLessThan / DefinitelyGreaterThan

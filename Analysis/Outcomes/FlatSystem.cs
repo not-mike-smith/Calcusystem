@@ -5,18 +5,6 @@ using Calcusystem.DimensionedExpression.Interfaces;
 namespace Calcusystem.Analysis.Outcomes;
 
 /// <summary>
-/// One determining relationship, paired with the unknowns it is incident on.
-/// </summary>
-/// <remarks>
-/// The incident set comes from walking both sides of the relationship, so a computed node between the operator
-/// and a leaf contributes nothing of its own — it is the path by which the equation reaches that leaf. This is
-/// the row of the incidence matrix the structural analysis in Milestone 4 will match over.
-/// </remarks>
-/// <param name="Relationship">The determining operator this row stands for.</param>
-/// <param name="Unknowns">The distinct unknowns reachable from either side.</param>
-public sealed record Equation(IBinaryOperator Relationship, IReadOnlyList<Variable> Unknowns);
-
-/// <summary>
 /// A system reduced to the only two things degrees of freedom depends on: the unknowns to solve for and the
 /// equations available to solve them with.
 /// </summary>
@@ -60,7 +48,7 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
     /// <summary>How <see cref="DegreesOfFreedom"/> classifies this system.</summary>
     /// <remarks>
     /// A verdict on the <i>solve</i>, and a pure function of the count — deliberately not also a verdict on how
-    /// much redundancy the model carries. The two are orthogonal: a vacuous equation touches no unknown, so it
+    /// much redundancy the model carries. The two are orthogonal: a redundant equation touches no unknown, so it
     /// can sit on an under-, exactly-, or over-determined system alike without changing any of them. Folding it
     /// in here would report a square system with one redundant check as over-determined, which is false — its
     /// solve is square, and the check is about values that were already known. Redundancy is reported by

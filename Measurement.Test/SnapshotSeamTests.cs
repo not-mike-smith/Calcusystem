@@ -26,11 +26,11 @@ public class SnapshotSeamTests
     {
         IUncertainty original = SymmetricUncertainty.FromRelative(0.02);
 
-        var state = original.GetSnapshot();
-        state.Type.Should().Be(UncertaintyType.Symmetric);
-        state.IsStoredAsAbs.Should().BeFalse();
+        var snapshot = original.GetSnapshot();
+        snapshot.Type.Should().Be(UncertaintyType.Symmetric);
+        snapshot.IsStoredAsAbs.Should().BeFalse();
 
-        var rebuilt = UncertaintyFactory.FromSnapshot(state);
+        var rebuilt = UncertaintyFactory.FromSnapshot(snapshot);
         rebuilt.Should().BeOfType<SymmetricUncertainty>();
         rebuilt.RelativeUncertainty(5.0).Should().Be(0.02);
         rebuilt.AbsoluteUncertainty(5.0).Should().Be(0.1);
@@ -41,11 +41,11 @@ public class SnapshotSeamTests
     {
         IUncertainty original = SymmetricUncertainty.FromAbsolute(1.0.Units(Mass.Milligram));
 
-        var state = original.GetSnapshot();
-        state.Type.Should().Be(UncertaintyType.Symmetric);
-        state.IsStoredAsAbs.Should().BeTrue();
+        var snapshot = original.GetSnapshot();
+        snapshot.Type.Should().Be(UncertaintyType.Symmetric);
+        snapshot.IsStoredAsAbs.Should().BeTrue();
 
-        var rebuilt = UncertaintyFactory.FromSnapshot(state);
+        var rebuilt = UncertaintyFactory.FromSnapshot(snapshot);
 
         // The storage form is what makes an error at zero meaningful; a round trip must not quietly convert it.
         rebuilt.AbsoluteUncertainty(0.0).Should().Be(original.AbsoluteUncertainty(0.0));
@@ -57,12 +57,12 @@ public class SnapshotSeamTests
     {
         IUncertainty original = AsymmetricUncertainty.FromRelative(0.05, 0.01);
 
-        var state = original.GetSnapshot();
-        state.Type.Should().Be(UncertaintyType.Asymmetric);
-        state.UpperMagnitude.Should().Be(0.05);
-        state.LowerMagnitude.Should().Be(0.01);
+        var snapshot = original.GetSnapshot();
+        snapshot.Type.Should().Be(UncertaintyType.Asymmetric);
+        snapshot.UpperMagnitude.Should().Be(0.05);
+        snapshot.LowerMagnitude.Should().Be(0.01);
 
-        var rebuilt = UncertaintyFactory.FromSnapshot(state);
+        var rebuilt = UncertaintyFactory.FromSnapshot(snapshot);
         rebuilt.Should().BeOfType<AsymmetricUncertainty>();
         rebuilt.UpperRelativeUncertainty(2.0).Should().Be(0.05);
         rebuilt.LowerRelativeUncertainty(2.0).Should().Be(0.01);

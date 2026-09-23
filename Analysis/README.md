@@ -4,11 +4,11 @@ Asks whether an `ExpressionSystem` is well-posed. Given a system, it reports how
 
 Depends on `DimensionedExpression` and `Measurement`. It reads the expression graph and never mutates it.
 
-This is where the evaluation walk (Milestone 3) and the solver abstraction (Milestone 4) will live. It exists as its own assembly because `DimensionedExpression` deliberately performs no orchestration — it supplies `Value`, `IsFullyDescribed`, `Children`, and `UnsetVariables()`, and stops there.
+This is where the evaluation walk (Milestone 3) and the solver abstraction (Milestone 4) will live. It exists as its own assembly because `DimensionedExpression` deliberately performs no orchestration — it supplies `ComputeFrom`, `IsFullyDescribed`, `Children`, and `UnsetVariables()`, and stops there.
 
 ---
 
-## The central idea: flatten first, then analyse
+## The central idea: flatten first, then analyze
 
 Degrees of freedom is the classic process-engineering quantity:
 
@@ -42,9 +42,9 @@ flat.UnknownsWithNoEquation; // unknowns no equation touches (a constraint is no
 | relationship where `IsDetermining`, with no unknown incident | a **redundancy check** — still an `Equation`, but not counted; see `RedundantEquations` |
 | relationship where not | nothing — a check removes no degree of freedom |
 
-The third row is the one worth internalising. Given `a`, `b = 1/a`, and the equation `b == c`, the flat system has columns `a` and `c` and one row; `b` appears only as incidence, putting a mark in column `a`. Admitting `b` as an unknown would add a column *and* force a compensating row (`b = 1/a`), leaving DoF unchanged while doubling the size of the problem. Only a `Variable` can be assigned, so only a `Variable` can be an unknown.
+The third row is the one worth internalizing. Given `a`, `b = 1/a`, and the equation `b == c`, the flat system has columns `a` and `c` and one row; `b` appears only as incidence, putting a mark in column `a`. Admitting `b` as an unknown would add a column *and* force a compensating row (`b = 1/a`), leaving DoF unchanged while doubling the size of the problem. Only a `Variable` can be assigned, so only a `Variable` can be an unknown.
 
-A corollary worth relying on: **valuing a leaf and asserting an equation against a constant agree about DoF.** Setting `c.Value = 2 s` removes one column; writing `c == 2s` instead keeps that column but adds a row. The modeller's choice of style cannot corrupt the arithmetic.
+A corollary worth relying on: **valuing a leaf and asserting an equation against a constant agree about DoF.** Setting `c.Value = 2 s` removes one column; writing `c == 2s` instead keeps that column but adds a row. The modeler's choice of style cannot corrupt the arithmetic.
 
 ---
 
@@ -99,7 +99,7 @@ public sealed record RelationshipOutcome(
 | `Inconsistencies` | unsatisfied, **no criterion** | a failing `Equation` or `Coherence`. Nothing identifies a side at fault, so the finding is against the model or its inputs |
 | `Undetermined` | verdict `null` | a side did not resolve; the check is still outstanding |
 
-The split is `Relationship.Criterion is not null`, which is exactly `SolvingRole is Requirement`. That the labelling of a relationship's two *sides* and the taxonomy of its *findings* turn out to be one distinction viewed twice is the best evidence the model is right.
+The split is `Relationship.Criterion is not null`, which is exactly `SolvingRole is Requirement`. That the labeling of a relationship's two *sides* and the taxonomy of its *findings* turn out to be one distinction viewed twice is the best evidence the model is right.
 
 **`IsComplete` stays about values.** A calculation with a violated requirement is complete and has a finding; a half-built model can already have a violation worth reporting. Folding the two together would leave a caller unable to ask either question. `AllRelationshipsHold` is the separate one.
 
@@ -124,9 +124,9 @@ It is deliberately a *different axis* from a computed node's `UncertaintyCorrela
 
 Both are passed through together, so choosing a propagator never discards what the model records about correlation. A global switch that flattened everything to "assume correlated" would be the opposite: it would silently throw away modelling knowledge, e.g. a node marked correlated because both its inputs come off the same instrument. There is a test that an injected propagator still sees `Correlated` where the model said so.
 
-### Why it is not async, and does not parallelise internally
+### Why it is not async, and does not parallelize internally
 
-`Calculate` is CPU-bound with no I/O, so `async` would buy nothing and cost every caller an `await` up their whole stack. Parallelising *within* one system is possible in principle but unpromising: the dependency graph is largely sequential, and the work per node — a handful of floating-point operations on a `Measurand` — is far smaller than the coordination overhead.
+`Calculate` is CPU-bound with no I/O, so `async` would buy nothing and cost every caller an `await` up their whole stack. Parallelizing *within* one system is possible in principle but unpromising: the dependency graph is largely sequential, and the work per node — a handful of floating-point operations on a `Measurand` — is far smaller than the coordination overhead.
 
 The parallelism worth having is across *independent* calculations, and purity already provides it with no API at all:
 
@@ -149,7 +149,7 @@ Both entry points take an optional `IReadOnlyDictionary<Variable, Measurand>`. A
 var pinned = system.Flatten(new Dictionary<Variable, Measurand> { [m] = trial });
 ```
 
-Keyed by the variable itself rather than by its id: an id that matches no variable in the system is a silent no-op, whereas the typed key means you must have the variable in hand. (`IdBase` defines equality and hashing on `Id`, so a rebuilt-from-state instance still matches.)
+Keyed by the variable itself rather than by its id: an id that matches no variable in the system is a silent no-op, whereas the typed key means you must have the variable in hand. (`IdBase` defines equality and hashing on `Id`, so a rebuilt-from-snapshot instance still matches.)
 
 This exists because the model must not be scratch space. A solver evaluates the same system at many trial values, and an ODE integrator does so several times per step; with values living only on nodes, each of those has to assign and restore, and a restore missed on an exception path leaves the caller's model holding a solver's intermediate. Passing bindings instead keeps analysis a pure function of `(system, bindings)`.
 
@@ -167,16 +167,16 @@ It is also how an over-determined system is interrogated — pin different subse
 
 **Over-determined systems are never refused.** Redundant equations either agree, in which case they corroborate a result, or disagree, in which case the model or the measurements are inconsistent and the engineer needs to know. Refusing to look would discard the more interesting of the two outcomes.
 
-**`Determination` is a verdict on the solve, not on how much redundancy the model carries.** Those are orthogonal, which is easy to miss. A *vacuous* equation — one whose sides are all already known — touches no unknown, so the same redundancy check appended to an under-, exactly-, or over-determined system leaves each of them exactly as it was:
+**`Determination` is a verdict on the solve, not on how much redundancy the model carries.** Those are orthogonal, which is easy to miss. A *redundant* equation — one whose sides are all already known — touches no unknown, so the same redundancy check appended to an under-, exactly-, or over-determined system leaves each of them exactly as it was:
 
-| System | Unknowns | Live equations | Vacuous | DoF | `Determination` |
+| System | Unknowns | Live equations | Redundant | DoF | `Determination` |
 | --- | --- | --- | --- | --- | --- |
 | `x` free; bound `a`,`b`; `a==b` | 1 | 0 | 1 | 1 | `Underdetermined` |
 | `m`; `m==spec`; bound `a`,`b`; `a==b` | 1 | 1 | 1 | 0 | `ExactlyDetermined` |
 | `m`; `m==a`, `m==b`; bound `c`,`d`; `c==d` | 1 | 2 | 1 | −1 | `Overdetermined` |
 | everything pinned; `a==b`, `c==d` | 0 | 0 | 2 | 0 | `ExactlyDetermined` |
 
-Weighing vacuity into the classification would report the second row as over-determined — false, since its solve is square and the check concerns values that were already known. So redundancy is reported by `RedundantEquations` instead, and whether those checks actually *hold* belongs to a calculation's relationship outcomes, not to a count. The last row is not a special case: it is simply a system with no unknowns that happens to carry two checks.
+Weighing redundancy into the classification would report the second row as over-determined — false, since its solve is square and the check concerns values that were already known. So redundancy is reported by `RedundantEquations` instead, and whether those checks actually *hold* belongs to a calculation's relationship outcomes, not to a count. The last row is not a special case: it is simply a system with no unknowns that happens to carry two checks.
 
 **`ExactlyDetermined` is necessary, not sufficient.** The count does not check that the equations are independent. Two equations asserting the same thing, alongside a genuinely free variable, also lands on zero — and no count can tell that apart from a well-posed square system. `UnknownsWithNoEquation` catches the cheapest slice of this (a column no row touches), but the general case needs a matching over the incidence structure. Treat DoF as a gate that can *reject*, never as a promise that solving will succeed.
 
@@ -188,7 +188,7 @@ Connecting sub-systems maps their variables onto one another. That is **aliasing
 
 The consequence that drove this design: **degrees of freedom is not additive over sub-systems.** Two stages at DoF 3 each, joined by four port identities, is neither 6 nor 2 — it depends on whether each merged variable was unknown on both sides. Any API shaped like `composed.DegreesOfFreedom => children.Sum(…)` is wrong, and is exactly what a structural recursion over the system's object graph would tempt you into writing.
 
-Flattening first makes that mistake unavailable. A forty-stage distillation column flattens into one `FlatSystem` and is analysed by the same code as a single stage.
+Flattening first makes that mistake unavailable. A forty-stage distillation column flattens into one `FlatSystem` and is analyzed by the same code as a single stage.
 
 ---
 
@@ -203,7 +203,7 @@ Both entry points are extension methods on `ExpressionSystem`, so they read as `
 - The expression graph, operators, and `ExpressionSystem` itself → `DimensionedExpression`
 - Arithmetic, dimensional algebra, and uncertainty propagation → `Measurement`
 - Wire formats and persistence → `Calcusystem.Serialization`
-- Mutating a caller's model. Analysis reads; trial values arrive through `bindings`.
+- Mutating a caller's model. Analysis reads; trial values arrive through `overrides`.
 
 ---
 

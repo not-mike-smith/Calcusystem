@@ -2,7 +2,7 @@
 namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
-/// The complete stored state of an <see cref="Systems.ExpressionSystem"/>: its identity, its labels, and the ids
+/// The complete snapshot of an <see cref="Systems.ExpressionSystem"/>: its identity, its labels, and the ids
 /// of everything it contains.
 /// </summary>
 /// <remarks>

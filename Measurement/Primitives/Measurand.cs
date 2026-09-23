@@ -248,6 +248,6 @@ public class Measurand : ISnapshotting<Measurand, MeasurandSnapshot>
     public MeasurandSnapshot GetSnapshot() => new(Quantity.GetSnapshot(), Uncertainty.GetSnapshot());
 
     /// <inheritdoc/>
-    public static Measurand FromSnapshot(MeasurandSnapshot state) =>
-        new(Quantity.FromSnapshot(state.Quantity), UncertaintyFactory.FromSnapshot(state.Uncertainty));
+    public static Measurand FromSnapshot(MeasurandSnapshot snapshot) =>
+        new(Quantity.FromSnapshot(snapshot.Quantity), UncertaintyFactory.FromSnapshot(snapshot.Uncertainty));
 }

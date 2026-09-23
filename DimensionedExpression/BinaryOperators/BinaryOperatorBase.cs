@@ -83,11 +83,11 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// <inheritdoc/>
     public IExpression? Criterion => SolvingRole is SolvingRole.Requirement ? Rhs : null;
 
-    /// <summary>Which operator this is, for state capture. Declared alongside <see cref="Symbol"/>.</summary>
+    /// <summary>Which operator this is, for snapshot capture. Declared alongside <see cref="Symbol"/>.</summary>
     protected abstract BinaryOperatorType Type { get; }
 
     /// <summary>
-    /// Returns this operator's complete stored state. Every operator has the same shape — two operand
+    /// Returns this operator's complete snapshot. Every operator has the same shape — two operand
     /// references plus annotations — so this is implemented once here rather than thirteen times.
     /// </summary>
     /// <remarks>

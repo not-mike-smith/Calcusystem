@@ -18,7 +18,7 @@ using Xunit;
 namespace Calcusystem.DimensionedExpression.Test.Snapshots;
 
 /// <summary>
-/// The state seam on its own terms, with no serializer involved — these types hand out their state and rebuild
+/// The snapshot seam on its own terms, with no serializer involved — these types hand out their snapshots and rebuild
 /// from it given only a way to look up neighbours by id.
 /// </summary>
 public class SnapshotSeamTests
@@ -85,11 +85,11 @@ public class SnapshotSeamTests
         var b = Leaf("b", 4);
 
         var product = new ProductExpression([a, b]) { Id = "p" };
-        var state = product.GetSnapshot();
-        state.Type.Should().Be(NaryExpressionType.Product);
-        state.InnerIds.Should().Equal("a", "b");
+        var snapshot = product.GetSnapshot();
+        snapshot.Type.Should().Be(NaryExpressionType.Product);
+        snapshot.InnerIds.Should().Equal("a", "b");
 
-        var restored = ProductExpression.FromSnapshot(state, new StubResolver().With("a", a).With("b", b));
+        var restored = ProductExpression.FromSnapshot(snapshot, new StubResolver().With("a", a).With("b", b));
 
         restored.Id.Should().Be("p");
         restored.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(12, 1e-12);
@@ -128,13 +128,13 @@ public class SnapshotSeamTests
             Description = "a check",
         };
 
-        var state = op.GetSnapshot();
-        state.Type.Should().Be(BinaryOperatorType.WhollyWithinTolerance);
-        state.LhsId.Should().Be("l");
-        state.RhsId.Should().Be("r");
+        var snapshot = op.GetSnapshot();
+        snapshot.Type.Should().Be(BinaryOperatorType.WhollyWithinTolerance);
+        snapshot.LhsId.Should().Be("l");
+        snapshot.RhsId.Should().Be("r");
 
         var restored = BinaryOperatorFactory.FromSnapshot(
-            state, new StubResolver().With("l", lhs).With("r", rhs));
+            snapshot, new StubResolver().With("l", lhs).With("r", rhs));
 
         restored.Should().BeOfType<WhollyWithinToleranceOperator>();
         restored.Name.Should().Be("check");
@@ -194,11 +194,11 @@ public class SnapshotSeamTests
         var rhs = Leaf("r", 1);
         var rule = new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound);
 
-        var state = new SimpleComparison(rule) { Id = "c", Lhs = lhs, Rhs = rhs }.GetSnapshot();
-        state.Rule.Should().Be(rule);
+        var snapshot = new SimpleComparison(rule) { Id = "c", Lhs = lhs, Rhs = rhs }.GetSnapshot();
+        snapshot.Rule.Should().Be(rule);
 
         var restored = BinaryOperatorFactory.FromSnapshot(
-            state, new StubResolver().With("l", lhs).With("r", rhs));
+            snapshot, new StubResolver().With("l", lhs).With("r", rhs));
 
         restored.Should().BeOfType<SimpleComparison>().Which.Rule.Should().Be(rule);
         restored.Symbol.Should().Be("·<⌟");

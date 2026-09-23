@@ -62,10 +62,10 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnaps
         new(NaryExpressionType.Sum, Id, Addends.Select(a => a.Id).ToList(), UncertaintyCorrelation);
 
     /// <inheritdoc/>
-    public static SumExpression FromSnapshot(NaryExpressionSnapshot state, INodeResolver resolve) =>
-        new(state.InnerIds.Select(resolve.Resolve<IExpression>))
+    public static SumExpression FromSnapshot(NaryExpressionSnapshot snapshot, INodeResolver resolve) =>
+        new(snapshot.InnerIds.Select(resolve.Resolve<IExpression>))
         {
-            Id = state.Id,
-            UncertaintyCorrelation = state.UncertaintyCorrelation,
+            Id = snapshot.Id,
+            UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
         };
 }
