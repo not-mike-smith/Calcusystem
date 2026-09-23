@@ -13,15 +13,8 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// Use when two quantities are expected to be the same, and say how nearly the same they must be.
 /// </summary>
 /// <remarks>
-/// <para>
-/// The only operator whose <see cref="SolvingRole"/> can be anything but a requirement: an equality is the one
-/// relation from which a solver can derive a value. Which of the three a given instance is remains the
-/// modeller's call, so <paramref name="solvingRole"/> has no default — every construction states its intent.
-/// </para>
-/// <para>
-/// <paramref name="agreementRule"/> has no default for the same reason: "equal" is not one thing for measured
-/// values, and picking a reading on the modeller's behalf would leave it unrecorded.
-/// </para>
+/// The only operator whose <see cref="SolvingRole"/> can be anything but a requirement. Neither constructor
+/// argument has a default: both readings are the modeller's to state, and neither is safe to assume.
 /// </remarks>
 /// <param name="agreementRule">How strictly "equal" is read — see <see cref="Enums.AgreementRule"/>.</param>
 /// <param name="solvingRole">

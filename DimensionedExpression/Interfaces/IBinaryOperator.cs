@@ -67,9 +67,7 @@ public interface IBinaryOperator : IIdentified
     /// <see cref="Enums.SolvingRole.Coherence"/> alike.
     /// </summary>
     /// <remarks>
-    /// Derived from <see cref="SolvingRole"/> rather than stored beside it, so the two cannot disagree. It stays
-    /// as a named property because "does this affect the count" is the question degrees-of-freedom code actually
-    /// asks, and re-deriving it at each call site would spread one decision across several.
+    /// Derived from <see cref="SolvingRole"/> rather than stored beside it, so the two cannot disagree.
     /// </remarks>
     bool IsDetermining { get; }
 
@@ -77,18 +75,10 @@ public interface IBinaryOperator : IIdentified
     /// Which side is being judged, or <see langword="null"/> where the relationship draws no such distinction.
     /// </summary>
     /// <remarks>
-    /// <para>
     /// Derived from <see cref="SolvingRole"/> and the operand positions, never stored. A
-    /// <see cref="Enums.SolvingRole.Requirement"/> tests one thing against another, and by
-    /// construction the thing under test is <see cref="Lhs"/>; an
-    /// <see cref="Enums.SolvingRole.Equation"/> or
-    /// <see cref="Enums.SolvingRole.Coherence"/> has no such asymmetry — neither side of
-    /// <c>T_eos == T_path</c> is the one being judged — so both are null there.
-    /// </para>
-    /// <para>
-    /// Deriving rather than storing is what keeps this from going stale: there is nothing beside the operands
-    /// that a later change could leave pointing at the wrong one.
-    /// </para>
+    /// <see cref="Enums.SolvingRole.Requirement"/> tests <see cref="Lhs"/> against <see cref="Rhs"/>; an
+    /// <see cref="Enums.SolvingRole.Equation"/> or <see cref="Enums.SolvingRole.Coherence"/> has no such
+    /// asymmetry, so both are null there.
     /// </remarks>
     IExpression? Subject { get; }
 
@@ -96,11 +86,6 @@ public interface IBinaryOperator : IIdentified
     /// What <see cref="Subject"/> is being judged against, or <see langword="null"/> where the relationship
     /// draws no such distinction. Non-null exactly when <see cref="Subject"/> is.
     /// </summary>
-    /// <remarks>
-    /// "Criterion" rather than "reference", which is already spoken for by <c>ProvenanceFactory.Reference</c>,
-    /// and rather than "expected", which lies about corroboration — where two peers are compared and neither
-    /// was expected — and about a failed equation, where neither side is the authority.
-    /// </remarks>
     IExpression? Criterion { get; }
 
     /// <summary>
@@ -108,10 +93,8 @@ public interface IBinaryOperator : IIdentified
     /// model and no traversal.
     /// </summary>
     /// <remarks>
-    /// The counterpart of <see cref="IExpression.ComputeFrom"/> for relationships, and the reason it exists is
-    /// the same: a verdict must be a function of the values it was handed, not of a fresh read of the model.
-    /// Without this seam a check evaluated during a calculation-at-trial-values would silently report on the
-    /// <i>stored</i> values instead, and would re-walk both subgraphs the calculation had just finished walking.
+    /// The counterpart of <see cref="IExpression.ComputeFrom"/> for relationships: a verdict is a function of
+    /// the values it was handed, never of a fresh read of the model.
     /// </remarks>
     /// <param name="lhs">The value of <see cref="Lhs"/>.</param>
     /// <param name="rhs">The value of <see cref="Rhs"/>.</param>

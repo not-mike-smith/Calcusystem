@@ -35,19 +35,9 @@ public class SimpleComparison : BinaryOperatorBase
     /// <paramref name="rule"/> accepts no outcome at all — see the remarks.
     /// </exception>
     /// <remarks>
-    /// <para>
-    /// <see cref="MustBe.Impossible"/> is refused, and it is the only mask that is. A rule accepting no
-    /// outcome is never satisfied, so it reports as a <i>violation</i> on every calculation — a finding against
-    /// the model that the model never asserted, which is worse than useless because someone will go looking for
-    /// it. And it is the enum's zero, so it is what an uninitialised mask reads as: refusing it here turns a
-    /// forgotten field into an error at the point it was forgotten.
-    /// </para>
-    /// <para>
-    /// <see cref="MustBe.Comparable"/> is <b>not</b> refused, though it looks like the same kind of mistake.
-    /// Under a three-valued seam it is not vacuous: it answers <see langword="true"/> when the two landmarks can
-    /// be compared and <see langword="null"/> when they cannot, so <c>⌜?⌝</c> asserts "both of these ceilings
-    /// are well-defined quantities" — a real thing to want to check, and one nothing else spells.
-    /// </para>
+    /// <see cref="MustBe.Impossible"/> is the only mask refused; it is the enum's zero, so refusing it turns a
+    /// forgotten field into an error where it was forgotten. <see cref="MustBe.Comparable"/> is allowed — it
+    /// asserts that both landmarks are well-defined quantities, which nothing else spells.
     /// </remarks>
     public SimpleComparison(ComparisonRule rule)
     {

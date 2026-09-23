@@ -7,22 +7,8 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// uncertain values it demands.
 /// </summary>
 /// <remarks>
-/// <para>
-/// A value, not a strategy, and that is the whole point: the reading travels with the model. Were the
-/// semantics supplied by whoever reads the document instead, two readers could reach opposite verdicts from
-/// identical bytes.
-/// </para>
-/// <para>
-/// Ordered from strictest to loosest, and each implies the one after it. <see cref="Nominal"/> is the reading
-/// most equations want — the two quantities are the same number, as far as the measurements can tell. The looser
-/// two coincide with <c>MutuallyWithinToleranceOperator</c> and <c>AnyToleranceOverlapOperator</c>, which is
-/// deliberate: those state the same condition as a requirement, while an equality can additionally be an
-/// <see cref="SolvingRole.Equation"/> or a <see cref="SolvingRole.Coherence"/> check and so is the only place
-/// the condition can carry a solver's weight.
-/// </para>
-/// <para>
-/// Zero is left unassigned so a default-constructed value is not silently one of the readings.
-/// </para>
+/// Ordered from strictest to loosest, each implying the one after it. <see cref="Nominal"/> is the reading most
+/// equations want. Zero is left unassigned, so a default-constructed value is not silently one of them.
 /// </remarks>
 public enum AgreementRule : byte
 {

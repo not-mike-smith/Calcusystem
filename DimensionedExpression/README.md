@@ -72,8 +72,8 @@ Two further consequences worth internalizing:
 | `NegatedExpression` | `IExpression` | Unary negation wrapper over any `IExpression` (its `Operand`). Not directly mutable. |
 | `ReciprocalExpression` | `IExpression` | Unary `1/x` wrapper over any `IExpression`; reciprocates the dimensionality. |
 | `SqrtExpression` | `IExpression` | Unary `√x` over any `IExpression` (its `Argument`); halves each dimension exponent (odd exponent throws `NondiscreteDimensionalityException`). Uncertainty: `RelativeUncertainty(√x) = ½·RelativeUncertainty(x)`. |
-| `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction/assignment), result dimensionless. Uncertainty: `RelativeUncertainty(eˣ) ≈ \|x\|·RelativeUncertainty(x)`. |
-| `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x)`. Degenerate at `x = 1` (result 0 → relative uncertainty undefined; throws). |
+| `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction, the only point it can be supplied), result dimensionless. Uncertainty: `RelativeUncertainty(eˣ) ≈ \|x\|·RelativeUncertainty(x)`. |
+| `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x)`. At `x = 1` the result is 0, so its *relative* uncertainty is undefined — the absolute one is kept and `RelativeUncertainty` reports `+∞` rather than throwing. |
 
 Composite nodes (`Sum`/`Product`/`Quotient`) derive from `ComputedExpressionBase` (which supplies `Id`, `IsDirectlyMutable => false`, and the `UncertaintyCorrelation` property); each still implements `Dimensionality`/`IsFullyDescribed`/`Children`/`ComputeFrom` itself.
 

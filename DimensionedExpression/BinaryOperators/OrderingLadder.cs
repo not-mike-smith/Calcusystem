@@ -62,16 +62,9 @@ public static class OrderingLadder
 
     /// <summary>The comparison that tests a given rung.</summary>
     /// <remarks>
-    /// <para>
     /// The <see cref="OrderingDirection.Below"/> rules are the definitions and
-    /// <see cref="OrderingDirection.Above"/> is each one mirrored, so one declaration serves both directions.
-    /// </para>
-    /// <para>
-    /// <see cref="OrderingConfidence.Certain"/> is <c>aU &lt; bL</c>, <see cref="OrderingConfidence.Nominal"/> is
-    /// <c>a &lt; b</c>, and <see cref="OrderingConfidence.Possible"/> is <c>aL &lt; bU</c>. All three are strict:
-    /// comparison is tolerance-aware, so a non-strict variant would differ only on values already judged the
-    /// same number.
-    /// </para>
+    /// <see cref="OrderingDirection.Above"/> is each one mirrored. All three tiers are strict; see
+    /// <c>BinaryOperators/OPERATORS.md</c> for the conditions and why there are no non-strict variants.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="confidence"/> is <see cref="OrderingConfidence.Contradicted"/>, which is the absence of

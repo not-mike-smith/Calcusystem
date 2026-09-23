@@ -11,11 +11,6 @@ namespace Calcusystem.DimensionedExpression.Interfaces;
 /// A node's <see cref="Dimensionality"/> is always known (structural), but its value is produced
 /// only once every leaf it depends on has been given a value.
 /// </summary>
-/// <remarks>
-/// Implementations compute the value lazily on each call from their current children — there is no
-/// caching and no separate evaluate step. Arithmetic and uncertainty propagation are delegated to
-/// <see cref="Measurand"/>; this layer only assembles and walks the tree.
-/// </remarks>
 public interface IExpression : IIdentified
 {
     /// <summary>
@@ -25,8 +20,8 @@ public interface IExpression : IIdentified
     bool IsDirectlyMutable { get; }
 
     /// <summary>
-    /// Whether every leaf this node depends on has a value, so <see cref="ComputeIfFullyDescribed"/> is non-null. Equivalent to
-    /// <c>DegreesOfFreedom() == 0</c>.
+    /// Whether every leaf this node depends on has a value, so <see cref="ComputeIfFullyDescribed"/> is
+    /// non-null. Equivalent to <see cref="UnsetVariables"/> being empty.
     /// </summary>
     bool IsFullyDescribed { get; }
 
@@ -37,15 +32,9 @@ public interface IExpression : IIdentified
     Dimensionality Dimensionality { get; }
 
     /// <summary>
-    /// The nodes this one is computed from, in operand order; empty for a leaf. The single accessor every graph
-    /// walk goes through — free-variable collection, dependency ordering, and incidence are all one traversal
-    /// over this rather than a switch over node types.
+    /// The nodes this one is computed from, in operand order; empty for a leaf. The single accessor every
+    /// graph walk goes through.
     /// </summary>
-    /// <remarks>
-    /// A node may appear as a child of more than one parent: the graph is a DAG, not a tree, and shared
-    /// sub-expressions are the point of referencing neighbours by id. Any walk must therefore deduplicate by
-    /// <see cref="IIdentified.Id"/> — see <c>ExpressionGraph</c>, which does.
-    /// </remarks>
     IEnumerable<IExpression> Children { get; }
 
     /// <summary>
@@ -53,30 +42,10 @@ public interface IExpression : IIdentified
     /// propagation, with the walk that produced its operands factored out.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// <b>Look up yourself and your own children, nothing else.</b> A composite reads its children's entries; a
-    /// leaf reads its own, falling back to its stored value when absent — which is what makes an override a
-    /// leaf's own business rather than something every caller has to special-case.
-    /// </para>
-    /// <para>
-    /// Keyed rather than positional because position is a contract a caller can silently get wrong: handed a
-    /// list, a quotient cannot tell numerator from denominator except by trusting the order, and computing
-    /// <c>d/n</c> is not an error anything would catch. Looking children up by identity removes the question,
-    /// and a child referenced twice needs only one entry.
-    /// </para>
-    /// <para>
-    /// <c>ComputeIfFullyDescribed()</c> is this applied to children that computed themselves recursively; an
-    /// evaluator is the same function applied to operands it computed in dependency order and kept. A node owns
-    /// how values combine, and a caller owns the order they are produced in and whether any are worth keeping.
-    /// </para>
+    /// The rule for an implementor: <b>look up yourself and your own children, nothing else.</b>
     /// </remarks>
     /// <param name="known">Values already established, by node. Missing entries mean not yet computed.</param>
-    /// <param name="propagator">
-    /// How uncertainties are combined, or null for the conservative Gaussian default. A different axis from a
-    /// computed node's <c>UncertaintyCorrelation</c>: that says whether <i>these</i> operands are correlated, which is
-    /// a statement about the model, while this is the numerical method and belongs to the calculation. Both are
-    /// passed on together, so supplying one never discards the other.
-    /// </param>
+    /// <param name="propagator">How uncertainties are combined, or null for the conservative Gaussian default.</param>
     Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
         IUncertaintyPropagator? propagator = null);
@@ -86,21 +55,11 @@ public interface IExpression : IIdentified
     /// depends on is still unset.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// <b>Named for what it costs.</b> This walks the whole graph beneath the node on every call and caches
-    /// nothing, so a sub-expression shared by three parents is computed three times. It is a method, not a
-    /// property, because a property invites callers to treat it as field access and call it in a loop.
-    /// </para>
-    /// <para>
-    /// Nothing is memoised on purpose: a node has no way to learn that a leaf beneath it was reassigned, so a
-    /// cached answer would go stale silently. Caching belongs to a caller that knows over what scope the graph is
-    /// unchanged — <c>Calcusystem.Analysis</c>'s <c>system.Calculate()</c> computes each node once per run and
-    /// reports what is missing besides. Prefer it for anything beyond a single node.
-    /// </para>
+    /// Walks the whole graph beneath the node on every call and caches nothing. Prefer
+    /// <c>Calcusystem.Analysis</c>'s <c>system.Calculate()</c> for anything beyond a single node.
     /// </remarks>
     /// <param name="overrides">
-    /// Values supplied for this computation only, taking precedence over a variable's own — the same mechanism
-    /// <c>Calculate</c> offers, for a caller working on one sub-expression rather than a whole system.
+    /// Values supplied for this computation only, taking precedence over a variable's own.
     /// </param>
     /// <param name="propagator">How uncertainties are combined, or null for the conservative Gaussian default.</param>
     /// <exception cref="Exceptions.CyclicExpressionGraphException">The graph beneath this node has a cycle.</exception>
@@ -119,9 +78,8 @@ public interface IExpression : IIdentified
     /// can produce one, and the unknowns it contributes to a system's degrees of freedom.
     /// </summary>
     /// <remarks>
-    /// Only a <see cref="Expressions.Variable"/> can be free: it is the sole node whose value is assigned rather
-    /// than computed, so it is the only thing a solver could be asked to determine. A computed node with unset
-    /// leaves beneath it is not itself an unknown — it is the path by which those leaves are reached.
+    /// Only a <see cref="Expressions.Variable"/> is ever unset: a computed node with unset leaves beneath it is
+    /// the path by which they are reached, not an unknown of its own.
     /// </remarks>
     IEnumerable<Variable> UnsetVariables();
 
@@ -144,9 +102,8 @@ public interface IComputedExpression : IExpression
     /// uncertainties are combined into its value.
     /// </summary>
     /// <remarks>
-    /// Part of the model: it records something known about where the children's values came from. Distinct from
-    /// the <see cref="IUncertaintyPropagator"/> a calculation supplies, which is the numerical method for combining
-    /// uncertainties — see the remarks on <see cref="IExpression.ComputeFrom"/>, which passes both.
+    /// Part of the model, not a numerical method — that is the <see cref="IUncertaintyPropagator"/> a
+    /// calculation supplies. Both are passed on together.
     /// </remarks>
     UncertaintyCorrelation UncertaintyCorrelation { get; set; }
 }

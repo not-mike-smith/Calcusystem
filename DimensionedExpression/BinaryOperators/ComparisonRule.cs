@@ -9,21 +9,9 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// operator is built from.
 /// </summary>
 /// <remarks>
-/// <para>
-/// Every operator states its rules rather than writing interval arithmetic, and every one of them is a
-/// conjunction of comparisons between one of the subject's three landmarks and one of the criterion's.
-/// Declaring the conjunction rather than writing it keeps the comparison itself in exactly one place —
-/// <see cref="MeasurandComparer"/> — which is where tolerance, dimensional mismatch and non-finite values are
-/// handled.
-/// </para>
-/// <para>
-/// A rule has no identity, no operands and no provenance: an operator holds rules, a rule holds nothing.
-/// </para>
-/// <para>
-/// Both landmarks are named independently, so every landmark pair is expressible — including the ones no named
-/// operator asks for. That is what lets <c>SimpleComparison</c> offer spellings such as "my nominal is above
-/// your guaranteed floor" without a class per spelling.
-/// </para>
+/// A pure value: no identity, no operands, no provenance. Both landmarks are named independently, so every
+/// landmark pair is expressible — including the ones no named operator asks for. The comparison itself happens
+/// in <see cref="MeasurandComparer"/>.
 /// </remarks>
 /// <param name="Lhs">Which landmark of the left value is compared.</param>
 /// <param name="MustBe">Which outcomes count as satisfying the rule.</param>

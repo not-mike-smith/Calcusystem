@@ -10,17 +10,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <see cref="IExpression.Children"/> and <see cref="IExpression.ComputeFrom"/>.
 /// </summary>
 /// <remarks>
-/// <para>
-/// A node type contributes two things — what its operands are, and how their values combine. Everything else a
-/// node can be asked is a consequence of those two, has exactly one sensible implementation, and lives here so
-/// that adding a node type does not mean rewriting any of it.
-/// </para>
-/// <para>
-/// These are declared on <see cref="IExpression"/> and implemented here, rather than being extension methods, so
-/// that they are part of the contract and are discoverable on the interface. A type implementing
-/// <see cref="IExpression"/> without deriving from this class must supply them itself; deriving is the expected
-/// path.
-/// </para>
+/// A type implementing <see cref="IExpression"/> without deriving from this class must supply every walk
+/// itself; deriving is the expected path.
 /// </remarks>
 public abstract class ExpressionBase : IdBase, IExpression
 {

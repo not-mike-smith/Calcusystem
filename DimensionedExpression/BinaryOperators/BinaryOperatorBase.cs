@@ -24,18 +24,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// The comparisons this operator asserts, taken together. Every one must hold for the operator to be
     /// satisfied.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// What each operator <i>declares</i> instead of writing interval arithmetic. Every one of them is a
-    /// conjunction of landmark comparisons, so the conjunction is stated once here and the
-    /// operators state only their own terms — which also makes the assertion readable without following it into
-    /// an implementation.
-    /// </para>
-    /// <para>
-    /// Exposed rather than private because it is the operator's own account of what it checks, and a report that
-    /// wants to say <i>which</i> comparison failed needs the terms, not just the verdict.
-    /// </para>
-    /// </remarks>
+    /// <remarks>Public so a report can name <i>which</i> comparison failed, not just that one did.</remarks>
     public abstract IReadOnlyList<ComparisonRule> Rules { get; }
 
     /// <inheritdoc/>

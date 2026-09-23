@@ -82,17 +82,9 @@ public static class ContainmentLadder
     /// Which rung <paramref name="rules"/> is, or <see langword="null"/> where they are not one.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// The discovery half, and what lets an operator declare its comparisons plainly and still be placed on the
-    /// ladder. Order-insensitive, since a set of rules is a conjunction.
-    /// </para>
-    /// <para>
-    /// Matches on the rules themselves, not on what they mean. Two differently written sets that happen to be
-    /// equivalent will not be recognised — <c>MutuallyWithinTolerance</c> is nominal containment in both
-    /// directions and is correctly <i>not</i> a rung, but a set that merely restated a rung with a redundant
-    /// term would also come back null. Semantic matching is possible and considerably more machinery; nothing
-    /// needs it yet.
-    /// </para>
+    /// Order-insensitive, since a set of rules is a conjunction. Matches on the rules themselves rather than on
+    /// what they mean, so a set that restates a rung with a redundant term comes back null even though it is
+    /// equivalent to one.
     /// </remarks>
     public static ContainmentRung? RungOf(IReadOnlyList<ComparisonRule> rules)
     {

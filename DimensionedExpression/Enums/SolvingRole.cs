@@ -5,17 +5,9 @@ namespace Calcusystem.DimensionedExpression.Enums;
 /// agree, or bounds a value someone else produced.
 /// </summary>
 /// <remarks>
-/// <para>
-/// A relationship's role in <i>solving</i>, distinct from the roles of its two <i>sides</i> (subject and
-/// criterion), which are about presenting a result. Whether a relationship is <i>enforced or merely reported</i>
-/// is a third thing and deliberately not here: that is a search policy belonging to whoever asks for a solve.
-/// </para>
-/// <para>
-/// <b>No member is zero</b>, and none means "no role" — every relationship does something. So the default value
-/// of the underlying type is not a valid role, which makes an unsupplied one detectable: a default-constructed
-/// <c>BinaryOperatorSnapshot</c>, or a payload missing the field, lands on nothing rather than silently claiming to
-/// be a <see cref="Requirement"/>.
-/// </para>
+/// A relationship's role in <i>solving</i>, distinct from the roles of its two <i>sides</i>. Whether it is
+/// <i>enforced or merely reported</i> is a separate question and deliberately not here. No member is zero, so an
+/// unsupplied role is detectable rather than silently a <see cref="Requirement"/>.
 /// </remarks>
 public enum SolvingRole : byte
 {
@@ -46,16 +38,8 @@ public enum SolvingRole : byte
     /// degree of freedom.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// A separate member because the distinction is <b>not recoverable from the predicate</b>: both assert
-    /// equality, and only the modeller knows whether one side defines a quantity or the two are independent
-    /// routes to it. A solver wants that intent — any path is a usable initial estimate for the others, and a
-    /// coherence group is where to relax an over-determined system.
-    /// </para>
-    /// <para>
-    /// When both sides are already known this determines nothing and becomes a redundancy check; that falls out
-    /// of incidence rather than needing a role of its own (see <c>FlatSystem.RedundantEquations</c>).
-    /// </para>
+    /// Choose this over <see cref="Equation"/> when neither side defines the quantity and the two are
+    /// independent routes to it — a distinction no predicate can recover.
     /// </remarks>
     Coherence = 3,
 }

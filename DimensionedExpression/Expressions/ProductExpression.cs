@@ -11,9 +11,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// N-ary product (<c>×</c>) over its <see cref="Factors"/>; the result dimensionality is the product of the
 /// factors' dimensionalities.
 /// <br/>
-/// A computed node: uncertainty is propagated through <see cref="Measurand"/> multiplication using the
-/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/> method, and <c>DegreesOfFreedom</c> is the sum
-/// of the factors'.
+/// A computed node: uncertainty is propagated through <see cref="Measurand"/> multiplication under this
+/// node's <see cref="ComputedExpressionBase.UncertaintyCorrelation"/>.
 /// </summary>
 public class ProductExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<ProductExpression, NaryExpressionSnapshot>
 {
