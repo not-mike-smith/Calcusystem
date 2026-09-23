@@ -4,7 +4,7 @@ using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Uncertainties;
-
+// TODO all public things in this file need docstrings
 public class ConservativeGaussianPropagator : IUncertaintyPropagator
 {
     public static ConservativeGaussianPropagator Instance { get; } = new ConservativeGaussianPropagator();

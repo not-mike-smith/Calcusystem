@@ -5,22 +5,13 @@ using Calcusystem.Measurement.Extensions;
 namespace Calcusystem.Measurement.Comparison;
 
 /// <summary>
-/// Compares one <see cref="Landmark"/> of a measurand against one landmark of another, three ways plus
+/// Compares one <see cref="Landmark"/> of a <see cref="Measurand"/> against one landmark of another, three ways plus
 /// "incomparable".
 /// </summary>
 /// <remarks>
-/// <para>
 /// The single place a numeric comparison happens. Everything above it — the operators, the confidence ladders —
 /// selects <i>which</i> landmarks to compare and what to do with the answer; none of them decides what "less
 /// than" means.
-/// </para>
-/// <para>
-/// Concrete rather than an injected strategy, deliberately. A strategy cannot be serialized, so a wire format
-/// carrying only "this is an equality" leaves the reader to supply the semantics — two readers then get
-/// different verdicts from identical bytes. It also has to be well behaved for the confidence ladders to hold
-/// together: their implication chains assume the set of values judged equal to a given <c>y</c> is a contiguous
-/// interval containing <c>y</c>, which an arbitrary strategy need not satisfy and this does.
-/// </para>
 /// </remarks>
 public static class MeasurandComparer
 {
@@ -106,6 +97,7 @@ public static class MeasurandComparer
     /// The smallest finite uncertainty bar either measurand actually has, or zero if neither has one.
     /// </summary>
     /// <remarks>
+    /// TODO: make more concise and clear
     /// <para>
     /// The finest resolution present sets the threshold: if one instrument resolves to 1e-18, then 1e-15 is a
     /// real quantity and not noise, whatever the other instrument can see.

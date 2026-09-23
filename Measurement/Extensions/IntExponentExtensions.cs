@@ -20,6 +20,9 @@ public static class IntExponentExtensions
         {'9', '⁹'},
     };
 
+    /// <summary>
+    /// Return string representing the passed value in superscript numerals
+    /// </summary>
     public static string ToSuperscript(this int i)
     {
         var s = i.ToString();

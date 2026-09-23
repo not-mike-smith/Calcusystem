@@ -6,17 +6,6 @@ namespace Calcusystem.Measurement.Snapshots;
 /// The complete snapshot of a <see cref="Dimensionality"/>: the exponent of each fundamental dimension
 /// present. Zero exponents are stripped, so an empty map is a dimensionless value.
 /// </summary>
-/// <remarks>
-/// <para>
-/// Structural, not encoded. How these pairs are written — symbols or names, a nested object or a compact string
-/// like <c>"M1,L1,T-2"</c>, and what happens to a payload written before a symbol was renamed — is the
-/// persistence layer's decision, and lives there. This assembly only answers what data defines the value.
-/// </para>
-/// <para>
-/// A map is affordable here because a snapshot lives only for the duration of a serialization or
-/// deserialization pass; it is not a representation the rest of the library computes with.
-/// </para>
-/// </remarks>
 /// <param name="Exponents">Exponent per present fundamental dimension; empty (or default) for dimensionless.</param>
 public readonly record struct DimensionalitySnapshot(IReadOnlyDictionary<FundamentalDimension, int> Exponents)
 {

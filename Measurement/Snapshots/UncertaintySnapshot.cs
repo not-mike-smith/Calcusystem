@@ -9,17 +9,10 @@ namespace Calcusystem.Measurement.Snapshots;
 /// Read it via <see cref="IUncertainty.GetSnapshot"/>; rebuild via <see cref="UncertaintyFactory.FromSnapshot"/>.
 /// </summary>
 /// <remarks>
-/// <para>
 /// This is the one place the storage convention (<see cref="IsStoredAsAbs"/> — whether the magnitudes are relative
 /// fractions or absolute KMS errors) crosses the assembly boundary. It is deliberately a single narrow door rather
 /// than a set of properties on the uncertainty classes themselves, whose public surface should only offer the
 /// intended construction vocabulary.
-/// </para>
-/// <para>
-/// Not a DTO: no type discriminator, no schema version. If the storage model gains a third form, this record
-/// changes and every consumer gets a compile error at its mapping site — which is exactly where the decision about
-/// migrating old data belongs.
-/// </para>
 /// </remarks>
 public readonly record struct UncertaintySnapshot
 {

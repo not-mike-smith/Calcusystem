@@ -9,8 +9,7 @@ namespace Calcusystem.Measurement.Uncertainties;
 /// <summary>
 /// Asymmetric uncertainty with independent errors above and below the nominal value. Both are stored in the same
 /// form (relative or absolute, see <see cref="IsStoredAsAbs"/>). For propagation through arithmetic the larger of the two
-/// is used as a conservative estimate; Monte Carlo propagation preserving the asymmetry is deferred to a later
-/// milestone.
+/// is used as a conservative estimate.
 /// </summary>
 public sealed class AsymmetricUncertainty : IUncertainty
 {

@@ -5,6 +5,10 @@ namespace Calcusystem.Core.Identity;
 /// <summary>
 /// Base class for anything carrying a stable string identity that survives persistence.
 /// </summary>
+/// <remarks>
+/// Equality and hashing are by <see cref="Id"/>, not by reference or by field values;
+/// IdBase objects can safely be used as key to Dictionary
+/// </remarks>
 public abstract class IdBase : IIdentified
 {
     /// <summary>

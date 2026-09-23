@@ -6,7 +6,7 @@ namespace Calcusystem.Measurement.Enums;
 /// <remarks>
 /// <para>
 /// A mask over <see cref="ComparisonResult"/>'s bits, so asking whether a result is acceptable is
-/// <c>(result &amp; type) != 0</c>. Every relation an engineer writes falls out of that with no special cases:
+/// <c>(result &amp; mustBe) != 0</c>. For example, 
 /// <c>≤</c> is the union of two outcomes rather than a relation of its own, and negation is complement against
 /// <see cref="Comparable"/>.
 /// </para>
