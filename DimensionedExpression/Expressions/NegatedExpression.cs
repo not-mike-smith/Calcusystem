@@ -11,12 +11,10 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// Unary negation of any <see cref="IExpression"/> (its <see cref="Operand"/>): the same dimensionality, with
 /// the operand's value and uncertainty negated.
-/// <br/>
-/// Not directly mutable; <see cref="IExpression.ComputeIfFullyDescribed"/> returns null until the operand is fully described.
 /// </summary>
 public class NegatedExpression : ExpressionBase, IExpression, ISnapshottingNode<NegatedExpression, UnaryExpressionSnapshot>
 {
-    public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW_ID) : base(id)
+    public NegatedExpression(IExpression operand, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         _operand = operand;
     }

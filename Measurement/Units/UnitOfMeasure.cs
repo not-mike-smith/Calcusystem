@@ -14,7 +14,7 @@ namespace Calcusystem.Measurement.Units;
 /// <see cref="OffsetUnitOfMeasure"/>, which overrides the conversion methods; consumers interact with both
 /// through this common type.
 /// </remarks>
-public class UnitOfMeasure // TODO: should this be a record?
+public class UnitOfMeasure
 {
     /// <summary>The physical dimension this unit measures.</summary>
     public readonly Dimensionality Dimensionality;

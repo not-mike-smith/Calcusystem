@@ -6,10 +6,8 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// <summary>
 /// Satisfied when the entire Lhs uncertainty interval lies below the entire Rhs uncertainty interval — i.e.
 /// Lhs.Upper &lt; Rhs.Lower. No overlap between the two intervals is permitted.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>⌜&lt;⌟</b>
-/// <br/>
-/// Use for definitive less-than checks where even worst-case Lhs must remain below best-case Rhs.
 /// </summary>
 public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 {
@@ -17,7 +15,7 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "⌜<⌟";
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>The ordering ladder's <c>Below</c>/<c>Certain</c> rung, though it is stated here as itself.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
         [new(Landmark.UpperBound, MustBe.LessThan, Landmark.LowerBound)];
@@ -26,15 +24,14 @@ public class DefinitelyLessThanOperator : NonCommutativeOperatorBase
 /// <summary>
 /// Satisfied when the upper bound of Lhs is less than the upper bound of Rhs — i.e. Lhs.Upper &lt; Rhs.Upper.
 /// The intervals may overlap; this is a weaker check than <see cref="DefinitelyLessThanOperator"/>.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>⌜&lt;⌝</b>
-/// <br/>
-/// Use when you need to know that Lhs's worst-case high value is bounded by Rhs's worst-case high value.
-/// <br/>
-/// <b>Off the confidence ladder, deliberately.</b> This compares a derived <i>statistic</i> of each side —
-/// ceiling against ceiling — rather than asking how the two quantities stand to one another, so it is not a
-/// tier of <see cref="OrderingLadder"/> and cannot be reached by strengthening or weakening one.
 /// </summary>
+/// <remarks>
+/// <b>Not part of the confidence ladder.</b> This compares a derived <i>statistic</i> of each side —
+/// (i.e. ceiling against ceiling),
+/// so it is not a tier of <see cref="OrderingLadder"/> and cannot be reached by strengthening or weakening one.
+/// </remarks>
 public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorType Type => BinaryOperatorType.UpperBoundsLessThan;
@@ -49,10 +46,8 @@ public class UpperBoundsLessThanOperator : NonCommutativeOperatorBase
 /// <summary>
 /// Satisfied when the nominal (center) Lhs value is less than the nominal Rhs value. Uncertainty is not part of
 /// the ordering, though it still sets the scale at which the two values count as agreeing.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>·&lt;·</b>
-/// <br/>
-/// Use when only the reported values matter.
 /// </summary>
 public class NominallyLessThanOperator : NonCommutativeOperatorBase
 {
@@ -60,7 +55,7 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "·<·";
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>The ordering ladder's <c>Below</c>/<c>Nominal</c> rung.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
         [new(Landmark.Nominal, MustBe.LessThan, Landmark.Nominal)];
@@ -69,10 +64,8 @@ public class NominallyLessThanOperator : NonCommutativeOperatorBase
 /// <summary>
 /// Satisfied when the entire Lhs uncertainty interval lies above the entire Rhs uncertainty interval — i.e.
 /// Lhs.Lower &gt; Rhs.Upper. No overlap between the two intervals is permitted.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>⌞&gt;⌝</b>
-/// <br/>
-/// Use for definitive greater-than checks where even worst-case Lhs must remain above best-case Rhs.
 /// </summary>
 public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 {
@@ -80,7 +73,7 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "⌞>⌝";
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The ordering ladder's <c>Above</c>/<c>Certain</c> rung, and written out rather than derived from the
     /// less-than rule: "my floor is above your ceiling" is what this operator checks, and saying so directly
@@ -93,16 +86,14 @@ public class DefinitelyGreaterThanOperator : NonCommutativeOperatorBase
 /// <summary>
 /// Satisfied when the lower bound of Lhs is greater than the lower bound of Rhs — i.e. Lhs.Lower &gt; Rhs.Lower.
 /// The intervals may overlap; this is a weaker check than <see cref="DefinitelyGreaterThanOperator"/>.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>⌞&gt;⌟</b>
-/// <br/>
-/// Use when you need to know that Lhs's worst-case low value is above Rhs's worst-case low value.
-/// <br/>
-/// <b>Off the confidence ladder, deliberately</b>, for the same reason as
-/// <see cref="UpperBoundsLessThanOperator"/>: it compares floors, which is a statistic of each side rather than
-/// a claim about their ordering. Note it is not that operator's mirror image — one compares ceilings and the
-/// other floors, so neither is the other read with the operands swapped.
 /// </summary>
+/// <remarks>
+/// <b>Not part of the confidence ladder.</b> This compares a derived <i>statistic</i> of each side —
+/// (i.e. floor against floor),
+/// so it is not a tier of <see cref="OrderingLadder"/> and cannot be reached by strengthening or weakening one.
+/// </remarks>
 public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 {
     protected override BinaryOperatorType Type => BinaryOperatorType.LowerBoundsGreaterThan;
@@ -117,10 +108,8 @@ public class LowerBoundsGreaterThanOperator : NonCommutativeOperatorBase
 /// <summary>
 /// Satisfied when the nominal (center) Lhs value is greater than the nominal Rhs value. Uncertainty is not part
 /// of the ordering, though it still sets the scale at which the two values count as agreeing.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>·&gt;·</b>
-/// <br/>
-/// Use when only the reported values matter.
 /// </summary>
 public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 {
@@ -128,7 +117,7 @@ public class NominallyGreaterThanOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "·>·";
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>The ordering ladder's <c>Above</c>/<c>Nominal</c> rung.</remarks>
     public override IReadOnlyList<ComparisonRule> Rules { get; } =
         [new(Landmark.Nominal, MustBe.GreaterThan, Landmark.Nominal)];

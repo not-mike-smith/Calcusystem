@@ -272,7 +272,7 @@ public class DeserializingMapper
 
     /// <summary>
     /// Reads a field of the flat uncertainty DTO that is required for the shape named by its discriminator.
-    /// Missing means the payload is malformed; substituting a default would quietly change the error band.
+    /// Missing means the payload is malformed; substituting a default would quietly change the uncertainty band.
     /// </summary>
     private static double Required(double? value, string field, string type) =>
         value ?? throw new InvalidOperationException(

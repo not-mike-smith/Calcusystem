@@ -7,9 +7,7 @@ namespace Calcusystem.Measurement.Snapshots;
 /// </summary>
 /// <remarks>
 /// The dimensionality travels as a <see cref="DimensionalitySnapshot"/> rather than the <see cref="Dimensionality"/>
-/// struct. The struct keeps its exponent map private, so a serializer handed one emits <c>{}</c> and reads back a
-/// dimensionless value — silently, with no exception. Exposing the pairs in the snapshot means nothing that claims to be
-/// serializable can carry that trap.
+/// struct.
 /// </remarks>
 /// <param name="KmsValue">The value in SI base (kg-m-s) units.</param>
 /// <param name="Dimensionality">The physical dimension of the value, as exponent pairs.</param>

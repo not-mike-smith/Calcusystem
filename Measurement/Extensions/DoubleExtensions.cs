@@ -4,6 +4,10 @@ namespace Calcusystem.Measurement.Extensions;
 
 public static class DoubleExtensions
 {
+    /// <summary>
+    /// Division where quotient with <c>denominator == 0</c> results in <see cref="double.PositiveInfinity"/>
+    /// instead of a thrown exception
+    /// </summary>
     public static double SafeDivide(this double numerator, double denominator)
     {
         if (denominator == 0d)
@@ -37,11 +41,17 @@ public static class DoubleExtensions
         return Math.Sqrt(sumOfSquares);
     }
 
+    /// <summary>
+    /// Relative uncertainty is the passed value exactly
+    /// </summary>
     public static RelativeUncertainty Fraction(this double relativeUncertainty)
     {
         return new RelativeUncertainty(relativeUncertainty);
     }
 
+    /// <summary>
+    /// Relative uncertainty is the passed value divided by 100
+    /// </summary>
     public static RelativeUncertainty Percent(this double relativeUncertaintyPercent)
     {
         return new RelativeUncertainty(relativeUncertaintyPercent / 100d);

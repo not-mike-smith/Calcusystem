@@ -8,16 +8,8 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// metadata. Read it via <see cref="IProvenance.GetSnapshot"/>; rebuild via <c>ProvenanceFactory.FromSnapshot</c>.
 /// </summary>
 /// <remarks>
-/// <para>
-/// The union of every kind's fields, discriminated by <see cref="Type"/> — the kinds differ only in metadata, not
-/// behaviour, so a flat shape costs nothing and keeps the seam non-generic. Only the fields belonging to
-/// <see cref="Type"/> are populated.
-/// </para>
-/// <para>
-/// A memento, not a DTO: no wire type-name, no schema version, no encoding. This is what lets the concrete kinds
-/// keep their metadata <c>internal</c> — before this existed, those properties were public solely so a mapper in
-/// another assembly could read them.
-/// </para>
+/// The union of every kind's fields, discriminated by <see cref="Type"/>; only the fields belonging to that
+/// kind are populated.
 /// </remarks>
 public readonly record struct ProvenanceSnapshot
 {

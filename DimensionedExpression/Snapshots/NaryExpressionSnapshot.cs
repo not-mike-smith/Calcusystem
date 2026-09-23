@@ -9,7 +9,7 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// <param name="Type">Which expression this snapshot rebuilds into.</param>
 /// <param name="Id">Stable identity.</param>
 /// <param name="InnerIds">Ids of the children, in order.</param>
-/// <param name="UncertaintyCorrelation">Whether the children's errors are treated as correlated.</param>
+/// <param name="UncertaintyCorrelation">Whether the children's uncertainties are treated as correlated.</param>
 public readonly record struct NaryExpressionSnapshot(
     NaryExpressionType Type,
     string Id,

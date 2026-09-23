@@ -9,15 +9,11 @@ namespace Calcusystem.Measurement.Primitives;
 
 /// <summary>
 /// The physical dimension of a quantity, represented as a map from each <see cref="FundamentalDimension"/>
-/// to its integer exponent (e.g. velocity is Length¹·Time⁻¹). Exponents of zero are stripped, so any two
-/// dimensionally-equal values compare equal regardless of how they were built. Supports dimensional algebra
-/// via the <c>*</c> and <c>/</c> operators; integer roots (via <c>/ int</c>) require every exponent to divide
-/// evenly, throwing <see cref="NondiscreteDimensionalityException"/> otherwise.
+/// to its integer exponent (e.g. velocity is Length¹·Time⁻¹).
 /// </summary>
 /// <remarks>
 /// A <c>readonly</c> value type: the <c>default</c> value (no backing dictionary) behaves as
-/// <see cref="Dimensionless"/>. Instances are constructed through the static fundamental-dimension fields and
-/// the algebra operators, not directly. Combine the fields to express derived dimensions, e.g.
+/// <see cref="Dimensionless"/>. Combine the fields to express derived dimensions, e.g.
 /// <c>Mass * Length / (Time * Time)</c> for force.
 /// </remarks>
 public readonly struct Dimensionality : ISnapshotting<Dimensionality, DimensionalitySnapshot>
@@ -140,7 +136,7 @@ public readonly struct Dimensionality : ISnapshotting<Dimensionality, Dimensiona
                     : x * Math.Pow(pair.Key.PlausibleMaximum, pair.Value));
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>Ordered by <see cref="FundamentalDimension.Order"/>, so a consumer that writes the pairs out in
     /// iteration order gets a stable result for dimensionally-equal values without having to sort them itself.
     /// </remarks>

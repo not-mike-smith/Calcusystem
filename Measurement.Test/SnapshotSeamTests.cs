@@ -16,7 +16,7 @@ namespace Calcusystem.Measurement.Test;
 /// <summary>
 /// Covers the persistence seam: <see cref="IUncertainty.GetSnapshot"/> / <see cref="ISnapshotting{TSelf,TSnapshot}"/> out,
 /// <see cref="UncertaintyFactory.FromSnapshot"/> / <c>FromSnapshot</c> back. A round trip must preserve the stored form,
-/// not merely an equivalent error band — storing 0 as an absolute error means something different from storing it
+/// not merely an equivalent uncertainty band — storing 0 as an absolute uncertainty means something different from storing it
 /// as a relative one.
 /// </summary>
 public class SnapshotSeamTests
@@ -47,7 +47,7 @@ public class SnapshotSeamTests
 
         var rebuilt = UncertaintyFactory.FromSnapshot(snapshot);
 
-        // The storage form is what makes an error at zero meaningful; a round trip must not quietly convert it.
+        // The storage form is what makes an uncertainty at zero meaningful; a round trip must not quietly convert it.
         rebuilt.AbsoluteUncertainty(0.0).Should().Be(original.AbsoluteUncertainty(0.0));
         rebuilt.RelativeUncertainty(0.0).Should().Be(double.PositiveInfinity);
     }

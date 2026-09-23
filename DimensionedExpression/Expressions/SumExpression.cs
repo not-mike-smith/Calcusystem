@@ -11,9 +11,9 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// N-ary sum (<c>+</c>) over its <see cref="Addends"/>, which must all share a dimensionality (enforced in the
 /// constructor, which can also seed a fixed dimensionality for an otherwise-empty sum).
-/// <br/>
+/// <br/><br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> addition using the
-/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/> method.
+/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/>.
 /// </summary>
 public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<SumExpression, NaryExpressionSnapshot>
 {
@@ -36,7 +36,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnaps
     public IReadOnlyList<IExpression> Addends => _addends;
     public override bool IsFullyDescribed => _addends.All(a => a.IsFullyDescribed);
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>Addends are read in declaration order, so an addend listed twice contributes twice.</remarks>
     public override Measurand? ComputeFrom(
         IReadOnlyDictionary<IExpression, Measurand> known,
@@ -44,7 +44,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnaps
     {
         if (_addends.Count == 0 || _addends.Any(a => ! known.ContainsKey(a))) return null;
 
-        // One n-ary call rather than folding pairwise: the propagator combines all the errors at once instead
+        // One n-ary call rather than folding pairwise: the propagator combines all the uncertainties at once instead
         // of building an intermediate Measurand per addend.
         return Measurand.Sum(UncertaintyCorrelation, propagator, _addends.Select(a => known[a]));
     }

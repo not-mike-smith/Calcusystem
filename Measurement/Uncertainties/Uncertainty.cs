@@ -13,7 +13,7 @@ namespace Calcusystem.Measurement.Uncertainties;
 /// makes sense to a deserializer.
 /// </para>
 /// <para>
-/// Relative error is taken as a <see cref="RelativeUncertainty"/> rather than a bare <see langword="double"/>. A number
+/// Relative uncertainty is taken as a <see cref="RelativeUncertainty"/> rather than a bare <see langword="double"/>. A number
 /// on its own cannot say whether it means a fraction of the value or an amount of it — the ambiguity this
 /// library exists to eliminate everywhere else.
 /// </para>
@@ -23,19 +23,19 @@ public static class Uncertainty
     /// <summary>No uncertainty at all: the value is exact.</summary>
     public static SymmetricUncertainty Exact() => SymmetricUncertainty.Exact();
 
-    /// <summary>Equal error above and below, as a fraction of the value.</summary>
+    /// <summary>Equal uncertainty above and below, as a fraction of the value.</summary>
     public static SymmetricUncertainty Relative(RelativeUncertainty relativeUncertainty) =>
         SymmetricUncertainty.FromRelative(relativeUncertainty.Value);
 
-    /// <summary>Equal error above and below, as a dimensioned amount.</summary>
+    /// <summary>Equal uncertainty above and below, as a dimensioned amount.</summary>
     public static SymmetricUncertainty Absolute(Quantity absoluteUncertainty) =>
         SymmetricUncertainty.FromAbsolute(absoluteUncertainty);
 
-    /// <summary>Independent errors above and below, each a fraction of the value.</summary>
+    /// <summary>Independent uncertainties above and below, each a fraction of the value.</summary>
     public static AsymmetricUncertainty Relative(RelativeUncertainty upper, RelativeUncertainty lower) =>
         AsymmetricUncertainty.FromRelative(upper.Value, lower.Value);
 
-    /// <summary>Independent errors above and below, each a dimensioned amount.</summary>
+    /// <summary>Independent uncertainties above and below, each a dimensioned amount.</summary>
     public static AsymmetricUncertainty Absolute(Quantity upper, Quantity lower) =>
         AsymmetricUncertainty.FromAbsolute(upper, lower);
 }

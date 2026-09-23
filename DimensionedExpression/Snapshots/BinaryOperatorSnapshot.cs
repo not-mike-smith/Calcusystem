@@ -5,23 +5,20 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
 /// The complete snapshot of any binary operator. Every operator has the same shape — two operand references
-/// plus annotations — so one record with a <see cref="Type"/> discriminator covers all thirteen.
+/// plus annotations — so one record with a <see cref="Type"/> discriminator covers every one.
 /// </summary>
 /// <param name="Type">Which operator this snapshot rebuilds into.</param>
 /// <param name="Id">Stable identity.</param>
 /// <param name="LhsId">Id of the left-hand expression.</param>
 /// <param name="RhsId">Id of the right-hand expression.</param>
 /// <param name="SolvingRole">
-/// What this relationship does to the problem. Stored as the role rather than as the derived
-/// <c>IsDetermining</c> boolean, because that flattens <c>Equation</c> and <c>Coherence</c> together and they
-/// cannot be told apart again on load. Only the equality kind can store anything but
-/// <see cref="Enums.SolvingRole.Requirement"/>; for every other kind reconstruction ignores it,
-/// because those types have no way to represent it.
+/// What this relationship does to the problem. Only the equality kind can store anything but
+/// <see cref="Enums.SolvingRole.Requirement"/>; reconstruction ignores it for every other kind, which has no
+/// way to represent one.
 /// </param>
 /// <param name="Agreement">
-/// How strictly an equality reads "equal", and null for every other kind. Stored rather than left to the
-/// reader: without it the wire says a relationship is an equality and nothing about what equality means, so two
-/// readers can reach opposite verdicts from identical bytes.
+/// How strictly an equality reads "equal", and null for every other kind. Reconstruction refuses an equality
+/// that has none rather than guessing a reading.
 /// </param>
 /// <param name="Rule">
 /// The comparison a <see cref="BinaryOperatorType.SimpleComparison"/> asserts, and null for every other kind,

@@ -4,14 +4,11 @@ using Calcusystem.Measurement.Enums;
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
-/// Satisfied when the entire Lhs uncertainty interval [Lhs ± Lhs.error] is strictly contained within
-/// the Rhs tolerance band [Rhs ± Rhs.error]. Both the lower and upper bounds of Lhs must lie inside
+/// Satisfied when the entire Lhs uncertainty interval [Lhs ± Lhs.uncertainty] is strictly contained within
+/// the Rhs tolerance band [Rhs ± Rhs.uncertainty]. Both the lower and upper bounds of Lhs must lie inside
 /// the Rhs interval; the Lhs interval touching the Rhs boundary does not satisfy this operator.
-/// <br/>
+/// <br/><br/>
 /// Symbol: <b>[=}</b>
-/// <br/>
-/// Use for worst-case bilateral conformance checks where no part of the measurement's uncertainty range
-/// may fall outside the specification.
 /// </summary>
 /// <remarks>
 /// The only containment operator with a bracket rather than a dot on the left, and the only strict one. Its
@@ -24,7 +21,7 @@ public class WhollyWithinToleranceOperator : NonCommutativeOperatorBase
 
     public override string Symbol => "[=}";
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The containment ladder's <c>WhollyWithin</c> rung. Strict on both bounds, which is what separates it from
     /// the rest of the family — see the class summary.

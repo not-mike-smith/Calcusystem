@@ -6,31 +6,28 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Satisfied when the Lhs and Rhs agree, to the strictness named by <see cref="AgreementRule"/>.
-/// <br/>
-/// Symbol: <b>·==·</b>, <b>{·==·}</b> or <b>{&gt;=&lt;}</b> — each is the tolerance operator asserting the same
-/// condition with an <c>=</c> inserted at its centre, which is what marks the equality family.
-/// <br/>
-/// Use when two quantities are expected to be the same, and say how nearly the same they must be.
+/// <br/><br/>
+/// Symbol: <b>·==·</b>, <b>{·==·}</b>, or <b>{&gt;=&lt;}</b>
 /// </summary>
 /// <remarks>
-/// <para>
-/// The only operator whose <see cref="SolvingRole"/> can be anything but a requirement: an equality is the one
-/// relation from which a solver can derive a value. Which of the three a given instance is remains the
-/// modeller's call, so <paramref name="solvingRole"/> has no default — every construction states its intent.
-/// </para>
-/// <para>
-/// <paramref name="agreementRule"/> has no default for the same reason. "Equal" is not one thing for measured
-/// values, and picking a reading on the modeller's behalf is what let equality semantics go unrecorded for as
-/// long as they did.
-/// </para>
+/// The only operator whose <see cref="SolvingRole"/> can be anything but a requirement.
 /// </remarks>
 /// <param name="agreementRule">How strictly "equal" is read — see <see cref="Enums.AgreementRule"/>.</param>
 /// <param name="solvingRole">
+/// <list type="bullet">
+/// <item>
 /// <see cref="Enums.SolvingRole.Equation"/> when this defines a quantity the solver may compute
-/// (<c>mass_in == mass_out</c>); <see cref="Enums.SolvingRole.Coherence"/> when it asserts that
-/// two independently computed routes to one quantity agree (<c>T_eos == T_path</c>);
+/// (<c>mass_in == mass_out</c>).
+/// </item>
+/// <item>
+/// <see cref="Enums.SolvingRole.Coherence"/> when it asserts that
+/// two independently computed routes to one quantity agree (<c>T_eos == T_path</c>).
+/// </item>
+/// <item>
 /// <see cref="Enums.SolvingRole.Requirement"/> when it checks a value against a criterion
 /// (<c>measured_T == design_T</c>).
+/// </item>
+/// </list>
 /// </param>
 public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRole)
     : CommutativeOperatorBase
@@ -48,7 +45,7 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// </remarks>
     public AgreementRule Agreement { get; } = agreementRule;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// <para>
     /// One rule, applied three times: <b>take the symbol of the operator asserting the same condition and insert
@@ -57,20 +54,8 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// notation is for.
     /// </para>
     /// <para>
-    /// It also cannot break the commutativity invariant, and not by luck: <c>=</c> is its own mirror image and
-    /// the centre is the fixed point of mirror-reversal, so inserting one there maps a palindrome to a
-    /// palindrome. That is what ruled out the earlier <c>≃=</c> and <c>≈=</c> — a <i>trailing</i> marker reads
-    /// the same way round from one side only, which is exactly what a commutative relation must not do.
-    /// </para>
-    /// <para>
-    /// <c>·==·</c> rather than the conventional <c>==</c> deliberately. "Equal" is not one thing for measured
-    /// values — that is why <see cref="Enums.AgreementRule"/> exists — and <c>==</c> is silent about
-    /// which statistic participates, while <c>·==·</c> says the reported values and nothing else.
-    /// </para>
-    /// <para>
-    /// Asserting the same rules as the tolerance operators is deliberate too. Those state the condition as a
-    /// requirement; an equality can additionally be an <see cref="Enums.SolvingRole.Equation"/>
-    /// or a <see cref="Enums.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
+    /// Not the conventional <c>==</c>, which is silent about which statistic participates; <c>·==·</c> says the
+    /// reported values and nothing else. See <c>BinaryOperators/OPERATORS.md</c> for the notation in full.
     /// </para>
     /// </remarks>
     public override string Symbol => Agreement switch
@@ -85,7 +70,7 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// <inheritdoc/>
     public override SolvingRole SolvingRole { get; } = solvingRole;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The looser two readings borrow their rules from <see cref="ContainmentLadder"/>, so an equality asserting
     /// mutual containment and the operator named after that rung are the same condition rather than two

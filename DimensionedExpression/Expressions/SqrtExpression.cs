@@ -11,16 +11,17 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// Unary square root of any <see cref="IExpression"/>. The result's dimensionality is the argument's with every
 /// exponent halved (e.g. √(m²·s⁻²) → m·s⁻¹), so every exponent must be even — an odd exponent throws
-/// <see cref="Measurement.Exceptions.NondiscreteDimensionalityException"/>. A negative argument value yields a
-/// NaN result.
-/// <br/>
+/// <see cref="Measurement.Exceptions.NondiscreteDimensionalityException"/>.
+/// <br/><br/>
+/// A negative argument value yields a NaN result.
+/// <br/><br/>
 /// Uncertainty follows the power rule: RelativeUncertainty(√x) = ½·RelativeUncertainty(x).
 /// </summary>
 public class SqrtExpression : ExpressionBase, IExpression, ISnapshottingNode<SqrtExpression, UnaryExpressionSnapshot>
 {
     private readonly IExpression _argument;
 
-    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
+    public SqrtExpression(IExpression argument, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         _argument = argument;
     }

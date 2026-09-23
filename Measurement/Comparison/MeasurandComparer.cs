@@ -5,22 +5,13 @@ using Calcusystem.Measurement.Extensions;
 namespace Calcusystem.Measurement.Comparison;
 
 /// <summary>
-/// Compares one <see cref="Landmark"/> of a measurand against one landmark of another, three ways plus
+/// Compares one <see cref="Landmark"/> of a <see cref="Measurand"/> against one landmark of another, three ways plus
 /// "incomparable".
 /// </summary>
 /// <remarks>
-/// <para>
 /// The single place a numeric comparison happens. Everything above it — the operators, the confidence ladders —
 /// selects <i>which</i> landmarks to compare and what to do with the answer; none of them decides what "less
 /// than" means.
-/// </para>
-/// <para>
-/// Concrete rather than an injected strategy, deliberately. A strategy cannot be serialized, so a wire format
-/// carrying only "this is an equality" leaves the reader to supply the semantics — two readers then get
-/// different verdicts from identical bytes. It also has to be well behaved for the confidence ladders to hold
-/// together: their implication chains assume the set of values judged equal to a given <c>y</c> is a contiguous
-/// interval containing <c>y</c>, which an arbitrary strategy need not satisfy and this does.
-/// </para>
 /// </remarks>
 public static class MeasurandComparer
 {
@@ -106,24 +97,15 @@ public static class MeasurandComparer
     /// The smallest finite uncertainty bar either measurand actually has, or zero if neither has one.
     /// </summary>
     /// <remarks>
-    /// <para>
     /// The finest resolution present sets the threshold: if one instrument resolves to 1e-18, then 1e-15 is a
-    /// real quantity and not noise, whatever the other instrument can see.
-    /// </para>
-    /// <para>
-    /// Exact values are skipped rather than counted as zero. An operand with no uncertainty does not make the
-    /// other one better resolved — it simply has no opinion — and letting a zero win the minimum would collapse
-    /// the threshold to the dimensional floor. That matters because comparing a measurement against an exact
-    /// limit of zero is ordinary: with the zero counted, <c>1e-20 ± 1e-9</c> reports as strictly less than an
-    /// exact <c>0</c>, though nothing about that measurement can tell the two apart.
-    /// </para>
-    /// <para>
-    /// Infinite uncertainty bars are skipped for the opposite reason, and the omission was a real defect: an infinite
-    /// bar made the threshold infinite, so <i>every</i> pair of finite values came back
-    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreed with 10 kg. An unbounded uncertainty says the
-    /// measurement resolves nothing, which is not the same as saying two values are the same, and it must not be
-    /// allowed to set a scale for anything.
-    /// </para>
+    /// real quantity rather than noise, whatever the other can see. A bar that is exact or infinite says
+    /// nothing about resolution, so neither is counted — and counting either would break the threshold:
+    /// <list type="bullet">
+    /// <item>A zero collapses it to the dimensional floor, making <c>1e-20 ± 1e-9</c> strictly less than an
+    /// exact <c>0</c>.</item>
+    /// <item>An infinity raises it without limit, making every pair of finite values
+    /// <see cref="ComparisonResult.Equal"/> — 5 kg agreeing with 10 kg.</item>
+    /// </list>
     /// </remarks>
     private static double FinestNonZeroUncertainty(Measurand l, Measurand r)
     {

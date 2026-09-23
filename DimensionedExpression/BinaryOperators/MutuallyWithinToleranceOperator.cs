@@ -5,17 +5,18 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 /// <summary>
 /// Satisfied when each side's nominal value falls within the other side's tolerance band — i.e.
-/// Lhs ∈ [Rhs ± Rhs.error] AND Rhs ∈ [Lhs ± Lhs.error]. The check is symmetric.
-/// <br/>
+/// Lhs ∈ [Rhs ± Rhs.uncertainty] AND Rhs ∈ [Lhs ± Lhs.uncertainty]. The check is symmetric.
+/// <br/><br/>
 /// Symbol: <b>{·=·}</b>
-/// <br/>
-/// Use when two independently measured quantities are expected to agree within their own stated uncertainties.
 /// </summary>
+/// <remarks>
+/// Use when two independently measured quantities are expected to agree within each other's stated uncertainties.
+/// </remarks>
 public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
 {
     protected override BinaryOperatorType Type => BinaryOperatorType.MutuallyWithinTolerance;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// A brace on each side says both operands act as bands; the dot beside each <c>=</c> says it is the
     /// reported value that must land inside the other's. Being a mirror-palindrome is not decoration — it is
@@ -23,7 +24,7 @@ public class MutuallyWithinToleranceOperator : CommutativeOperatorBase
     /// </remarks>
     public override string Symbol => "{·=·}";
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Nominal containment stated in both directions, and written out rather than derived by mirroring: because
     /// a rule names the landmark on each side independently, "the band's reported value lies between my bounds"

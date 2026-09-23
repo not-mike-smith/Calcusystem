@@ -92,3 +92,27 @@ check.Symbol;                                  // ·=}
 [`OPERATORS.md`](OPERATORS.md) — the full taxonomy, every symbol, and the exact interval
 condition each operator tests.
 `Interfaces/` · `Enums/` · `Snapshots/` · `Calcusystem.Measurement.Comparison`.
+
+---
+
+## Appendix: two shapes that look like oversights
+
+Both of these were argued in doc comments, where a reader hovering over a member does not need
+them. They are recorded here instead.
+
+### A `ComparisonRule` is not an `IBinaryOperator`, deliberately
+
+A rule carries no identity, no operands and no provenance — an operator holds rules, a rule
+holds nothing. Composing operators out of child operators would duplicate all three and force
+the wire format to carry them twice, for a structure that is never shared and never referenced.
+
+It follows that a rule is a pure value: two rules spelling the same comparison are equal, and
+one can be declared inline without minting anything.
+
+### `Rules` is public
+
+It would work as a private detail — the base class is the only thing that evaluates it. It is
+public because it is the operator's own account of what it checks, and **a report naming
+*which* comparison failed needs the terms, not just the verdict.** An operator that hid its
+rules could report that a tolerance check failed but not that the subject's ceiling was the
+side that fell outside.

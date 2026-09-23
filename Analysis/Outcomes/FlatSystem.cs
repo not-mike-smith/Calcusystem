@@ -10,15 +10,16 @@ namespace Calcusystem.Analysis.Outcomes;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This is deliberately a <i>flat</i> form rather than a walk over the system's object structure, because the
-/// two stop agreeing as soon as systems compose. Connecting sub-systems maps their variables onto each other, so
-/// an identity connection merges two unknowns while adding no equation — meaning composed degrees of freedom is
-/// not the sum of its parts. Flattening first and analysing once keeps a forty-stage column identical in
-/// treatment to a single stage.
+/// Deliberately a <i>flat</i> form rather than a walk over the system's object structure, because the two stop
+/// agreeing as soon as systems compose: connecting sub-systems maps their variables onto each other, so an
+/// identity connection merges two unknowns while adding no equation. Composed degrees of freedom is therefore
+/// not the sum of its parts, and flattening first keeps a forty-stage column identical in treatment to one
+/// stage.
 /// </para>
 /// <para>
-/// Only a <see cref="Variable"/> is ever an unknown. A computed node is determined the moment its leaves are, so
-/// admitting one would add a column and force a compensating row, changing nothing but the size of the problem.
+/// Only a <see cref="Variable"/> is ever an unknown. A computed node is determined the moment its leaves are,
+/// so admitting one would add a column and force a compensating row, changing nothing but the size of the
+/// problem.
 /// </para>
 /// </remarks>
 /// <param name="Unknowns">The distinct unset variables the system must resolve.</param>
@@ -31,9 +32,8 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Only equations with an incident unknown count. One with none determines nothing, so subtracting for it
-    /// claimed a degree of freedom had been removed when none had — enough to report a system as square while a
-    /// variable in it sat untouched. Those rows are still worth having, as <see cref="RedundantEquations"/>.
+    /// Only equations with an incident unknown count: one with none determines nothing. Those rows are still
+    /// reported, as <see cref="RedundantEquations"/>.
     /// </para>
     /// <para>
     /// <b>This counts equations; it does not check that they are independent.</b> Zero is therefore a necessary
@@ -47,12 +47,9 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
 
     /// <summary>How <see cref="DegreesOfFreedom"/> classifies this system.</summary>
     /// <remarks>
-    /// A verdict on the <i>solve</i>, and a pure function of the count — deliberately not also a verdict on how
-    /// much redundancy the model carries. The two are orthogonal: a redundant equation touches no unknown, so it
-    /// can sit on an under-, exactly-, or over-determined system alike without changing any of them. Folding it
-    /// in here would report a square system with one redundant check as over-determined, which is false — its
-    /// solve is square, and the check is about values that were already known. Redundancy is reported by
-    /// <see cref="RedundantEquations"/>, and its pass/fail belongs to a calculation's relationship outcomes.
+    /// A verdict on the <i>solve</i>, not on how much redundancy the model carries. A redundant equation
+    /// touches no unknown, so it can sit on an under-, exactly-, or over-determined system alike without
+    /// changing any of them; <see cref="RedundantEquations"/> reports those separately.
     /// </remarks>
     public Determination Determination => DegreesOfFreedom switch
     {
@@ -66,10 +63,8 @@ public sealed record FlatSystem(IReadOnlyList<Variable> Unknowns, IReadOnlyList<
     /// determine.
     /// </summary>
     /// <remarks>
-    /// Not a defect in the model, and not a degree of freedom either way. A determining equality over values
-    /// that are all known is a redundancy check, and redundancy is the interesting case: agreeing sides
-    /// corroborate a result, disagreeing sides mean the model or the measurements are inconsistent. Surfaced
-    /// separately because their verdicts are findings, not because they affect the count.
+    /// Not a defect: agreeing sides corroborate a result and disagreeing sides are a real finding. They are
+    /// still evaluated, and still produce an outcome — they just remove no degree of freedom.
     /// </remarks>
     public IEnumerable<Equation> RedundantEquations => Equations.Where(e => e.Unknowns.Count == 0);
 

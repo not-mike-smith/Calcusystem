@@ -5,10 +5,25 @@ using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Uncertainties;
 
+/// <summary>
+/// The default <see cref="IUncertaintyPropagator"/>: combines operands by root-sum-of-squares when they are
+/// uncorrelated and by direct sum when they are correlated.
+/// </summary>
+/// <remarks>
+/// Conservative in two senses. It takes the larger of an asymmetric operand's two magnitudes when it needs one
+/// number, and it preserves asymmetry rather than averaging it away: all-symmetric operands give a
+/// <see cref="SymmetricUncertainty"/>, and any asymmetric operand gives an <see cref="AsymmetricUncertainty"/>.
+/// </remarks>
 public class ConservativeGaussianPropagator : IUncertaintyPropagator
 {
+    /// <summary>The shared instance. The propagator holds no state, so one serves every caller.</summary>
     public static ConservativeGaussianPropagator Instance { get; } = new ConservativeGaussianPropagator();
 
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>
+    /// Sums combine <i>absolute</i> magnitudes, and the result stores one. Relative magnitudes would need
+    /// dividing by the sum, which is not defined when the addends cancel to zero.
+    /// </remarks>
     public IUncertainty PropagateThroughSum(
         UncertaintyCorrelation method,
         params Measurand[] measurands)
@@ -46,11 +61,13 @@ public class ConservativeGaussianPropagator : IUncertaintyPropagator
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-        // Store the propagated error as an absolute value rather than dividing by the (possibly zero) sum —
-        // this is what keeps a sum that cancels to zero well-defined.
         return SymmetricUncertainty.FromKmsAbsErr(absoluteUncertainty);
     }
 
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>
+    /// Products combine <i>relative</i> magnitudes, and the result stores one.
+    /// </remarks>
     public IUncertainty PropagateThroughProduct(
         UncertaintyCorrelation method,
         params Measurand[] measurands)

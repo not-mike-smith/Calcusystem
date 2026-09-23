@@ -24,21 +24,10 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// The comparisons this operator asserts, taken together. Every one must hold for the operator to be
     /// satisfied.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// What each operator <i>declares</i> in place of the interval arithmetic it used to write. All thirteen
-    /// turned out to be conjunctions of landmark comparisons, so the conjunction is stated once here and the
-    /// operators state only their own terms — which also makes the assertion readable without following it into
-    /// an implementation.
-    /// </para>
-    /// <para>
-    /// Exposed rather than private because it is the operator's own account of what it checks, and a report that
-    /// wants to say <i>which</i> comparison failed needs the terms, not just the verdict.
-    /// </para>
-    /// </remarks>
+    /// <remarks>Public so a report can name <i>which</i> comparison failed, not just that one did.</remarks>
     public abstract IReadOnlyList<ComparisonRule> Rules { get; }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Implemented once over <see cref="Rules"/>. Kleene conjunction, so a rule that cannot be answered leaves
     /// the verdict unknown rather than failing it — see <see cref="ComparisonRule.AllSatisfied"/>.
@@ -46,10 +35,10 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     public virtual bool? IsSatisfiedGiven(Measurand lhs, Measurand rhs) =>
         ComparisonRule.AllSatisfied(Rules, lhs, rhs);
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Implemented once here rather than on each operator: resolving both sides and answering null if either is
-    /// missing is identical for all thirteen, and only the comparison below the guard differs. That comparison is
+    /// missing is identical for every operator, and only the comparison below the guard differs. That comparison is
     /// <see cref="IsSatisfiedGiven"/>, which is also what a calculation calls directly with values it has
     /// already computed.
     /// </remarks>
@@ -66,11 +55,11 @@ public abstract class BinaryOperatorBase : IBinaryOperator
         return IsSatisfiedGiven(lhs, rhs);
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Virtual rather than abstract, and a requirement by default, because anything else is the exception: only
     /// the equality family can derive a value. An operator that overrides this takes the role through its own
-    /// constructor, so the twelve that do not override it have no way to be constructed claiming otherwise.
+    /// constructor, so every operator that does not override it has no way to be constructed claiming otherwise.
     /// </remarks>
     public virtual SolvingRole SolvingRole => SolvingRole.Requirement;
 
@@ -88,12 +77,12 @@ public abstract class BinaryOperatorBase : IBinaryOperator
 
     /// <summary>
     /// Returns this operator's complete snapshot. Every operator has the same shape — two operand
-    /// references plus annotations — so this is implemented once here rather than thirteen times.
+    /// references plus annotations — so this is implemented once here rather than on every operator.
     /// </summary>
     /// <remarks>
     /// Virtual for the one operator that carries state of its own: <see cref="EqualityOperator"/> adds its
     /// agreement rule on top of what is captured here. Overriding beats a hook on this class, which would put a
-    /// member for equality's semantics on the twelve operators that have none.
+    /// member for equality's semantics on every operator that has none.
     /// </remarks>
     public virtual BinaryOperatorSnapshot GetSnapshot() =>
         new(Type, Id, Lhs.Id, Rhs.Id, SolvingRole, null, null, Name, Description, Provenance?.GetSnapshot());

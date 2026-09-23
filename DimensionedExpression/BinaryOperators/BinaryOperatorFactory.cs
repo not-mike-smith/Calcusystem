@@ -10,7 +10,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// Rebuilds binary operators from a captured snapshot. The counterpart to <c>BinaryOperatorBase.GetSnapshot</c>.
 /// </summary>
 /// <remarks>
-/// A gateway rather than a per-type <c>FromSnapshot</c>: construction is identical across all thirteen operators
+/// A gateway rather than a per-type <c>FromSnapshot</c>: construction is identical across every operator
 /// apart from which type is instantiated, so per-type implementations would be pure duplication.
 /// </remarks>
 public static class BinaryOperatorFactory

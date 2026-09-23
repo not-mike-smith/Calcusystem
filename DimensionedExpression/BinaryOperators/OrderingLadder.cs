@@ -32,11 +32,9 @@ public readonly record struct OrderingRung(OrderingDirection Direction, Ordering
 /// <see cref="OrderingConfidence.Possible"/>, each following from a nominal value lying inside its own interval.
 /// </para>
 /// <para>
-/// <b>A classifier, not an evaluator.</b> It used to be a record struct that computed all three tiers eagerly,
-/// which was waste dressed up as insight: an operator asserts one rung and discards the rest, and nothing in the
-/// library ever wanted the other two. Worse, it put the ladder between an operator and the comparison it makes,
-/// so reading <c>DefinitelyLessThanOperator</c> meant knowing that tiers are less-than by convention unless
-/// marked otherwise. Operators now declare their own rules plainly, and the ladder is asked afterwards.
+/// <b>A classifier, not an evaluator.</b> Nothing is computed until a rung is asked for, and operators do not
+/// route through it: each declares its own rules plainly, and the ladder places them afterwards. That is why
+/// reading <c>DefinitelyLessThanOperator</c> does not require knowing which direction a tier implies.
 /// </para>
 /// <para>
 /// What the ladder is genuinely for is <i>reporting</i>. A modeller who writes <c>·&lt;·</c> and gets
@@ -64,17 +62,9 @@ public static class OrderingLadder
 
     /// <summary>The comparison that tests a given rung.</summary>
     /// <remarks>
-    /// <para>
-    /// The <see cref="OrderingDirection.Below"/> rules are the definitions; <see cref="OrderingDirection.Above"/>
-    /// is each one mirrored. That is still one declaration serving two directions, but the mirroring now happens
-    /// where a direction was explicitly asked for rather than silently inside an operator's declaration.
-    /// </para>
-    /// <para>
-    /// <see cref="OrderingConfidence.Certain"/> is <c>aU &lt; bL</c>, <see cref="OrderingConfidence.Nominal"/> is
-    /// <c>a &lt; b</c>, and <see cref="OrderingConfidence.Possible"/> is <c>aL &lt; bU</c>. All three are strict:
-    /// comparison is tolerance-aware, so a non-strict variant would differ only on values already judged the
-    /// same number.
-    /// </para>
+    /// The <see cref="OrderingDirection.Below"/> rules are the definitions and
+    /// <see cref="OrderingDirection.Above"/> is each one mirrored. All three tiers are strict; see
+    /// <c>BinaryOperators/OPERATORS.md</c> for the conditions and why there are no non-strict variants.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="confidence"/> is <see cref="OrderingConfidence.Contradicted"/>, which is the absence of

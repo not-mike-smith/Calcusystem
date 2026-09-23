@@ -12,9 +12,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>
 /// A mutable leaf expression — a named quantity whose <see cref="Value"/> is set directly. Construct it unset
 /// (dimensionality only) or with an initial <see cref="Measurand"/>; assigning a value of the wrong
-/// dimensionality throws <see cref="IncompatibleDimensionsException"/>. <c>DegreesOfFreedom</c> is 0 once
-/// valued, else 1.
-/// <br/>
+/// dimensionality throws <see cref="IncompatibleDimensionsException"/>.
+/// <br/><br/>
 /// Optionally carries an <see cref="IProvenance"/> recording where its value came from; purely descriptive, it
 /// never affects evaluation.
 /// </summary>
@@ -28,7 +27,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public Variable(
         string symbol,
         Dimensionality dimensionality,
-        string id = Constants.CREATE_NEW_ID)
+        string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
         
@@ -39,7 +38,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public Variable(
         string symbol,
         Measurand measurand,
-        string id = Constants.CREATE_NEW_ID)
+        string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
         Dimensionality = measurand.Dimensionality;
@@ -51,11 +50,11 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public override bool IsFullyDescribed => Value != null;
     public override Dimensionality Dimensionality { get; }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>A leaf: a variable is computed from nothing, so it has no children.</remarks>
     public override IEnumerable<IExpression> Children => [];
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// A leaf has nothing to combine, so it answers with its own entry if one was supplied and its stored value
     /// otherwise. That is the whole of the override mechanism: a caller seeds a trial value for this variable
@@ -104,7 +103,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
         _value?.GetSnapshot(),
         Provenance?.GetSnapshot());
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// An unset variable keeps its declared dimensionality; a bound one takes its dimensionality from the
     /// measurand, which the constructor requires to agree with it anyway.

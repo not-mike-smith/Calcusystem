@@ -58,16 +58,16 @@ public readonly struct Quantity : ISnapshotting<Quantity, QuantitySnapshot>
     /// <summary>This value with no uncertainty at all — exact.</summary>
     public Measurand WithoutUncertainty() => Measurand(Uncertainty.Exact());
 
-    /// <summary>This value with equal error above and below, as a fraction of it.</summary>
+    /// <summary>This value with equal uncertainty above and below, as a fraction of it.</summary>
     public Measurand WithUncertainty(RelativeUncertainty relativeUncertainty) => Measurand(Uncertainty.Relative(relativeUncertainty));
 
-    /// <summary>This value with equal error above and below, as a dimensioned amount.</summary>
+    /// <summary>This value with equal uncertainty above and below, as a dimensioned amount.</summary>
     public Measurand WithUncertainty(Quantity absoluteUncertainty) => Measurand(Uncertainty.Absolute(absoluteUncertainty));
 
-    /// <summary>This value with independent errors above and below, each a fraction of it.</summary>
+    /// <summary>This value with independent uncertainties above and below, each a fraction of it.</summary>
     /// <remarks>
     /// Pass the arguments by name. Which bound is which is otherwise invisible at the call site, and swapping
-    /// them yields a plausible-looking error band rather than an obvious fault.
+    /// them yields a plausible-looking uncertainty band rather than an obvious fault.
     /// </remarks>
     public Measurand WithAsymmetricUncertainty(RelativeUncertainty upper, RelativeUncertainty lower) =>
         Measurand(Uncertainty.Relative(upper, lower));
@@ -251,7 +251,7 @@ public readonly struct Quantity : ISnapshotting<Quantity, QuantitySnapshot>
         return new Quantity(value, Dimensionality);
     }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>Implemented publicly, unlike the <see cref="IUncertainty"/> seam: a quantity's data is its value
     /// and its dimension, both of which are already public concepts here. Nothing is being hidden to protect.</remarks>
     public QuantitySnapshot GetSnapshot() => new(KmsValue, Dimensionality.GetSnapshot());

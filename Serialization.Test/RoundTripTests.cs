@@ -56,7 +56,7 @@ public class RoundTripTests
     public void AbsoluteUncertainty_RoundTrips()
     {
         var system = ExpressionSystem.Create("abs-unc", "absolute-error uncertainty on a zero value");
-        // value 0 carrying an absolute error — the case relative-only storage could not represent
+        // value 0 carrying an absolute uncertainty — the case relative-only storage could not represent
         system.Add(new Variable(
             "z",
             new Quantity(0, Dimensionality.Length).Measurand(SymmetricUncertainty.FromAbsolute(new Quantity(0.5, Dimensionality.Length))),

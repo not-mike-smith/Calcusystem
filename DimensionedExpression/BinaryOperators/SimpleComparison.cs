@@ -10,17 +10,9 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The general form of the ordering family. Six of these comparisons have named types because they are the ones
-/// engineers reach for constantly; this covers the rest without a class apiece. "My reported value must stay
-/// below your guaranteed floor" — <c>·&lt;⌟</c> — is an ordinary conservative acceptance criterion with no named
-/// operator, and it is three bytes of state here.
-/// </para>
-/// <para>
+/// The general form of the ordering family.
 /// <b>It deliberately overlaps the named types.</b> Configured with the nominal-against-nominal rule it is
-/// <c>NominallyLessThanOperator</c> in every respect including its symbol, which is why the symbol-uniqueness
-/// test excepts it: the two spell the same relation, so nothing is lost by a report that cannot tell them
-/// apart. The named types stay because they are the ergonomic spelling and because the wire format identifies
-/// operators by kind.
+/// <c>NominallyLessThanOperator</c> in every respect including its symbol — the two spell the same relation.
 /// </para>
 /// <para>
 /// Always a <see cref="SolvingRole.Requirement"/>. An ordering confines a value to an interval rather than
@@ -38,19 +30,9 @@ public class SimpleComparison : BinaryOperatorBase
     /// <paramref name="rule"/> accepts no outcome at all — see the remarks.
     /// </exception>
     /// <remarks>
-    /// <para>
-    /// <see cref="MustBe.Impossible"/> is refused, and it is the only mask that is. A rule accepting no
-    /// outcome is never satisfied, so it reports as a <i>violation</i> on every calculation — a finding against
-    /// the model that the model never asserted, which is worse than useless because someone will go looking for
-    /// it. And it is the enum's zero, so it is what an uninitialised mask reads as: refusing it here turns a
-    /// forgotten field into an error at the point it was forgotten.
-    /// </para>
-    /// <para>
-    /// <see cref="MustBe.Comparable"/> is <b>not</b> refused, though it looks like the same kind of mistake.
-    /// Under a three-valued seam it is not vacuous: it answers <see langword="true"/> when the two landmarks can
-    /// be compared and <see langword="null"/> when they cannot, so <c>⌜?⌝</c> asserts "both of these ceilings
-    /// are well-defined quantities" — a real thing to want to check, and one nothing else spells.
-    /// </para>
+    /// <see cref="MustBe.Impossible"/> is the only mask refused; it is the enum's zero, so refusing it turns a
+    /// forgotten field into an error where it was forgotten. <see cref="MustBe.Comparable"/> is allowed — it
+    /// asserts that both landmarks are well-defined quantities, which nothing else spells.
     /// </remarks>
     public SimpleComparison(ComparisonRule rule)
     {
@@ -71,7 +53,7 @@ public class SimpleComparison : BinaryOperatorBase
     /// <summary>The single comparison this relationship asserts.</summary>
     public ComparisonRule Rule { get; }
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// A rule is commutative exactly when mirroring leaves it unchanged — when its mask carries no ordering
     /// bias, so swapping the operands cannot change the answer. <c>·=·</c> and <c>·≠·</c> qualify; nothing with
@@ -79,7 +61,7 @@ public class SimpleComparison : BinaryOperatorBase
     /// </remarks>
     public override bool IsCommutative => Rule == Rule.Mirrored;
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// Generated from the rule rather than declared, since there is no fixed relation to name. This is the one
     /// operator whose notation is computed end to end, and the reason the glyph alphabet had to be systematic.

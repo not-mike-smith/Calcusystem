@@ -36,7 +36,7 @@ public class MeasurandComparerTests
     /// <remarks>
     /// Not <see cref="ComparisonResult.Equal"/> and not an ordering. Kilograms and metres are not <i>unequal</i>
     /// — answering that would let "not equal" read as true and put a confident ordering on quantities sharing no
-    /// scale. This is also the check no binary operator used to perform at all.
+    /// scale. No binary operator performs this check itself; it belongs here.
     /// </remarks>
     [Fact]
     public void DifferentDimensionsAreIncomparable()

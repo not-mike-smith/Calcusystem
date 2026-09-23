@@ -23,7 +23,7 @@ text  ──(your JSON lib)──▶  Dtos.ExpressionSystem  ──Deserializing
 
 An `ExpressionSystem` is a **graph**, not a tree — a single sub-expression can be shared by several parents, and operators point at expressions. Nesting that directly would duplicate shared nodes and can't represent sharing at all.
 
-Instead the graph is **flattened into id-keyed lists**. Every node keeps its string `Id` (see `IdBase` and `Constants.CREATE_NEW_ID` in `Calcusystem.Core`), and parents reference children **by id string**, never by nesting. Rebuilding the graph is then a matter of resolving those id references against a lookup table. This is why preserving `Id`s across a round-trip is essential.
+Instead the graph is **flattened into id-keyed lists**. Every node keeps its string `Id` (see `IdBase` and `IdBase.CREATE_NEW_ID` in `Calcusystem.Core`), and parents reference children **by id string**, never by nesting. Rebuilding the graph is then a matter of resolving those id references against a lookup table. This is why preserving `Id`s across a round-trip is essential.
 
 DTOs are bucketed by **structural arity**, not by domain type — the concrete type is recovered from a `Type` discriminator string within each bucket:
 

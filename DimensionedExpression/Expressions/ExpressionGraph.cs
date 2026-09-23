@@ -21,17 +21,9 @@ internal static class ExpressionGraph
     /// can be computed in without ever needing one that has not been produced yet.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// Iterative rather than recursive: nothing bounds how deep a graph can be, and a stack frame per node is an
-    /// avoidable way to fail. The visited set makes a node shared by several parents appear once, positioned
-    /// before the first of them.
-    /// </para>
-    /// <para>
-    /// That visited set also stops a cycle descending forever, but it does not make the answer meaningful — a
-    /// cycle leaves some node ordered before an operand it depends on, and a caller folding over the order would
-    /// find that operand absent and report a value as unresolvable when nothing is actually missing. So the
-    /// order is checked before it is handed out: every node must follow all of its own children.
-    /// </para>
+    /// A node shared by several parents appears once, before the first of them. The order is verified before it
+    /// is handed out — every node must follow all of its own children — because a visited set stops a cycle
+    /// descending forever without making the resulting order meaningful.
     /// </remarks>
     /// <exception cref="CyclicExpressionGraphException">The graph contains a cycle.</exception>
     internal static IReadOnlyList<IExpression> InDependencyOrder(IEnumerable<IExpression> roots)

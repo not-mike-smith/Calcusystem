@@ -13,22 +13,22 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary <c>ln(x)</c> over a dimensionless <see cref="IExpression"/>. The argument must be dimensionless
-/// (enforced on construction, the only point it can be supplied) and, to be meaningful, positive; a non-positive value yields a
+/// and, to be meaningful, positive; a non-positive value yields a
 /// NaN or negative-infinity result. The result is dimensionless.
-/// <br/>
+/// <br/><br/>
 /// Uncertainty: because <c>d(ln x) = dx/x</c>,
 /// AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x).
 /// </summary>
 /// <remarks>
-/// The uncertainty is inherently an absolute error and is stored as one (via <c>FromAbsolute</c>). At <c>x = 1</c>
-/// the result is 0; its <em>relative</em> error is undefined, but the absolute error is retained and
+/// The uncertainty is inherently an absolute uncertainty and is stored as one (via <c>FromAbsolute</c>). At <c>x = 1</c>
+/// the result is 0; its <em>relative</em> uncertainty is undefined, but the absolute uncertainty is retained and
 /// <c>RelativeUncertainty</c> reports <c>+∞</c> rather than throwing.
 /// </remarks>
 public class NaturalLogExpression : ExpressionBase, IExpression, ISnapshottingNode<NaturalLogExpression, UnaryExpressionSnapshot>
 {
     private readonly IExpression _argument;
 
-    public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
+    public NaturalLogExpression(IExpression argument, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;

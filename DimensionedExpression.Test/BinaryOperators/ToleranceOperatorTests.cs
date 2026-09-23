@@ -14,7 +14,7 @@ public class ToleranceOperatorTests
     private static Variable Symmetric(double kmsValue, double relativeUncertainty = 0) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(SymmetricUncertainty.FromRelative(relativeUncertainty)));
 
-    // Creates a bound Variable with independent upper/lower absolute errors (kg)
+    // Creates a bound Variable with independent upper/lower absolute uncertainties (kg)
     private static Variable Asymmetric(double kmsValue, double upperUncertainty, double lowerUncertainty) =>
         new("x", Mass.Kilogram.Quantity(kmsValue).Measurand(
             AsymmetricUncertainty.FromAbsolute(Mass.Kilogram.Quantity(upperUncertainty), Mass.Kilogram.Quantity(lowerUncertainty))));

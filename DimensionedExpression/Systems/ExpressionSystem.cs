@@ -17,7 +17,7 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// </summary>
     public static ExpressionSystem Create(string name, string description = "")
     {
-        return new ExpressionSystem(Constants.CREATE_NEW_ID)
+        return new ExpressionSystem(IdBase.CREATE_NEW_ID)
         {
             Name = name,
             Description = description,
@@ -148,7 +148,7 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         _derivedExpressions.Select(x => x.Id).ToList(),
         _relationships.Select(x => x.Id).ToList());
 
-    /// <inheritdoc/>
+    /// <summary><inheritdoc/></summary>
     /// <remarks>
     /// The system resolves two different node types — expressions in two of its lists, operators in the third.
     /// That is why resolution is a per-reference query rather than one typed delegate.

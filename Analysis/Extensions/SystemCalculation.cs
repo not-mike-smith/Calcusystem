@@ -11,10 +11,8 @@ namespace Calcusystem.Analysis.Extensions;
 /// Calculating a system: working out everything its current values and relationships determine.
 /// </summary>
 /// <remarks>
-/// An extension rather than a method on <see cref="ExpressionSystem"/> so that it reads as one
-/// (<c>system.Calculate()</c>) without the expression layer having to know about this one. That layer assembles
-/// and describes a graph and orchestrates nothing; keeping the dependency pointing this way is also what lets a
-/// second strategy — a solver, an interval evaluator — sit beside this one rather than inside the domain type.
+/// An extension rather than a method on <see cref="ExpressionSystem"/>, so it reads as <c>system.Calculate()</c>
+/// without the expression layer having to know about this one.
 /// </remarks>
 public static class SystemCalculation
 {
@@ -30,11 +28,8 @@ public static class SystemCalculation
     /// calculates at trial values without writing them into the model — see the assembly README.
     /// </param>
     /// <param name="propagator">
-    /// How uncertainties are combined, or null for the conservative Gaussian default. Orthogonal to a node's own
-    /// <c>UncertaintyCorrelation</c>: that records whether particular operands are correlated, which is a fact about
-    /// the model and is not this calculation's to overrule, while this is the numerical method for combining
-    /// uncertainties at all. Supplying a Monte Carlo propagator therefore re-runs the same model under a
-    /// different uncertainty treatment rather than discarding what the model says.
+    /// How uncertainties are combined, or null for the conservative Gaussian default. It does not override a
+    /// node's own <c>UncertaintyCorrelation</c>, which stays a fact about the model.
     /// </param>
     /// <remarks>
     /// Each node is computed once: nodes are visited in dependency order and handed the values already
@@ -84,11 +79,8 @@ public static class SystemCalculation
     /// predicate about them.
     /// </summary>
     /// <remarks>
-    /// The reason verdicts are produced here rather than by calling <c>relationship.IsSatisfied()</c>. That
-    /// would re-walk both subgraphs this calculation has just finished walking, twice per relationship, and —
-    /// worse — it would resolve them against the <i>stored</i> model, so a calculation run at trial values would
-    /// quietly report checks against values it was told to ignore. Both problems disappear by handing the
-    /// operator the values instead of letting it fetch them.
+    /// Not <c>relationship.IsSatisfied()</c>, which resolves against the <i>stored</i> model — under trial
+    /// values that would report checks against values the caller told it to ignore.
     /// </remarks>
     private static RelationshipOutcome Judge(
         IBinaryOperator relationship,
