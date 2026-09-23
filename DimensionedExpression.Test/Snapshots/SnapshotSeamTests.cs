@@ -184,8 +184,8 @@ public class SnapshotSeamTests
 
     /// <remarks>
     /// The general comparison carries its rule the way equality carries its agreement: as state. A kind alone
-    /// cannot say which landmarks it compares, so a document that named only the kind would describe fourteen
-    /// different relationships at once.
+    /// cannot say which landmarks it compares, so a document that named only the kind could mean any rule the
+    /// type can express.
     /// </remarks>
     [Fact]
     public void ASimpleComparisonCarriesItsRuleAcrossTheSeam()

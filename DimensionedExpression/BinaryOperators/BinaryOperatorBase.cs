@@ -26,8 +26,8 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// </summary>
     /// <remarks>
     /// <para>
-    /// What each operator <i>declares</i> in place of the interval arithmetic it used to write. All thirteen
-    /// turned out to be conjunctions of landmark comparisons, so the conjunction is stated once here and the
+    /// What each operator <i>declares</i> instead of writing interval arithmetic. Every one of them is a
+    /// conjunction of landmark comparisons, so the conjunction is stated once here and the
     /// operators state only their own terms — which also makes the assertion readable without following it into
     /// an implementation.
     /// </para>
@@ -49,7 +49,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// <inheritdoc/>
     /// <remarks>
     /// Implemented once here rather than on each operator: resolving both sides and answering null if either is
-    /// missing is identical for all thirteen, and only the comparison below the guard differs. That comparison is
+    /// missing is identical for every operator, and only the comparison below the guard differs. That comparison is
     /// <see cref="IsSatisfiedGiven"/>, which is also what a calculation calls directly with values it has
     /// already computed.
     /// </remarks>
@@ -70,7 +70,7 @@ public abstract class BinaryOperatorBase : IBinaryOperator
     /// <remarks>
     /// Virtual rather than abstract, and a requirement by default, because anything else is the exception: only
     /// the equality family can derive a value. An operator that overrides this takes the role through its own
-    /// constructor, so the twelve that do not override it have no way to be constructed claiming otherwise.
+    /// constructor, so every operator that does not override it has no way to be constructed claiming otherwise.
     /// </remarks>
     public virtual SolvingRole SolvingRole => SolvingRole.Requirement;
 
@@ -88,12 +88,12 @@ public abstract class BinaryOperatorBase : IBinaryOperator
 
     /// <summary>
     /// Returns this operator's complete snapshot. Every operator has the same shape — two operand
-    /// references plus annotations — so this is implemented once here rather than thirteen times.
+    /// references plus annotations — so this is implemented once here rather than on every operator.
     /// </summary>
     /// <remarks>
     /// Virtual for the one operator that carries state of its own: <see cref="EqualityOperator"/> adds its
     /// agreement rule on top of what is captured here. Overriding beats a hook on this class, which would put a
-    /// member for equality's semantics on the twelve operators that have none.
+    /// member for equality's semantics on every operator that has none.
     /// </remarks>
     public virtual BinaryOperatorSnapshot GetSnapshot() =>
         new(Type, Id, Lhs.Id, Rhs.Id, SolvingRole, null, null, Name, Description, Provenance?.GetSnapshot());

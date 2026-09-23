@@ -10,7 +10,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Each of the thirteen operators used to hand-write its own interval arithmetic, and every one of them turned
+/// Every operator states its rules rather than writing interval arithmetic, and every one of them turns
 /// out to be a conjunction of comparisons between one of the subject's three landmarks and one of the
 /// criterion's. Declaring that conjunction rather than writing it means an operator can no longer disagree with
 /// its own documentation, and the comparison itself happens in exactly one place —

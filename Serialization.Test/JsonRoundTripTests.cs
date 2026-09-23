@@ -77,7 +77,7 @@ public class JsonRoundTripTests
     }
 
     /// <remarks>
-    /// The twelve operators with fixed rules must not acquire either field. A non-null agreement on, say, a
+    /// The operators with fixed rules must not acquire either field. A non-null agreement on, say, a
     /// tolerance check would be a snapshot describing nothing, and reconstruction would have no reason to reject it.
     /// </remarks>
     [Fact]

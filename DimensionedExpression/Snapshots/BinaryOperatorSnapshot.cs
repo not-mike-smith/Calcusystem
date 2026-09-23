@@ -5,7 +5,7 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 
 /// <summary>
 /// The complete snapshot of any binary operator. Every operator has the same shape — two operand references
-/// plus annotations — so one record with a <see cref="Type"/> discriminator covers all thirteen.
+/// plus annotations — so one record with a <see cref="Type"/> discriminator covers every one.
 /// </summary>
 /// <param name="Type">Which operator this snapshot rebuilds into.</param>
 /// <param name="Id">Stable identity.</param>

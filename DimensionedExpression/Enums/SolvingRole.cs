@@ -30,7 +30,7 @@ public enum SolvingRole : byte
     /// only by their provenance.
     /// </summary>
     /// <remarks>
-    /// The default, and the only role the twelve non-equality operators can have: an ordering or tolerance
+    /// The default, and the only role a non-equality operator can have: an ordering or tolerance
     /// relation confines a value to an interval, and no solver can turn an interval into a point.
     /// </remarks>
     Requirement = 1,

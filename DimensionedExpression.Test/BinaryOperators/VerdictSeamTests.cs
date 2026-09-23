@@ -14,7 +14,7 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 /// <summary>
 /// The seam separating <i>what a relationship asserts</i> from <i>where its values came from</i>. Every operator
 /// implements the predicate over two supplied values; the base class implements resolving both sides once, so
-/// the fourteen agree on the null case by construction rather than by fourteen copies of one guard.
+/// they agree on the null case by construction rather than by one copy of the same guard in each.
 /// </summary>
 public class VerdictSeamTests
 {
@@ -247,8 +247,8 @@ public class VerdictSeamTests
     }
 
     /// <remarks>
-    /// Implemented once on the base class rather than thirteen times. Before the seam this guard was copied into
-    /// every operator, which is thirteen chances for one of them to differ.
+    /// Implemented once on the base class rather than on every operator. Before the seam this guard was copied
+    /// into each one, which is one chance per operator for them to differ.
     /// </remarks>
     [Theory]
     [InlineData(true, false)]
@@ -297,7 +297,7 @@ public class VerdictSeamTests
     // ── Subject / Criterion ───────────────────────────────────────────────────
 
     /// <remarks>
-    /// Twelve of the thirteen can only ever be requirements, and by construction their <c>Lhs</c> is the value
+    /// Every operator but equality can only ever be a requirement, and by construction their <c>Lhs</c> is the value
     /// under test — which is what <c>OPERATORS.md</c> has always documented.
     /// </remarks>
     [Fact]
