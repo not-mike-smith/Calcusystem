@@ -85,9 +85,9 @@ public class ExpressionStateRoundTripTests
     }
 
     [Fact]
-    public void QuotientKeepsItsUncertaintyPropagation()
+    public void QuotientKeepsItsUncertaintyCorrelation()
     {
-        // PairDerivedVariable carried no UncertaintyPropagation, so a quotient configured as Correlated came back
+        // PairDerivedVariable carried no UncertaintyCorrelation, so a quotient configured as Correlated came back
         // Uncorrelated with no indication anything had changed.
         var numerator = Dimensionless("n", 6);
         var denominator = Dimensionless("d", 3);
@@ -100,12 +100,12 @@ public class ExpressionStateRoundTripTests
             Id = "q",
             Numerator = numerator,
             Denominator = denominator,
-            UncertaintyPropagation = UncertaintyPropagation.Correlated,
+            UncertaintyCorrelation = UncertaintyCorrelation.Correlated,
         });
 
         var restored = (QuotientExpression)RoundTrip(system).DerivedExpressions.Single();
 
-        restored.UncertaintyPropagation.Should().Be(UncertaintyPropagation.Correlated);
+        restored.UncertaintyCorrelation.Should().Be(UncertaintyCorrelation.Correlated);
         restored.ComputeIfFullyDescribed()!.KmsValue.Should().BeApproximately(2, 1e-12);
     }
 

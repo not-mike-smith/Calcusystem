@@ -11,7 +11,7 @@ The foundation layer of Calcusystem. Provides physical quantities with units, di
 **All values are stored internally in kg-m-s (SI base units).** Units are only relevant at the boundary — when constructing a quantity from a user-supplied value, or when reading a value back out in a specific unit. All arithmetic, comparison, and uncertainty propagation operates on KMS values directly. This eliminates an entire class of conversion bugs.
 
 ```csharp
-var force = Force.PoundForce.Quantity(1.0).WithoutError();  // user supplies lbf
+var force = Force.PoundForce.Quantity(1.0).WithoutUncertainty();  // user supplies lbf
 force.In(Force.OunceForce);  // 16.0   — conversion happens at output only
 force.KmsValue;              // 4.448… — internal representation is always SI
 ```
@@ -113,21 +113,21 @@ The storage flag and the raw magnitude are `internal`, so there is no `(bool, do
 `Quantity` carries shorthands for the common cases, so most code never names an uncertainty type at all:
 
 ```csharp
-var exact    = Mass.Kilogram.Quantity(1).WithoutError();
-var relative = Mass.Kilogram.Quantity(1).WithError(0.1.Percent());
-var absolute = Mass.Kilogram.Quantity(1).WithError(1.0.Units(Mass.Gram));
+var exact    = Mass.Kilogram.Quantity(1).WithoutUncertainty();
+var relative = Mass.Kilogram.Quantity(1).WithUncertainty(0.1.Percent());
+var absolute = Mass.Kilogram.Quantity(1).WithUncertainty(1.0.Units(Mass.Gram));
 
-var lopsided = Mass.Kilogram.Quantity(1).WithAsymmetricError(
+var lopsided = Mass.Kilogram.Quantity(1).WithAsymmetricUncertainty(
     upper: 0.1.Percent(),
     lower: 2.0.Percent());
 ```
 
-`WithError` is symmetric and `WithAsymmetricError` takes both bounds at once — there is no way to supply one bound and not the other, and no way to mix a relative bound with an absolute one, because no overload accepts that. **Pass the asymmetric arguments by name.** Which bound is which is otherwise invisible at the call site, and swapping them produces a plausible-looking error band rather than an obvious fault.
+`WithUncertainty` is symmetric and `WithAsymmetricUncertainty` takes both bounds at once — there is no way to supply one bound and not the other, and no way to mix a relative bound with an absolute one, because no overload accepts that. **Pass the asymmetric arguments by name.** Which bound is which is otherwise invisible at the call site, and swapping them produces a plausible-looking error band rather than an obvious fault.
 
 For anything else, `Quantity.Measurand(IUncertainty)` takes an uncertainty built from the table above.
 
 ```csharp
-var mass = Mass.Kilogram.Quantity(1).WithError(1.0.Units(Mass.Milligram));
+var mass = Mass.Kilogram.Quantity(1).WithUncertainty(1.0.Units(Mass.Milligram));
 ```
 
 Propagation follows the storage: **sums/differences produce an absolute-error result** (no dividing by the possibly-zero sum), while products compose relative errors. A quantity whose interval crosses zero is left signed — clamping a non-negative "magnitude" at zero is a modeling concern for a higher layer, not baked in here.
@@ -149,11 +149,11 @@ Propagation follows the storage: **sums/differences produce an absolute-error re
 
 | Method | Used for |
 | --- | --- |
-| `PropagateErrorThroughSum(method, measurands)` | `Plus` / `Minus` |
-| `PropagateErrorThroughProduct(method, measurands)` | `Times` / `DividedBy` |
+| `PropagateThroughSum(method, measurands)` | `Plus` / `Minus` |
+| `PropagateThroughProduct(method, measurands)` | `Times` / `DividedBy` |
 | `PropagateErrorThroughExponentiation(measurand, exponentNumerator, exponentDenominator)` | `ToPower` / `ToRoot` |
 
-Each takes an `UncertaintyPropagation`, defaulting to `Uncorrelated`:
+Each takes an `UncertaintyCorrelation`, defaulting to `Uncorrelated`:
 
 | Method | Sum error | Product relative error |
 | --- | --- | --- |
@@ -167,7 +167,7 @@ Each takes an `UncertaintyPropagation`, defaulting to `Uncorrelated`:
 - When every operand is symmetric it returns a `SymmetricUncertainty`; if any operand is asymmetric it preserves the asymmetry, returning an `AsymmetricUncertainty` built from the directional upper/lower errors. (Unary transforms — negation, reciprocal, exponentiation — likewise preserve asymmetry; they live on `IUncertainty` rather than the propagator.)
 - Full Monte Carlo propagation is still deferred to Milestone 4; the current propagator combines errors by RSS / direct sum per the table above.
 
-**Why `IUncertaintyPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IUncertaintyPropagator` is the intended seam for that. As it stands, `Measurand.ResolveErrorPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
+**Why `IUncertaintyPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IUncertaintyPropagator` is the intended seam for that. As it stands, `Measurand.ResolveUncertaintyPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
 
 ---
 

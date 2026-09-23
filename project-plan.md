@@ -217,6 +217,6 @@ None — all resolved; see Key Design Decisions.
 
 ## Resolved Design Questions
 
-- **`UncertaintyPropagation` namespace** — stays in `Measurement`. Uncertainty propagation is a first-class concern of the layer, not a concern to be exiled elsewhere. The namespace name may be slightly narrow but the placement is correct.
+- **`UncertaintyCorrelation` namespace** — stays in `Measurement`. Uncertainty propagation is a first-class concern of the layer, not a concern to be exiled elsewhere. The namespace name may be slightly narrow but the placement is correct.
 - **Scope of `ExpressionSystem`** — one coherent *model* (one equation-of-state, one heat exchanger, one reactor). A full process flowsheet is assembled by *composing* `ExpressionSystem` instances with explicit variable mappings between their ports (see M5 composition feature). This makes the scope question answerable: a system knows its own boundary variables and nothing beyond them.
 - **Definitions vs. instances** — resolved by the variable provenance taxonomy (M3) and the Definitions/Constraints semantic model (M3). See Key Design Decisions.

@@ -13,7 +13,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// constructor, which can also seed a fixed dimensionality for an otherwise-empty sum).
 /// <br/>
 /// A computed node: uncertainty is propagated through <see cref="Measurand"/> addition using the
-/// <see cref="ComputedExpressionBase.UncertaintyPropagation"/> method.
+/// <see cref="ComputedExpressionBase.UncertaintyCorrelation"/> method.
 /// </summary>
 public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnapshottingNode<SumExpression, NaryExpressionSnapshot>
 {
@@ -46,7 +46,7 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnaps
 
         // One n-ary call rather than folding pairwise: the propagator combines all the errors at once instead
         // of building an intermediate Measurand per addend.
-        return Measurand.Sum(UncertaintyPropagation, propagator, _addends.Select(a => known[a]));
+        return Measurand.Sum(UncertaintyCorrelation, propagator, _addends.Select(a => known[a]));
     }
 
     public override string ToString()
@@ -59,13 +59,13 @@ public class SumExpression : ComputedExpressionBase, IComputedExpression, ISnaps
 
     /// <inheritdoc/>
     public NaryExpressionSnapshot GetSnapshot() =>
-        new(NaryExpressionType.Sum, Id, Addends.Select(a => a.Id).ToList(), UncertaintyPropagation);
+        new(NaryExpressionType.Sum, Id, Addends.Select(a => a.Id).ToList(), UncertaintyCorrelation);
 
     /// <inheritdoc/>
     public static SumExpression FromSnapshot(NaryExpressionSnapshot state, INodeResolver resolve) =>
         new(state.InnerIds.Select(resolve.Resolve<IExpression>))
         {
             Id = state.Id,
-            UncertaintyPropagation = state.UncertaintyPropagation,
+            UncertaintyCorrelation = state.UncertaintyCorrelation,
         };
 }

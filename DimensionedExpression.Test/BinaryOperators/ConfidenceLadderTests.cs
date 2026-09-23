@@ -18,10 +18,10 @@ namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
 public class ConfidenceLadderTests
 {
     /// <summary>A measurand at <paramref name="value"/> kg with the given absolute uncertainty bars.</summary>
-    private static Measurand M(double value, double lowerError, double upperError) =>
+    private static Measurand M(double value, double lowerUncertainty, double upperUncertainty) =>
         Mass.Kilogram.Quantity(value).Measurand(
             AsymmetricUncertainty.FromAbsolute(
-                Mass.Kilogram.Quantity(upperError), Mass.Kilogram.Quantity(lowerError)));
+                Mass.Kilogram.Quantity(upperUncertainty), Mass.Kilogram.Quantity(lowerUncertainty)));
 
     /// <summary>
     /// Values and uncertainty bars chosen so bounds coincide exactly and often — identical intervals, intervals that

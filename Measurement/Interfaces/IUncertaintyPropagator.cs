@@ -24,7 +24,7 @@ public interface IUncertaintyPropagator
     /// <param name="method">Whether the operands' errors are treated as correlated or uncorrelated.</param>
     /// <param name="measurands">The factors whose product's uncertainty is being computed.</param>
     /// <returns>The uncertainty of the product.</returns>
-    IUncertainty PropagateErrorThroughProduct(UncertaintyPropagation method, params Measurand[] measurands);
+    IUncertainty PropagateThroughProduct(UncertaintyCorrelation method, params Measurand[] measurands);
 
     /// <summary>
     /// Propagates uncertainty through the sum (and difference, via negated operands) of the operands.
@@ -32,5 +32,5 @@ public interface IUncertaintyPropagator
     /// <param name="method">Whether the operands' errors are treated as correlated or uncorrelated.</param>
     /// <param name="measurands">The addends whose sum's uncertainty is being computed.</param>
     /// <returns>The uncertainty of the sum.</returns>
-    IUncertainty PropagateErrorThroughSum(UncertaintyPropagation method, params Measurand[] measurands);
+    IUncertainty PropagateThroughSum(UncertaintyCorrelation method, params Measurand[] measurands);
 }
