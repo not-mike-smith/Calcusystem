@@ -20,7 +20,7 @@ public class SqrtExpression : ExpressionBase, IExpression, ISnapshottingNode<Sqr
 {
     private readonly IExpression _argument;
 
-    public SqrtExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
+    public SqrtExpression(IExpression argument, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         _argument = argument;
     }

@@ -17,7 +17,7 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// </summary>
     public static ExpressionSystem Create(string name, string description = "")
     {
-        return new ExpressionSystem(Constants.CREATE_NEW_ID)
+        return new ExpressionSystem(IdBase.CREATE_NEW_ID)
         {
             Name = name,
             Description = description,

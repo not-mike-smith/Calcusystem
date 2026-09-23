@@ -24,7 +24,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </remarks>
 public abstract class ExpressionBase : IdBase, IExpression
 {
-    protected ExpressionBase(string id = Constants.CREATE_NEW_ID) : base(id) { }
+    protected ExpressionBase(string id = IdBase.CREATE_NEW_ID) : base(id) { }
 
     /// <inheritdoc/>
     public abstract bool IsDirectlyMutable { get; }

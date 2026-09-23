@@ -22,7 +22,7 @@ public class ExponentialExpression : ExpressionBase, IExpression, ISnapshottingN
 {
     private readonly IExpression _argument;
 
-    public ExponentialExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
+    public ExponentialExpression(IExpression argument, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;

@@ -18,7 +18,7 @@ public class ReciprocalExpression : ExpressionBase, IExpression, ISnapshottingNo
 {
     private readonly IExpression _reciprocand;
 
-    public ReciprocalExpression(IExpression reciprocand, string id = Constants.CREATE_NEW_ID) : base(id)
+    public ReciprocalExpression(IExpression reciprocand, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         _reciprocand = reciprocand;
     }

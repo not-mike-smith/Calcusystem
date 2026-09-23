@@ -14,7 +14,7 @@ Depends on nothing. Contains no behavior beyond `IdBase`'s id validation — eve
 | --- | --- |
 | `IIdentified` | Anything with a stable string `Id` that survives persistence. |
 | `IdBase` | The usual implementation: validates the id and interprets the create-new sentinel. |
-| `Constants.CREATE_NEW_ID` | Sentinel meaning "mint a fresh identity". |
+| `IdBase.CREATE_NEW_ID` | Sentinel meaning "mint a fresh identity". |
 
 Identity lives here rather than in `DimensionedExpression` because it is not an expression concept — the solver will need persistence and ids without depending on the expression layer.
 

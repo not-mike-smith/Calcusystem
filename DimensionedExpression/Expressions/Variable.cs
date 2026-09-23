@@ -28,7 +28,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public Variable(
         string symbol,
         Dimensionality dimensionality,
-        string id = Constants.CREATE_NEW_ID)
+        string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
         
@@ -39,7 +39,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public Variable(
         string symbol,
         Measurand measurand,
-        string id = Constants.CREATE_NEW_ID)
+        string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
         Dimensionality = measurand.Dimensionality;

@@ -5,16 +5,22 @@ namespace Calcusystem.Core.Identity;
 /// <summary>
 /// Base class for anything carrying a stable string identity that survives persistence.
 /// </summary>
-/// <remarks>
-/// Passing <see cref="Constants.CREATE_NEW_ID"/> mints a fresh GUID; passing any other non-blank string adopts
-/// it verbatim, which is how a rebuilt graph restores the references between its nodes. A null or blank id
-/// throws — an object with no identity cannot be referred to, so there is no useful default.
-/// </remarks>
 public abstract class IdBase : IIdentified
 {
+    /// <summary>
+    /// Sentinel id meaning "mint a fresh identity for this object". Passing any other non-blank string preserves
+    /// that id instead, which is what lets a persisted graph rebuild its references.
+    /// </summary>
+    public const string CREATE_NEW_ID = "CREATE_NEW";
+
     private readonly string _id = null!;
 
     /// <summary>Stable identity, preserved across serialization.</summary>
+    /// <remarks>
+    /// Passing sentinel value <see cref="CREATE_NEW_ID"/> mints a fresh GUID;
+    /// any other non-blank string is adopted verbatim as the <see cref="Id"/>.
+    /// A null or blank id causes an exception.
+    /// </remarks>
     public string Id
     {
         get => _id;
@@ -25,7 +31,7 @@ public abstract class IdBase : IIdentified
                 throw new InvalidOperationException("Expression Id cannot be null or empty");
             }
 
-            _id = value == Constants.CREATE_NEW_ID
+            _id = value == CREATE_NEW_ID
                 ? Guid.NewGuid().ToString("d")
                 : value;
         }

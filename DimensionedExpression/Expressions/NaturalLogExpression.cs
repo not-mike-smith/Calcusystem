@@ -28,7 +28,7 @@ public class NaturalLogExpression : ExpressionBase, IExpression, ISnapshottingNo
 {
     private readonly IExpression _argument;
 
-    public NaturalLogExpression(IExpression argument, string id = Constants.CREATE_NEW_ID) : base(id)
+    public NaturalLogExpression(IExpression argument, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         RequireDimensionless(argument);
         _argument = argument;

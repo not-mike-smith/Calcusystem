@@ -6,8 +6,7 @@ A stable string identity that survives persistence, and the sentinel for minting
 
 | Type | Kind | Role |
 | --- | --- | --- |
-| `IdBase` | abstract class | The usual `IIdentified` implementation: validates an id and interprets the sentinel. |
-| `Constants` | static class | Holds `CREATE_NEW_ID`, the sentinel meaning "mint a fresh identity". |
+| `IdBase` | abstract class | The usual `IIdentified` implementation: validates an id, interprets the sentinel, and declares it as `CREATE_NEW_ID`. |
 
 ## Start here
 
@@ -16,7 +15,7 @@ Derive from `IdBase` and pass the caller's id straight through:
 ```csharp
 public class Thing : IdBase
 {
-    public Thing(string id = Constants.CREATE_NEW_ID) : base(id) { }
+    public Thing(string id = IdBase.CREATE_NEW_ID) : base(id) { }
 }
 
 new Thing();                 // a fresh GUID

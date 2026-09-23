@@ -16,7 +16,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </summary>
 public class NegatedExpression : ExpressionBase, IExpression, ISnapshottingNode<NegatedExpression, UnaryExpressionSnapshot>
 {
-    public NegatedExpression(IExpression operand, string id = Constants.CREATE_NEW_ID) : base(id)
+    public NegatedExpression(IExpression operand, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
         _operand = operand;
     }

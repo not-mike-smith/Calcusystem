@@ -147,16 +147,16 @@ The named operators are kept as vocabulary: `AnyToleranceOverlap` says what it m
 Two operators take constructor arguments; every other is constructed purely through `required` init properties:
 
 ```csharp
-var op = new WhollyWithinToleranceOperator { Id = Constants.CREATE_NEW_ID, Lhs = measured, Rhs = spec };
+var op = new WhollyWithinToleranceOperator { Id = IdBase.CREATE_NEW_ID, Lhs = measured, Rhs = spec };
 
 // How strictly "equal" is read is the modeler's call, and part of the model — not a strategy the reader supplies.
 var eq = new EqualityOperator(AgreementRule.Nominal, SolvingRole.Equation)
-    { Id = Constants.CREATE_NEW_ID, Lhs = a, Rhs = b };
+    { Id = IdBase.CREATE_NEW_ID, Lhs = a, Rhs = b };
 
 // The general form: any of the 63 rules, including the ones with no named operator.
 var conservative = new SimpleComparison(
         new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.LowerBound))
-    { Id = Constants.CREATE_NEW_ID, Lhs = measured, Rhs = guarantee };
+    { Id = IdBase.CREATE_NEW_ID, Lhs = measured, Rhs = guarantee };
 ```
 
 ### `SolvingRole` — what a relationship does to the problem
@@ -199,9 +199,9 @@ Note `SolvingRole` has **no zero member** — none of the three means "no role",
 
 ---
 
-## Identity: `IdBase` and `Constants.CREATE_NEW_ID`
+## Identity: `IdBase` and `IdBase.CREATE_NEW_ID`
 
-Every expression, operator, and system carries a string `Id` via `IdBase`. Passing the sentinel `Constants.CREATE_NEW_ID` (the default on most constructors) generates a fresh GUID; passing an explicit id preserves it (this is what deserialization relies on to rebuild references). A null/whitespace id throws.
+Every expression, operator, and system carries a string `Id` via `IdBase`. Passing the sentinel `IdBase.CREATE_NEW_ID` (the default on most constructors) generates a fresh GUID; passing an explicit id preserves it (this is what deserialization relies on to rebuild references). A null/whitespace id throws.
 
 ---
 

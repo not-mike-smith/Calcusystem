@@ -10,6 +10,6 @@ public abstract class ComputedExpressionBase : ExpressionBase
 
     public UncertaintyCorrelation UncertaintyCorrelation { get; set; }
 
-    protected ComputedExpressionBase(string id = Constants.CREATE_NEW_ID) : base(id)
+    protected ComputedExpressionBase(string id = IdBase.CREATE_NEW_ID) : base(id)
     { }
 }
