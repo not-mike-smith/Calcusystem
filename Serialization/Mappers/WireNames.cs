@@ -1,8 +1,7 @@
 using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Provenance;
-using Calcusystem.DimensionedExpression.State;
-using Calcusystem.DimensionedExpression.Enums;
 
 namespace Calcusystem.Serialization.Mappers;
 

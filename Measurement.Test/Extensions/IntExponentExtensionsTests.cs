@@ -1,4 +1,4 @@
-﻿using Calcusystem.Measurement.Extensions;
+using Calcusystem.Measurement.Extensions;
 using FluentAssertions;
 using Xunit;
 

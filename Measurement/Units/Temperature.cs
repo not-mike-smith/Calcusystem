@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Calcusystem.Measurement.BaseClasses;
+using System.Collections.Generic;
 using Calcusystem.Measurement.Factories;
+using Calcusystem.Measurement.Primitives;
 
 namespace Calcusystem.Measurement.Units;
 

@@ -1,4 +1,3 @@
-using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.Measurement.State;

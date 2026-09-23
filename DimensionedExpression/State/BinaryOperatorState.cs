@@ -15,7 +15,7 @@ namespace Calcusystem.DimensionedExpression.State;
 /// What this relationship does to the problem. Stored as the role rather than as the derived
 /// <c>IsDetermining</c> boolean, because that flattens <c>Equation</c> and <c>Coherence</c> together and they
 /// cannot be told apart again on load. Only the equality kind can store anything but
-/// <see cref="DimensionedExpression.SolvingRole.Requirement"/>; for every other kind reconstruction ignores it,
+/// <see cref="Enums.SolvingRole.Requirement"/>; for every other kind reconstruction ignores it,
 /// because those types have no way to represent it.
 /// </param>
 /// <param name="Agreement">

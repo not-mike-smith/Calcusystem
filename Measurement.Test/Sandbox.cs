@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Calcusystem.Measurement.BaseClasses;
+using System.Linq;
 using Calcusystem.Measurement.Extensions;
 using Calcusystem.Measurement.Units;
 using Xunit;

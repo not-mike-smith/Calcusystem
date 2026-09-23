@@ -1,4 +1,5 @@
 using System.Linq;
+using Calcusystem.Measurement.Primitives;
 using FluentAssertions;
 using Xunit;
 

@@ -1,7 +1,7 @@
-﻿using System;
-using Calcusystem.Measurement.BaseClasses;
+using System;
 using Calcusystem.Measurement.Factories;
-using Uom = Calcusystem.Measurement.UnitOfMeasure;
+using Calcusystem.Measurement.Primitives;
+using Uom = Calcusystem.Measurement.Units.UnitOfMeasure;
 
 namespace Calcusystem.Measurement.Units;
 

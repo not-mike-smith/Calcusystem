@@ -1,6 +1,5 @@
-using Calcusystem.DimensionedExpression.State;
-using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
@@ -25,12 +24,12 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 /// long as they did.
 /// </para>
 /// </remarks>
-/// <param name="agreementRule">How strictly "equal" is read — see <see cref="BinaryOperators.AgreementRule"/>.</param>
+/// <param name="agreementRule">How strictly "equal" is read — see <see cref="Enums.AgreementRule"/>.</param>
 /// <param name="solvingRole">
-/// <see cref="DimensionedExpression.SolvingRole.Equation"/> when this defines a quantity the solver may compute
-/// (<c>mass_in == mass_out</c>); <see cref="DimensionedExpression.SolvingRole.Coherence"/> when it asserts that
+/// <see cref="Enums.SolvingRole.Equation"/> when this defines a quantity the solver may compute
+/// (<c>mass_in == mass_out</c>); <see cref="Enums.SolvingRole.Coherence"/> when it asserts that
 /// two independently computed routes to one quantity agree (<c>T_eos == T_path</c>);
-/// <see cref="DimensionedExpression.SolvingRole.Requirement"/> when it checks a value against a criterion
+/// <see cref="Enums.SolvingRole.Requirement"/> when it checks a value against a criterion
 /// (<c>measured_T == design_T</c>).
 /// </param>
 public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRole)
@@ -65,13 +64,13 @@ public class EqualityOperator(AgreementRule agreementRule, SolvingRole solvingRo
     /// </para>
     /// <para>
     /// <c>·==·</c> rather than the conventional <c>==</c> deliberately. "Equal" is not one thing for measured
-    /// values — that is why <see cref="BinaryOperators.AgreementRule"/> exists — and <c>==</c> is silent about
+    /// values — that is why <see cref="Enums.AgreementRule"/> exists — and <c>==</c> is silent about
     /// which statistic participates, while <c>·==·</c> says the reported values and nothing else.
     /// </para>
     /// <para>
     /// Asserting the same rules as the tolerance operators is deliberate too. Those state the condition as a
-    /// requirement; an equality can additionally be an <see cref="DimensionedExpression.SolvingRole.Equation"/>
-    /// or a <see cref="DimensionedExpression.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
+    /// requirement; an equality can additionally be an <see cref="Enums.SolvingRole.Equation"/>
+    /// or a <see cref="Enums.SolvingRole.Coherence"/>, and a report needs to tell the two apart.
     /// </para>
     /// </remarks>
     public override string Symbol => Agreement switch

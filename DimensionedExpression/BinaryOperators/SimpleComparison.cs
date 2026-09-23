@@ -1,6 +1,5 @@
-using Calcusystem.DimensionedExpression.State;
-using Calcusystem.DimensionedExpression.BaseModels;
 using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.DimensionedExpression.State;
 using Calcusystem.Measurement.Enums;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;

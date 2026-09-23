@@ -1,7 +1,9 @@
+using Calcusystem.Analysis.Extensions;
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Systems;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
 using Xunit;
 

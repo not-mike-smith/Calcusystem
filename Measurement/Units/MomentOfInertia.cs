@@ -1,6 +1,5 @@
-using Calcusystem.Measurement.BaseClasses;
 using Calcusystem.Measurement.Factories;
-using Uom = Calcusystem.Measurement.UnitOfMeasure;
+using Uom = Calcusystem.Measurement.Units.UnitOfMeasure;
 
 namespace Calcusystem.Measurement.Units;
 

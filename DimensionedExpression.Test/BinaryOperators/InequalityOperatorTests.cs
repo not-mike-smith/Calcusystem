@@ -1,8 +1,8 @@
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Expressions;
-using FluentAssertions;
-using Calcusystem.Measurement;
+using Calcusystem.Measurement.Uncertainties;
 using Calcusystem.Measurement.Units;
+using FluentAssertions;
 using Xunit;
 
 namespace Calcusystem.DimensionedExpression.Test.BinaryOperators;
