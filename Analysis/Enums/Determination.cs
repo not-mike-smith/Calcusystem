@@ -1,4 +1,4 @@
-using Calcusystem.Analysis.Results;
+using Calcusystem.Analysis.Outcomes;
 
 namespace Calcusystem.Analysis.Enums;
 

@@ -1,7 +1,7 @@
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
-namespace Calcusystem.Analysis.Results;
+namespace Calcusystem.Analysis.Outcomes;
 
 /// <summary>
 /// What one relationship did in a calculation: whether it held, and the two values it was judged on.
