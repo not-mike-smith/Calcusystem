@@ -158,13 +158,12 @@ public class Measurand : ISnapshotting<Measurand, MeasurandSnapshot>
     }
 
     /// <summary>
-    /// The absolute uncertainty expressed in <paramref name="unit"/>, following the sign of the value.
+    /// The absolute uncertainty expressed in <paramref name="unit"/>.
     /// </summary>
-    /// <remarks>Use <see cref="AbsoluteUncertainty"/> for a magnitude that is always non-negative.</remarks>
     /// <exception cref="IncompatibleDimensionsException">The unit's dimensionality is not this value's.</exception>
     public double AbsoluteUncertaintyIn(UnitOfMeasure unit)
     {
-        return In(unit) * RelativeUncertainty;
+        return Math.Abs(In(unit)) * RelativeUncertainty;
     }
 
     /// <summary>
@@ -172,7 +171,7 @@ public class Measurand : ISnapshotting<Measurand, MeasurandSnapshot>
     /// </summary>
     public double TryAbsoluteUncertaintyIn(UnitOfMeasure unit)
     {
-        return TryIn(unit) * RelativeUncertainty;
+        return Math.Abs(TryIn(unit)) * RelativeUncertainty;
     }
 
     /// <summary>The quantity and its uncertainty, e.g. <c>2 kg ± 1%</c>.</summary>
