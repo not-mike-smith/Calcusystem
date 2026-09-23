@@ -53,8 +53,11 @@ VS Code renders XML doc as markdown in a hover card. Three consequences:
 
 - **A single `<br/>` does not separate paragraphs.** Use `<br/><br/>` between the definition,
   the symbol, and any formula. A three-clause run-on sentence should be three paragraphs.
-- **A bare `<inheritdoc/>` beside a local `<remarks>` drops the inherited summary** from the
-  card, leaving only the remarks. Write `<summary><inheritdoc/></summary>` instead.
+- **A bare `<inheritdoc/>` swallows a local `<remarks>`.** At the top level it inherits the
+  *whole* comment from the base, so the inherited documentation supersedes anything written
+  beside it and the local remarks never reach the hover card. Scoping it —
+  `<summary><inheritdoc/></summary>` — inherits only the summary, so the base's summary and the
+  override's own remarks both render.
 - **A run-on list reads as a wall.** Three or more alternatives get `<list type="bullet">`.
 
 The house shape for a type that has a symbol:
