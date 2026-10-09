@@ -93,6 +93,21 @@ Added docs should be short and mechanical, with no rationale at all:
 Self-describing members — a `public static readonly UnitOfMeasure Newton` among forty siblings —
 need nothing.
 
+### Tests are read, not hovered
+
+A test's rationale goes in a **flat block comment** above it, not in `<remarks>`. Nobody hovers a
+test, so XML tags and hover-shaped formatting are overhead a reader pays for nothing. Keep it
+thin: the method name carries the claim, and the comment adds only what the name cannot — the
+counterexample, or what breaks if the guard goes.
+
+```csharp
+/* Why a maximum matching and not a greedy one. Taken in order, `a+b == 10` claims `a` first and
+   leaves `a == 4` with nothing — which greedy would report as a system both under- and
+   over-determined. */
+[Fact]
+public void AnEquationGivesUpItsUnknownWhenAnotherHasNoAlternative()
+```
+
 ---
 
 ## 2. READMEs
