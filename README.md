@@ -31,7 +31,7 @@ Five library assemblies stacked bottom-up; the upper four each have a matching t
 | `Calcusystem.Measurement` | [`Measurement/`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | `Calcusystem.DimensionedExpression` | [`DimensionedExpression/`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
 | `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
-| `Calcusystem.Analysis` | [`Analysis/`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed: flattens it to unknowns × equations and reports degrees of freedom. Where the evaluator and solver will live. |
+| `Calcusystem.Analysis` | [`Analysis/`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed and what it computes to: flattens it to unknowns × equations, reports degrees of freedom, decomposes it into the parts that can be solved, and calculates it. Where the solver will live. |
 
 `Measurement.Test/`, `DimensionedExpression.Test/`, `Serialization.Test/`, and `Analysis.Test/` hold the xUnit suites for each layer. `Core` has none of its own — it declares contracts and holds no logic to test; its seams are exercised through the layers that implement them.
 
@@ -96,6 +96,11 @@ var flat = system.Flatten();
 flat.DegreesOfFreedom;  // unknowns − determining equations
 flat.Determination;     // Underdetermined / ExactlyDetermined / Overdetermined
 
+var parts = flat.Decompose();
+parts.IsWellPosed;          // every unknown has an equation, and every equation an unknown
+parts.WellDetermined;       // the part that can be solved
+parts.Underdetermined;      // the part that cannot — which the count alone can net away
+
 var calc = system.Calculate();
 calc.ValueOf(f);        // 6 kg·m·s⁻² — each node computed exactly once
 calc.MissingValues;     // the unbound variables holding the rest back
@@ -120,7 +125,7 @@ dotnet test           # run all test suites
 
 ## Status and roadmap
 
-The measurement, expression, serialization, and degrees-of-freedom layers are functional; evaluation and solving are the next milestones. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
+The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. Solving is the current milestone. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
 
 ---
 
