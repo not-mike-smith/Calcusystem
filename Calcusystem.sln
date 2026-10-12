@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authoring", "Authoring\Auth
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authoring.Test", "Authoring.Test\Authoring.Test.csproj", "{0C4C3968-DB1F-4AB8-BD1A-566699CFD980}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Test", "Core.Test\Core.Test.csproj", "{9115A2C6-86DA-48B4-B926-711ED5C825A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -164,6 +166,18 @@ Global
 		{0C4C3968-DB1F-4AB8-BD1A-566699CFD980}.Release|x64.Build.0 = Release|Any CPU
 		{0C4C3968-DB1F-4AB8-BD1A-566699CFD980}.Release|x86.ActiveCfg = Release|Any CPU
 		{0C4C3968-DB1F-4AB8-BD1A-566699CFD980}.Release|x86.Build.0 = Release|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Debug|x64.Build.0 = Debug|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Debug|x86.Build.0 = Debug|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Release|x64.ActiveCfg = Release|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Release|x64.Build.0 = Release|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Release|x86.ActiveCfg = Release|Any CPU
+		{9115A2C6-86DA-48B4-B926-711ED5C825A8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

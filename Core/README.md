@@ -2,9 +2,9 @@
 
 The basement. Contracts shared by every layer above: what it means to have an identity, and how an object hands out the data that defines it.
 
-Depends on nothing. Contains no behavior beyond `IdBase`'s id validation — everything else here is an interface, so there is nothing to test in isolation and no test project.
+Depends on nothing. Mostly contracts, with two exceptions that carry behavior of their own: `IdBase`'s id validation, and the `Either/` success-or-failure types. `Core.Test` covers those.
 
-> **Using this assembly:** [`Interfaces/`](Interfaces/README.md) holds the contracts and has its own README; [`Identity/`](Identity/) holds `IdBase` alone, so the file is the shorter answer. This README covers why the seams are shaped the way they are — read it when a design question comes up, not to look up a signature.
+> **Using this assembly:** [`Interfaces/`](Interfaces/README.md) holds the contracts and [`Either/`](Either/README.md) the success-or-failure types, each with its own README; [`Identity/`](Identity/) holds `IdBase` alone, so the file is the shorter answer. This README covers why the seams are shaped the way they are — read it when a design question comes up, not to look up a signature.
 
 ---
 
@@ -68,11 +68,14 @@ Neither seam suits a hierarchy where the concrete type is chosen by *inspecting*
 
 ## Scope boundaries
 
-**What belongs here:** contracts shared by two or more layers — identity, the persistence seams, and constants that go with them.
+**What belongs here:** vocabulary shared by two or more layers — identity, the persistence seams, the success-or-failure types, and constants that go with them.
+
+A shared vocabulary may carry the behavior that makes it usable. `Either<TValue>` has `Match`, `Map` and `Then`, and `Failure` knows how to retype itself; without those it would be a shape every layer reimplemented around. The test is whether the behavior is *about the vocabulary itself* rather than about any layer's subject matter — combining two results is, propagating uncertainty is not.
 
 **What does NOT belong here:**
 
 - Snapshots themselves → the assembly that owns the type they describe
 - DTOs, wire formats, type discriminators, schema migration → `Calcusystem.Serialization`
-- Anything with real behavior. This assembly is a vocabulary; if a change here needs a test, it probably belongs a layer up.
+- Behavior about a *subject* rather than about the vocabulary. Dimensional algebra, uncertainty, graph walks — all belong a layer up, whatever they would share.
+- Transport concerns. `FailureReason` deliberately names no HTTP status, exit code or dialog; the outermost layer maps it.
 - Types only one layer uses. `UncertaintyCorrelation` is a standing example: `DimensionedExpression` and the serializer both touch it, but [`project-plan.md`](../project-plan.md) records a deliberate decision that it stays in `Measurement`, because uncertainty propagation is a first-class concern of that layer rather than something to be exiled into a shared bucket.
