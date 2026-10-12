@@ -1,7 +1,7 @@
 # Calcusystem.Serialization.Mappers
 
-Turns a live `ExpressionSystem` into DTOs and back. This is the whole of the assembly's
-behavior; everything else here is shape.
+Turns a live `ExpressionSystem` or `SystemDraft` into DTOs and back. This is the whole of the
+assembly's behavior; everything else here is shape.
 
 ## What's here
 
@@ -11,7 +11,10 @@ behavior; everything else here is shape.
 | `DeserializingMapper` | class | DTOs → domain, rebuilding the graph in dependency order. |
 | `DeserializationContext` | class | The `INodeResolver` a rebuild uses to turn ids back into objects. |
 | `WireNames` | static class | Maps snapshot discriminators to and from the `Type` strings on the wire. |
+| `DraftMapper` | static class | Draft ↔ DTOs. Both directions, no context, nothing ordered. |
 | `DimensionalityCodec` | static class | Encodes a dimensionality as `"M1,L1,T-2"`, and back. |
+| `UncertaintyCodec` | static class | The flat uncertainty DTO, both directions. |
+| `ProvenanceCodec` | static class | The flat provenance DTO, both directions. |
 
 ## Start here
 
@@ -28,6 +31,13 @@ The `DeserializationContext` is supplied rather than created internally so that 
 rebuilding several documents can share one, and so the resolver is inspectable when a rebuild
 fails.
 
+A draft needs none of that:
+
+```csharp
+var wire = DraftMapper.ToWire(draft);
+SystemDraft reopened = DraftMapper.FromWire(wire);
+```
+
 ## Guarantees
 
 - **Serializing reads nothing but snapshots.** It never touches an expression's children, an
@@ -41,6 +51,12 @@ fails.
   them removed.
 - **An unresolvable graph reports what was wrong with it.** `UnresolvableGraphException`
   carries the unbuilt, missing, and cyclic ids separately.
+- **A draft round trip changes nothing about the model.** An untyped node, an empty operand
+  slot, a dangling reference and a value that disagrees with its node's dimensionality all come
+  back as they went, so a draft that failed to build does not come back building.
+- **One reading of an uncertainty, and one of a provenance.** The codecs are shared by both
+  documents, so the same payload fragment means the same thing in a draft and in a saved
+  system.
 
 ## Surprises
 
@@ -51,6 +67,10 @@ fails.
 - **`DimensionalityCodec` lives here, not in `Measurement`.** Which identity to key on, how to
   lay the pairs out, and what to do with a payload written before a symbol was renamed are all
   format decisions. `Measurement` supplies only the structural snapshot.
+- **`DraftMapper` still refuses some payloads.** Tolerating a half-built model is not
+  tolerating one that cannot be held: two nodes in one list claiming one id, a malformed
+  dimensionality, or an unrecognized discriminator are all refused. An id shared by an
+  expression and a relationship is not — the draft holds it and reports it.
 - **The fundamental-dimension symbols are the contract.** Renaming one invalidates previously
   written data, and migrating it is this layer's job. The symbol set is distinct even ignoring
   case, so a stray case conversion downstream cannot rewrite one dimension into another.
@@ -64,6 +84,6 @@ fails.
 ## Related
 
 `Dtos/` · `Exceptions/` · `Interfaces/` (`ISerializedObject`) ·
-`Calcusystem.Core.Interfaces` (`INodeResolver`).
+`Calcusystem.Core.Interfaces` (`INodeResolver`) · `Calcusystem.Authoring.Drafts` (`SystemDraft`).
 See the [assembly README](../README.md) for the round-trip contract and what breaks stored
 payloads.

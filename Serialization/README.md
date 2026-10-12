@@ -2,7 +2,9 @@
 
 The persistence layer. Converts a live `ExpressionSystem` object graph (from `DimensionedExpression`) to and from a set of flat, serializer-friendly DTOs, so a model can be written to disk and rebuilt later.
 
-Depends on `DimensionedExpression` (and transitively `Measurement`). Nothing depends on it — it sits at the top of the stack.
+Depends on `DimensionedExpression` and `Calcusystem.Authoring` (and transitively `Measurement`). Nothing depends on it — it sits at the top of the stack.
+
+Two documents live here: a **saved system**, and a **draft** of one. They are separate shapes on purpose; see [A draft is a different document](#a-draft-is-a-different-document).
 
 ---
 
@@ -15,6 +17,9 @@ This layer does **object-to-object mapping**, not byte encoding. It turns domain
 ```text
 ExpressionSystem  ──SerializingMapper──▶  Dtos.ExpressionSystem  ──(your JSON lib)──▶  text
 text  ──(your JSON lib)──▶  Dtos.ExpressionSystem  ──DeserializingMapper──▶  ExpressionSystem
+
+SystemDraft       ──DraftMapper.ToWire──▶  Dtos.SystemDraft       ──(your JSON lib)──▶  text
+text  ──(your JSON lib)──▶  Dtos.SystemDraft  ──DraftMapper.FromWire──▶  SystemDraft
 ```
 
 ---
@@ -35,7 +40,7 @@ DTOs are bucketed by **structural arity**, not by domain type — the concrete t
 | `ListDerivedVariable` | n children: `InnerIds`, plus `UncertaintyCorrelation` | `ProductExpression`, `SumExpression` |
 | `BinaryOperator` | `LhsId`, `RhsId`, `Name?`, `Description?`, `Provenance?` | all equality / tolerance / inequality operators |
 
-Uncertainty is a single flat `Dtos.Uncertainty` (`Dtos/Expression.cs`): a `Type` discriminator, an `IsStoredAsAbs` flag recording whether the magnitudes are relative fractions or absolute KMS values, and the union of both forms' nullable fields — `Magnitude` for the symmetric case, `UpperMagnitude`/`LowerMagnitude` for the asymmetric one. Fields the named form requires are validated on read rather than defaulted, since a missing magnitude would silently change the interval.
+Uncertainty is a single flat `Dtos.Uncertainty` (`Dtos/Expression.cs`): a `Type` discriminator, an `IsStoredAsAbs` flag recording whether the magnitudes are relative fractions or absolute KMS values, and the union of both forms' nullable fields — `Magnitude` for the symmetric case, `UpperMagnitude`/`LowerMagnitude` for the asymmetric one. Fields the named form requires are validated on read rather than defaulted, since a missing magnitude would silently change the interval. `Mappers/UncertaintyCodec` is both directions of it, and `Mappers/ProvenanceCodec` the same for provenance — each read by both documents, so an uncertainty means the same thing in a draft as in a saved system.
 
 **Everything crosses the boundary as a domain *snapshot*, never as domain internals.** The mappers construct no domain object and read no domain property: each one calls `GetSnapshot()` on the way out, and on the way in translates a DTO into the matching snapshot and hands it to that type's own reconstruction — `Variable.FromSnapshot`, `ExpressionFactory.FromSnapshot`, `BinaryOperatorFactory.FromSnapshot`, `ExpressionSystem.FromSnapshot`, `UncertaintyFactory.FromSnapshot`, `Dimensionality.FromSnapshot`, `ProvenanceFactory.FromSnapshot`. See the persistence sections of the [Measurement](../Measurement/README.md) and [DimensionedExpression](../DimensionedExpression/README.md) READMEs.
 
@@ -88,7 +93,9 @@ The DTOs are format-agnostic, but not serializer-*indifferent* — a POCO can be
 | **Collection properties need `init` setters, not just getters.** | A serializer writes a get-only collection correctly but cannot restore it; STJ skips the property rather than adding to the existing instance. All six lists on `Dtos.ExpressionSystem` came back empty. |
 | **No abstract or interface-typed DTO properties.** | No serializer can instantiate an abstract type without provider-specific polymorphism configuration, which would tie this assembly to one serializer. Where a discriminated shape is needed, use one flat concrete class with a `Type` string and a union of nullable fields — as `Uncertainty` and `Provenance` both do. |
 
-`JsonRoundTripTests` enforces these by pushing DTOs through real `System.Text.Json`. The object-to-object suites (`RoundTripTests`, `ProvenanceRoundTripTests`) cannot: they never touch a serializer, which is precisely how all three defects survived so long. **Any new DTO or DTO property should get a case there.**
+The draft DTOs follow the same three rules, which is why a dimensionality is an encoded string there too and `OperandIds` has an `init` setter.
+
+`JsonRoundTripTests` enforces these by pushing DTOs through real `System.Text.Json`, and `DraftWireTests` does the same for a draft. The object-to-object suites (`RoundTripTests`, `ProvenanceRoundTripTests`) cannot: they never touch a serializer, which is precisely how all three defects survived so long. **Any new DTO or DTO property should get a case in whichever of the two covers its document.**
 
 ---
 
@@ -131,17 +138,62 @@ var mapper = new DeserializingMapper(new DeserializationContext());
 ExpressionSystem restored = mapper.Map(dto);
 ```
 
-It used to need an `IEqualityEstimating` as well, and that was a defect rather than a convenience: the wire carried "this is an equality" and nothing about what equality *meant*, so the **reader** decided the semantics and two readers could reach opposite verdicts from identical bytes. Equality now carries an `AgreementRule` in its snapshot, and a document that names an equality without one is refused rather than guessed at.
+`DraftMapper` needs nothing at all — it is static both ways:
+
+```csharp
+var wire = DraftMapper.ToWire(draft);
+// … hand `wire` to your JSON serializer, post it, read it back …
+SystemDraft reopened = DraftMapper.FromWire(wire);
+```
+
+`DeserializingMapper` used to need an `IEqualityEstimating` as well, and that was a defect rather than a convenience: the wire carried "this is an equality" and nothing about what equality *meant*, so the **reader** decided the semantics and two readers could reach opposite verdicts from identical bytes. Equality now carries an `AgreementRule` in its snapshot, and a document that names an equality without one is refused rather than guessed at.
+
+---
+
+## A draft is a different document
+
+A `SystemDraft` (from `Calcusystem.Authoring`) is what a client holds while someone is still building a model, and it gets **its own DTOs with every field optional** rather than a loosened `Dtos.ExpressionSystem`.
+
+The two answer different questions. A snapshot says *what data defines this node*; a draft says *what has been supplied so far*. Snapshot completeness is what makes a dangling id reference an error rather than a hole — loosen it and the strict loading path loses the only thing it has to check against.
+
+So `null` on a draft DTO means **not supplied yet**, everywhere, and an untyped node, an empty operand slot, a reference to nothing and a relationship with no operands all survive a round trip unchanged. Mending any of them in transit would hand back a draft that builds where the one posted did not.
+
+### What a draft payload is still refused for
+
+Tolerating a half-built model is not tolerating a payload that cannot be held:
+
+| Refused | Why |
+| --- | --- |
+| Two nodes in one list claiming one id | A draft keys its nodes by id, so the second would displace the first and the draft would come back missing a node nobody deleted. |
+| A malformed or unknown dimensionality string | Same strictness as `DimensionalityCodec` everywhere else: a skipped entry yields a *quietly dimensionless* quantity. |
+| An uncertainty missing a magnitude its shape requires | A default would silently change the interval. |
+| An unrecognized `Type` on a provenance or uncertainty | Guessing a kind is how a model starts meaning something else. |
+
+An id shared by **an expression and a relationship** is not in that list. A draft can hold it, and reports it as a `DuplicateId` problem — refusing the payload would take that answer away from the editor rather than give it one.
+
+### The one field that exists only to stay faithful
+
+`Dtos.ExpressionDraft.ValueDimensionality` is written only where the value's dimensionality differs from the one declared on the node. That state is reachable in an editor — supply a value, then correct the dimensionality — and the draft reports it. Writing the declared one alone would repair it on the way through.
+
+### Why the draft mapper is static and one class
+
+`DraftMapper` does both directions with no context and no ordering, because a draft is already flat, already references by id, and tolerates a reference to a node that is not there. Every reason `DeserializingMapper` needs a worklist, a resolver and two exceptions is a reason that does not apply.
+
+### Enums travel as names
+
+The draft DTOs carry the domain enums directly, as the system DTOs already do. Serialized with `JsonStringEnumConverter` — which is what the HTTP surface configures — a member is written as its name, so adding one cannot change what an existing payload means. `DraftWireTests` states those options where it asserts the round trip.
 
 ---
 
 ## Scope boundaries
 
-**What belongs here:** DTO definitions, the two mappers, the deserialization context and its exception.
+**What belongs here:** DTO definitions, the mappers and codecs, the deserialization context and its exception.
 
 **What does NOT belong here:**
 
 - The expression types, operators, and `ExpressionSystem` themselves → `DimensionedExpression`
 - Physical quantities, units, uncertainty math → `Measurement`
 - Actual text/binary encoding (JSON etc.) → the caller's choice of serializer
-- Evaluation and solving → future assemblies
+- Evaluation and solving → `Calcusystem.Analysis`
+- Holding a draft, and what stands between it and a built system → `Calcusystem.Authoring`
+- Choosing status codes for a refusal → `Calcusystem.Api`
