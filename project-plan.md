@@ -181,6 +181,27 @@ Goal: given a system with some unknowns, determine if it is solvable and solve i
 
 ---
 
+### Milestone 4.5 — Authoring and a front-end *(in progress)*
+
+Goal: let a non-engineer build and run a model, which means something to build it *with*.
+
+**Design principle:** the domain types refuse to exist half-built, and that is what makes the evaluated graph safe to absorb, cache and walk. An editor cannot honor those rules between keystrokes. So authoring gets a **second, mutable model** that is freely invalid and builds into an `ExpressionSystem`; `Expression` itself stays frozen. Same resolution as the tolerant-deserialization item under M5 — the flexibility belongs in the mode, not in the types.
+
+**Architecture decisions made 2026-10-11:**
+
+- **The client owns the draft; the server stays stateless.** The browser holds a draft and posts it whole to validate or build. No draft store, no sessions, no concurrency control, no patch protocol. Fine for single-user editing, and the thing to revisit only when collaboration or undo/redo is actually wanted.
+- **A draft gets its own wire DTOs, every field optional** — not loosened snapshots. A draft answers "what has been supplied so far", which is a different question from a snapshot's "what data defines this node", and the serializer relies on snapshot completeness being what makes a dangling reference an error rather than a hole.
+- **Sequencing is builder → wire shape → API → UI**, builder first and on its own, because its shape is what everything above it is built against.
+
+- [x] **`Calcusystem.Authoring`** — `SystemDraft` / `ExpressionDraft` / `RelationshipDraft`, all mutable with every field optional, and `DraftProblem` reporting what stands in the way. Nothing throws for a modelling mistake; `Validate()` is `TryBuild()` with the result discarded, so the two cannot disagree. Ids are minted before a node is valid and carry through the build, so a front-end's references survive it. Building runs two passes: *shape* checked here (kind chosen, slots filled, arity, references resolvable, no cycles, no duplicate ids), then *rules* asked of the domain by constructing each node in dependency order and relaying whatever it refuses — deliberately **not** restating the domain's rules, which would be two things answering one question. Construction is repeated passes rather than a topological sort, since what is left when progress stops is exactly what could not be ordered; a mark spread from the failures separates cascades (silent) from cycles (reported). A node is also asked for its `Dimensionality` after construction, because `SqrtExpression` checks its exponents there rather than in its constructor. `ExpressionDraftType` is one flat set where the snapshots group kinds by arity, with a coverage test holding the two in step.
+- [ ] **A wire shape for a draft** — its own DTOs per the decision above, plus JSON round-trip tests. Needed before any HTTP surface exists.
+- [ ] **`SystemDraft.FromSystem`** — open a built system for editing. Needed the moment a saved model can be reopened.
+- [ ] **An HTTP surface** — validate, build, and run a posted draft, returning problems or a calculation. Interacts with the `Analysis` entry-point reorganization in Immediate Next Steps: a web layer wants something more like a service than four extension methods.
+- [ ] **A front-end** — enough to show someone: build a model, see dimensional errors as you type, supply values, see what is computed, what is violated, and what is still missing. `Decomposition` and `Calculation` already carry everything such a view needs.
+- [ ] **Editing affordances not yet designed** — reordering an operand list, and what should happen to references when a node is deleted (`Remove` currently leaves them dangling and reports them, which is a deliberate first answer rather than a settled one). Better learned from the editor than guessed at.
+
+---
+
 ### Milestone 5 — Wishlist *(scope not yet committed)*
 
 These features are worth designing for but intentionally deferred until M4 is solid.

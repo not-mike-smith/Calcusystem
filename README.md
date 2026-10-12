@@ -23,7 +23,7 @@ A folder holding a single file has no README — reading the file is the shorter
 
 ## Project structure
 
-Five library assemblies stacked bottom-up; the upper four each have a matching test project. Every assembly and namespace is `Calcusystem.*`; the directory it lives in is the short name (`Core/`, `Measurement/`, …). See [naming](#naming-directories-assemblies-and-namespaces).
+Library assemblies stacked bottom-up, each with a matching test project above `Core`. Every assembly and namespace is `Calcusystem.*`; the directory it lives in is the short name (`Core/`, `Measurement/`, …). See [naming](#naming-directories-assemblies-and-namespaces).
 
 | Assembly / namespace | Directory | Depends on | What it does |
 | --- | --- | --- | --- |
@@ -32,8 +32,9 @@ Five library assemblies stacked bottom-up; the upper four each have a matching t
 | `Calcusystem.DimensionedExpression` | [`DimensionedExpression/`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
 | `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
 | `Calcusystem.Analysis` | [`Analysis/`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed and what it computes to: flattens it to unknowns × equations, reports degrees of freedom, decomposes it into the parts that can be solved, and calculates it. Where the solver will live. |
+| `Calcusystem.Authoring` | [`Authoring/`](Authoring/README.md) | `DimensionedExpression` | Holds a system while someone is still building it — freely invalid, nothing thrown — and builds it into an `ExpressionSystem` once coherent. The seam an editing front-end works against. |
 
-`Measurement.Test/`, `DimensionedExpression.Test/`, `Serialization.Test/`, and `Analysis.Test/` hold the xUnit suites for each layer. `Core` has none of its own — it declares contracts and holds no logic to test; its seams are exercised through the layers that implement them.
+Each library assembly above `Core` has a matching `*.Test` project holding its xUnit suite. `Core` has none of its own — it declares contracts and holds no logic to test; its seams are exercised through the layers that implement them.
 
 ### Naming: directories, assemblies, and namespaces
 
