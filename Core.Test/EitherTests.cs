@@ -233,6 +233,73 @@ public class EitherTests
         new Failed<int>(NotFound()).Should().NotBe(new Succeeded<int>(0));
     }
 
+    // ── Failures with structured detail ──────────────────────────────────────
+
+    /* The motivating case: a failed build has a list of findings, not one message. Subtyping carries them
+       without Either gaining a second type parameter. */
+    [Fact]
+    public void AFailureCanCarryStructuredDetail()
+    {
+        string[] problems = ["m has no dimensionality", "the sum mixes mass and length"];
+        Either<int> either = new Failure<string[]>(FailureReason.Unprocessable, "2 problems", problems);
+
+        either.TryGetFailure(out var failure).Should().BeTrue();
+        failure.Should().BeOfType<Failure<string[]>>()
+            .Which.Detail.Should().BeSameAs(problems);
+    }
+
+    /* Everything that takes a Failure takes one of these, so a caller that only relays or reports is untouched
+       by the detail being there. */
+    [Fact]
+    public void ADetailBlindCallerTreatsItAsAnyOtherFailure()
+    {
+        Either<int> either = new Failure<string[]>(FailureReason.Conflict, "clashed", ["a", "b"]);
+
+        either.DidFail.Should().BeTrue();
+        either.Match(v => "value", f => $"{f.Reason}: {f.Message}").Should().Be("Conflict: clashed");
+        either.ValueOr(-1).Should().Be(-1);
+    }
+
+    /* Detail attached deep in a call stack has to survive the relay to the top, or the shape is useless: the
+       whole point is that the outermost layer renders it. */
+    [Fact]
+    public void RelayingPreservesTheDetailAcrossPayloadTypes()
+    {
+        var original = new Failure<string[]>(FailureReason.Unprocessable, "2 problems", ["one", "two"]);
+        Either<int> deep = original;
+
+        deep.TryGetFailure(out var relayed).Should().BeTrue();
+        Either<string> middle = relayed!;
+        middle.TryGetFailure(out var atTheTop).Should().BeTrue();
+
+        atTheTop.Should().BeSameAs(original);
+        atTheTop.Should().BeOfType<Failure<string[]>>()
+            .Which.Detail.Should().Equal("one", "two");
+    }
+
+    [Fact]
+    public void ThenPassesDetailedFailuresThroughUntouched()
+    {
+        var original = new Failure<int[]>(FailureReason.Invalid, "bad", [1, 2, 3]);
+        Either<int> start = original;
+
+        start.Then(v => (Either<string>)v.ToString())
+            .Should().BeOfType<Failed<string>>()
+            .Which.Failure.Should().BeSameAs(original);
+    }
+
+    /* Record equality includes the runtime type, so a detailed failure never compares equal to the plain one it
+       would flatten to. Otherwise a test could pass while the detail was silently dropped. */
+    [Fact]
+    public void ADetailedFailureIsNotEqualToAPlainOne()
+    {
+        var detailed = new Failure<string[]>(FailureReason.Invalid, "bad", ["x"]);
+        var plain = new Failure(FailureReason.Invalid, "bad");
+
+        detailed.Should().NotBe(plain);
+        ((Failure)detailed).Should().NotBe(plain);
+    }
+
     /* No zero member, so a failure deserialized without a reason is detectably absent rather than silently
        NotFound. Same rule as SolvingRole and AgreementRule. */
     [Fact]

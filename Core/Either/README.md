@@ -10,7 +10,8 @@ no null.
 | `Either<TValue>` | abstract record | Either a value or a `Failure`. Carries `DidFail`, `Match`, `Map`, `Then`, `TryGetFailure`, `TryGetValue`. |
 | `Succeeded<TValue>` | sealed record | The case that has a `Value`. |
 | `Failed<TValue>` | sealed record | The case that has a `Failure`. |
-| `Failure` | sealed record | A `FailureReason` and a message. Not generic, so it can travel. |
+| `Failure` | record | A `FailureReason` and a message. Not generic, so it can travel. |
+| `Failure<TDetail>` | sealed record | A failure with structured findings attached. |
 
 ## Start here
 
@@ -76,9 +77,14 @@ Use(value);
   can reach it with an explicit `base(borrowed)` call. **This is why `Match` is abstract rather than a
   `switch` written over the two known cases** — `Match` stays total whatever exists, and a type switch would
   not.
-- **`Failure` carries one message, not a list of findings.** Rich domain output — every dimensional problem in
-  a draft, every violated requirement in a calculation — stays its own type, because a caller wants to read
-  that rather than branch on it. See *What does not belong here*.
+- **Detail is a subtype, not a second type parameter.** `Failure<TDetail>` carries structured findings — the
+  list of problems behind a failed build, say — and everything that takes a `Failure` takes one of these, so a
+  caller that only relays or reports a failure needs to know nothing about them. Recover them with a type test:
+  `if (failure is Failure<IReadOnlyList<DraftProblem>> d) Render(d.Detail);`
+- **The cost of that shape: a signature does not advertise what its failures carry.** `Either<T>` says only
+  that it can fail. Where the detail matters, the member's own documentation has to say so — a second type
+  parameter would have said it in the type, at the price of two arguments everywhere and failures that no
+  longer chain across vocabularies.
 - **`FailureReason` names no transport.** Mapping one to an HTTP status, an exit code or a dialog belongs to
   the outermost layer; nothing here chooses between `400` and `422`.
 - **`Map` on a transform returning null** gives a `Succeeded` wrapping null rather than a failure. `Either`
@@ -87,9 +93,8 @@ Use(value);
 ## What does not belong here
 
 - `FailureReason`, the enum → `Enums/`
-- Structured domain findings → the layer that owns them. `Calcusystem.Authoring`'s `DraftProblem` is the
-  pattern: a list of problems each naming a node is something to render, where a `Failure` is something to
-  branch on.
+- The findings' own types → the layer that owns them. `Calcusystem.Authoring` defines `DraftProblem`; this
+  assembly only carries a list of them as opaque detail, and never knows what one is.
 - Transport mappings — status codes, exit codes, problem-detail documents → the outermost layer.
 
 ## Related
