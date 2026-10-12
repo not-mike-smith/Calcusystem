@@ -1,5 +1,7 @@
 using Calcusystem.Authoring.Drafts;
 using Calcusystem.Authoring.Enums;
+using Calcusystem.Core.Either;
+using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Extensions;
 using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Units;
@@ -11,7 +13,7 @@ namespace Calcusystem.Authoring.Test;
 /* The snippets printed in this assembly's READMEs, compiled. Documentation that no longer builds is worse than
    none, and prose alone cannot show that a shown `using` list is sufficient.
 
-   The snippets stop at TryBuild. Carrying one through to system.Calculate() would mean referencing
+   The snippets stop at Build. Carrying one through to system.Calculate() would mean referencing
    Calcusystem.Analysis from here, and a test project references only the layers it covers. */
 public class ReadmeSnippets
 {
@@ -34,9 +36,8 @@ public class ReadmeSnippets
             problem.Message.Should().NotBeEmpty();
         }
 
-        draft.TryBuild(out var system, out var problems).Should().BeTrue();
-        problems.Should().BeEmpty();
-        system!.Variables.Should().HaveCount(2);
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
+        system.Variables.Should().HaveCount(2);
     }
 
     [Fact]
@@ -49,12 +50,10 @@ public class ReadmeSnippets
         doubled.OperandIds.Add(m.Id);
         doubled.OperandIds.Add(m.Id);
 
-        draft.TryBuild(out var system, out var problems).Should().BeTrue();
-
-        problems.Should().BeEmpty();
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
 
         // The same operand twice is one variable in the built system: Add absorbs by identity.
-        system!.Variables.Should().ContainSingle();
+        system.Variables.Should().ContainSingle();
         system.DerivedExpressions.Should().ContainSingle();
     }
 }

@@ -1,7 +1,10 @@
 using Calcusystem.Authoring.Drafts;
 using Calcusystem.Authoring.Enums;
+using Calcusystem.Core.Either;
+using Calcusystem.Core.Enums;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Primitives;
 using Calcusystem.Measurement.Uncertainties;
 using FluentAssertions;
@@ -33,10 +36,9 @@ public class SystemDraftTests
         f.OperandIds.Add(a.Id);
 
         draft.Validate().Should().BeEmpty();
-        draft.TryBuild(out var system, out var problems).Should().BeTrue();
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
 
-        problems.Should().BeEmpty();
-        system!.Name.Should().Be("Newton's second law");
+        system.Name.Should().Be("Newton's second law");
         system.Variables.Select(v => v.Symbol).Should().BeEquivalentTo("m", "a");
         system.DerivedExpressions.Should().HaveCount(1);
     }
@@ -51,9 +53,9 @@ public class SystemDraftTests
         var negated = draft.AddExpression(ExpressionDraftType.Negated);
         negated.OperandIds.Add(m.Id);
 
-        draft.TryBuild(out var system, out _).Should().BeTrue();
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
 
-        system!.Variables.Single().Id.Should().Be(m.Id);
+        system.Variables.Single().Id.Should().Be(m.Id);
         system.DerivedExpressions.Single().Id.Should().Be(negated.Id);
         system.Id.Should().Be(draft.Id);
     }
@@ -72,10 +74,9 @@ public class SystemDraftTests
         equation.Agreement = AgreementRule.Nominal;
         equation.SolvingRole = SolvingRole.Equation;
 
-        draft.TryBuild(out var system, out var problems).Should().BeTrue();
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
 
-        problems.Should().BeEmpty();
-        system!.Relationships.Should().HaveCount(1);
+        system.Relationships.Should().HaveCount(1);
         system.Equations.Should().HaveCount(1);
         system.Requirements.Should().BeEmpty();
     }
@@ -93,8 +94,8 @@ public class SystemDraftTests
         check.LhsId = m.Id;
         check.RhsId = limit.Id;
 
-        draft.TryBuild(out var system, out _).Should().BeTrue();
-        system!.Requirements.Should().HaveCount(1);
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
+        system.Requirements.Should().HaveCount(1);
     }
 
     // ── Nothing throws while editing ─────────────────────────────────────────
@@ -125,20 +126,53 @@ public class SystemDraftTests
     }
 
     [Fact]
-    public void ValidateAndTryBuildNeverDisagree()
+    public void ValidateAndBuildNeverDisagree()
     {
         var draft = SystemDraft.Create("agreement", "");
         var broken = draft.AddExpression(ExpressionDraftType.Sqrt);
 
         draft.Validate().Should().NotBeEmpty();
-        draft.TryBuild(out var system, out var problems).Should().BeFalse();
-        system.Should().BeNull();
-        problems.Should().BeEquivalentTo(draft.Validate());
+        draft.Build().Should().BeOfType<Failed<ExpressionSystem>>();
+        draft.Validate().Should().BeEquivalentTo(draft.Validate());
 
         broken.OperandIds.Add(draft.AddVariable("q", Dimensionality.Mass * Dimensionality.Mass).Id);
 
         draft.Validate().Should().BeEmpty();
-        draft.TryBuild(out _, out _).Should().BeTrue();
+        draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>();
+    }
+
+    /* The case that drove Failure<TDetail>: a failed build has many problems and an editor has to mark them
+       all, so one message naming the first is useless. They ride up as the failure's detail. */
+    [Fact]
+    public void AFailedBuildCarriesEveryProblemAsTheFailuresDetail()
+    {
+        var draft = SystemDraft.Create("several problems", "");
+        draft.AddExpression();                                   // no kind chosen
+        draft.AddVariable("x");                                  // no dimensionality
+        var sum = draft.AddExpression(ExpressionDraftType.Sum);  // mixes dimensionalities
+        sum.OperandIds.Add(draft.AddVariable("m", Dimensionality.Mass).Id);
+        sum.OperandIds.Add(draft.AddVariable("l", Dimensionality.Length).Id);
+
+        var built = draft.Build();
+
+        built.TryGetFailure(out var failure).Should().BeTrue();
+        failure!.Reason.Should().Be(FailureReason.Unprocessable, "the draft is not ready, the request was fine");
+
+        failure.Should().BeOfType<Failure<IReadOnlyList<DraftProblem>>>()
+            .Which.Detail.Should().HaveCount(3).And.BeEquivalentTo(draft.Validate());
+    }
+
+    /* A caller that only needs to know whether it worked never sees the detail, which is the point of attaching
+       it by subtyping rather than by a second type parameter on Either. */
+    [Fact]
+    public void ACallerThatOnlyAsksWhetherItBuiltNeedsNoneOfThat()
+    {
+        var draft = SystemDraft.Create("one problem", "");
+        draft.AddExpression();
+
+        draft.Build().DidFail.Should().BeTrue();
+        draft.Build().Match(_ => "built", f => f.Message)
+            .Should().Be("One problem stops this draft from building.");
     }
 
     // ── Shape problems ───────────────────────────────────────────────────────
@@ -359,10 +393,9 @@ public class SystemDraftTests
     {
         var draft = SystemDraft.Create("empty", "nothing in it yet");
 
-        draft.TryBuild(out var system, out var problems).Should().BeTrue();
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
 
-        problems.Should().BeEmpty();
-        system!.Variables.Should().BeEmpty();
+        system.Variables.Should().BeEmpty();
         system.Relationships.Should().BeEmpty();
     }
 }

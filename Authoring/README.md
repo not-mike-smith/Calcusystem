@@ -46,10 +46,8 @@ f.OperandIds.Add(a.Id);
 foreach (var problem in draft.Validate())
     Console.WriteLine($"{problem.NodeId}: {problem.Message}");
 
-if (draft.TryBuild(out var system, out var problems))
-{
-    // An ordinary ExpressionSystem from here on.
-}
+// Either the system, or a failure whose detail is the problems that stopped it.
+var built = draft.Build();
 ```
 
 What comes back is an `ExpressionSystem` like any other, so `Calcusystem.Analysis` takes it from there — `system.Flatten()`, `system.Decompose()`, `system.Calculate()`.
@@ -72,7 +70,7 @@ What comes back is an `ExpressionSystem` like any other, so `Calcusystem.Analysi
 
 ## Building: two passes, and one of them asks the domain
 
-The domain cannot be asked about a node until the node can be constructed at all, so `TryBuild` works in two stages.
+The domain cannot be asked about a node until the node can be constructed at all, so `Build` works in two stages.
 
 **Shape**, checked here: a kind chosen, operand slots filled, the right number of them, every reference resolvable, no cycles, no id claimed twice. These are the questions that must be answered before a constructor can even be called.
 
@@ -91,9 +89,11 @@ Construction runs in repeated passes: build anything whose operands are already 
 
 The two are told apart by spreading a mark from the failures through the leftovers; whatever is left unmarked is the cycle. One mechanism serves both, and neither needs the ordering itself, which is why there is no topological sort here.
 
-### `Validate` is `TryBuild` with the result discarded
+### `Validate` reads the problems off a `Build`
 
 So the two cannot disagree about whether a draft is valid. Had `Validate` been written separately it would be a second answer to one question, and the interesting failure is the one where it says a draft is fine and the build then throws.
+
+`Build` answers with an `Either<ExpressionSystem>` from `Calcusystem.Core`. A failure carries **every** problem, as a `Failure<IReadOnlyList<DraftProblem>>` — one message naming the first would be useless to an editor that has to mark them all. `Validate` recovers that list; a caller that only wants to know whether it worked reads `DidFail` and never sees it.
 
 ---
 

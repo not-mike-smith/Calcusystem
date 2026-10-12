@@ -1,5 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using Calcusystem.Authoring.Enums;
+using Calcusystem.Core.Either;
+using Calcusystem.Core.Enums;
 using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.BinaryOperators;
@@ -26,7 +27,7 @@ namespace Calcusystem.Authoring.Drafts;
 /// </para>
 /// <para>
 /// <b>Nothing here throws for a modelling mistake.</b> Problems come back as data from
-/// <see cref="Validate"/> and <see cref="TryBuild"/>, each naming the node at fault.
+/// <see cref="Validate"/> and <see cref="Build"/>, each naming the node at fault.
 /// </para>
 /// <para>
 /// Ids are fixed when a node is created and carry through to the built system, so a front-end can hold
@@ -119,19 +120,22 @@ public sealed class SystemDraft
 
     /// <summary>Everything standing between this draft and a built system. Empty means it builds.</summary>
     /// <remarks>
-    /// Runs the build and discards the result, so this and <see cref="TryBuild"/> cannot disagree about whether
-    /// the draft is valid.
+    /// Reads the problems off a <see cref="Build"/>, so this and that cannot disagree about whether the draft is
+    /// valid.
     /// </remarks>
-    public IReadOnlyList<DraftProblem> Validate()
-    {
-        TryBuild(out _, out var problems);
-        return problems;
-    }
+    public IReadOnlyList<DraftProblem> Validate() =>
+        Build().Match(_ => [], failure => Problems(failure));
+
+    /// <summary>The problems a build failure carries, or none if it failed some other way.</summary>
+    private static IReadOnlyList<DraftProblem> Problems(Failure failure) =>
+        failure is Failure<IReadOnlyList<DraftProblem>> detailed ? detailed.Detail : [];
 
     /// <summary>Builds the draft into an <see cref="ExpressionSystem"/>, or reports why it cannot be.</summary>
-    /// <param name="system">The built system, or null if there were problems.</param>
-    /// <param name="problems">What stood in the way, empty on success.</param>
-    /// <returns>Whether a system was built.</returns>
+    /// <returns>
+    /// The built system, or a failure whose detail is the <see cref="DraftProblem"/>s that stopped it — a
+    /// <c>Failure&lt;IReadOnlyList&lt;DraftProblem&gt;&gt;</c>, which <see cref="Validate"/> reads back and a
+    /// report renders.
+    /// </returns>
     /// <remarks>
     /// <para>
     /// Two passes, because the domain cannot be asked about a node until the node can be constructed at all.
@@ -148,9 +152,7 @@ public sealed class SystemDraft
     /// that deferred one to a later read would pass here and refuse later, with no node named.
     /// </para>
     /// </remarks>
-    public bool TryBuild(
-        [NotNullWhen(true)] out ExpressionSystem? system,
-        out IReadOnlyList<DraftProblem> problems)
+    public Either<ExpressionSystem> Build()
     {
         var found = new List<DraftProblem>();
         var unbuildable = new HashSet<string>();
@@ -160,27 +162,28 @@ public sealed class SystemDraft
         var built = BuildExpressions(candidates, found, unbuildable);
         var operators = BuildRelationships(built, found, unbuildable);
 
-        if (found.Count > 0)
-        {
-            system = null;
-            problems = found;
-            return false;
-        }
+        if (found.Count > 0) return Stopped(found);
 
-        system = new ExpressionSystem(Id) { Name = Name, Description = Description };
+        var system = new ExpressionSystem(Id) { Name = Name, Description = Description };
         foreach (var expression in built.Expressions) system.Add(expression);
         foreach (var op in operators) TryAdd(system, op, found);
 
-        if (found.Count > 0)
-        {
-            system = null;
-            problems = found;
-            return false;
-        }
-
-        problems = [];
-        return true;
+        return found.Count > 0 ? Stopped(found) : system;
     }
+
+    /// <summary>
+    /// The problems, as a failure carrying all of them rather than one message naming the first.
+    /// </summary>
+    /// <remarks>
+    /// <c>Unprocessable</c> rather than <c>Invalid</c>: the request to build is perfectly well formed, and it is
+    /// the draft that is not ready.
+    /// </remarks>
+    private static Failure<IReadOnlyList<DraftProblem>> Stopped(IReadOnlyList<DraftProblem> problems) =>
+        new(FailureReason.Unprocessable,
+            problems.Count == 1
+                ? "One problem stops this draft from building."
+                : $"{problems.Count} problems stop this draft from building.",
+            problems);
 
     // `Add` is the last place a dimensional mismatch can surface, because it compares the two sides of a
     // relationship rather than anything within one expression.

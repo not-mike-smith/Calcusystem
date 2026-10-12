@@ -24,7 +24,7 @@ var doubled = draft.AddExpression(ExpressionDraftType.Sum);
 doubled.OperandIds.Add(m.Id);
 doubled.OperandIds.Add(m.Id);
 
-if (draft.TryBuild(out var system, out var problems)) { /* … */ }
+var built = draft.Build();   // Either<ExpressionSystem>
 ```
 
 Nodes are only ever created through `SystemDraft.AddExpression`, `AddVariable` and `AddRelationship` — the two
@@ -34,7 +34,7 @@ draft types have internal constructors, so a node cannot exist outside the draft
 
 - **No member throws because a model is wrong.** Every complaint is a `DraftProblem`. A draft can be left in
   any state an editor can reach, including untyped nodes, empty operand slots and transient cycles.
-- **`Validate()` and `TryBuild()` never disagree.** The first runs the second and discards the system.
+- **`Validate()` and `Build()` never disagree.** The first reads its answer off the second.
 - **An id is fixed when a node is created and survives the build.** The built expression has the id its draft
   had, so references held elsewhere stay good.
 - **A problem names its node.** `DraftProblem.NodeId` is null only for a problem about the draft as a whole.
