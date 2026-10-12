@@ -224,9 +224,42 @@ Four unknowns, four equations, `ExactlyDetermined` — and a variable nothing ca
 
 All of this is **structural**. It says an equation has been assigned to an unknown, not that the equation can be inverted for it, nor that doing so is numerically sound. Those are the solver's questions and none of them is answered yet.
 
+### The graph it runs on
+
+Both algorithms below work on a **bipartite graph**, and it is not the expression graph:
+
+- one side is the **unknowns**, a node per unset `Variable`;
+- the other is the **equations**, a node per determining relationship;
+- an edge joins an equation to an unknown it can reach.
+
+A computed node is on neither side. It is the path an equation takes to reach a leaf, so it contributes an **edge, not a vertex** — [what becomes a row, a column, or neither](#what-becomes-a-row-a-column-or-neither) above has the full mapping.
+
+So this graph is a **projection of the expression graph**, with every interior node contracted away:
+
+| | Expression graph | This one |
+| --- | --- | --- |
+| Nodes | every `IExpression` — variables and computed nodes alike | unknowns and equations |
+| Edges | parent to operand, through `IExpression.Children` | equation to unknown |
+| Shape | directed, a DAG | undirected, bipartite |
+| Relationships | not nodes at all — they sit outside it, pointing at two roots | one of the two sides |
+
+The worked system above shows the contraction. `y == x + 1` has a `SumExpression` on its right; the walk passes *through* that sum to reach `x`, so the equation gets an edge to `x` and the sum appears nowhere:
+
+```text
+              orphan    m     x     y
+m==a                    ●
+m==b                    ●
+x==3                          ●
+y==x+1                        ●     ●
+```
+
+`orphan`'s row is empty, which is exactly what makes it unmatchable.
+
+**`Decompose` never walks the expression graph.** `Flatten` already did, and `Equation.Unknowns` *is* the adjacency list — which is why that field was put there when `Flatten` shipped. The only thing built here is the reverse index, the equations per unknown, because the second sweep needs the edges in that direction.
+
 ### How it works
 
-The Dulmage–Mendelsohn decomposition over the incidence `FlatSystem` already carries on `Equation.Unknowns`:
+The Dulmage–Mendelsohn decomposition over that graph:
 
 1. **A maximum matching** pairs each equation with an unknown it could determine. Kuhn's algorithm — one breadth-first search per equation for an augmenting path, flipping every edge along it. Greedy pairing is not enough: `a + b == 10` taken first claims `a` and leaves `a == 4` with nothing, reporting a square well-posed system as both under- and over-determined. Augmenting moves the first equation onto `b` instead.
 2. **Two reachability sweeps** along alternating paths — out from the unmatched *unknowns* for the underdetermined part, out from the unmatched *equations* for the overdetermined one. The two are provably disjoint, so whatever neither reaches is the square part.
