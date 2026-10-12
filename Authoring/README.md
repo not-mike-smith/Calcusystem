@@ -16,7 +16,7 @@ They are also exactly what an editor cannot honor between one keystroke and the 
 | --- | --- |
 | a sum with one mass and one length in it | `SumExpression` throws on construction |
 | an exponential whose argument is not yet dimensionless | `ExponentialExpression` throws |
-| a √ over an odd exponent | throws, but **lazily** — on reading `Dimensionality`, not on construction |
+| a √ over an odd exponent | `SqrtExpression` throws |
 | a value typed in before its variable's dimensionality is corrected | `Variable.Value` throws |
 | a variable with no dimensionality yet | unrepresentable — both constructors require one |
 | a comparison across two dimensionalities | `ExpressionSystem.Add` throws |
@@ -80,7 +80,7 @@ The domain cannot be asked about a node until the node can be constructed at all
 
 **The second pass deliberately does not restate the domain's rules.** A draft validator holding its own copy of "addends must agree" is two things answering one question, which is the shape of three bugs this codebase has already fixed. Here the domain stays the only place a rule is written, so a rule added to a constructor shows up in authoring for free.
 
-One consequence worth knowing: a node is also asked for its `Dimensionality` after construction, because `SqrtExpression` checks its exponents there rather than in its constructor. Without that probe a bad √ would build and the refusal would surface later, somewhere with no idea which node caused it.
+This leans on every expression type settling its dimensional rules **at construction**, which is the assembly-wide rule in `DimensionedExpression` — validation happens once, where the operand arrives. A type that deferred one to a later read would pass the second pass here and refuse afterwards, with no node named. `SqrtExpression` was the one exception when this assembly was written, and was fixed rather than worked around.
 
 ### Dependency order, and what is left over
 

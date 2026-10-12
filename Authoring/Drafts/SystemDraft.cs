@@ -143,6 +143,10 @@ public sealed class SystemDraft
     /// A node whose operand failed is not reported as well — one cause gives one problem, not a cascade up every
     /// node above it.
     /// </para>
+    /// <para>
+    /// The second pass relies on every expression type settling its dimensional rules at construction. A type
+    /// that deferred one to a later read would pass here and refuse later, with no node named.
+    /// </para>
     /// </remarks>
     public bool TryBuild(
         [NotNullWhen(true)] out ExpressionSystem? system,
@@ -329,12 +333,7 @@ public sealed class SystemDraft
 
                 try
                 {
-                    var expression = Construct(draft, resolved);
-
-                    // Forces the dimensional rules that are evaluated lazily rather than at construction —
-                    // a Sqrt of an odd exponent builds happily and only refuses when asked its dimensionality.
-                    _ = expression.Dimensionality;
-                    resolved.Add(expression);
+                    resolved.Add(Construct(draft, resolved));
                 }
                 catch (Exception e)
                 {

@@ -264,9 +264,8 @@ public class SystemDraftTests
             .Which.Kind.Should().Be(DraftProblemKind.DomainRule);
     }
 
-    /* Sqrt is the one kind whose dimensional rule is evaluated lazily rather than at construction, so the build
-       walk has to ask for the dimensionality to provoke it. Without that, this draft builds and the refusal
-       surfaces later, somewhere that has no idea which node is at fault. */
+    /* Sqrt's rule is the argument's exponents, not its dimensionality, so it is worth a case of its own
+       alongside the sum and the exponential. */
     [Fact]
     public void ASqrtOfAnOddExponentIsReported()
     {

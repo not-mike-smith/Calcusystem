@@ -10,8 +10,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 
 /// <summary>
 /// Unary square root of any <see cref="IExpression"/>. The result's dimensionality is the argument's with every
-/// exponent halved (e.g. √(m²·s⁻²) → m·s⁻¹), so every exponent must be even — an odd exponent throws
-/// <see cref="Measurement.Exceptions.NondiscreteDimensionalityException"/>.
+/// exponent halved (e.g. √(m²·s⁻²) → m·s⁻¹), so every exponent must be even — an odd one throws
+/// <see cref="Measurement.Exceptions.NondiscreteDimensionalityException"/> on construction.
 /// <br/><br/>
 /// A negative argument value yields a NaN result.
 /// <br/><br/>
@@ -23,6 +23,9 @@ public class SqrtExpression : ExpressionBase, IExpression, ISnapshottingNode<Sqr
 
     public SqrtExpression(IExpression argument, string id = IdBase.CREATE_NEW_ID) : base(id)
     {
+        // Halving the exponents is the step that can fail, so it happens here — once, where the operand
+        // arrives, like every other operand rule in this assembly.
+        Dimensionality = argument.Dimensionality / 2;
         _argument = argument;
     }
 
@@ -31,8 +34,9 @@ public class SqrtExpression : ExpressionBase, IExpression, ISnapshottingNode<Sqr
     public override bool IsDirectlyMutable => false;
     public override bool IsFullyDescribed => Argument.IsFullyDescribed;
 
-    // Each exponent halved; throws NondiscreteDimensionalityException if any argument exponent is odd.
-    public override Dimensionality Dimensionality => Argument.Dimensionality / 2;
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>Each of the argument's exponents, halved. Settled at construction.</remarks>
+    public override Dimensionality Dimensionality { get; }
 
     /// <inheritdoc/>
     public override Measurand? ComputeFrom(

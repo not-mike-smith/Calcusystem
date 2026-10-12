@@ -37,12 +37,21 @@ public class UnaryMathExpressionTests
         root.RelativeUncertainty.Should().BeApproximately(0.01, 1E-9);
     }
 
+    /* Refused where the operand arrives, like every other operand rule here. Deferring it to the first read of
+       Dimensionality would let a bad √ into a system and surface the refusal somewhere with no idea which node
+       caused it — which is exactly what it did to the authoring layer. */
     [Fact]
-    public void Sqrt_OddExponent_ThrowsOnDimensionAccess()
+    public void Sqrt_OddExponent_ThrowsOnConstruction()
     {
-        var sqrt = new SqrtExpression(new Variable("l", Dimensionality.Length));
-        Func<Dimensionality> access = () => sqrt.Dimensionality;
-        access.Should().Throw<NondiscreteDimensionalityException>();
+        Func<SqrtExpression> construct = () => new SqrtExpression(new Variable("l", Dimensionality.Length));
+        construct.Should().Throw<NondiscreteDimensionalityException>();
+    }
+
+    [Fact]
+    public void Sqrt_DimensionalityIsSettledOnceRatherThanRecomputed()
+    {
+        var sqrt = new SqrtExpression(BoundArea(9, 0));
+        sqrt.Dimensionality.Should().Be(sqrt.Dimensionality).And.Be(Dimensionality.Length);
     }
 
     [Fact]

@@ -42,7 +42,7 @@ The split is what makes the rest of the layer safe to reason about:
 
 - **The staleness question shrinks to one axis.** A cache can only be invalidated by a value change, never by the graph rearranging underneath it. That is why `Calculate` can memoize for the duration of a run, and why nothing needs to detect structural edits.
 - **Cycles become unconstructible** through these types, since a node's operands must exist before it does.
-- **Validation happens once, where the operand arrives.** `SumExpression` checks that its addends share a dimensionality in its constructor and nowhere else; the unary types check dimensionlessness there and nowhere else. There is no second path to keep in agreement.
+- **Validation happens once, where the operand arrives.** `SumExpression` checks that its addends share a dimensionality in its constructor and nowhere else; each unary type checks its argument there and nowhere else — dimensionlessness for `e^x` and `ln x`, even exponents for `√x`. There is no second path to keep in agreement, and **nothing a node is later asked can refuse**: by the time one exists, its dimensionality is settled.
 
 Two further consequences worth internalizing:
 
@@ -71,7 +71,7 @@ Two further consequences worth internalizing:
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
 | `NegatedExpression` | `IExpression` | Unary negation wrapper over any `IExpression` (its `Operand`). Not directly mutable. |
 | `ReciprocalExpression` | `IExpression` | Unary `1/x` wrapper over any `IExpression`; reciprocates the dimensionality. |
-| `SqrtExpression` | `IExpression` | Unary `√x` over any `IExpression` (its `Argument`); halves each dimension exponent (odd exponent throws `NondiscreteDimensionalityException`). Uncertainty: `RelativeUncertainty(√x) = ½·RelativeUncertainty(x)`. |
+| `SqrtExpression` | `IExpression` | Unary `√x` over any `IExpression` (its `Argument`); halves each dimension exponent, settled at construction (an odd exponent throws `NondiscreteDimensionalityException` there). Uncertainty: `RelativeUncertainty(√x) = ½·RelativeUncertainty(x)`. |
 | `ExponentialExpression` | `IExpression` | Unary `e^x`; argument must be dimensionless (enforced on construction, the only point it can be supplied), result dimensionless. Uncertainty: `RelativeUncertainty(eˣ) ≈ \|x\|·RelativeUncertainty(x)`. |
 | `NaturalLogExpression` | `IExpression` | Unary `ln(x)`; argument must be dimensionless and positive, result dimensionless. Uncertainty: `AbsoluteUncertainty(ln x) ≈ RelativeUncertainty(x)`. At `x = 1` the result is 0, so its *relative* uncertainty is undefined — the absolute one is kept and `RelativeUncertainty` reports `+∞` rather than throwing. |
 
