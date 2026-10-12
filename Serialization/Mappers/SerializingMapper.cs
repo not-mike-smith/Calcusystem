@@ -57,8 +57,8 @@ public class SerializingMapper
             Symbol = snapshot.Symbol,
             Dimensionality = DimensionalityCodec.Encode(snapshot.Dimensionality),
             KmsValue = snapshot.Value?.Quantity.KmsValue,
-            Uncertainty = snapshot.Value is { } value ? Map(value.Uncertainty) : null,
-            Provenance = snapshot.Provenance is { } provenance ? Map(provenance) : null,
+            Uncertainty = snapshot.Value is { } value ? UncertaintyCodec.ToWire(value.Uncertainty) : null,
+            Provenance = snapshot.Provenance is { } provenance ? ProvenanceCodec.ToWire(provenance) : null,
         };
     }
 
@@ -121,39 +121,7 @@ public class SerializingMapper
             RuleLhs = snapshot.Rule?.Lhs,
             RuleMustBe = snapshot.Rule?.MustBe,
             RuleRhs = snapshot.Rule?.Rhs,
-            Provenance = snapshot.Provenance is { } provenance ? Map(provenance) : null,
+            Provenance = snapshot.Provenance is { } provenance ? ProvenanceCodec.ToWire(provenance) : null,
         };
     }
-
-    private Dtos.Provenance Map(ProvenanceSnapshot snapshot) => new()
-    {
-        Id = snapshot.Id,
-        Type = WireNames.Of(snapshot.Type),
-        InstrumentId = snapshot.InstrumentId,
-        CalibrationDate = snapshot.CalibrationDate,
-        Citation = snapshot.Citation,
-        Url = snapshot.Url,
-        Year = snapshot.Year,
-        SpecReference = snapshot.SpecReference,
-        ModelName = snapshot.ModelName,
-        FittingReference = snapshot.FittingReference,
-    };
-
-    private Dtos.Uncertainty Map(UncertaintySnapshot snapshot) => snapshot.Type switch
-    {
-        UncertaintyType.Symmetric => new Dtos.Uncertainty
-        {
-            Type = nameof(SymmetricUncertainty),
-            IsStoredAsAbs = snapshot.IsStoredAsAbs,
-            Magnitude = snapshot.UpperMagnitude,
-        },
-        UncertaintyType.Asymmetric => new Dtos.Uncertainty
-        {
-            Type = nameof(AsymmetricUncertainty),
-            IsStoredAsAbs = snapshot.IsStoredAsAbs,
-            UpperMagnitude = snapshot.UpperMagnitude,
-            LowerMagnitude = snapshot.LowerMagnitude,
-        },
-        _ => throw new NotImplementedException($"No mapping for uncertainty shape {snapshot.Type}")
-    };
 }

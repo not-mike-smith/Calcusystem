@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Analysis\Analysis.csproj" />
+        <ProjectReference Include="..\Authoring\Authoring.csproj" />
+        <ProjectReference Include="..\Serialization\Serialization.csproj" />
+    </ItemGroup>
+
+</Project>

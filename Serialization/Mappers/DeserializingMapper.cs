@@ -206,7 +206,7 @@ public class DeserializingMapper
                 RuleOf(x),
                 x.Name,
                 x.Description,
-                MapProvenance(x.Provenance)),
+                ProvenanceCodec.FromWire(x.Provenance)),
             _context);
     }
 
@@ -228,53 +228,7 @@ public class DeserializingMapper
             v.KmsValue is { } kms
                 ? new MeasurandSnapshot(
                     new QuantitySnapshot(kms, DimensionalityCodec.Decode(v.Dimensionality)),
-                    MapUncertainty(v.Uncertainty))
+                    UncertaintyCodec.FromWire(v.Uncertainty))
                 : null,
-            MapProvenance(v.Provenance)));
-
-    private static ProvenanceSnapshot? MapProvenance(Dtos.Provenance? provenance)
-    {
-        if (provenance is null) return null;
-
-        return WireNames.ProvenanceTypeOf(provenance.Type) switch
-        {
-            ProvenanceType.Measured => ProvenanceSnapshot.Measured(
-                provenance.Id, provenance.InstrumentId, provenance.CalibrationDate),
-            ProvenanceType.Reference => ProvenanceSnapshot.Reference(
-                provenance.Id, provenance.Citation!, provenance.Url, provenance.Year),
-            ProvenanceType.Design => ProvenanceSnapshot.Design(
-                provenance.Id, provenance.SpecReference),
-            ProvenanceType.Model => ProvenanceSnapshot.Model(
-                provenance.Id, provenance.ModelName!, provenance.FittingReference),
-            var kind => throw new NotImplementedException($"No snapshot mapping for provenance kind {kind}")
-        };
-    }
-
-    private static UncertaintySnapshot MapUncertainty(Dtos.Uncertainty? uncertainty)
-    {
-        if (uncertainty is null) return UncertaintySnapshot.Symmetric(false, 0);
-
-        return uncertainty.Type switch
-        {
-            nameof(SymmetricUncertainty) => UncertaintySnapshot.Symmetric(
-                uncertainty.IsStoredAsAbs,
-                Required(uncertainty.Magnitude, nameof(uncertainty.Magnitude), uncertainty.Type)),
-
-            nameof(AsymmetricUncertainty) => UncertaintySnapshot.Asymmetric(
-                uncertainty.IsStoredAsAbs,
-                Required(uncertainty.UpperMagnitude, nameof(uncertainty.UpperMagnitude), uncertainty.Type),
-                Required(uncertainty.LowerMagnitude, nameof(uncertainty.LowerMagnitude), uncertainty.Type)),
-
-            _ => throw new NotImplementedException(
-                $"No deserialization method defined for uncertainty type {uncertainty.Type}")
-        };
-    }
-
-    /// <summary>
-    /// Reads a field of the flat uncertainty DTO that is required for the shape named by its discriminator.
-    /// Missing means the payload is malformed; substituting a default would quietly change the uncertainty band.
-    /// </summary>
-    private static double Required(double? value, string field, string type) =>
-        value ?? throw new InvalidOperationException(
-            $"Uncertainty of type {type} is missing required field {field}.");
+            ProvenanceCodec.FromWire(v.Provenance)));
 }
