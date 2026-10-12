@@ -178,7 +178,95 @@ It is also how an over-determined system is interrogated — pin different subse
 
 Weighing redundancy into the classification would report the second row as over-determined — false, since its solve is square and the check concerns values that were already known. So redundancy is reported by `RedundantEquations` instead, and whether those checks actually *hold* belongs to a calculation's relationship outcomes, not to a count. The last row is not a special case: it is simply a system with no unknowns that happens to carry two checks.
 
-**`ExactlyDetermined` is necessary, not sufficient.** The count does not check that the equations are independent. Two equations asserting the same thing, alongside a genuinely free variable, also lands on zero — and no count can tell that apart from a well-posed square system. `UnknownsWithNoEquation` catches the cheapest slice of this (a column no row touches), but the general case needs a matching over the incidence structure. Treat DoF as a gate that can *reject*, never as a promise that solving will succeed.
+**`ExactlyDetermined` is necessary, not sufficient.** The count does not check that the equations are independent. Two equations asserting the same thing, alongside a genuinely free variable, also lands on zero — and no count can tell that apart from a well-posed square system. `UnknownsWithNoEquation` catches the cheapest slice of this (a column no row touches); the general case is what `Decompose` answers, below. Treat DoF as a gate that can *reject*, never as a promise that solving will succeed.
+
+---
+
+## Decomposing: which parts can be solved
+
+`Decompose` answers what the count cannot — *which* unknowns are stuck, and which can be solved despite them. It matches equations to unknowns rather than counting them, and splits the system into three parts.
+
+```csharp
+var decomposition = flat.Decompose();   // or system.Decompose(overrides)
+
+decomposition.Underdetermined;   // unknowns with no equation available, and the equations reaching only those
+decomposition.WellDetermined;    // unknowns exactly matched by equations
+decomposition.Overdetermined;    // unknowns with more equations reaching them than there are unknowns
+
+decomposition.IsWellPosed;            // both tails empty
+decomposition.DeterminableUnknowns;   // every unknown an equation is available for
+```
+
+Each part is a `SystemBlock` — unknowns, the equations incident on them, and the same `DegreesOfFreedom` / `Determination` pair read locally. One record serves all three parts, because they differ only in how those two counts stand. A block is not a smaller `FlatSystem` though: every equation in one is incident on an unknown in it, so its local count is a plain subtraction with nothing to exclude.
+
+### The count is the sum of the parts
+
+**A decomposition breaks the degrees-of-freedom count down; it does not dispute it.** The underdetermined part has more columns than rows (local DoF > 0), the square part has equal counts (0), the overdetermined part has more rows than columns (< 0) — and **the three sum to `FlatSystem.DegreesOfFreedom`**. There is a test asserting exactly that.
+
+That identity is also why the count can mislead without lying. A `+1` and a `−1` cancel:
+
+| | Unknowns | Equations | Local DoF |
+| --- | --- | --- | --- |
+| Underdetermined | `orphan` | — | +1 |
+| Well determined | `x`, `y` | `x == 3`, `y == x + 1` | 0 |
+| Overdetermined | `m` | `m == a`, `m == b` | −1 |
+| **Whole system** | **4** | **4** | **0** |
+
+Four unknowns, four equations, `ExactlyDetermined` — and a variable nothing can reach sitting beside two equations competing for another. `Decompose` names both. That is the structural singularity the assembly README has promised since the count shipped, and it is the reason `Determination` is a gate that rejects rather than a licence to solve.
+
+**So both members survive, and cannot disagree.** `DegreesOfFreedom` stays the cheap `O(n)` screen and keeps its meaning; `Decompose` is the `O(V·E)` breakdown you pay for when the screen passes. Two members answering one question is the shape of three bugs this codebase has already fixed — this is not one, because they answer *the aggregate* and *the breakdown* of the same arithmetic.
+
+### What "solvable" means here, and what it does not
+
+`WellDetermined` is the answer to "what can I solve right now, given that the system as a whole is stuck" — the third row of the table, reachable while `orphan` stays unreachable forever.
+
+`Overdetermined` is *not* the unsolvable part. Every unknown in it has an equation available; what it has is equations left over, which become checks on the result rather than a shortfall. `Underdetermined` is the part that genuinely cannot proceed without more values. Hence `DeterminableUnknowns` is the other two together.
+
+All of this is **structural**. It says an equation has been assigned to an unknown, not that the equation can be inverted for it, nor that doing so is numerically sound. Those are the solver's questions and none of them is answered yet.
+
+### The graph it runs on
+
+Both algorithms below work on a **bipartite graph**, and it is not the expression graph:
+
+- one side is the **unknowns**, a node per unset `Variable`;
+- the other is the **equations**, a node per determining relationship;
+- an edge joins an equation to an unknown it can reach.
+
+A computed node is on neither side. It is the path an equation takes to reach a leaf, so it contributes an **edge, not a vertex** — [what becomes a row, a column, or neither](#what-becomes-a-row-a-column-or-neither) above has the full mapping.
+
+So this graph is a **projection of the expression graph**, with every interior node contracted away:
+
+| | Expression graph | This one |
+| --- | --- | --- |
+| Nodes | every `IExpression` — variables and computed nodes alike | unknowns and equations |
+| Edges | parent to operand, through `IExpression.Children` | equation to unknown |
+| Shape | directed, a DAG | undirected, bipartite |
+| Relationships | not nodes at all — they sit outside it, pointing at two roots | one of the two sides |
+
+The worked system above shows the contraction. `y == x + 1` has a `SumExpression` on its right; the walk passes *through* that sum to reach `x`, so the equation gets an edge to `x` and the sum appears nowhere:
+
+```text
+              orphan    m     x     y
+m==a                    ●
+m==b                    ●
+x==3                          ●
+y==x+1                        ●     ●
+```
+
+`orphan`'s row is empty, which is exactly what makes it unmatchable.
+
+**`Decompose` never walks the expression graph.** `Flatten` already did, and `Equation.Unknowns` *is* the adjacency list — which is why that field was put there when `Flatten` shipped. The only thing built here is the reverse index, the equations per unknown, because the second sweep needs the edges in that direction.
+
+### How it works
+
+The Dulmage–Mendelsohn decomposition over that graph:
+
+1. **A maximum matching** pairs each equation with an unknown it could determine. Kuhn's algorithm — one breadth-first search per equation for an augmenting path, flipping every edge along it. Greedy pairing is not enough: `a + b == 10` taken first claims `a` and leaves `a == 4` with nothing, reporting a square well-posed system as both under- and over-determined. Augmenting moves the first equation onto `b` instead.
+2. **Two reachability sweeps** along alternating paths — out from the unmatched *unknowns* for the underdetermined part, out from the unmatched *equations* for the overdetermined one. The two are provably disjoint, so whatever neither reaches is the square part.
+
+Both sweeps and the matching are iterative, for the reason every walk in this codebase is: nothing bounds how long an alternating path can be.
+
+Equations incident on no unknown take no part, the same exclusion `DegreesOfFreedom` already makes — which is what makes the sum above exact. They are still reported, as `RedundantEquations`.
 
 ---
 
@@ -194,7 +282,7 @@ Flattening first makes that mistake unavailable. A forty-stage distillation colu
 
 ## Scope boundaries
 
-**What belongs here:** reducing a system to unknowns and equations, degrees of freedom and classification, calculating a system's values, judging its relationships and reporting the findings, and — as they arrive — structural analysis (bipartite matching / Dulmage–Mendelsohn) and the solver abstraction.
+**What belongs here:** reducing a system to unknowns and equations, degrees of freedom and classification, decomposing it into the parts that can be solved, calculating a system's values, judging its relationships and reporting the findings, and — as it arrives — the solver abstraction.
 
 Both entry points are extension methods on `ExpressionSystem`, so they read as `system.Flatten()` and `system.Calculate()` without the expression layer knowing this one exists. That direction is deliberate: it is what lets a second strategy — a solver, an interval evaluator — sit beside these rather than inside the domain type.
 
@@ -209,4 +297,6 @@ Both entry points are extension methods on `ExpressionSystem`, so they read as `
 
 ## Next
 
-The count-based DoF here is the tractable first cut. Milestone 4 replaces it with a matching over the incidence structure already carried on `Equation.Unknowns`, which yields under- and over-determined *subsets* rather than one global number, detects the structural singularity the count cannot, and produces a block lower-triangular ordering — which is also the order the evaluator should compute in.
+`Decompose` finds the three parts but not an order *within* them. Subdividing `WellDetermined` into the blocks a solver takes one at a time — the fine Dulmage–Mendelsohn decomposition, which is the strongly connected components of the matched pairs — gives the block lower-triangular ordering. A size-1 block is one equation solved for one unknown; a larger one is a set that must be solved simultaneously. That ordering is also the order the evaluator should compute in, so the two would share it.
+
+Then the solver abstraction itself, which needs two seams that do not exist yet: an equation able to produce a **residual** rather than a three-valued verdict, and an expression able to **invert** toward one unknown leaf. Both reach down into `DimensionedExpression`.

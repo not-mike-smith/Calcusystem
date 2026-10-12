@@ -9,6 +9,8 @@ and how each of its relationships fared.
 | --- | --- | --- |
 | `FlatSystem` | sealed record | The system reduced to unknowns × equations, and what that says about solvability. |
 | `Equation` | sealed record | One determining relationship, paired with the unknowns it touches. |
+| `Decomposition` | sealed record | The flat system split into the parts that can be solved and the part that cannot. |
+| `SystemBlock` | sealed record | One part of a decomposition: unknowns, the equations reaching them, and its local counts. |
 | `Calculation` | sealed record | Every value the system produced in one run, plus what it could not produce. |
 | `RelationshipOutcome` | sealed record | The verdict on one relationship, and the values it was judged on. |
 
@@ -20,6 +22,10 @@ using Calcusystem.Analysis.Extensions;
 var flat = system.Flatten();
 flat.DegreesOfFreedom;   // unknowns − equations that touch at least one unknown
 flat.Determination;      // Underdetermined / ExactlyDetermined / Overdetermined
+
+var decomposition = flat.Decompose();
+decomposition.IsWellPosed;          // every unknown matched, and every equation used
+decomposition.WellDetermined;       // the part that can be solved, whatever the rest is doing
 
 var calc = system.Calculate();
 calc.ValueOf(force);     // the Measurand, or null if it did not resolve
@@ -34,6 +40,9 @@ calc.Violations;         // requirements that failed against a criterion
 - **Each node is computed exactly once per run.** A sub-expression shared by three parents
   costs one evaluation, not three. This is why `Calculate` is preferred over calling
   `ComputeIfFullyDescribed()` on individual nodes.
+- **A decomposition's three blocks partition the system.** Each unknown is in exactly one of
+  them, so they can be read as a split rather than as overlapping views. So is each equation —
+  unless it reaches no unknown, in which case it is in none of them.
 - **Every relationship gets exactly one `RelationshipOutcome`**, including ones that could
   not be judged.
 - **A verdict is three-valued.** `IsSatisfied` is `bool?`; `null` means the comparison had
@@ -54,8 +63,16 @@ calc.Violations;         // requirements that failed against a criterion
 - **A system with `DegreesOfFreedom == 0` can still leave variables unknown.** The count
   does not check that the equations are independent, so two equations reaching the same
   unknown — alongside a variable no equation reaches — also lands on zero.
-  `UnknownsWithNoEquation` names that variable. Equations with no unknowns are *not* the
-  cause: the count already excludes them.
+  `UnknownsWithNoEquation` names that variable in the cheapest case; `Decomposition` names
+  it in general. Equations with no unknowns are *not* the cause: the count already excludes
+  them.
+- **`Decomposition.Overdetermined` is not the part that cannot be solved.** Every unknown in
+  it has an equation available; what it has is equations left over, which are checks on the
+  result. `Underdetermined` is the part that is genuinely stuck.
+- **A `SystemBlock`'s local degrees of freedom are a plain subtraction**, unlike
+  `FlatSystem.DegreesOfFreedom`, which must first exclude equations reaching no unknown.
+  Those equations take no part in a decomposition at all, which is what makes the three
+  parts' local counts sum exactly to the whole system's.
 
 ## What does not belong here
 
