@@ -142,17 +142,61 @@ public class EitherTests
 
     // ── What the type refuses to let you do ──────────────────────────────────
 
-    /* Deliberately no Value and no IsSuccess on the base. Either would be answerable on a failure, and a caller
-       would reach the value by casting — the runtime exception this type replaces. The sketch it grew from had
-       both on its shared interface, so `failure.Result` compiled and threw. */
+    /* Deliberately no Value on the base: it would be answerable on a failure, and a caller would reach it by
+       casting — the runtime exception this type replaces. The sketch it grew from had the payload on its shared
+       interface, so `failure.Result` compiled and threw.
+
+       DidFail is not the same hazard and is expected to be here. A boolean cannot be used to reach a value it
+       does not carry. */
     [Fact]
-    public void TheBaseTypeExposesNeitherAValueNorASuccessFlag()
+    public void TheBaseTypeAnswersWhetherItFailedButNeverWithAValue()
     {
         var members = typeof(Either<int>).GetMembers().Select(m => m.Name).ToList();
 
         members.Should().NotContain("Value");
-        members.Should().NotContain("IsSuccess");
-        members.Should().NotContain("IsFailure");
+        members.Should().Contain("DidFail");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DidFailAnswersFromTheCase(bool shouldFail)
+    {
+        Either<int> either = shouldFail ? NotFound() : 1;
+
+        either.DidFail.Should().Be(shouldFail);
+    }
+
+    /* The non-functional way to relay a dependency's failure. The failure converts implicitly, so a caller
+       returning Either<Other> writes `return failure;` with no mention of its own value type. */
+    [Fact]
+    public void TryGetFailureHandsOutTheFailureForAnEarlyReturn()
+    {
+        var original = NotFound("the dependency");
+
+        Either<int> bad = original;
+        bad.TryGetFailure(out var relayed).Should().BeTrue();
+        relayed.Should().BeSameAs(original);
+
+        Either<int> ok = 1;
+        ok.TryGetFailure(out var none).Should().BeFalse();
+        none.Should().BeNull();
+    }
+
+    /* Giving up early and then using the value, with no cast on either path — which is the gap TryGetFailure
+       alone leaves, since after that guard the compiler still does not know a value is there. */
+    [Fact]
+    public void TryGetValueHandsOutWhicheverThereIs()
+    {
+        Either<int> ok = 7;
+        ok.TryGetValue(out var value, out var noFailure).Should().BeTrue();
+        value.Should().Be(7);
+        noFailure.Should().BeNull();
+
+        Either<int> bad = NotFound();
+        bad.TryGetValue(out var noValue, out var failure).Should().BeFalse();
+        noValue.Should().Be(default(int));
+        failure!.Reason.Should().Be(FailureReason.NotFound);
     }
 
     /* The ordinary way of adding a case is blocked: the parameterless constructor is private protected, so a

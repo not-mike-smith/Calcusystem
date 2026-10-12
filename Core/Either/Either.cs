@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Calcusystem.Core.Either;
 
 /// <summary>
@@ -14,10 +16,13 @@ namespace Calcusystem.Core.Either;
 /// explicitly, so the hierarchy is closed by convention rather than by the compiler.
 /// </para>
 /// <para>
-/// <b>There is deliberately no <c>IsSuccess</c> and no <c>Value</c> here.</b> Either would be answerable on a
-/// failure, and a caller would reach the value by casting — which is the runtime exception this type exists to
-/// replace. The value is reachable only from the case that has one: through <see cref="Match{TOut}"/>, or by
-/// matching <see cref="Succeeded{TValue}"/>.
+/// <b>There is deliberately no <c>Value</c> here.</b> It would be answerable on a failure, and a caller would
+/// reach it by casting — the runtime exception this type exists to replace. The value comes out only through
+/// <see cref="Match{TOut}"/>, <see cref="TryGetValue"/>, or by matching <see cref="Succeeded{TValue}"/>.
+/// </para>
+/// <para>
+/// <see cref="DidFail"/> is not the same hazard. A boolean cannot be used to reach a value it does not carry,
+/// so asking the question costs nothing; it is <i>answering with a value that is not there</i> that had to go.
 /// </para>
 /// <para>
 /// Both conversions below are implicit, so a method returning <c>Either&lt;T&gt;</c> can
@@ -29,6 +34,8 @@ public abstract record Either<TValue>
 {
     // Closes the hierarchy: derivable by the two cases beside it and by nothing outside this assembly.
     private protected Either() { }
+
+    public abstract bool DidFail {get;}
 
     /// <summary>Answers with whichever of the two functions applies, so both cases must be handled.</summary>
     /// <typeparam name="TOut">What both branches produce.</typeparam>
@@ -66,6 +73,45 @@ public abstract record Either<TValue>
     /// <summary>The value if there is one, and <paramref name="fallback"/> if this failed.</summary>
     /// <param name="fallback">Used in place of a missing value.</param>
     public TValue ValueOr(TValue fallback) => Match(value => value, _ => fallback);
+
+    /// <summary>Hands out the failure if there is one, for a caller that wants to give up early.</summary>
+    /// <param name="failure">Why this failed, or null if it did not.</param>
+    /// <returns>Whether this failed.</returns>
+    /// <remarks>
+    /// For relaying a dependency's failure without writing in a functional style. The failure converts
+    /// implicitly, so the caller's own value type needs no mention:
+    /// <code>
+    /// var attempt = _dependency.DoSomething(parameters);
+    /// if (attempt.TryGetFailure(out var failure)) return failure;
+    /// </code>
+    /// <see cref="DidFail"/> answers the same question where the failure itself is not wanted. There is no
+    /// equivalent that hands out a <i>retyped</i> <see cref="Either{TValue}"/>, because it would have nothing to
+    /// answer with on a success but an exception.
+    /// </remarks>
+    public bool TryGetFailure([NotNullWhen(true)] out Failure? failure)
+    {
+        failure = Match<Failure?>(_ => null, reason => reason);
+        return failure is not null;
+    }
+
+    /// <summary>Hands out the value or the failure, whichever there is.</summary>
+    /// <param name="value">What the operation produced, or null if it failed.</param>
+    /// <param name="failure">Why it failed, or null if it did not.</param>
+    /// <returns>Whether this succeeded.</returns>
+    /// <remarks>
+    /// The form for a caller that gives up early <i>and</i> then needs the value, with no cast on either path:
+    /// <code>
+    /// if (! attempt.TryGetValue(out var value, out var failure)) return failure;
+    /// Use(value);
+    /// </code>
+    /// </remarks>
+    public bool TryGetValue([NotNullWhen(true)] out TValue? value, [NotNullWhen(false)] out Failure? failure)
+    {
+        var (held, reason) = Match<(TValue?, Failure?)>(v => (v, null), f => (default, f));
+        value = held;
+        failure = reason;
+        return failure is null;
+    }
 
     /// <summary>Reads a plain value as a success.</summary>
     /// <param name="value">What the operation produced.</param>

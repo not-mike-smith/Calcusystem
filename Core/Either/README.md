@@ -7,7 +7,7 @@ no null.
 
 | Type | Kind | Role |
 | --- | --- | --- |
-| `Either<TValue>` | abstract record | Either a value or a `Failure`. Carries `Match`, `Map`, `Then`. |
+| `Either<TValue>` | abstract record | Either a value or a `Failure`. Carries `DidFail`, `Match`, `Map`, `Then`, `TryGetFailure`, `TryGetValue`. |
 | `Succeeded<TValue>` | sealed record | The case that has a `Value`. |
 | `Failed<TValue>` | sealed record | The case that has a `Failure`. |
 | `Failure` | sealed record | A `FailureReason` and a message. Not generic, so it can travel. |
@@ -31,6 +31,21 @@ var message = Parse("8")
     .Match(v => $"got {v}", f => $"failed: {f}");
 ```
 
+## Giving up early, without writing in a functional style
+
+```csharp
+// relay a dependency's failure; the implicit conversion retypes it
+var attempt = _dependency.DoSomething(parameters);
+if (attempt.TryGetFailure(out var failure)) return failure;
+
+// relay, then use the value — no cast on either path
+if (! attempt.TryGetValue(out var value, out var failure)) return failure;
+Use(value);
+```
+
+`DidFail` answers the same question where the failure itself is not wanted — logging a count, say. Matching
+`Failed<T>` directly does the same job with nothing added to the type.
+
 ## Guarantees
 
 - **A failure never produces a value and never throws.** The value lives on `Succeeded<TValue>` and the
@@ -46,9 +61,15 @@ var message = Parse("8")
 
 ## Surprises
 
-- **There is deliberately no `Value`, `IsSuccess` or `IsFailure` on `Either<TValue>`.** Any of them would be
-  answerable on a failure, and a caller would then reach the value by casting — the runtime exception this
-  type exists to replace. A test asserts the base type exposes none of them.
+- **There is deliberately no `Value` on `Either<TValue>`.** It would be answerable on a failure, and a caller
+  would then reach it by casting — the runtime exception this type exists to replace. A test asserts the base
+  type exposes no such member. `DidFail` is not the same hazard: a boolean cannot be used to reach a value it
+  does not carry. Asking whether something failed is free; *answering with a value that is not there* is what
+  had to go.
+- **Nothing hands back a retyped `Either`.** `Failure.AsType<T>()` exists, but there is no
+  `Either<T>.AsType<TOther>()` — on a success it would have nothing to answer with but an exception. To relay
+  a dependency's failure, take the `Failure` out first (`TryGetFailure`, or matching `Failed<T>`) and return
+  that; the implicit conversion retypes it.
 - **The hierarchy is closed by convention, not by the compiler.** The parameterless constructor is
   `private protected`, which blocks the ordinary way of adding a case from outside. But a record's copy
   constructor cannot be narrower than `protected` while the record is unsealed (CS8878), and an outside type

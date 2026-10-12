@@ -11,6 +11,8 @@ namespace Calcusystem.Core.Either;
 /// <typeparam name="TValue">What the operation would have produced.</typeparam>
 public sealed record Failed<TValue>(Failure Failure) : Either<TValue>
 {
+    public override bool DidFail => true;
+
     /// <inheritdoc/>
     public override TOut Match<TOut>(Func<TValue, TOut> ifSucceeded, Func<Failure, TOut> ifFailed) =>
         ifFailed(Failure);
