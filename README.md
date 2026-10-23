@@ -35,6 +35,8 @@ Library assemblies stacked bottom-up, with the web app at the top, and a matchin
 | `Calcusystem.Authoring` | [`Authoring/`](Authoring/README.md) | `DimensionedExpression` | Holds a system while someone is still building it — freely invalid, nothing thrown — and builds it into an `ExpressionSystem` once coherent. The seam an editing front-end works against. |
 | `Calcusystem.Api` | [`Api/`](Api/README.md) | `Authoring`, `Serialization`, `Analysis` | The HTTP surface. Serves a browser what it can ask about a draft it holds, and the only layer that knows HTTP exists. |
 
+Above them sits [`web/`](web/README.md), the editor — React + TypeScript + Vite, talking to `Calcusystem.Api`. It is not a .NET project, so it is lower-case and absent from the solution. Its types are **generated** from the API's OpenAPI document rather than written, so the client's idea of the wire cannot drift from the server's.
+
 Each assembly has a matching `*.Test` project holding its xUnit suite. `Api.Test` runs its suite over real HTTP through `WebApplicationFactory`, because model binding, the JSON options and the status mapping are most of what that layer is. `Core.Test` covers only the two things there with behavior — `IdBase` and `Either/`; its interfaces are exercised through the layers that implement them.
 
 ### Naming: directories, assemblies, and namespaces
@@ -110,13 +112,14 @@ calc.MissingValues;     // the unbound variables holding the rest back
 
 `Calculate` is the way to compute over a whole system: a node's own `ComputeIfFullyDescribed()` re-walks to the leaves on every call and caches nothing, by design.
 
-A model being written by a person is held as a `SystemDraft` instead, which is freely invalid and reports what stands between it and a built system (the `Authoring` layer). `Calcusystem.Api` serves that over HTTP for a front-end to work against:
+A model being written by a person is held as a `SystemDraft` instead, which is freely invalid and reports what stands between it and a built system (the `Authoring` layer). `Calcusystem.Api` serves that over HTTP, and `web/` is the editor over it:
 
 ```bash
 dotnet run --project Api      # http://localhost:5080
-
-curl -X POST http://localhost:5080/api/drafts/calculation -H 'Content-Type: application/json' -d @model.json
+cd web && npm install && npm run dev   # http://localhost:5173
 ```
+
+Build a model, watch the dimensional errors appear and clear as you type, supply values, and see what is computed, what is violated, and what is still missing.
 
 See each assembly's README for the full surface.
 
@@ -131,11 +134,17 @@ dotnet build          # build the whole solution
 dotnet test           # run all test suites
 ```
 
+The editor is a separate toolchain, and needs Node:
+
+```bash
+cd web && npm install && npm run build
+```
+
 ---
 
 ## Status and roadmap
 
-The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. A model can be authored as a draft and posted over HTTP. Solving is the current milestone, and a front-end is the next thing to build on this surface. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
+The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. A model can be authored in the browser, posted over HTTP, and answered with what it computes and what is wrong with it. Solving is the current milestone. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
 
 ---
 

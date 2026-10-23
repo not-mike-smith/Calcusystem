@@ -125,6 +125,8 @@ That list arrives by a type test for `Failure<IReadOnlyList<DraftProblem>>`. A s
 
 **Values are KMS, in and out.** No unit is named anywhere on the wire: a dimensionality is encoded (`"M1,L1,T-2"`) and a value is a double in KMS base units. Choosing a unit to *display* is a front-end concern that needs the unit catalogue served, which is not built yet — see *Next*.
 
+**The OpenAPI document describes this wire, and is the front-end's source of types.** `dotnet build` writes it to `Api/Api.json`, and development serves it at `/openapi/v1.json`. It is described from the *HTTP* JSON options where a controller answers from the *MVC* ones, so `Http/WireJson` configures both — configuring one would have the document describe a format the server does not serve, and the client's generated types would be wrong in a form its compiler defends. `Http/WireSchema` corrects the one thing the generator cannot see: element nullability does not survive `List<string?>`, and a null operand is how an unfilled slot is written. `OpenApiDocumentTests` holds all of it.
+
 **CORS allows nothing unless configured.** `Cors:AllowedOrigins` in configuration; `appsettings.Development.json` names the local front-end ports. A deployment that says nothing serves no browser but its own.
 
 ---
@@ -152,7 +154,7 @@ That list arrives by a type test for `Failure<IReadOnlyList<DraftProblem>>`. A s
 - **Units on the wire.** A view will want to show 4.409 lb rather than 2 kg, which needs the unit catalogue served and a unit named per value.
 - **Reopening a saved model**, once `SystemDraft.FromSystem` exists. The route would take a `Dtos.ExpressionSystem` and answer with a draft.
 - **An override on an analysis request.** `Analysis` supports values supplied for one analysis only, which nothing here exposes — an editor sets a value on the node and posts the draft again. Worth adding when a what-if view wants to leave the model alone.
-- **OpenAPI.** The `ProducesResponseType` attributes are already in place for it.
+- **Serving the front-end from here.** It runs on its own dev server today, proxying `/api`; a deployment would want one origin.
 
 ---
 

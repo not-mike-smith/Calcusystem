@@ -2,3 +2,6 @@
 .git/
 bin/
 obj/
+
+# Written by `dotnet build` from the API's routes; the front-end's types are generated from it.
+Api/Api.json
