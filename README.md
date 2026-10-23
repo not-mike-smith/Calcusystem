@@ -10,7 +10,7 @@ The goal is calculations that can't silently go wrong: adding a length to a mass
 
 The code is organized so you rarely need to read implementation. **If a folder has a `README.md`, you should not have to read anything else in it to use that namespace.** You only need the implementation files to _modify_ them.
 
-Every folder is a namespace and every namespace is a folder, with no exceptions — so a folder listing is a table of contents, and no assembly has loose `.cs` files at its root.
+Every folder is a namespace and every namespace is a folder — so a folder listing is a table of contents, and no assembly has loose `.cs` files at its root. The one exception is `Api/Program.cs`: top-level statements have no namespace to be a folder of, and putting the entry point in one would suggest otherwise.
 
 So, depending on your task:
 
@@ -23,18 +23,19 @@ A folder holding a single file has no README — reading the file is the shorter
 
 ## Project structure
 
-Library assemblies stacked bottom-up, each with a matching test project above `Core`. Every assembly and namespace is `Calcusystem.*`; the directory it lives in is the short name (`Core/`, `Measurement/`, …). See [naming](#naming-directories-assemblies-and-namespaces).
+Library assemblies stacked bottom-up, with the web app at the top, and a matching test project for each. Every assembly and namespace is `Calcusystem.*`; the directory it lives in is the short name (`Core/`, `Measurement/`, …). See [naming](#naming-directories-assemblies-and-namespaces).
 
 | Assembly / namespace | Directory | Depends on | What it does |
 | --- | --- | --- | --- |
 | `Calcusystem.Core` | [`Core/`](Core/README.md) | — | The basement: shared identity (`IIdentified`, `IdBase`), the persistence seams (`ISnapshotting`, `ISnapshottingNode`, `INodeResolver`), and `Either<T>` for an operation that may fail without throwing. |
 | `Calcusystem.Measurement` | [`Measurement/`](Measurement/README.md) | `Calcusystem.Core` | Physical quantities with KMS-normalized units, dimensional algebra, a unified `Measurand` value type, and uncertainty propagation. The foundation. |
 | `Calcusystem.DimensionedExpression` | [`DimensionedExpression/`](DimensionedExpression/README.md) | `Measurement` (+ `Core`) | Trees of dimensioned variables and formulas (`IExpression`), binary operators for equality/tolerance/ordering constraints, and the `ExpressionSystem` container. |
-| `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression` | Maps an `ExpressionSystem` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
+| `Calcusystem.Serialization` | [`Serialization/`](Serialization/README.md) | `DimensionedExpression`, `Authoring` | Maps an `ExpressionSystem` or a `SystemDraft` to/from flat, id-referenced DTOs for persistence (object mapping, not byte encoding). |
 | `Calcusystem.Analysis` | [`Analysis/`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed and what it computes to: flattens it to unknowns × equations, reports degrees of freedom, decomposes it into the parts that can be solved, and calculates it. Where the solver will live. |
 | `Calcusystem.Authoring` | [`Authoring/`](Authoring/README.md) | `DimensionedExpression` | Holds a system while someone is still building it — freely invalid, nothing thrown — and builds it into an `ExpressionSystem` once coherent. The seam an editing front-end works against. |
+| `Calcusystem.Api` | [`Api/`](Api/README.md) | `Authoring`, `Serialization`, `Analysis` | The HTTP surface. Serves a browser what it can ask about a draft it holds, and the only layer that knows HTTP exists. |
 
-Each library assembly has a matching `*.Test` project holding its xUnit suite. `Core.Test` covers only the two things there with behavior — `IdBase` and `Either/`; its interfaces are exercised through the layers that implement them.
+Each assembly has a matching `*.Test` project holding its xUnit suite. `Api.Test` runs its suite over real HTTP through `WebApplicationFactory`, because model binding, the JSON options and the status mapping are most of what that layer is. `Core.Test` covers only the two things there with behavior — `IdBase` and `Either/`; its interfaces are exercised through the layers that implement them.
 
 ### Naming: directories, assemblies, and namespaces
 
@@ -109,6 +110,14 @@ calc.MissingValues;     // the unbound variables holding the rest back
 
 `Calculate` is the way to compute over a whole system: a node's own `ComputeIfFullyDescribed()` re-walks to the leaves on every call and caches nothing, by design.
 
+A model being written by a person is held as a `SystemDraft` instead, which is freely invalid and reports what stands between it and a built system (the `Authoring` layer). `Calcusystem.Api` serves that over HTTP for a front-end to work against:
+
+```bash
+dotnet run --project Api      # http://localhost:5080
+
+curl -X POST http://localhost:5080/api/drafts/calculation -H 'Content-Type: application/json' -d @model.json
+```
+
 See each assembly's README for the full surface.
 
 ---
@@ -126,7 +135,7 @@ dotnet test           # run all test suites
 
 ## Status and roadmap
 
-The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. Solving is the current milestone. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
+The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. A model can be authored as a draft and posted over HTTP. Solving is the current milestone, and a front-end is the next thing to build on this surface. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
 
 ---
 

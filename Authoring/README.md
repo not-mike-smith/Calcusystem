@@ -66,6 +66,8 @@ What comes back is an `ExpressionSystem` like any other, so `Calcusystem.Analysi
 
 **A draft is a document, not a session.** It holds no connection to a built system and nothing is computed from it, so the client can own it and post it when it wants an answer. The server needs no draft store.
 
+Its wire shape lives in `Calcusystem.Serialization` with every other format decision — `Dtos.SystemDraft` and `Mappers/DraftMapper`, with every field optional, because a draft answers *what has been supplied so far* where a snapshot answers *what data defines this node*. `Calcusystem.Api` posts one to get problems, a built system, a decomposition or a calculation.
+
 ---
 
 ## Building: two passes, and one of them asks the domain
@@ -106,13 +108,13 @@ So the two cannot disagree about whether a draft is valid. Had `Validate` been w
 - The expression graph, operators, and `ExpressionSystem` → `DimensionedExpression`
 - Dimensional algebra and uncertainty → `Measurement`
 - Degrees of freedom, decomposition, calculating → `Calcusystem.Analysis`
-- Wire formats → `Calcusystem.Serialization` today, and a draft's own wire shape when it arrives (see below)
+- Wire formats, including a draft's own → `Calcusystem.Serialization` (`Dtos.SystemDraft`, `Mappers/DraftMapper`)
+- HTTP, status codes, and what a browser is served → `Calcusystem.Api`
 - Restating a domain rule. If a constructor enforces it, relay the refusal instead.
 
 ---
 
 ## Next
 
-- **A wire shape for a draft**, so the client can post one. Its own DTOs with every field optional, rather than loosening the snapshots, which the serializer relies on being complete.
 - **`FromSystem`**, to open a built system for editing. Needed the moment a saved model can be reopened.
 - **Editing in place**: nothing yet reorders an operand list, and `Remove` leaves references dangling on purpose. What else an editor needs is better learned from the editor than guessed at here.

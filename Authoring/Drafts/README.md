@@ -60,7 +60,8 @@ draft types have internal constructors, so a node cannot exist outside the draft
 
 - `ExpressionDraftType` and `DraftProblemKind`, the enums → `Enums/`
 - Anything that evaluates, counts or solves → `Calcusystem.Analysis`
-- A wire shape for a draft → not built yet; see the assembly README's *Next*
+- A wire shape for a draft → `Calcusystem.Serialization.Dtos` (`SystemDraft`), mapped by
+  `Serialization.Mappers.DraftMapper`
 
 ## Related
 
