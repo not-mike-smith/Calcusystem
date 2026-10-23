@@ -6,10 +6,28 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <!--
+      The OpenAPI document is written to Api.json at build time, so regenerating the front-end's types needs a
+      build rather than a running server. `Microsoft.Extensions.ApiDescription.Server` is a build-time tool
+      only; nothing of it ships.
+    -->
+    <PropertyGroup>
+        <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+        <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)</OpenApiDocumentsDirectory>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Analysis\Analysis.csproj" />
         <ProjectReference Include="..\Authoring\Authoring.csproj" />
         <ProjectReference Include="..\Serialization\Serialization.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
+      <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.13">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
     </ItemGroup>
 
 </Project>

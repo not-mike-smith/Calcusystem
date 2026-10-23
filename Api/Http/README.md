@@ -8,6 +8,8 @@ Where Calcusystem meets HTTP. Reading a posted draft, and turning a failure into
 | --- | --- | --- |
 | `DraftIntake` | static class | A posted DTO as a draft, or `Invalid` if it describes none. |
 | `FailureTranslation` | static class | `FailureReason` → status code, and a `Failure` → problem document. |
+| `WireJson` | static class | How this service spells JSON, applied to both option sets. |
+| `WireSchema` | static class | What the OpenAPI generator cannot see about the wire. |
 
 ## Start here
 
@@ -39,6 +41,9 @@ return this.Respond(DraftIntake.Read(draft).Then(workflow.Build));
 - **The problems list is recovered by a type test**, for `Failure<IReadOnlyList<DraftProblem>>`. A
   signature returning `Either<ExpressionSystem>` does not say what its failures carry — this is the
   layer that knows, which is the documented cost of that shape.
+- **`WireJson` is applied twice, deliberately.** Controllers read the MVC options; the OpenAPI document is
+  described from the HTTP ones. Configuring only the first leaves the document describing camelCase while the
+  server serves PascalCase — and the front-end's types are generated from that document.
 - **A failed *read* names no node.** There is nothing for an editor to mark: the payload was not a
   draft, so no node in it is at fault.
 
