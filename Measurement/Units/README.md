@@ -63,6 +63,16 @@ discovers the classes.
   correcting for it is the caller's job.
 - **An offset unit has a `DeltaUnit`.** A *difference* of 10 °C is not 10 °C on the scale, so
   changes are expressed in the delta unit to avoid re-adding the offset.
+- **The lists are built by reflection, so a unit leaves them by being *declared* differently.**
+  `ReflectiveUnitList` collects public static fields assignable to `UnitOfMeasure`. It used to
+  require the declared type to be exactly that, which dropped every field written as its concrete
+  subtype — °C, °F and all three gauge pressures were absent from every list, from `BySymbol`,
+  and from anything built over them, while the lists looked complete. `ListCompletenessTests`
+  derives the expectation from the declarations, so it keeps holding as units are added.
+- **A symbol is unique within a kind, not across them.** `BySymbol` keys a dictionary per list, so
+  two units of one kind sharing a symbol throws on first use rather than on being declared.
+  Across kinds a repeat is fine and real: a gross and a grain are both `gr`, and nothing offers
+  them together.
 - **`UnitList` declares a property whose name is its own type** — `Dimensionality Dimensionality`.
   Inside a derived family, a static field initialiser referring to `Dimensionality.Mass` needs
   `Calcusystem.Measurement.Primitives` in scope, or the inherited property shadows the type and
