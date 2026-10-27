@@ -49,13 +49,13 @@ export function DimensionalityEditor({ encoded, onChange }: Props) {
           said so. */}
       <button
         type="button"
-        className="ghost reading"
+        className="reveals reading"
         aria-expanded={open}
         title={open ? "Hide the exponents" : "Set the exponents"}
         onClick={() => setOpen(!open)}
       >
         {unchosen ? "?" : <DimensionalityView encoded={encoded} />}
-        <span className={open ? "chevron open" : "chevron"} aria-hidden="true">▾</span>
+        <span className="chevron" aria-hidden="true">▾</span>
       </button>
 
       {open && (
@@ -67,7 +67,7 @@ export function DimensionalityEditor({ encoded, onChange }: Props) {
             return (
               <label key={symbol} className={power === 0 ? "unused" : undefined}>
                 {/* Greyed where the exponent is zero, but the spinner stays live — that is how one is added. */}
-                <abbr title={dimension.Name ?? symbol}>{symbol}</abbr>
+                <abbr className="tells" title={dimension.Name ?? symbol}>{symbol}</abbr>
                 <input
                   type="number"
                   value={power}

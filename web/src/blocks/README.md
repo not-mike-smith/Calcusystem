@@ -65,6 +65,13 @@ Every one of them reads the catalogue from context, so a `CatalogueProvider` has
 none of them takes a list of dimensions or units: a block asks for what it needs rather than having it threaded
 through every component in between.
 
+## The marks they use
+
+Which mark means what, and why each channel carries one meaning only, is
+[`web/PATTERNS.md`](../../PATTERNS.md) — and `#patterns` in the running app renders all of them. The short
+version: a filled slot states the model, a chevron changes the view, a rotating chevron reveals, a dotted
+underline explains, and status is always-visible colour and glyphs that never borrow any of those.
+
 ## Looking at what they render
 
 ```bash

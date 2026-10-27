@@ -10,6 +10,7 @@ import {
   type VocabularyReport,
 } from "./api/client";
 import { CatalogueProvider } from "./model/catalogue";
+import { Gallery } from "./patterns/Gallery";
 import { PosednessPanel } from "./components/PosednessPanel";
 import { DraftProblems } from "./components/ProblemList";
 import { ExpressionRow } from "./components/ExpressionRow";
@@ -20,6 +21,7 @@ import { useAnalysis } from "./model/useAnalysis";
 
 export function App() {
   const [draft, setDraft] = useState<SystemDraft>(Draft.load);
+  const [route, setRoute] = useState(() => window.location.hash);
   const [vocabulary, setVocabulary] = useState<VocabularyReport | null>(null);
   const [units, setUnits] = useState<UnitCatalogueReport | null>(null);
   const [unreachable, setUnreachable] = useState(false);
@@ -36,6 +38,14 @@ export function App() {
   }, []);
 
   useEffect(() => Draft.save(draft), [draft]);
+
+  // One other page, reached by `#patterns`. A router is not worth a dependency for two routes.
+  useEffect(() => {
+    const read = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", read);
+
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
 
   const analysis = useAnalysis(draft);
 
@@ -74,6 +84,14 @@ export function App() {
 
   if (!vocabulary || !units) return <main className="quiet">Connecting…</main>;
 
+  if (route === "#patterns") {
+    return (
+      <CatalogueProvider vocabulary={vocabulary} units={units}>
+        <Gallery />
+      </CatalogueProvider>
+    );
+  }
+
   return (
     <CatalogueProvider vocabulary={vocabulary} units={units}>
     <main>
@@ -92,6 +110,7 @@ export function App() {
         />
         <button type="button" onClick={() => setDraft(Draft.emptyDraft())}>New model</button>
         <span className={analysis.pending ? "pulse" : "pulse quiet"}>●</span>
+        <a className="back" href="#patterns">patterns →</a>
       </header>
 
       <div className="columns">

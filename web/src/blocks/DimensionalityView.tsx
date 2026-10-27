@@ -64,7 +64,7 @@ function Factors({ factors }: { factors: Factor[] }) {
       {factors.map((factor, index) => (
         <span key={factor.symbol}>
           {index > 0 && <span className="dot">·</span>}
-          <abbr title={factor.name}>{factor.symbol}</abbr>
+          <abbr className="tells" title={factor.name}>{factor.symbol}</abbr>
           {factor.power !== 1 && superscript(factor.power)}
         </span>
       ))}

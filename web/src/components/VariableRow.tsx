@@ -53,7 +53,10 @@ export function VariableRow({ variable, problems, computed, isUnknown, onChange,
       {/* A variable nobody has valued is not a variable with no value: the first is what the solver is for. */}
       {isUnknown && (
         <div className="row readout">
-          <span className="unknown">unknown — nothing has given this a value</span>
+          <span className="unknown">
+            <span className="mark unknown" aria-hidden="true">○</span>
+            unknown — nothing has given this a value
+          </span>
         </div>
       )}
 

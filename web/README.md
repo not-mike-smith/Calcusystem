@@ -55,7 +55,9 @@ the unit is picked. Chrome says which is which: an editor is a bordered field, a
 band symbol are themselves the controls.
 
 See [`src/blocks/README.md`](src/blocks/README.md) for what each one guarantees and where a reasonable
-expectation about one turns out to be false.
+expectation about one turns out to be false, and [`PATTERNS.md`](PATTERNS.md) for the mark vocabulary they are
+built from — what each mark means, which channel carries it, and why affordance and status must never share
+one. `#patterns` in the running app renders every mark in every state.
 
 ## What it does
 
@@ -127,6 +129,7 @@ or 2, one otherwise, and the value rounded to the band's last place. With no ban
 | `src/blocks/` | The reusable pieces: one domain value each, nothing about a draft. |
 | `src/model/` | The draft as client state, the catalogue context, and the hook that asks the server. |
 | `src/components/` | The rows, which assemble blocks into a node of a model. |
+| `src/patterns/` | The gallery at `#patterns`: every mark and block, rendered. |
 | `src/App.tsx` | The page, and the only place that holds the draft. |
 
 ---

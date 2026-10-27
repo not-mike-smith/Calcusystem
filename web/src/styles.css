@@ -7,6 +7,7 @@
   --accent: #2f6f4f;
   --warn: #a4442f;
   --pending: #b7791f;
+  --fill: #eceef1;
   color-scheme: light dark;
 }
 
@@ -20,6 +21,7 @@
     --accent: #6fcf97;
     --warn: #e88b72;
     --pending: #e0b457;
+    --fill: #262b33;
   }
 }
 
@@ -158,11 +160,89 @@ button.remove { margin-left: auto; }
   padding: 1px 5px;
 }
 
+/* ── The mark vocabulary ─────────────────────────────────────────────────────
+   Two vocabularies that never share a channel. See web/PATTERNS.md, and `#patterns` for all of it rendered.
+
+   AFFORDANCE — what happens if I touch this
+     .slot      states the model      filled at rest, bordered on approach
+     .views     changes this view     a chevron, on approach
+     .reveals   shows or hides        a chevron that rotates, always
+     .tells     explains, no more     a dotted underline and a help cursor
+
+   STATUS — what is true about this
+     colour     a verdict             accent holds, warn broken, pending unjudged
+     a glyph    a kind                ● kept, ○ unknown, ✓ ✗ ? a verdict
+   ------------------------------------------------------------------------- */
+
+/* Writes to the model. The fill is the mark; a border is spent only once the pointer is on it, so forty of
+   these down a column stay calm. Everything inside one writes the model too. */
+.slot {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--fill);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.slot:hover { border-color: var(--line); }
+.slot:focus-within { border-color: var(--line); outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.slot .number {
+  width: 86px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  text-align: right;
+}
+
+.slot .number:focus-visible { outline: none; }
+
+/* Straight where it meets the number, and its outer corners taken by the slot's radius. */
+.slot .affix {
+  border: none;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  color: var(--quiet);
+  padding: 0 4px;
+  font-size: 12px;
+  min-width: 2.4em;
+  text-align: center;
+}
+
+.slot .affix:disabled { opacity: 0.5; }
+.slot .affix.toggle { cursor: pointer; }
+.slot .affix.toggle:hover:not(:disabled) { color: var(--ink); }
+
+/* Changes what you are looking at, and nothing else. The chevron is the whole mark, and like the slot's
+   border it is spent on approach — a reading with two of these showing at rest is furniture, and a page of
+   readings is a thicket. The space is held either way so nothing shifts. */
+.views { position: relative; display: inline-block; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+.views > select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; border: none; }
+.views .chevron, .reveals .chevron { display: inline-block; margin-left: 3px; font-size: 9px; color: var(--quiet); }
+.views .chevron { opacity: 0; transition: opacity 120ms ease; }
+.views:hover .chevron, .views:focus-visible .chevron, .views:focus-within .chevron { opacity: 1; color: var(--ink); }
+
+/* Shows or hides detail. The same chevron, turned to say which way it will go — and always shown, because it
+   reports whether the thing is open as well as that it can be opened. */
+.reveals { border: none; background: none; padding: 0; color: inherit; cursor: pointer; }
+.reveals .chevron { transform: rotate(-90deg); transition: transform 120ms ease; }
+.reveals:hover .chevron { color: var(--ink); }
+.reveals[aria-expanded="true"] .chevron { transform: rotate(0deg); }
+
+/* Explains, and does nothing. The one use of a dotted underline. */
+.tells { text-decoration: none; border-bottom: 1px dotted var(--line); cursor: help; }
+
+/* Status glyphs. Never a border and never an underline — those channels are affordances. */
+.mark { font-size: 10px; vertical-align: super; margin-left: 2px; }
+.mark.kept { color: var(--accent); }
+.mark.unknown { color: var(--pending); }
+
 /* ── Building blocks ─────────────────────────────────────────────────────── */
 
 .dimensionality-view { white-space: nowrap; }
 .dimensionality-view.none { color: var(--quiet); }
-.dimensionality-view abbr { text-decoration: none; border-bottom: 1px dotted var(--line); cursor: help; }
 .dimensionality-view .dot { color: var(--quiet); margin: 0 1px; }
 .dimensionality-view .solidus { color: var(--quiet); margin: 0 2px; }
 
@@ -176,92 +256,27 @@ button.remove { margin-left: auto; }
 
 .dimensionality-view.stacked .denominator { border-top: 1px solid currentColor; padding-top: 1px; }
 
-.dimensionality-editor { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.dimensionality-editor { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .dimensionality-editor .reading { min-width: 2.5em; text-align: left; }
+.dimensionality-editor .exponents label.unused .tells { color: var(--quiet); opacity: 0.55; }
 
-/* Points right when shut and down when open, which is the one mark that says a thing toggles. */
-.dimensionality-editor .chevron {
-  display: inline-block;
-  margin-left: 4px;
-  font-size: 10px;
-  transform: rotate(-90deg);
-  transition: transform 120ms ease;
-}
-
-.dimensionality-editor .chevron.open { transform: rotate(0deg); }
-.dimensionality-editor .exponents label.unused abbr { color: var(--quiet); opacity: 0.55; }
-
-/* A value that is only read. Text, with the reading itself as the control — no boxes, because nothing here
-   writes to the model. */
 .measurand { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .measurand.none { color: var(--quiet); }
 .measurand .band { color: var(--quiet); }
 .measurand .power { margin-left: 1px; }
 .measurand .unit { color: var(--quiet); font-style: normal; margin-left: 5px; }
+.measurand.readout .unit { margin-left: 5px; }
 
-.measurand.readout .unit.pick { position: relative; display: inline-block; cursor: pointer; }
-.measurand.readout .unit.pick > span { border-bottom: 1px dotted var(--quiet); }
-.measurand.readout .unit.pick:hover > span { color: var(--ink); border-bottom-color: var(--ink); }
-.measurand.readout .unit.pick select {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  opacity: 0;
-  border: none;
-  cursor: pointer;
-}
-
-.measurand.readout .unit.toggle {
-  border: none;
-  background: none;
-  padding: 0;
-  margin-left: 4px;
-  color: var(--quiet);
-  border-bottom: 1px dotted var(--quiet);
-  font-variant-numeric: tabular-nums;
-}
-.measurand.readout .unit.toggle:hover { color: var(--ink); border-bottom-color: var(--ink); }
-/* Solid rather than dotted where the shown form is the one the model keeps. The title says so too. */
-.measurand.readout .unit.toggle.kept { color: var(--ink); border-bottom-style: solid; }
-
-/* A value being written. Boxed, because every control in it states something. */
 .measurand-editor { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 .measurand-editor .pm { color: var(--quiet); }
 
-.measurand-editor .field {
-  display: inline-flex;
-  align-items: stretch;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
+/* ── The pattern gallery ─────────────────────────────────────────────────── */
 
-.measurand-editor .field:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-.measurand-editor .field .number {
-  width: 86px;
-  border: none;
-  border-radius: 0;
-  background: none;
-  text-align: right;
-}
-
-.measurand-editor .field .number:focus-visible { outline: none; }
-
-/* Straight on the left where it meets the number, and its right corners taken by the field's radius. */
-.measurand-editor .field .affix {
-  border: none;
-  border-left: 1px solid var(--line);
-  border-radius: 0;
-  background: var(--page);
-  color: var(--quiet);
-  padding: 0 4px;
-  font-size: 12px;
-  min-width: 2.4em;
-  text-align: center;
-}
-
-.measurand-editor .field .affix:disabled { opacity: 0.5; }
-.measurand-editor .field .affix.toggle { cursor: pointer; }
-.measurand-editor .field .affix.toggle:hover:not(:disabled) { color: var(--ink); }
+.gallery dl { display: grid; grid-template-columns: minmax(140px, auto) 1fr; gap: 10px 18px; margin: 0; }
+.gallery dt { color: var(--quiet); font-size: 12px; }
+.gallery dd { margin: 0; }
+.gallery dd .note { color: var(--quiet); font-size: 12px; margin-left: 10px; }
+.gallery .back, header .back { margin-left: auto; color: var(--quiet); font-size: 12px; }
+.gallery .back:hover, header .back:hover { color: var(--ink); }
+.gallery .title { font-size: 22px; font-weight: 600; }
+.gallery .subtitle { color: var(--quiet); }

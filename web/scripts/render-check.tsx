@@ -91,5 +91,7 @@ const rows: [string, ReactNode][] = [
   ["dimensionality, dimensionless", <DimensionalityView encoded="" />],
 ];
 
-/* The unit sits a few pixels off its number by stylesheet rather than by a space, so the gap is absent here. */
+/* Two things the stylesheet does that this cannot show: the unit sits a few pixels off its number rather than
+   behind a space, and a `views` chevron is transparent until the pointer is on it. Both `▾` below are
+   invisible at rest. */
 for (const [label, node] of rows) console.log(label.padEnd(32), "→", text(node));

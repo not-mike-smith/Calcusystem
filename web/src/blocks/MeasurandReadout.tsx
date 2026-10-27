@@ -70,17 +70,14 @@ export function MeasurandReadout({ value, storedAs = null, notation, sigFigs }: 
 
       {/* The unit itself is the picker, so a reading carries no widget beside its number. */}
       {choices.length > 1 ? (
-        <span className="unit pick">
-          <select
-            value={unit.Symbol ?? ""}
-            onChange={(event) => setSymbol(event.target.value)}
-            title="Read this in another unit"
-          >
+        <span className="unit views" title="Read this in another unit">
+          <select value={unit.Symbol ?? ""} onChange={(event) => setSymbol(event.target.value)}>
             {choices.map((choice) => (
               <option key={choice.Symbol} value={choice.Symbol ?? ""}>{choice.Symbol}</option>
             ))}
           </select>
           <span aria-hidden="true">{unit.Symbol}</span>
+          <span className="chevron" aria-hidden="true">▾</span>
         </span>
       ) : (
         <i className="unit">{unit.Symbol}</i>
@@ -96,13 +93,17 @@ export function MeasurandReadout({ value, storedAs = null, notation, sigFigs }: 
       {banded && (
         <button
           type="button"
-          className={storedAs === band ? "unit toggle kept" : "unit toggle"}
+          className="unit views"
           onClick={() => setBand(relative ? "absolute" : "relative")}
           title={relative
-            ? `A percentage of the value${storedAs === "relative" ? ", and how it is kept" : ""} — click for an absolute amount`
-            : `Absolute${storedAs === "absolute" ? ", and how it is kept" : ""} — click for a percentage`}
+            ? `A percentage of the value${storedAs === "relative" ? ", and how the model keeps it" : ""} — click for an absolute amount`
+            : `Absolute${storedAs === "absolute" ? ", and how the model keeps it" : ""} — click for a percentage`}
         >
           {relative ? "%" : bandSymbol(unit)}
+          <span className="chevron" aria-hidden="true">▾</span>
+          {/* Which form the model keeps is status, so it gets a glyph rather than borrowing the mark that
+              says this is clickable. */}
+          {storedAs === band && <span className="mark kept" aria-label="kept this way">●</span>}
         </button>
       )}
     </span>

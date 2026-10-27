@@ -58,7 +58,7 @@ export function MeasurandEditor({
 
   return (
     <span className="measurand-editor">
-      <span className="field">
+      <span className="slot">
         <Typed
           value={reading.value}
           placeholder="unset"
@@ -81,7 +81,7 @@ export function MeasurandEditor({
 
       <span className="pm">±</span>
 
-      <span className="field">
+      <span className="slot">
         <Typed
           value={reading.band}
           placeholder="0"
