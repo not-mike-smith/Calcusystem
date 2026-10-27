@@ -89,7 +89,7 @@ dimensionality, inline → M/(L·T²)
   pounds shows pounds, and the component does not argue.
 - **An uncertainty sets the precision of the value it belongs to.** Both are rounded to the same place, so a
   value is never written to more figures than its band justifies.
-- **A band converts by the slope alone.** Applying a unit's offset to a band would read ±1 K as −457.87 °F.
+- **A band converts by the factor alone.** Applying a unit's offset to a band would read ±1 K as −457.87 °F.
   `showBand` is a separate function from `show` for that reason, and `bandSymbol` gives `Δ°C` where the
   distinction shows.
 - **Everything is held in KMS.** A unit is a reading, and `format/editing.ts` derives both boxes from the
@@ -148,4 +148,4 @@ dimensionality, inline → M/(L·T²)
 `src/format/` (`significance`, `units`, `editing`) · `src/model/catalogue.tsx` ·
 `src/components/` (what assembles these).
 See the [project README](../../README.md) for how the client talks to the server, and the API's
-[README](../../../Api/README.md) for where the served slope and offset come from.
+[README](../../../Api/README.md) for where a unit's two conversion numbers come from.

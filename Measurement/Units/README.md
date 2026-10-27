@@ -63,6 +63,15 @@ discovers the classes.
   correcting for it is the caller's job.
 - **An offset unit has a `DeltaUnit`.** A *difference* of 10 °C is not 10 °C on the scale, so
   changes are expressed in the delta unit to avoid re-adding the offset.
+- **A unit's two conversion numbers are public, and the two directions are written out for you.**
+  `KmsConversionFactor` is how many KMS base units one of this unit is, and `OffsetUnitOfMeasure`
+  adds `ZeroOffset`. Multiply to reach KMS and divide to leave it — but prefer
+  `ConvertToKmsValue` and `ConvertFromKmsValue`, which say which way they go. The numbers are
+  public for a layer that has to carry a conversion somewhere the objects cannot go, such as
+  over a wire.
+- **An offset never touches a difference.** `ZeroOffset` applies to a point on a scale, not to a
+  change along it; a band converts by the factor alone, which is what `DeltaUnit` is named for.
+  Applying it would read ±1 K as −457.87 °F.
 - **The lists are built by reflection, so a unit leaves them by being *declared* differently.**
   `ReflectiveUnitList` collects public static fields assignable to `UnitOfMeasure`. It used to
   require the declared type to be exactly that, which dropped every field written as its concrete

@@ -18,7 +18,7 @@ What an analysis outcome looks like once it is JSON. Records holding ids, number
 | `VocabularyReport` | sealed record | Every kind, role, rule and dimension a client can offer. |
 | `UnitCatalogueReport` | sealed record | Every unit, grouped by what it measures. |
 | `DimensionalityUnitsReport` | sealed record | One dimensionality's units, and which is the KMS one. |
-| `UnitReport` | sealed record | One unit, as the slope and offset that convert a KMS value into it. |
+| `UnitReport` | sealed record | One unit, as the two numbers `UnitOfMeasure` converts with. |
 | `DimensionReport` | sealed record | One fundamental dimension, by symbol. |
 
 ## Start here
@@ -45,10 +45,12 @@ return Reporting.Report(flat, flat.Decompose());
 - **Values are KMS doubles, and no unit is named on one.** A dimensionality is encoded
   (`"M1,L1,T-2"`), and `UnitCatalogueReport` says how to convert — but which unit to show is the
   client's choice, and nothing on the wire remembers what an author typed.
-- **A unit's conversion is measured, not read.** `KmsConversionFactor` is internal, and two points
-  determine an affine function, so `Reporting` probes `ConvertFromKmsValue` at 0 and 1. That keeps
-  the rule in `Measurement` and makes the served numbers checkable against it.
-- **A band converts by the slope alone.** The offset would turn ±1 K into −457.87 °F.
+- **A unit carries the domain's own numbers under the domain's own names.** `KmsConversionFactor`
+  and `ZeroOffset`, so a client's two conversion functions are `ConvertFromKmsValue` and
+  `ConvertToKmsValue` spelled the same way and the two sides read against each other. What is
+  carried elsewhere is the formula; an inverted factor is what that invites, and it looks right
+  at exactly 1.
+- **A band converts by the factor alone.** The offset would turn ±1 K into −457.87 °F.
 - **The catalogue is grouped here, not read off `Lists.UnitTypes.ByDimensionality`.** That keys a
   dictionary by dimensionality and so holds one list per dimensionality; two lists sharing one
   would lose a list there and merge here, and a picker wants both sets either way.

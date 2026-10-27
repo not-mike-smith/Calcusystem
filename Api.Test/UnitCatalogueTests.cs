@@ -9,17 +9,18 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Calcusystem.Api.Test;
 
-/* The catalogue serves a conversion as two numbers for a client to apply, which is a rule `Measurement` owns
-   being carried somewhere else. These are what keep the copy honest: the numbers are measured from each unit's
-   own method, and here they are applied back and compared against it. */
+/* The catalogue serves a conversion as the two numbers `UnitOfMeasure` converts with, for a client that cannot
+   hold the objects. The numbers are the domain's own; what is carried elsewhere is the *formula*, and these
+   apply it back and compare against the unit itself. An inverted direction is the failure to catch, and it
+   looks right at 1. */
 public class UnitCatalogueTests(WebApplicationFactory<Program> host)
     : IClassFixture<WebApplicationFactory<Program>>
 {
     private async Task<UnitCatalogueReport> Catalogue() =>
         (await host.CreateClient().GetFromJsonAsync<UnitCatalogueReport>("/api/units", Wire.Options))!;
 
-    /* Every unit, not a sample, and at values on both sides of zero. An affine model that is right at 1 and
-       wrong at 1000 would still look right in a spot check.
+    /* Every unit, not a sample, and at values on both sides of zero. A formula that is right at 1 and wrong at
+       1000 would still look right in a spot check, and one with the factor inverted is right at 1 exactly.
 
        Keyed by dimensionality as well as symbol, because a symbol is only unique within one: a gross and a
        grain are both `gr`. */
@@ -39,12 +40,18 @@ public class UnitCatalogueTests(WebApplicationFactory<Program> host)
 
             foreach (var kms in new[] { -1234.5, -1, 0, 1, 2.5, 1000, 98765.4321 })
             {
-                var byTheNumbers = report.Slope * kms + report.Offset;
+                var read = kms / report.KmsConversionFactor - report.ZeroOffset;
 
-                byTheNumbers.Should().BeApproximately(
+                read.Should().BeApproximately(
                     unit.ConvertFromKmsValue(kms),
                     Math.Abs(unit.ConvertFromKmsValue(kms)) * 1e-9 + 1e-12,
-                    $"{unit.Symbol} at {kms} KMS");
+                    $"{unit.Symbol} read at {kms} KMS");
+
+                // And back, which is the direction a client writes a typed value in.
+                var written = (read + report.ZeroOffset) * report.KmsConversionFactor;
+
+                written.Should().BeApproximately(kms, Math.Abs(kms) * 1e-9 + 1e-12,
+                    $"{unit.Symbol} written back from {read}");
             }
 
             covered++;
@@ -62,12 +69,12 @@ public class UnitCatalogueTests(WebApplicationFactory<Program> host)
             .SelectMany(group => group.Units)
             .Single(unit => unit.Symbol == Temperature.Fahrenheit.Symbol);
 
-        var band = fahrenheit.Slope * 1;
+        var band = 1 / fahrenheit.KmsConversionFactor;
 
         band.Should().Be(Temperature.DeltaFahrenheit.ConvertFromKmsValue(1),
-            "the slope is the delta unit's own conversion, exactly");
+            "the factor alone is the delta unit's own conversion, exactly");
         band.Should().BeApproximately(1.8, 1e-12, "a 1 K band is 1.8 Δ°F");
-        (fahrenheit.Slope * 1 + fahrenheit.Offset).Should().BeApproximately(-457.87, 1e-9,
+        (1 / fahrenheit.KmsConversionFactor - fahrenheit.ZeroOffset).Should().BeApproximately(-457.87, 1e-9,
             "a value of 1 K reads −457.87 °F, which is what converting a band this way would give");
         fahrenheit.DeltaSymbol.Should().Be(Temperature.DeltaFahrenheit.Symbol);
     }
@@ -83,7 +90,7 @@ public class UnitCatalogueTests(WebApplicationFactory<Program> host)
             .SelectMany(group => group.Units)
             .Single(unit => unit.Symbol == Temperature.Fahrenheit.Symbol);
 
-        (fahrenheit.Slope * measurand.KmsAbsoluteUncertainty).Should().BeApproximately(
+        (measurand.KmsAbsoluteUncertainty / fahrenheit.KmsConversionFactor).Should().BeApproximately(
             measurand.AbsoluteUncertaintyIn(Temperature.Fahrenheit.DeltaUnit),
             1e-9);
     }
@@ -94,6 +101,8 @@ public class UnitCatalogueTests(WebApplicationFactory<Program> host)
         var mass = (await Catalogue()).Dimensionalities.Single(group => group.Dimensionality == "M1");
 
         mass.BaseSymbol.Should().Be(Mass.Kilogram.Symbol);
+        mass.Units.Single(unit => unit.Symbol == Mass.Kilogram.Symbol)
+            .Should().Match<UnitReport>(unit => unit.KmsConversionFactor == 1 && unit.ZeroOffset == 0);
         mass.Units.Select(unit => unit.Symbol).Should().Contain([Mass.Pound.Symbol, Mass.Tonne.Symbol]);
     }
 

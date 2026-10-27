@@ -68,30 +68,13 @@ public static class Reporting
 
     /// <summary>The unit a KMS value is already in.</summary>
     private static bool IsBase(UnitOfMeasure unit) =>
-        unit.ConvertFromKmsValue(0) == 0 && unit.ConvertFromKmsValue(1) == 1;
+        unit.KmsConversionFactor == 1 && unit is not OffsetUnitOfMeasure;
 
-    /// <remarks>
-    /// <para>
-    /// The conversion is measured, not read: an affine function is determined by two points, and probing the
-    /// unit's own method keeps this from being a second copy of a rule <c>Measurement</c> owns.
-    /// </para>
-    /// <para>
-    /// The slope comes from the offset unit's <c>DeltaUnit</c> where there is one, rather than from
-    /// <c>from(1) - from(0)</c>. Differencing two readings either side of a large offset cancels most of their
-    /// significant digits — it put °F's slope out by a part in 10¹⁴ — and the delta unit is the same scale
-    /// without the offset, which is also exactly what a band is converted by.
-    /// </para>
-    /// </remarks>
-    private static UnitReport Report(UnitOfMeasure unit)
-    {
-        var delta = unit is OffsetUnitOfMeasure offset ? offset.DeltaUnit : unit;
-
-        return new UnitReport(
-            unit.Symbol,
-            delta.ConvertFromKmsValue(1),
-            unit.ConvertFromKmsValue(0),
-            unit is OffsetUnitOfMeasure named ? named.DeltaUnit.Symbol : null);
-    }
+    private static UnitReport Report(UnitOfMeasure unit) => new(
+        unit.Symbol,
+        unit.KmsConversionFactor,
+        unit is OffsetUnitOfMeasure offset ? offset.ZeroOffset : 0,
+        unit is OffsetUnitOfMeasure named ? named.DeltaUnit.Symbol : null);
 
     private static BlockReport Report(SystemBlock block) => new(
         block.DegreesOfFreedom,

@@ -646,20 +646,21 @@ export interface components {
         UnitCatalogueReport: {
             Dimensionalities: components["schemas"]["DimensionalityUnitsReport"][];
         };
-        /** @description One unit, as the two numbers that convert a KMS value into it: `shown = Slope × kms + Offset`. */
+        /** @description One unit, carrying the same two numbers `UnitOfMeasure` converts with, under the same names. */
         UnitReport: {
             /** @description What to show, and what the domain calls it. */
             Symbol: string;
             /**
              * Format: double
-             * @description The scale from KMS into this unit.
+             * @description How many KMS base units one of this unit is. Positive and non-zero.
              */
-            Slope: number | string;
+            KmsConversionFactor: number | string;
             /**
              * Format: double
-             * @description Where this unit's zero sits, and zero for all but the offset units.
+             * @description Where this unit's zero sits, in this unit's own steps — 273.15 for degrees Celsius, and zero for all but the
+             *     offset units.
              */
-            Offset: number | string;
+            ZeroOffset: number | string;
             /**
              * @description What a difference in this unit is called, where that differs from string UnitReport.Symbol — `Δ°C` for
              *     degrees Celsius. Null where a difference is named the same as a value.

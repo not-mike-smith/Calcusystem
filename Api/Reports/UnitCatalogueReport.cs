@@ -16,26 +16,31 @@ public sealed record DimensionalityUnitsReport(
     IReadOnlyList<UnitReport> Units);
 
 /// <summary>
-/// One unit, as the two numbers that convert a KMS value into it: <c>shown = Slope × kms + Offset</c>.
+/// One unit, carrying the same two numbers <c>UnitOfMeasure</c> converts with, under the same names.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every unit in this library is affine in KMS, so those two numbers are the whole of its conversion. They are
-/// measured from the unit's own <c>ConvertFromKmsValue</c> rather than read out of it, and
-/// <c>UnitCatalogueTests</c> checks that applying them reproduces what the unit itself answers — for every
-/// unit served, not a sample.
+/// A client reads a KMS value as <c>kms / KmsConversionFactor - ZeroOffset</c> and writes one as
+/// <c>(shown + ZeroOffset) × KmsConversionFactor</c> — which is <c>ConvertFromKmsValue</c> and
+/// <c>ConvertToKmsValue</c>, spelled the same way on both sides so the two can be read against each other.
 /// </para>
 /// <para>
-/// <b>An uncertainty is a difference, so it converts by <see cref="Slope"/> alone.</b> Applying
-/// <see cref="Offset"/> to a band would turn ±1 K into ±33.8 °F. <see cref="DeltaSymbol"/> is what to call the
-/// band's unit where that distinction is visible.
+/// <b>A difference is converted by the factor alone.</b> Applying <see cref="ZeroOffset"/> to a band would read
+/// ±1 K as −457.87 °F. <see cref="DeltaSymbol"/> is what to call the band's unit where that shows.
 /// </para>
 /// </remarks>
 /// <param name="Symbol">What to show, and what the domain calls it.</param>
-/// <param name="Slope">The scale from KMS into this unit.</param>
-/// <param name="Offset">Where this unit's zero sits, and zero for all but the offset units.</param>
+/// <param name="KmsConversionFactor">How many KMS base units one of this unit is. Positive and non-zero.</param>
+/// <param name="ZeroOffset">
+/// Where this unit's zero sits, in this unit's own steps — 273.15 for degrees Celsius, and zero for all but the
+/// offset units.
+/// </param>
 /// <param name="DeltaSymbol">
 /// What a difference in this unit is called, where that differs from <see cref="Symbol"/> — <c>Δ°C</c> for
 /// degrees Celsius. Null where a difference is named the same as a value.
 /// </param>
-public sealed record UnitReport(string Symbol, double Slope, double Offset, string? DeltaSymbol);
+public sealed record UnitReport(
+    string Symbol,
+    double KmsConversionFactor,
+    double ZeroOffset,
+    string? DeltaSymbol);

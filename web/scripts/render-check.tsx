@@ -35,14 +35,17 @@ const units = {
     {
       Dimensionality: PRESSURE,
       BaseSymbol: "Pa",
-      Units: [{ Symbol: "Pa", Slope: 1, Offset: 0 }, { Symbol: "MPa", Slope: 1e-6, Offset: 0 }],
+      Units: [
+        { Symbol: "Pa", KmsConversionFactor: 1, ZeroOffset: 0 },
+        { Symbol: "MPa", KmsConversionFactor: 1e6, ZeroOffset: 0 },
+      ],
     },
     {
       Dimensionality: TEMPERATURE,
       BaseSymbol: "K",
       Units: [
-        { Symbol: "K", Slope: 1, Offset: 0 },
-        { Symbol: "°C", Slope: 1, Offset: -273.15, DeltaSymbol: "Δ°C" },
+        { Symbol: "K", KmsConversionFactor: 1, ZeroOffset: 0 },
+        { Symbol: "°C", KmsConversionFactor: 1, ZeroOffset: 273.15, DeltaSymbol: "Δ°C" },
       ],
     },
   ],

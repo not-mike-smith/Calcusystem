@@ -126,9 +126,11 @@ That list arrives by a type test for `Failure<IReadOnlyList<DraftProblem>>`. A s
 
 **Values are KMS, in and out.** A dimensionality is encoded (`"M1,L1,T-2"`) and a value is a double in KMS base units. No value on the wire names a unit.
 
-**A unit is served as the two numbers that convert a KMS value into it**, `shown = Slope × kms + Offset`. Every unit in the library is affine in KMS, so those two numbers are the whole of its conversion — and they are *measured* from the unit's own `ConvertFromKmsValue` at 0 and 1 rather than read out of it, which keeps `Measurement` the only place the rule is written. `UnitCatalogueTests` applies them back and compares against the unit itself, for every unit served rather than a sample, so a unit that stopped being affine would fail here rather than disagree quietly in a browser.
+**A unit is served as `UnitOfMeasure`'s own two numbers, under its own names** — `KmsConversionFactor` and `ZeroOffset`. A client reads a KMS value as `kms / KmsConversionFactor - ZeroOffset` and writes one as `(shown + ZeroOffset) × KmsConversionFactor`, which is `ConvertFromKmsValue` and `ConvertToKmsValue` spelled the same way on both sides so the two can be read against each other.
 
-**An uncertainty is a difference, so it converts by the slope alone.** Applying the offset to a band turns ±1 K into −457.87 °F. `DeltaSymbol` is what to call the band's unit where that distinction shows.
+What travels is the formula, not the numbers, and an inverted factor is the mistake it invites — one that looks right at exactly 1. `UnitCatalogueTests` applies both directions back for every unit served rather than a sample, at values either side of zero, and compares against the unit itself.
+
+**An uncertainty is a difference, so it converts by the factor alone.** Applying the offset to a band turns ±1 K into −457.87 °F. `DeltaSymbol` is what to call the band's unit where that distinction shows.
 
 **The OpenAPI document describes this wire, and is the front-end's source of types.** `dotnet build` writes it to `Api/Api.json`, and development serves it at `/openapi/v1.json`. It is described from the *HTTP* JSON options where a controller answers from the *MVC* ones, so `Http/WireJson` configures both — configuring one would have the document describe a format the server does not serve, and the client's generated types would be wrong in a form its compiler defends. `Http/WireSchema` corrects the one thing the generator cannot see: element nullability does not survive `List<string?>`, and a null operand is how an unfilled slot is written. `OpenApiDocumentTests` holds all of it.
 

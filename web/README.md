@@ -104,13 +104,13 @@ a dimensionality means.
 landmarks and comparisons all come from `/api/vocabulary`, so adding a kind to the domain offers it to an
 author without this project being touched.
 
-**Everything is held in KMS; a unit is a reading.** `GET /api/units` serves each unit as the slope and offset
-that convert a KMS value into it, so the browser converts without a second copy of a rule `Measurement` owns —
-the server measures those numbers from the unit itself and tests that applying them reproduces it. Changing the
-unit in an editor changes the number shown, not the model: nothing on the wire records which unit an author
-typed in.
+**Everything is held in KMS; a unit is a reading.** `GET /api/units` serves each unit as `UnitOfMeasure`'s own
+`KmsConversionFactor` and `ZeroOffset`, and the four functions in `src/format/units.ts` are
+`ConvertFromKmsValue` and `ConvertToKmsValue` spelled the same way, so the two sides can be read against each
+other. An inverted factor is the mistake that invites, and it looks right at exactly 1 — the server's
+`UnitCatalogueTests` applies both directions back for every unit it serves.
 
-**A band converts by the slope alone.** It is a difference, so applying the offset would read ±1 K as
+**A band converts by the factor alone.** It is a difference, so applying the offset would read ±1 K as
 −457.87 °F. `showBand` is a separate function from `show` for that reason.
 
 **An uncertainty sets the precision of its value.** Two significant figures where the band's leading digit is 1
