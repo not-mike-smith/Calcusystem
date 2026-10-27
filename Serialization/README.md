@@ -171,6 +171,10 @@ Tolerating a half-built model is not tolerating a payload that cannot be held:
 
 An id shared by **an expression and a relationship** is not in that list. A draft can hold it, and reports it as a `DuplicateId` problem — refusing the payload would take that answer away from the editor rather than give it one.
 
+### Two fields that carry how something was written
+
+`Dtos.ExpressionDraft.ValueUnit` is the symbol of the unit a value was typed in. Nothing is computed from it and the built system never sees it; it rides along so an editor can reopen a draft showing the number its author typed.
+
 ### The one field that exists only to stay faithful
 
 `Dtos.ExpressionDraft.ValueDimensionality` is written only where the value's dimensionality differs from the one declared on the node. That state is reachable in an editor — supply a value, then correct the dimensionality — and the draft reports it. Writing the declared one alone would repair it on the way through.

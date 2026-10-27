@@ -34,6 +34,7 @@ public class DraftWireTests
         var m = draft.AddVariable("m", Dimensionality.Mass, "var-m");
         m.Value = Mass.Kilogram.Quantity(2).WithUncertainty(1.0.Percent());
         m.Provenance = ProvenanceFactory.Measured("scale-7", new DateOnly(2026, 3, 1));
+        m.ValueUnit = Mass.Pound.Symbol;
 
         var a = draft.AddVariable("a", Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time), "var-a");
         a.Provenance = ProvenanceFactory.Design("spec-12");
@@ -88,6 +89,25 @@ public class DraftWireTests
         restored.Value!.KmsValue.Should().Be(original.Value!.KmsValue);
         restored.Value!.Dimensionality.Should().Be(Dimensionality.Mass);
         restored.Value!.Uncertainty.GetSnapshot().Should().Be(original.Value!.Uncertainty.GetSnapshot());
+        restored.ValueUnit.Should().Be(Mass.Pound.Symbol);
+    }
+
+    /* A reading preference, so it survives the wire but changes nothing about the model: the quantity is the
+       KMS value either way, and a symbol naming no unit is a reading an editor cannot honor rather than a
+       reason the draft is wrong. */
+    [Fact]
+    public void AUnitTheValueWasWrittenInIsCarriedButDecidesNothing()
+    {
+        var draft = SystemDraft.Create("written in pounds");
+        var m = draft.AddVariable("m", Dimensionality.Mass, "var-m");
+        m.Value = Mass.Kilogram.Quantity(2).WithUncertainty(1.0.Percent());
+        m.ValueUnit = "not-a-unit";
+
+        var restored = ThroughJson(draft);
+
+        restored.Expression("var-m")!.ValueUnit.Should().Be("not-a-unit");
+        restored.Expression("var-m")!.Value!.KmsValue.Should().Be(2);
+        restored.Validate().Should().BeEmpty();
     }
 
     /* The stored form, not just the number: an uncertainty written as a fraction and read back as an absolute

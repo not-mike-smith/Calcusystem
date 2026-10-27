@@ -63,6 +63,7 @@ public static class DraftMapper
         KmsValue = draft.Value?.KmsValue,
         ValueDimensionality = DivergentValueDimensionality(draft),
         Uncertainty = draft.Value is { } value ? UncertaintyCodec.ToWire(value.Uncertainty.GetSnapshot()) : null,
+        ValueUnit = draft.ValueUnit,
         Provenance = draft.Provenance is { } provenance ? ProvenanceCodec.ToWire(provenance.GetSnapshot()) : null,
         UncertaintyCorrelation = draft.UncertaintyCorrelation,
     };
@@ -94,6 +95,7 @@ public static class DraftMapper
             ? ProvenanceFactory.FromSnapshot(snapshot)
             : null;
         node.Value = ValueOf(wire);
+        node.ValueUnit = wire.ValueUnit;
 
         foreach (var operandId in wire.OperandIds) node.OperandIds.Add(operandId);
     }
