@@ -1,0 +1,159 @@
+:root {
+  --ink: #1c1f24;
+  --quiet: #6b7280;
+  --line: #dfe3e8;
+  --panel: #ffffff;
+  --page: #f5f6f8;
+  --accent: #2f6f4f;
+  --warn: #a4442f;
+  --pending: #b7791f;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e6e8ea;
+    --quiet: #9aa1ab;
+    --line: #333942;
+    --panel: #1d2127;
+    --page: #15181d;
+    --accent: #6fcf97;
+    --warn: #e88b72;
+    --pending: #e0b457;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 64px; }
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.title { font-size: 22px; font-weight: 600; min-width: 260px; }
+.subtitle { flex: 1; min-width: 200px; color: var(--quiet); }
+
+.columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 20px; }
+
+@media (max-width: 900px) {
+  .columns { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.panel.faulty { border-color: var(--warn); }
+
+h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.node {
+  border-top: 1px solid var(--line);
+  padding: 10px 0 8px;
+}
+
+.node:first-of-type { border-top: none; }
+.node.faulty { border-left: 3px solid var(--warn); padding-left: 10px; margin-left: -13px; }
+
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.row.detail { margin-top: 6px; font-size: 12px; color: var(--quiet); }
+.row.detail label { display: flex; align-items: center; gap: 4px; }
+.row.readout { margin-top: 4px; min-height: 22px; }
+
+input, select, button {
+  font: inherit;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 7px;
+}
+
+input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+input.symbol { width: 110px; font-weight: 600; }
+input.number { width: 92px; }
+input.title, input.subtitle { background: none; border: none; padding: 2px 0; }
+
+button { cursor: pointer; }
+button.ghost { border: none; background: none; color: var(--quiet); padding: 2px 5px; }
+button.ghost:hover { color: var(--ink); }
+button.remove { margin-left: auto; }
+
+.tolerance { display: flex; align-items: center; gap: 3px; color: var(--quiet); }
+.over { color: var(--quiet); font-size: 12px; }
+.slot { display: inline-flex; align-items: center; }
+
+.dimensionality { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+.exponents { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; margin-top: 6px; }
+.exponents label { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--quiet); }
+.exponents input { width: 48px; }
+
+.value { font-variant-numeric: tabular-nums; }
+.value.none { color: var(--quiet); }
+.value i { color: var(--quiet); font-style: normal; margin-left: 5px; }
+.band { color: var(--quiet); }
+.unknown { color: var(--pending); font-size: 12px; }
+.symbol-glyph { color: var(--quiet); margin: 0 4px; }
+
+.verdict { font-weight: 600; }
+.verdict.holds { color: var(--accent); }
+.verdict.broken { color: var(--warn); }
+.verdict.undetermined { color: var(--pending); }
+
+.problems { list-style: none; margin: 6px 0 0; padding: 0; font-size: 12px; color: var(--warn); }
+.problems .kind { font-weight: 600; margin-right: 4px; }
+
+.names { margin: 6px 0; }
+.names code, .freedom b { font-variant-numeric: tabular-nums; }
+.names code {
+  display: inline-block;
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 5px;
+  margin: 2px 4px 2px 0;
+  font-size: 12px;
+}
+
+.freedom { margin: 6px 0; }
+.freedom b { font-size: 18px; }
+
+.quiet { color: var(--quiet); }
+.pulse { color: var(--accent); font-size: 10px; }
+
+.unreachable { max-width: 540px; margin: 80px auto; }
+.unreachable code {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 5px;
+}

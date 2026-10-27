@@ -1,25 +1,16 @@
-using System.Text.Json.Serialization;
+using Calcusystem.Api.Http;
 using Calcusystem.Api.Workflows;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
-    {
-        // Property names as written, matching what a saved document looks like on disk. A camelCase policy here
-        // would give the same DTO two spellings, and a client could not save what it was served.
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
-
-        // Enum members as names. Numbers would renumber an existing payload's meaning the moment a member is
-        // inserted, and a name is what a front-end can put in a menu.
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-
-        // A draft is mostly unset, and absent already means "not supplied yet".
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    });
+builder.Services.AddControllers().AddJsonOptions(options => WireJson.Configure(options.JsonSerializerOptions));
+builder.Services.ConfigureHttpJsonOptions(options => WireJson.Configure(options.SerializerOptions));
 
 builder.Services.AddProblemDetails();
+
+// The document the front-end's types are generated from. Served in development, and written to Api.json at
+// build time so regenerating them needs no running server.
+builder.Services.AddOpenApi(options => options.AddSchemaTransformer(WireSchema.Transform));
 
 // No origin is allowed unless one is configured, so a deployment that says nothing serves no browser but its
 // own. `appsettings.Development.json` names the local front-end.
@@ -32,6 +23,8 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
 builder.Services.AddSingleton<DraftWorkflow>();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
