@@ -32,6 +32,7 @@ The cost is paid on every request: a draft is posted whole, built from scratch, 
 | `POST /api/drafts/decomposition` | `DecompositionReport` — the count, and which unknowns can be solved | 422 |
 | `POST /api/drafts/calculation` | `CalculationReport` — values, what is missing, what each relationship did | 422 |
 | `GET /api/vocabulary` | `VocabularyReport` — every kind, role, rule and dimension, by wire name | — |
+| `GET /api/units` | `UnitCatalogueReport` — every unit, grouped by what it measures | — |
 
 Any of them can answer `400` for a payload that cannot be read as a draft at all.
 
@@ -123,7 +124,11 @@ That list arrives by a type test for `Failure<IReadOnlyList<DraftProblem>>`. A s
 
 **Nulls are omitted.** On a draft, absent already means *not supplied yet*, and most of a draft being written is absent.
 
-**Values are KMS, in and out.** No unit is named anywhere on the wire: a dimensionality is encoded (`"M1,L1,T-2"`) and a value is a double in KMS base units. Choosing a unit to *display* is a front-end concern that needs the unit catalogue served, which is not built yet — see *Next*.
+**Values are KMS, in and out.** A dimensionality is encoded (`"M1,L1,T-2"`) and a value is a double in KMS base units. No value on the wire names a unit.
+
+**A unit is served as the two numbers that convert a KMS value into it**, `shown = Slope × kms + Offset`. Every unit in the library is affine in KMS, so those two numbers are the whole of its conversion — and they are *measured* from the unit's own `ConvertFromKmsValue` at 0 and 1 rather than read out of it, which keeps `Measurement` the only place the rule is written. `UnitCatalogueTests` applies them back and compares against the unit itself, for every unit served rather than a sample, so a unit that stopped being affine would fail here rather than disagree quietly in a browser.
+
+**An uncertainty is a difference, so it converts by the slope alone.** Applying the offset to a band turns ±1 K into −457.87 °F. `DeltaSymbol` is what to call the band's unit where that distinction shows.
 
 **The OpenAPI document describes this wire, and is the front-end's source of types.** `dotnet build` writes it to `Api/Api.json`, and development serves it at `/openapi/v1.json`. It is described from the *HTTP* JSON options where a controller answers from the *MVC* ones, so `Http/WireJson` configures both — configuring one would have the document describe a format the server does not serve, and the client's generated types would be wrong in a form its compiler defends. `Http/WireSchema` corrects the one thing the generator cannot see: element nullability does not survive `List<string?>`, and a null operand is how an unfilled slot is written. `OpenApiDocumentTests` holds all of it.
 
@@ -151,7 +156,7 @@ That list arrives by a type test for `Failure<IReadOnlyList<DraftProblem>>`. A s
 ## Next
 
 - **A front-end.** This surface exists to be consumed; `DecompositionReport` and `CalculationReport` already carry what a view needs to show what is computed, what is violated and what is still missing.
-- **Units on the wire.** A view will want to show 4.409 lb rather than 2 kg, which needs the unit catalogue served and a unit named per value.
+- **A unit named per value.** The catalogue says how to convert; nothing on the wire records which unit an author entered a value in, so reopening a model shows it in whatever the client defaults to.
 - **Reopening a saved model**, once `SystemDraft.FromSystem` exists. The route would take a `Dtos.ExpressionSystem` and answer with a draft.
 - **An override on an analysis request.** `Analysis` supports values supplied for one analysis only, which nothing here exposes — an editor sets a value on the node and posts the draft again. Worth adding when a what-if view wants to leave the model alone.
 - **Serving the front-end from here.** It runs on its own dev server today, proxying `/api`; a deployment would want one origin.

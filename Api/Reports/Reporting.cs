@@ -5,6 +5,7 @@ using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.Measurement.Comparison;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Primitives;
+using Calcusystem.Measurement.Units;
 using Calcusystem.Serialization.Mappers;
 
 namespace Calcusystem.Api.Reports;
@@ -47,6 +48,42 @@ public static class Reporting
         Enum.GetNames<MustBe>(),
         Enum.GetNames<UncertaintyCorrelation>(),
         FundamentalDimension.All.Select(d => new DimensionReport(d.Symbol, d.Name)).ToList());
+
+    /// <summary>Every unit, grouped by what it measures.</summary>
+    /// <remarks>
+    /// Grouped from the unit lists rather than read off <c>Lists.UnitTypes.ByDimensionality</c>, which keys a
+    /// dictionary by dimensionality and so holds one list per dimensionality. Two lists sharing one — which
+    /// only the angle dimension on torque currently prevents — would be a lost list there and a merged group
+    /// here, and a picker wants both sets of units either way.
+    /// </remarks>
+    public static UnitCatalogueReport Units() => new(
+        Lists.UnitTypes.All
+            .SelectMany(list => list.All)
+            .GroupBy(unit => Encode(unit.Dimensionality))
+            .Select(group => new DimensionalityUnitsReport(
+                group.Key,
+                group.FirstOrDefault(IsBase)?.Symbol,
+                group.Select(Report).ToList()))
+            .ToList());
+
+    /// <summary>The unit a KMS value is already in.</summary>
+    private static bool IsBase(UnitOfMeasure unit) =>
+        unit.ConvertFromKmsValue(0) == 0 && unit.ConvertFromKmsValue(1) == 1;
+
+    /// <remarks>
+    /// The conversion is measured, not read: two points determine an affine function, and probing the unit's
+    /// own method keeps this from being a second copy of a rule <c>Measurement</c> owns.
+    /// </remarks>
+    private static UnitReport Report(UnitOfMeasure unit)
+    {
+        var atZero = unit.ConvertFromKmsValue(0);
+
+        return new UnitReport(
+            unit.Symbol,
+            unit.ConvertFromKmsValue(1) - atZero,
+            atZero,
+            unit is OffsetUnitOfMeasure offset ? offset.DeltaUnit.Symbol : null);
+    }
 
     private static BlockReport Report(SystemBlock block) => new(
         block.DegreesOfFreedom,
