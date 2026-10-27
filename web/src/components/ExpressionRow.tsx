@@ -1,7 +1,7 @@
 import type { DraftProblem, ExpressionDraft, MeasurandReport } from "../api/client";
 import { labelFor } from "../model/draft";
+import { MeasurandReadout } from "../blocks/MeasurandReadout";
 import { NodeProblems } from "./ProblemList";
-import { Value } from "./Value";
 
 interface Props {
   expression: ExpressionDraft;
@@ -62,7 +62,7 @@ export function ExpressionRow({
       </div>
 
       <div className="row readout">
-        <Value value={computed} />
+        {computed ? <MeasurandReadout value={computed} /> : <span className="measurand none">—</span>}
       </div>
 
       <NodeProblems problems={problems} />

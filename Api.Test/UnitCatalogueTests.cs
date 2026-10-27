@@ -64,7 +64,9 @@ public class UnitCatalogueTests(WebApplicationFactory<Program> host)
 
         var band = fahrenheit.Slope * 1;
 
-        band.Should().BeApproximately(1.8, 1e-9, "a 1 K band is 1.8 Δ°F");
+        band.Should().Be(Temperature.DeltaFahrenheit.ConvertFromKmsValue(1),
+            "the slope is the delta unit's own conversion, exactly");
+        band.Should().BeApproximately(1.8, 1e-12, "a 1 K band is 1.8 Δ°F");
         (fahrenheit.Slope * 1 + fahrenheit.Offset).Should().BeApproximately(-457.87, 1e-9,
             "a value of 1 K reads −457.87 °F, which is what converting a band this way would give");
         fahrenheit.DeltaSymbol.Should().Be(Temperature.DeltaFahrenheit.Symbol);

@@ -157,3 +157,51 @@ button.remove { margin-left: auto; }
   border-radius: 5px;
   padding: 1px 5px;
 }
+
+/* ── Building blocks ─────────────────────────────────────────────────────── */
+
+.dimensionality-view { white-space: nowrap; }
+.dimensionality-view.none { color: var(--quiet); }
+.dimensionality-view abbr { text-decoration: none; border-bottom: 1px dotted var(--line); cursor: help; }
+.dimensionality-view .dot { color: var(--quiet); margin: 0 1px; }
+.dimensionality-view .solidus { color: var(--quiet); margin: 0 2px; }
+
+.dimensionality-view.stacked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.15;
+}
+
+.dimensionality-view.stacked .denominator { border-top: 1px solid currentColor; padding-top: 1px; }
+
+.dimensionality-editor { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.dimensionality-editor .reading { min-width: 2.5em; text-align: left; }
+.dimensionality-editor .exponents label.unused abbr { color: var(--quiet); opacity: 0.55; }
+
+.measurand { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.measurand.none { color: var(--quiet); }
+.measurand .band { color: var(--quiet); }
+.measurand .power { margin-left: 1px; }
+.measurand .unit { color: var(--quiet); font-style: normal; margin-left: 5px; }
+
+.readout { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.readout .unit-choice, .measurand-editor .unit-choice { padding: 1px 3px; font-size: 12px; }
+.readout .measurand .unit { display: none; }
+
+.band-choice { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.band-choice .form {
+  border: none;
+  background: none;
+  color: var(--quiet);
+  padding: 1px 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.band-choice .form.chosen { background: var(--page); color: var(--ink); font-weight: 600; }
+.band-choice .form .kept { color: var(--accent); margin-left: 2px; }
+
+.measurand-editor { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.measurand-editor .number { width: 100px; }
+.measurand-editor .unit { color: var(--quiet); font-style: normal; min-width: 2.2em; font-size: 12px; }

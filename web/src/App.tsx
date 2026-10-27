@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  units as readUnits,
   vocabulary as readVocabulary,
   type DraftProblem,
   type MeasurandReport,
   type OutcomeReport,
   type SystemDraft,
+  type UnitCatalogueReport,
   type VocabularyReport,
 } from "./api/client";
+import { CatalogueProvider } from "./model/catalogue";
 import { PosednessPanel } from "./components/PosednessPanel";
 import { DraftProblems } from "./components/ProblemList";
 import { ExpressionRow } from "./components/ExpressionRow";
@@ -18,10 +21,18 @@ import { useAnalysis } from "./model/useAnalysis";
 export function App() {
   const [draft, setDraft] = useState<SystemDraft>(Draft.load);
   const [vocabulary, setVocabulary] = useState<VocabularyReport | null>(null);
+  const [units, setUnits] = useState<UnitCatalogueReport | null>(null);
   const [unreachable, setUnreachable] = useState(false);
 
+  // Both are fixed facts about the server, fetched once and kept for the session.
   useEffect(() => {
-    readVocabulary().then(setVocabulary, () => setUnreachable(true));
+    Promise.all([readVocabulary(), readUnits()]).then(
+      ([served, catalogue]) => {
+        setVocabulary(served);
+        setUnits(catalogue);
+      },
+      () => setUnreachable(true),
+    );
   }, []);
 
   useEffect(() => Draft.save(draft), [draft]);
@@ -61,9 +72,10 @@ export function App() {
     );
   }
 
-  if (!vocabulary) return <main className="quiet">Connecting…</main>;
+  if (!vocabulary || !units) return <main className="quiet">Connecting…</main>;
 
   return (
+    <CatalogueProvider vocabulary={vocabulary} units={units}>
     <main>
       <header>
         <input
@@ -94,7 +106,6 @@ export function App() {
               <VariableRow
                 key={variable.Id}
                 variable={variable}
-                dimensions={vocabulary.Dimensions ?? []}
                 problems={problemsBy.get(variable.Id ?? "") ?? []}
                 computed={valueOf.get(variable.Id ?? "") ?? null}
                 isUnknown={missing.has(variable.Id ?? "")}
@@ -174,6 +185,7 @@ export function App() {
         </aside>
       </div>
     </main>
+    </CatalogueProvider>
   );
 }
 

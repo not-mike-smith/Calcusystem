@@ -40,6 +40,16 @@ wire changed since they were generated.
 
 ---
 
+## The building blocks
+
+The editor is assembled from components that each render one domain value and know nothing about a draft:
+`MeasurandView`, `MeasurandReadout`, `MeasurandEditor`, `DimensionalityView`, `DimensionalityEditor`. They
+read what exists — dimensions, kinds, units — from a `CatalogueProvider` above them rather than from props
+threaded through every row.
+
+See [`src/blocks/README.md`](src/blocks/README.md) for what each one guarantees and where a reasonable
+expectation about one turns out to be false.
+
 ## What it does
 
 - **Variables** — a name, what it measures, and a value if anyone has supplied one.
@@ -87,8 +97,17 @@ a dimensionality means.
 landmarks and comparisons all come from `/api/vocabulary`, so adding a kind to the domain offers it to an
 author without this project being touched.
 
-**Values are KMS, in and out.** No unit is named anywhere — a dimensionality is shown as `M·L·T⁻²` and a value
-is a number in base units. Showing 4.409 lb needs the unit catalogue served, which the API does not do yet.
+**Everything is held in KMS; a unit is a reading.** `GET /api/units` serves each unit as the slope and offset
+that convert a KMS value into it, so the browser converts without a second copy of a rule `Measurement` owns —
+the server measures those numbers from the unit itself and tests that applying them reproduces it. Changing the
+unit in an editor changes the number shown, not the model: nothing on the wire records which unit an author
+typed in.
+
+**A band converts by the slope alone.** It is a difference, so applying the offset would read ±1 K as
+−457.87 °F. `showBand` is a separate function from `show` for that reason.
+
+**An uncertainty sets the precision of its value.** Two significant figures where the band's leading digit is 1
+or 2, one otherwise, and the value rounded to the band's last place. With no band, four figures.
 
 ---
 
@@ -97,8 +116,10 @@ is a number in base units. Showing 4.409 lb needs the unit catalogue served, whi
 | Path | What is in it |
 | --- | --- |
 | `src/api/` | The generated schema, the fetch wrappers, and the dimensionality encoding. |
-| `src/model/` | The draft as client state, and the hook that asks the server about it. |
-| `src/components/` | One component per thing on screen. |
+| `src/format/` | Figures, notation and unit conversion. No React. |
+| `src/blocks/` | The reusable pieces: one domain value each, nothing about a draft. |
+| `src/model/` | The draft as client state, the catalogue context, and the hook that asks the server. |
+| `src/components/` | The rows, which assemble blocks into a node of a model. |
 | `src/App.tsx` | The page, and the only place that holds the draft. |
 
 ---
@@ -107,7 +128,10 @@ is a number in base units. Showing 4.409 lb needs the unit catalogue served, whi
 
 - **Saving and reopening.** `POST /api/drafts/build` already answers with the model in the form that persists;
   reopening one needs `SystemDraft.FromSystem` on the server.
-- **Units.** See above.
+- **Remembering a unit.** An author picks one to read or write in and it is forgotten on reload, because the
+  wire has nowhere to put it.
+- **Asymmetric bands, in the editor.** The views render `+a / −b`, which a calculation can produce, but the
+  editor only writes a symmetric band.
 - **Reordering operands.** The order matters where the kind cares — a quotient divides the first by the second
   — and nothing here moves one yet.
 - **Tests.** The server's suites cover every answer this page renders; what is untested is the rendering.
