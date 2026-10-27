@@ -45,13 +45,17 @@ export function DimensionalityEditor({ encoded, onChange }: Props) {
         <option value="custom">{preset ? "Custom…" : "Custom"}</option>
       </select>
 
+      {/* A rotating chevron, because the panel it opens is the only thing that closes it and nothing else
+          said so. */}
       <button
         type="button"
         className="ghost reading"
-        title="Set the exponents"
+        aria-expanded={open}
+        title={open ? "Hide the exponents" : "Set the exponents"}
         onClick={() => setOpen(!open)}
       >
         {unchosen ? "?" : <DimensionalityView encoded={encoded} />}
+        <span className={open ? "chevron open" : "chevron"} aria-hidden="true">▾</span>
       </button>
 
       {open && (

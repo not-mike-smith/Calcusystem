@@ -178,6 +178,17 @@ button.remove { margin-left: auto; }
 
 .dimensionality-editor { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .dimensionality-editor .reading { min-width: 2.5em; text-align: left; }
+
+/* Points right when shut and down when open, which is the one mark that says a thing toggles. */
+.dimensionality-editor .chevron {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  transform: rotate(-90deg);
+  transition: transform 120ms ease;
+}
+
+.dimensionality-editor .chevron.open { transform: rotate(0deg); }
 .dimensionality-editor .exponents label.unused abbr { color: var(--quiet); opacity: 0.55; }
 
 /* A value that is only read. Text, with the reading itself as the control — no boxes, because nothing here
