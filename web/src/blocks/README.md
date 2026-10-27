@@ -10,11 +10,35 @@ draft, a node, or a request.
 | `DimensionalityView` | no | none | What a quantity measures: `M·L/T²`. |
 | `DimensionalityEditor` | yes | preset list, exponents | Choosing what a quantity measures. |
 | `MeasurandView` | no | **none** | A value, exactly as its props say to read it. |
-| `MeasurandReadout` | no | unit, band form | A value the reader can re-read. |
-| `MeasurandEditor` | yes | unit, band form, both numbers | A value being written. |
+| `MeasurandReadout` | no | unit, band form | A fixed quantity, re-read. **Converts.** |
+| `MeasurandEditor` | yes | unit, band form, both numbers | A value being written. **Restates.** |
 
-They rest on two modules with no React in them: `src/format/significance.ts` for how many figures to show and
-when to go scientific, and `src/format/units.ts` for converting between KMS and a unit.
+They rest on three modules with no React in them: `src/format/significance.ts` for how many figures to show and
+when to go scientific, `src/format/units.ts` for converting between KMS and a unit, and
+`src/format/editing.ts` for what each control in an editor does to the model. The last one is where the rules
+below actually live, which is what lets them be exercised without a browser.
+
+## The one thing to understand: converting versus restating
+
+A readout and an editor look alike and do opposite things to the number, and that is not a quirk — **they hold
+different things.**
+
+| | Holds | Choosing a unit means | The number |
+| --- | --- | --- | --- |
+| `MeasurandReadout` | a fixed quantity | *show me this in those units* | changes |
+| `MeasurandEditor` | the pair its author typed — a number **and** the unit it is in | *the number I typed is in those units* | stays put |
+
+An editor that converted would move a number its author had just entered: filling the control left to right,
+the number goes in before the unit is picked. So in an editor **nothing moves the number but typing** — unit
+and band-form controls restate what is already written. Converting a fixed quantity is the readout's job, and
+there is one under every variable row.
+
+The pair is real rather than a convenient story: `ExpressionDraft.ValueUnit` persists the unit, so reopening a
+draft shows the number that was typed. The band's form is persisted the same way, by `IsStoredAsAbs`.
+
+**Chrome says which is which.** An editor is a bordered field, because every control in it writes to the model.
+A readout is plain text whose unit and band symbol are themselves the controls, because nothing in it does.
+That is the ordinary rule that editable things look editable, rather than a border language to learn.
 
 ## Start here
 
@@ -32,7 +56,8 @@ when to go scientific, and `src/format/units.ts` for converting between KMS and 
   dimensionality={variable.Dimensionality}
   kmsValue={variable.KmsValue}
   uncertainty={variable.Uncertainty}
-  onChange={({ kmsValue, uncertainty }) => …}
+  valueUnit={variable.ValueUnit}
+  onChange={({ kmsValue, uncertainty, valueUnit }) => …}
 />
 ```
 
@@ -50,8 +75,10 @@ through every component in between.
 - **A band converts by the slope alone.** Applying a unit's offset to a band would read ±1 K as −457.87 °F.
   `showBand` is a separate function from `show` for that reason, and `bandSymbol` gives `Δ°C` where the
   distinction shows.
-- **Everything is held in KMS.** A unit is a reading. Nothing on the wire records which unit a value was typed
-  in, so changing the unit in an editor changes the number shown and not the model.
+- **Everything is held in KMS.** A unit is a reading, and `format/editing.ts` derives both boxes from the
+  quantity rather than keeping a number of its own beside it.
+- **In an editor, only typing moves a number.** Choosing a unit or a band form restates what is written.
+  Checked by executing `format/editing.ts` over plain and offset units in both directions.
 - **Not chosen is not dimensionless.** `DimensionalityEditor` answers `null` for the first and `""` for the
   second, because the domain refuses to guess between them and so does this.
 - **A dimensionality shows only what it measures**, in the order the server lists the dimensions, with negative
@@ -70,23 +97,32 @@ through every component in between.
 - **A relative band on a zero value falls back to absolute.** There is nothing for it to be relative to.
 - **`storedAs` is only meaningful for an authored value.** A computed value's uncertainty is derived and kept
   nowhere, so there is no form to mark — pass `null` and no marker appears.
-- **Switching the band form in the editor keeps the band's size, not its number.** Going from ±0.02 kg to
-  relative on a 2 kg value gives 1%, not 0.02%. The interval the author stated does not move because they
-  changed how they want to write it.
+- **Switching the band form in an editor keeps the number, not the size.** `0.3` absolute becomes `0.3`
+  percent. It is a restatement, like choosing a unit, for the same reason: the author's number is what they
+  said. A readout switching form does convert — `±0.02` on a 2 kg value reads as `1%` there.
+- **A band typed where there was none is absolute.** The box sits straight after a value in a named unit, and
+  `8.0 MPa ± 0.3 MPa` is how that reads. The label says which form it is, and switching costs a click and moves
+  no number. The toggle is inert until there is a band to switch, so the order is type, then toggle.
+- **The band's label stands in for a long symbol.** It shows the band's own unit — `Δ°C` where that differs
+  from the value's `°C` — unless the symbol runs past about five characters, where `″` (same as above) takes its
+  place and the symbol goes in the tooltip. Symbols in this library reach seventeen characters.
+- **A readout marks the form the model keeps** with a solid underline rather than a dotted one, and says so in
+  the tooltip. Only meaningful for an authored value.
 - **A typed number is only read when the field is left or Enter is pressed.** Writing back on each keystroke
   would renumber the box under the author, and a half-typed `1.2e` is not a number.
-- **`MeasurandReadout` hides the unit its view would print** and shows a unit picker in its place, so the two
-  do not both name the unit.
+- **A readout has no widget beside its number.** The unit after the value and the symbol after the band are
+  the controls, so the reading is not competing with a pair of boxes. They are dotted-underlined to show it.
 
 ## What does not belong here
 
 - Anything about a draft, a node or a problem → `src/components/`
 - Fetching → `src/api/`
-- Rounding and conversion arithmetic → `src/format/`
+- Rounding, conversion, and what an edit does to the model → `src/format/`
 - Which units exist → the server, through `CatalogueProvider`
 
 ## Related
 
-`src/format/` · `src/model/catalogue.tsx` · `src/components/` (what assembles these).
+`src/format/` (`significance`, `units`, `editing`) · `src/model/catalogue.tsx` ·
+`src/components/` (what assembles these).
 See the [project README](../../README.md) for how the client talks to the server, and the API's
 [README](../../../Api/README.md) for where the served slope and offset come from.

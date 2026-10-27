@@ -1,132 +1,105 @@
 import { useState } from "react";
 import { asNumber, type Uncertainty } from "../api/client";
+import {
+  isAbsolute, shown, withBand, withForm, withUnit, withValue, type Written,
+} from "../format/editing";
 import { parseTyped } from "../format/significance";
-import { bandSymbol, bandToKms, baseUnit, show, showBand, toKms, unitBySymbol } from "../format/units";
+import { bandSymbol, baseUnit, unitBySymbol } from "../format/units";
 import { useCatalogue } from "../model/catalogue";
-import type { BandForm } from "./MeasurandView";
 
-export interface MeasurandEdit {
-  kmsValue: number | null;
-  uncertainty: Uncertainty | null;
-}
+/** What an author has written. The number on screen is derived from it; see `format/editing.ts`. */
+export type MeasurandEdit = Written;
 
 interface Props {
   /** Fixes which units are offered. Null until the author has chosen what the quantity measures. */
   dimensionality: string | null | undefined;
   kmsValue: number | null | undefined;
   uncertainty: Uncertainty | null | undefined;
+  valueUnit: string | null | undefined;
   onChange: (edit: MeasurandEdit) => void;
 }
 
+/** Beyond this, a symbol will not sit in the band's label and the ditto mark stands in for it. */
+const SYMBOL_FITS = 5;
+
 /**
- * A value being written: in a unit of the author's choosing, with a band either absolute or relative.
+ * A value being written: a number, the unit it is in, and a band either absolute or relative.
  *
- * Everything is held in KMS. The unit is a reading, not a fact about the model — nothing on the wire records
- * which unit a value was typed in.
+ * **Every control here states something; none of them re-reads it.** Selecting a unit means *the number I typed
+ * is in these units*, so the number stays put and the quantity changes. Filling the control left to right
+ * would otherwise move a number the author had just entered. `MeasurandReadout` is the one that converts.
  */
-export function MeasurandEditor({ dimensionality, kmsValue, uncertainty, onChange }: Props) {
+export function MeasurandEditor({
+  dimensionality, kmsValue, uncertainty, valueUnit, onChange,
+}: Props) {
   const { unitsFor } = useCatalogue();
   const units = unitsFor(dimensionality);
 
-  const [symbol, setSymbol] = useState<string | null>(null);
-  const unit = unitBySymbol(units, symbol) ?? baseUnit(units);
+  const unit = unitBySymbol(units, valueUnit) ?? baseUnit(units);
 
-  const storedAs: BandForm = uncertainty?.IsStoredAsAbs ? "absolute" : "relative";
-  const magnitude = uncertainty ? asNumber(uncertainty.Magnitude) : 0;
-
-  const kms = kmsValue === null || kmsValue === undefined ? null : asNumber(kmsValue);
-
-  const bandInUnit = unit && uncertainty?.IsStoredAsAbs
-    ? showBand(magnitude, unit)
-    : magnitude * 100;
-
-  const write = (edit: Partial<MeasurandEdit>) =>
-    onChange({ kmsValue: kms, uncertainty: uncertainty ?? null, ...edit });
-
-  const writeValue = (typed: number | null) =>
-    write({ kmsValue: typed === null || !unit ? typed : toKms(typed, unit) });
-
-  const writeBand = (typed: number | null) => {
-    if (typed === null || typed === 0) return write({ uncertainty: null });
-
-    // Negative is meaningless and would invert the band, so it is refused at the input rather than stored.
-    const size = Math.abs(typed);
-
-    write({
-      uncertainty: storedAs === "absolute" && unit
-        ? { Type: "SymmetricUncertainty", IsStoredAsAbs: true, Magnitude: bandToKms(size, unit) }
-        : { Type: "SymmetricUncertainty", IsStoredAsAbs: false, Magnitude: size / 100 },
-    });
+  const written: Written = {
+    kmsValue: kmsValue === null || kmsValue === undefined ? null : asNumber(kmsValue),
+    uncertainty: uncertainty ?? null,
+    valueUnit: unit?.Symbol ?? null,
   };
 
-  /* Switching form keeps the band the same size rather than the same number, so the value's interval does not
-     move when the author only changed how they want to write it. */
-  const switchForm = (form: BandForm) => {
-    if (form === storedAs || !uncertainty) return;
+  const reading = shown(written, unit);
+  const absolute = isAbsolute(written);
 
-    const absoluteKms = storedAs === "absolute" ? magnitude : magnitude * Math.abs(kms ?? 0);
+  // Reads the form a band *would* take as well as the one it has, so an empty box is not labelled `%` while
+  // typing in it would give an absolute band.
+  const label = absolute && unit ? bandSymbol(unit) : "%";
+  const fits = label.length <= SYMBOL_FITS;
 
-    write({
-      uncertainty: form === "absolute"
-        ? { Type: "SymmetricUncertainty", IsStoredAsAbs: true, Magnitude: absoluteKms }
-        : {
-            Type: "SymmetricUncertainty",
-            IsStoredAsAbs: false,
-            Magnitude: kms ? absoluteKms / Math.abs(kms) : 0,
-          },
-    });
+  const chooseUnit = (symbol: string) => {
+    const chosen = unitBySymbol(units, symbol);
+    if (chosen) onChange(withUnit(written, unit, chosen));
   };
 
   return (
     <span className="measurand-editor">
-      <Typed
-        value={kms === null || !unit ? null : show(kms, unit)}
-        placeholder="unset"
-        onCommit={writeValue}
-      />
-
-      <select
-        className="unit-choice"
-        value={unit?.Symbol ?? ""}
-        disabled={!units}
-        onChange={(event) => setSymbol(event.target.value)}
-        title={units ? "The unit this value is written in" : "Choose what this measures first"}
-      >
-        {units
-          ? (units.Units ?? []).map((choice) => (
-              <option key={choice.Symbol} value={choice.Symbol ?? ""}>{choice.Symbol}</option>
-            ))
-          : <option value="">—</option>}
-      </select>
-
-      <span className="band-choice">
-        <button
-          type="button"
-          className={storedAs === "absolute" ? "form chosen" : "form"}
-          onClick={() => switchForm("absolute")}
-          title="Keep the band as an absolute amount"
+      <span className="field">
+        <Typed
+          value={reading.value}
+          placeholder="unset"
+          onCommit={(typed) => onChange(withValue(written, unit, typed))}
+        />
+        <select
+          className="affix"
+          value={unit?.Symbol ?? ""}
+          disabled={!units}
+          onChange={(event) => chooseUnit(event.target.value)}
+          title={units ? "The unit this number is written in" : "Choose what this measures first"}
         >
-          ±
-        </button>
-        <button
-          type="button"
-          className={storedAs === "relative" ? "form chosen" : "form"}
-          onClick={() => switchForm("relative")}
-          title="Keep the band as a fraction of the value"
-        >
-          %
-        </button>
+          {units
+            ? (units.Units ?? []).map((choice) => (
+                <option key={choice.Symbol} value={choice.Symbol ?? ""}>{choice.Symbol}</option>
+              ))
+            : <option value="">—</option>}
+        </select>
       </span>
 
-      <Typed
-        value={uncertainty ? bandInUnit : null}
-        placeholder="0"
-        onCommit={writeBand}
-      />
+      <span className="pm">±</span>
 
-      <i className="unit">
-        {storedAs === "absolute" ? (unit ? bandSymbol(unit) : "") : "%"}
-      </i>
+      <span className="field">
+        <Typed
+          value={reading.band}
+          placeholder="0"
+          onCommit={(typed) => onChange(withBand(written, unit, typed))}
+        />
+        <button
+          type="button"
+          className="affix toggle"
+          onClick={() => onChange(withForm(written, unit))}
+          disabled={!uncertainty}
+          title={absolute
+            ? `Absolute, in ${unit ? bandSymbol(unit) : "the same unit"} — click for a percentage`
+            : "A percentage of the value — click for an absolute amount"}
+        >
+          {/* ″ means "the same unit as above", for a symbol too long to sit here. */}
+          {fits ? label : "″"}
+        </button>
+      </span>
     </span>
   );
 }
@@ -142,8 +115,8 @@ function Typed({
 }: { value: number | null; placeholder: string; onCommit: (value: number | null) => void }) {
   const [typing, setTyping] = useState<string | null>(null);
 
-  // The plain spelling of the number, not the display formatter's: a field the author is editing should read
-  // back what they typed, and `1000` formatted for display is `1.000×10³`.
+  // The plain spelling of the number, not the display formatter's: a field being edited should read back what
+  // was typed, and `1000` formatted for display is `1.000×10³`.
   const shown = typing ?? (value === null ? "" : String(Number(value.toPrecision(12))));
 
   const commit = () => {

@@ -16,7 +16,11 @@ interface Props {
 /** One variable: what it is called, what it measures, and what it is worth if anyone has said. */
 export function VariableRow({ variable, problems, computed, isUnknown, onChange, onRemove }: Props) {
   const edit = (measurand: MeasurandEdit) =>
-    onChange({ KmsValue: measurand.kmsValue, Uncertainty: measurand.uncertainty });
+    onChange({
+      KmsValue: measurand.kmsValue,
+      Uncertainty: measurand.uncertainty,
+      ValueUnit: measurand.valueUnit,
+    });
 
   return (
     <div className={problems.length > 0 ? "node faulty" : "node"}>
@@ -39,6 +43,7 @@ export function VariableRow({ variable, problems, computed, isUnknown, onChange,
             ? null
             : Number(variable.KmsValue)}
           uncertainty={variable.Uncertainty}
+          valueUnit={variable.ValueUnit}
           onChange={edit}
         />
 

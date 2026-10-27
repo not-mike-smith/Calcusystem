@@ -473,6 +473,11 @@ export interface components {
              */
             ValueDimensionality?: null | string;
             Uncertainty?: null | components["schemas"]["Uncertainty"];
+            /**
+             * @description The symbol of the unit the value was written in, or null for none chosen. A reading preference, and
+             *     nothing is computed from it.
+             */
+            ValueUnit?: null | string;
             Provenance?: null | components["schemas"]["Provenance"];
             UncertaintyCorrelation?: null | components["schemas"]["UncertaintyCorrelation"];
         };

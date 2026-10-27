@@ -47,6 +47,13 @@ The editor is assembled from components that each render one domain value and kn
 read what exists — dimensions, kinds, units — from a `CatalogueProvider` above them rather than from props
 threaded through every row.
 
+A readout and an editor look alike and do opposite things to the number, because they hold different things: a
+readout holds a fixed quantity and a unit is a lens over it, so choosing one **converts**; an editor holds the
+pair its author typed — a number and the unit it is in — so choosing one **restates**, and the number stays
+put. An editor that converted would move a number its author had just entered, since the number goes in before
+the unit is picked. Chrome says which is which: an editor is a bordered field, a readout is text whose unit and
+band symbol are themselves the controls.
+
 See [`src/blocks/README.md`](src/blocks/README.md) for what each one guarantees and where a reasonable
 expectation about one turns out to be false.
 
@@ -116,7 +123,7 @@ or 2, one otherwise, and the value rounded to the band's last place. With no ban
 | Path | What is in it |
 | --- | --- |
 | `src/api/` | The generated schema, the fetch wrappers, and the dimensionality encoding. |
-| `src/format/` | Figures, notation and unit conversion. No React. |
+| `src/format/` | Figures, notation, unit conversion, and what an edit does to the model. No React. |
 | `src/blocks/` | The reusable pieces: one domain value each, nothing about a draft. |
 | `src/model/` | The draft as client state, the catalogue context, and the hook that asks the server. |
 | `src/components/` | The rows, which assemble blocks into a node of a model. |
@@ -128,8 +135,9 @@ or 2, one otherwise, and the value rounded to the band's last place. With no ban
 
 - **Saving and reopening.** `POST /api/drafts/build` already answers with the model in the form that persists;
   reopening one needs `SystemDraft.FromSystem` on the server.
-- **Remembering a unit.** An author picks one to read or write in and it is forgotten on reload, because the
-  wire has nowhere to put it.
+- **Remembering a unit a value is *read* in.** The unit a value was *written* in persists
+  (`ExpressionDraft.ValueUnit`); a readout's choice is per-view and resets on reload, which is what a lens
+  should do.
 - **Asymmetric bands, in the editor.** The views render `+a / −b`, which a calculation can produce, but the
   editor only writes a symmetric band.
 - **Reordering operands.** The order matters where the kind cares — a quotient divides the first by the second

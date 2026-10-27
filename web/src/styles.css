@@ -180,28 +180,77 @@ button.remove { margin-left: auto; }
 .dimensionality-editor .reading { min-width: 2.5em; text-align: left; }
 .dimensionality-editor .exponents label.unused abbr { color: var(--quiet); opacity: 0.55; }
 
+/* A value that is only read. Text, with the reading itself as the control — no boxes, because nothing here
+   writes to the model. */
 .measurand { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .measurand.none { color: var(--quiet); }
 .measurand .band { color: var(--quiet); }
 .measurand .power { margin-left: 1px; }
 .measurand .unit { color: var(--quiet); font-style: normal; margin-left: 5px; }
 
-.readout { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.readout .unit-choice, .measurand-editor .unit-choice { padding: 1px 3px; font-size: 12px; }
-.readout .measurand .unit { display: none; }
+.measurand.readout .unit.pick { position: relative; display: inline-block; cursor: pointer; }
+.measurand.readout .unit.pick > span { border-bottom: 1px dotted var(--quiet); }
+.measurand.readout .unit.pick:hover > span { color: var(--ink); border-bottom-color: var(--ink); }
+.measurand.readout .unit.pick select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+}
 
-.band-choice { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.band-choice .form {
+.measurand.readout .unit.toggle {
   border: none;
   background: none;
+  padding: 0;
+  margin-left: 4px;
   color: var(--quiet);
-  padding: 1px 6px;
-  font-size: 12px;
-  line-height: 1.6;
+  border-bottom: 1px dotted var(--quiet);
+  font-variant-numeric: tabular-nums;
 }
-.band-choice .form.chosen { background: var(--page); color: var(--ink); font-weight: 600; }
-.band-choice .form .kept { color: var(--accent); margin-left: 2px; }
+.measurand.readout .unit.toggle:hover { color: var(--ink); border-bottom-color: var(--ink); }
+/* Solid rather than dotted where the shown form is the one the model keeps. The title says so too. */
+.measurand.readout .unit.toggle.kept { color: var(--ink); border-bottom-style: solid; }
 
-.measurand-editor { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.measurand-editor .number { width: 100px; }
-.measurand-editor .unit { color: var(--quiet); font-style: normal; min-width: 2.2em; font-size: 12px; }
+/* A value being written. Boxed, because every control in it states something. */
+.measurand-editor { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.measurand-editor .pm { color: var(--quiet); }
+
+.measurand-editor .field {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.measurand-editor .field:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.measurand-editor .field .number {
+  width: 86px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  text-align: right;
+}
+
+.measurand-editor .field .number:focus-visible { outline: none; }
+
+/* Straight on the left where it meets the number, and its right corners taken by the field's radius. */
+.measurand-editor .field .affix {
+  border: none;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--page);
+  color: var(--quiet);
+  padding: 0 4px;
+  font-size: 12px;
+  min-width: 2.4em;
+  text-align: center;
+}
+
+.measurand-editor .field .affix:disabled { opacity: 0.5; }
+.measurand-editor .field .affix.toggle { cursor: pointer; }
+.measurand-editor .field .affix.toggle:hover:not(:disabled) { color: var(--ink); }
