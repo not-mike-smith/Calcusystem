@@ -9,7 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "prebuild": "node scripts/types.mjs",
     "preview": "vite preview",
-    "types": "node scripts/types.mjs"
+    "types": "node scripts/types.mjs",
+    "render-check": "esbuild scripts/render-check.tsx --bundle --format=cjs --platform=node --jsx=automatic --outfile=node_modules/.cache/render-check.cjs --log-level=error && node node_modules/.cache/render-check.cjs"
   },
   "dependencies": {
     "react": "^19.2.0",

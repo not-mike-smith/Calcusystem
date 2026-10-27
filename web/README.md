@@ -143,3 +143,5 @@ or 2, one otherwise, and the value rounded to the band's last place. With no ban
 - **Reordering operands.** The order matters where the kind cares — a quotient divides the first by the second
   — and nothing here moves one yet.
 - **Tests.** The server's suites cover every answer this page renders; what is untested is the rendering.
+  `npm run render-check` prints each building block as text, which is not a test but is enough to see what
+  they produce.

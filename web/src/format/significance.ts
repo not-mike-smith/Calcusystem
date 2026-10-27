@@ -140,12 +140,17 @@ function digits(x: number, place: number, exponent: number | null): string {
   return mantissa.toFixed(Math.max(exponent - place, 0));
 }
 
+/*
+ * Both of these read the decimal exponent form rather than computing with logarithms and powers. Dividing by a
+ * power of ten is not exact in binary: `0.3 / 0.1` is 2.9999999999999996, whose leading digit reads as 2, and
+ * that silently granted an uncertainty a second significant figure — `8.0 ± 0.3` came out as `8.00 ± 0.30`.
+ */
 function exponentOf(x: number): number {
-  return Math.floor(Math.log10(Math.abs(x)));
+  return Number(Math.abs(x).toExponential().split("e")[1]);
 }
 
 function leadingDigit(x: number): number {
-  return Math.floor(Math.abs(x) / Math.pow(10, exponentOf(x)));
+  return Number(Math.abs(x).toExponential()[0]);
 }
 
 /** Rounds to a power of ten, through a string so that 1.005 at two places does not land on 1.00. */

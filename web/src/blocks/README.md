@@ -65,6 +65,23 @@ Every one of them reads the catalogue from context, so a `CatalogueProvider` has
 none of them takes a list of dimensions or units: a block asks for what it needs rather than having it threaded
 through every component in between.
 
+## Looking at what they render
+
+```bash
+npm run render-check
+```
+
+Prints each block as text. It asserts nothing — it is a way to *see* the output, which is the one thing prose
+about a component cannot do, and it is how both of the defects below were found.
+
+```text
+readout, absolute      → 8.0 Pa ± 0.3 Pa
+readout, relative      → 8.0 Pa ± 4%
+readout, scientific    → 8.0×10⁶ Pa ± 0.3×10⁶ Pa
+view, factored power   → (8.0 ± 0.3)×10⁶ Pa
+dimensionality, inline → M/(L·T²)
+```
+
 ## Guarantees
 
 - **A view with no affordances still takes every choice as a prop.** Unit, band form, notation and figure count
@@ -112,6 +129,12 @@ through every component in between.
   would renumber the box under the author, and a half-typed `1.2e` is not a number.
 - **A readout has no widget beside its number.** The unit after the value and the symbol after the band are
   the controls, so the reading is not competing with a pair of boxes. They are dotted-underlined to show it.
+- **A readout does not factor the power out; `MeasurandView` does.** `(8.0 ± 0.3)×10⁶` needs its two numbers
+  adjacent, and a readout has a unit control between them, so there each number carries the power:
+  `8.0×10⁶ Pa ± 0.3×10⁶ Pa`. A view has one trailing unit and no controls, so it factors.
+- **Each symbol sits next to what it labels.** In a readout the unit follows the value it reads and the band's
+  label follows the band, which is why an absolute band repeats the symbol — `8.0 Pa ± 0.3 Pa`. Putting both at
+  the end gave `8.0 ± 0.3 Pa Pa`, and only the relative form happened to interleave correctly.
 
 ## What does not belong here
 

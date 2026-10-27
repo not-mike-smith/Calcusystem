@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { asNumber, type MeasurandReport } from "../api/client";
 import { figuresFor, read, readBare, superscript, type Notation } from "../format/significance";
 import { bandSymbol, baseUnit, show, showBand, unitBySymbol } from "../format/units";
@@ -45,19 +45,28 @@ export function MeasurandReadout({ value, storedAs = null, notation, sigFigs }: 
 
   const banded = upper + lower > 0;
   const relative = band === "relative" && kms !== 0 && banded;
-  const bracketed = reading.exponent !== null && !relative && (reading.band || reading.asymmetric);
   const choices = units?.Units ?? [];
+
+  /*
+   * Each symbol sits next to what it controls: the unit straight after the value it reads, the band's label
+   * straight after the band. So an absolute band reads `8.0 MPa ± 0.3 MPa` and a relative one
+   * `8.0 MPa ± 1.0 %` — the same order either way.
+   *
+   * Which is why the power is not factored out here the way `MeasurandView` factors it. `(9.9 ± 0.5)×10⁻⁴`
+   * needs the two numbers adjacent, and the unit control has to come between them.
+   */
+  const shown = (digits: string): ReactNode => (
+    <>
+      {digits}
+      {reading.exponent !== null && <span className="power">×10{superscript(reading.exponent)}</span>}
+    </>
+  );
+
+  const size = bandOf(reading, relative, () => percentages(upper, lower, kms), shown);
 
   return (
     <span className="measurand readout">
-      {bracketed && "("}
-      <b>{reading.value}</b>
-      {!relative && reading.band && <span className="band"> ± {reading.band}</span>}
-      {!relative && reading.asymmetric && (
-        <span className="band"> +{reading.asymmetric.upper} / −{reading.asymmetric.lower}</span>
-      )}
-      {bracketed && ")"}
-      {reading.exponent !== null && <span className="power">×10{superscript(reading.exponent)}</span>}
+      <b>{shown(reading.value)}</b>
 
       {/* The unit itself is the picker, so a reading carries no widget beside its number. */}
       {choices.length > 1 ? (
@@ -77,7 +86,12 @@ export function MeasurandReadout({ value, storedAs = null, notation, sigFigs }: 
         <i className="unit">{unit.Symbol}</i>
       )}
 
-      {relative && <span className="band"> ± {percentages(upper, lower, kms)}</span>}
+      {banded && size && (
+        <span className="band">
+          {size.symmetric ? " ± " : " "}
+          {size.node}
+        </span>
+      )}
 
       {banded && (
         <button
@@ -95,13 +109,40 @@ export function MeasurandReadout({ value, storedAs = null, notation, sigFigs }: 
   );
 }
 
+/** The band's digits, and whether a `±` belongs in front of them. */
+function bandOf(
+  reading: ReturnType<typeof read>,
+  relative: boolean,
+  asPercentages: () => { symmetric: boolean; text: string },
+  shown: (digits: string) => ReactNode,
+): { symmetric: boolean; node: ReactNode } | null {
+  if (relative) {
+    const percent = asPercentages();
+
+    return { symmetric: percent.symmetric, node: percent.text };
+  }
+
+  if (reading.band !== null) return { symmetric: true, node: shown(reading.band) };
+
+  if (reading.asymmetric) {
+    return {
+      symmetric: false,
+      node: <>+{shown(reading.asymmetric.upper)} / −{shown(reading.asymmetric.lower)}</>,
+    };
+  }
+
+  return null;
+}
+
 /** A band as a percentage of its value, to the figures the band itself justifies. */
-function percentages(upper: number, lower: number, kms: number): string {
+function percentages(upper: number, lower: number, kms: number): { symmetric: boolean; text: string } {
   const of = (size: number) => {
     const percent = (size / Math.abs(kms)) * 100;
 
     return readBare(percent, { sigFigs: figuresFor(percent), notation: "decimal" }).value;
   };
 
-  return upper === lower ? of(upper) : `+${of(upper)} / −${of(lower)}`;
+  return upper === lower
+    ? { symmetric: true, text: of(upper) }
+    : { symmetric: false, text: `+${of(upper)} / −${of(lower)}` };
 }
