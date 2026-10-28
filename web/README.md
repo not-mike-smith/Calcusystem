@@ -40,6 +40,25 @@ wire changed since they were generated.
 
 ---
 
+## The building blocks
+
+The editor is assembled from components that each render one domain value and know nothing about a draft:
+`MeasurandView`, `MeasurandReadout`, `MeasurandEditor`, `DimensionalityView`, `DimensionalityEditor`. They
+read what exists — dimensions, kinds, units — from a `CatalogueProvider` above them rather than from props
+threaded through every row.
+
+A readout and an editor look alike and do opposite things to the number, because they hold different things: a
+readout holds a fixed quantity and a unit is a lens over it, so choosing one **converts**; an editor holds the
+pair its author typed — a number and the unit it is in — so choosing one **restates**, and the number stays
+put. An editor that converted would move a number its author had just entered, since the number goes in before
+the unit is picked. Chrome says which is which: an editor is a bordered field, a readout is text whose unit and
+band symbol are themselves the controls.
+
+See [`src/blocks/README.md`](src/blocks/README.md) for what each one guarantees and where a reasonable
+expectation about one turns out to be false, and [`PATTERNS.md`](PATTERNS.md) for the mark vocabulary they are
+built from — what each mark means, which channel carries it, and why affordance and status must never share
+one. `#patterns` in the running app renders every mark in every state.
+
 ## What it does
 
 - **Variables** — a name, what it measures, and a value if anyone has supplied one.
@@ -87,8 +106,17 @@ a dimensionality means.
 landmarks and comparisons all come from `/api/vocabulary`, so adding a kind to the domain offers it to an
 author without this project being touched.
 
-**Values are KMS, in and out.** No unit is named anywhere — a dimensionality is shown as `M·L·T⁻²` and a value
-is a number in base units. Showing 4.409 lb needs the unit catalogue served, which the API does not do yet.
+**Everything is held in KMS; a unit is a reading.** `GET /api/units` serves each unit as `UnitOfMeasure`'s own
+`KmsConversionFactor` and `ZeroOffset`, and the four functions in `src/format/units.ts` are
+`ConvertFromKmsValue` and `ConvertToKmsValue` spelled the same way, so the two sides can be read against each
+other. An inverted factor is the mistake that invites, and it looks right at exactly 1 — the server's
+`UnitCatalogueTests` applies both directions back for every unit it serves.
+
+**A band converts by the factor alone.** It is a difference, so applying the offset would read ±1 K as
+−457.87 °F. `showBand` is a separate function from `show` for that reason.
+
+**An uncertainty sets the precision of its value.** Two significant figures where the band's leading digit is 1
+or 2, one otherwise, and the value rounded to the band's last place. With no band, four figures.
 
 ---
 
@@ -97,8 +125,11 @@ is a number in base units. Showing 4.409 lb needs the unit catalogue served, whi
 | Path | What is in it |
 | --- | --- |
 | `src/api/` | The generated schema, the fetch wrappers, and the dimensionality encoding. |
-| `src/model/` | The draft as client state, and the hook that asks the server about it. |
-| `src/components/` | One component per thing on screen. |
+| `src/format/` | Figures, notation, unit conversion, and what an edit does to the model. No React. |
+| `src/blocks/` | The reusable pieces: one domain value each, nothing about a draft. |
+| `src/model/` | The draft as client state, the catalogue context, and the hook that asks the server. |
+| `src/components/` | The rows, which assemble blocks into a node of a model. |
+| `src/patterns/` | The gallery at `#patterns`: every mark and block, rendered. |
 | `src/App.tsx` | The page, and the only place that holds the draft. |
 
 ---
@@ -107,7 +138,13 @@ is a number in base units. Showing 4.409 lb needs the unit catalogue served, whi
 
 - **Saving and reopening.** `POST /api/drafts/build` already answers with the model in the form that persists;
   reopening one needs `SystemDraft.FromSystem` on the server.
-- **Units.** See above.
+- **Remembering a unit a value is *read* in.** The unit a value was *written* in persists
+  (`ExpressionDraft.ValueUnit`); a readout's choice is per-view and resets on reload, which is what a lens
+  should do.
+- **Asymmetric bands, in the editor.** The views render `+a / −b`, which a calculation can produce, but the
+  editor only writes a symmetric band.
 - **Reordering operands.** The order matters where the kind cares — a quotient divides the first by the second
   — and nothing here moves one yet.
 - **Tests.** The server's suites cover every answer this page renders; what is untested is the rendering.
+  `npm run render-check` prints each building block as text, which is not a test but is enough to see what
+  they produce.

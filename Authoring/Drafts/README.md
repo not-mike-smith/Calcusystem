@@ -55,6 +55,10 @@ draft types have internal constructors, so a node cannot exist outside the draft
   wrong.
 - **A variable with no dimensionality is a problem, not a default.** There is no dimensionless fallback, because
   guessing one would silently build a different model than the one intended.
+- **`ValueUnit` records how a value was written, and decides nothing.** `Value` is the quantity, in KMS like
+  everywhere else. The symbol exists so an editor can reopen a draft showing the number someone typed instead
+  of the same quantity in base units; it is not carried into the built system, and a symbol naming no unit is
+  a reading that cannot be honored rather than a reason the model is wrong.
 
 ## What does not belong here
 

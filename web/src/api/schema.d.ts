@@ -264,6 +264,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every unit, grouped by what it measures, with the two numbers that convert a KMS value into it. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UnitCatalogueReport"];
+                        "application/json": components["schemas"]["UnitCatalogueReport"];
+                        "text/json": components["schemas"]["UnitCatalogueReport"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vocabulary": {
         parameters: {
             query?: never;
@@ -378,6 +416,18 @@ export interface components {
          * @enum {unknown}
          */
         Determination: "Underdetermined" | "ExactlyDetermined" | "Overdetermined";
+        /** @description The units for one dimensionality. */
+        DimensionalityUnitsReport: {
+            /** @description Encoded as `"M1,L1,T-2"`, empty for dimensionless. */
+            Dimensionality: string;
+            /**
+             * @description The unit a KMS value is already in — the one whose conversion is the identity. A sensible default for a
+             *     picker, and null where this dimensionality has no such unit.
+             */
+            BaseSymbol: null | string;
+            /** @description Every unit of this dimensionality. */
+            Units: components["schemas"]["UnitReport"][];
+        };
         /** @description A fundamental dimension, by the symbol an encoded dimensionality uses. */
         DimensionReport: {
             Symbol: string;
@@ -423,6 +473,11 @@ export interface components {
              */
             ValueDimensionality?: null | string;
             Uncertainty?: null | components["schemas"]["Uncertainty"];
+            /**
+             * @description The symbol of the unit the value was written in, or null for none chosen. A reading preference, and
+             *     nothing is computed from it.
+             */
+            ValueUnit?: null | string;
             Provenance?: null | components["schemas"]["Provenance"];
             UncertaintyCorrelation?: null | components["schemas"]["UncertaintyCorrelation"];
         };
@@ -587,6 +642,31 @@ export interface components {
         };
         /** @enum {unknown} */
         UncertaintyCorrelation: "Uncorrelated" | "Correlated" | null;
+        /** @description Every unit a client can offer, grouped by what it measures. */
+        UnitCatalogueReport: {
+            Dimensionalities: components["schemas"]["DimensionalityUnitsReport"][];
+        };
+        /** @description One unit, carrying the same two numbers `UnitOfMeasure` converts with, under the same names. */
+        UnitReport: {
+            /** @description What to show, and what the domain calls it. */
+            Symbol: string;
+            /**
+             * Format: double
+             * @description How many KMS base units one of this unit is. Positive and non-zero.
+             */
+            KmsConversionFactor: number | string;
+            /**
+             * Format: double
+             * @description Where this unit's zero sits, in this unit's own steps — 273.15 for degrees Celsius, and zero for all but the
+             *     offset units.
+             */
+            ZeroOffset: number | string;
+            /**
+             * @description What a difference in this unit is called, where that differs from string UnitReport.Symbol — `Δ°C` for
+             *     degrees Celsius. Null where a difference is named the same as a value.
+             */
+            DeltaSymbol: null | string;
+        };
         /** @description An unknown: a variable the system reaches and nobody has given a value. */
         UnknownReport: {
             Id: string;

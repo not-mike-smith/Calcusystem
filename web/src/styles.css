@@ -7,6 +7,7 @@
   --accent: #2f6f4f;
   --warn: #a4442f;
   --pending: #b7791f;
+  --fill: #eceef1;
   color-scheme: light dark;
 }
 
@@ -20,6 +21,7 @@
     --accent: #6fcf97;
     --warn: #e88b72;
     --pending: #e0b457;
+    --fill: #262b33;
   }
 }
 
@@ -107,19 +109,6 @@ button.ghost { border: none; background: none; color: var(--quiet); padding: 2px
 button.ghost:hover { color: var(--ink); }
 button.remove { margin-left: auto; }
 
-.tolerance { display: flex; align-items: center; gap: 3px; color: var(--quiet); }
-.over { color: var(--quiet); font-size: 12px; }
-.slot { display: inline-flex; align-items: center; }
-
-.dimensionality { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-
-.exponents { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; margin-top: 6px; }
-.exponents label { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--quiet); }
-.exponents input { width: 48px; }
-
-.value { font-variant-numeric: tabular-nums; }
-.value.none { color: var(--quiet); }
-.value i { color: var(--quiet); font-style: normal; margin-left: 5px; }
 .band { color: var(--quiet); }
 .unknown { color: var(--pending); font-size: 12px; }
 .symbol-glyph { color: var(--quiet); margin: 0 4px; }
@@ -157,3 +146,145 @@ button.remove { margin-left: auto; }
   border-radius: 5px;
   padding: 1px 5px;
 }
+
+/* ── The mark vocabulary ─────────────────────────────────────────────────────
+   Two vocabularies that never share a channel. See web/PATTERNS.md, and `#patterns` for all of it rendered.
+
+   AFFORDANCE — what happens if I touch this
+     .slot      states the model      filled at rest, bordered on approach
+     .views     changes this view     a chevron, on approach
+     .reveals   shows or hides        a chevron that rotates, always
+     .tells     explains, no more     a dotted underline and a help cursor
+
+   STATUS — what is true about this
+     colour     a verdict             accent holds, warn broken, pending unjudged
+     a glyph    a kind                ● kept, ○ unknown, ✓ ✗ ? a verdict
+   ------------------------------------------------------------------------- */
+
+/* Writes to the model. The fill is the mark; a border is spent only once the pointer is on it, so forty of
+   these down a column stay calm. Everything inside one writes the model too. */
+.slot {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--fill);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.slot:hover { border-color: var(--line); }
+.slot:focus-within { border-color: var(--line); outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.slot .number {
+  width: 86px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  text-align: right;
+}
+
+.slot .number:focus-visible { outline: none; }
+
+/* Straight where it meets the number, and its outer corners taken by the slot's radius. */
+.slot .affix {
+  border: none;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  color: var(--quiet);
+  padding: 0 4px;
+  font-size: 12px;
+  min-width: 2.4em;
+  text-align: center;
+}
+
+/* A leading affix meets the reading on its right, so that is where its straight edge goes. */
+.slot .affix.leading { border-left: none; border-right: 1px solid var(--line); }
+
+.slot .reading { padding: 0 6px; display: inline-flex; align-items: center; min-width: 2.5em; }
+
+/* A select that is the slot's content rather than its affix carries no chrome of its own. */
+.slot > select:not(.affix) { border: none; border-radius: 0; background: none; }
+
+.slot .affix:disabled { opacity: 0.5; }
+.slot .affix.toggle { cursor: pointer; }
+.slot .affix.toggle:hover:not(:disabled) { color: var(--ink); }
+
+/* Changes what you are looking at, and nothing else. The chevron is the whole mark, and like the slot's
+   border it is spent on approach — a reading with two of these showing at rest is furniture, and a page of
+   readings is a thicket. The space is held either way so nothing shifts. */
+.views { position: relative; display: inline-block; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+.views > select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; border: none; }
+.views .chevron, .reveals .chevron { display: inline-block; margin-left: 3px; font-size: 9px; color: var(--quiet); }
+.views .chevron { opacity: 0; transition: opacity 120ms ease; }
+.views:hover .chevron, .views:focus-visible .chevron, .views:focus-within .chevron { opacity: 1; color: var(--ink); }
+
+/* Shows or hides detail. The same chevron, turned to say which way it will go — and always shown, because it
+   reports whether the thing is open as well as that it can be opened. */
+.reveals { border: none; background: none; padding: 0; color: inherit; cursor: pointer; }
+.reveals .chevron { transform: rotate(-90deg); transition: transform 120ms ease; }
+.reveals:hover .chevron { color: var(--ink); }
+.reveals[aria-expanded="true"] .chevron { transform: rotate(0deg); }
+
+/* Explains, and does nothing. The one use of a dotted underline. */
+.tells { text-decoration: none; border-bottom: 1px dotted var(--line); cursor: help; }
+
+/* Status glyphs. Never a border and never an underline — those channels are affordances. */
+.mark { font-size: 10px; vertical-align: super; margin-left: 2px; }
+.mark.kept { color: var(--accent); }
+.mark.unknown { color: var(--pending); }
+
+/* ── Building blocks ─────────────────────────────────────────────────────── */
+
+.dimensionality-view { white-space: nowrap; }
+.dimensionality-view.none { color: var(--quiet); }
+.dimensionality-view .dot { color: var(--quiet); margin: 0 1px; }
+.dimensionality-view .solidus { color: var(--quiet); margin: 0 2px; }
+
+.dimensionality-view.stacked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.15;
+}
+
+.dimensionality-view.stacked .denominator { border-top: 1px solid currentColor; padding-top: 1px; }
+
+.dimensionality-editor { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+
+/* The exponents write the model too, so they carry the same fill as the slot that opens them. */
+.dimensionality-editor .exponents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--fill);
+  border-radius: 6px;
+}
+
+.dimensionality-editor .exponents label { display: flex; align-items: center; gap: 3px; font-size: 12px; }
+.dimensionality-editor .exponents input { width: 48px; }
+.dimensionality-editor .exponents label.unused .tells { color: var(--quiet); opacity: 0.55; }
+
+.measurand { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.measurand.none { color: var(--quiet); }
+.measurand .band { color: var(--quiet); }
+.measurand .power { margin-left: 1px; }
+.measurand .unit { color: var(--quiet); font-style: normal; margin-left: 5px; }
+.measurand.readout .unit { margin-left: 5px; }
+
+.measurand-editor { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.measurand-editor .pm { color: var(--quiet); }
+
+/* ── The pattern gallery ─────────────────────────────────────────────────── */
+
+.gallery dl { display: grid; grid-template-columns: minmax(140px, auto) 1fr; gap: 10px 18px; margin: 0; }
+.gallery dt { color: var(--quiet); font-size: 12px; }
+.gallery dd { margin: 0; }
+.gallery dd .note { color: var(--quiet); font-size: 12px; margin-left: 10px; }
+.gallery .back, header .back { margin-left: auto; color: var(--quiet); font-size: 12px; }
+.gallery .back:hover, header .back:hover { color: var(--ink); }
+.gallery .title { font-size: 22px; font-weight: 600; }
+.gallery .subtitle { color: var(--quiet); }

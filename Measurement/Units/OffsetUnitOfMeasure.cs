@@ -10,7 +10,16 @@ namespace Calcusystem.Measurement.Units;
 /// </summary>
 public class OffsetUnitOfMeasure : UnitOfMeasure
 {
-    private readonly double _zeroOffset;
+    /// <summary>
+    /// Where this unit's zero sits, in this unit's own steps: added before scaling to KMS, subtracted after
+    /// scaling away from it.
+    /// </summary>
+    /// <remarks>
+    /// 273.15 for degrees Celsius. <b>Never applied to a difference</b> — that is what <see cref="DeltaUnit"/>
+    /// is for, and <see cref="ConvertToKmsValue"/> and <see cref="ConvertFromKmsValue"/> are the two directions
+    /// written out.
+    /// </remarks>
+    public readonly double ZeroOffset;
 
     /// <summary>
     /// The corresponding non-offset unit for expressing a <i>difference</i> in this unit (e.g. Δ°C), where the
@@ -39,7 +48,7 @@ public class OffsetUnitOfMeasure : UnitOfMeasure
             throw new ArgumentException("zero offset must be finite", nameof(zeroOffset));
         }
 
-        _zeroOffset = zeroOffset;
+        ZeroOffset = zeroOffset;
         DeltaUnit = new UnitOfMeasure(
             Dimensionality,
             $"Δ{Symbol}",
@@ -49,12 +58,12 @@ public class OffsetUnitOfMeasure : UnitOfMeasure
     /// <summary>Converts a value in this unit to KMS, applying the zero-point offset before scaling.</summary>
     public override double ConvertToKmsValue(double value)
     {
-        return (value + _zeroOffset) * KmsConversionFactor;
+        return (value + ZeroOffset) * KmsConversionFactor;
     }
 
     /// <summary>Converts a KMS value back into this unit, removing the zero-point offset after scaling.</summary>
     public override double ConvertFromKmsValue(double value)
     {
-        return value / KmsConversionFactor - _zeroOffset;
+        return value / KmsConversionFactor - ZeroOffset;
     }
 }

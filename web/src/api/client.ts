@@ -15,6 +15,10 @@ export type VocabularyReport = Schemas["VocabularyReport"];
 export type MeasurandReport = Schemas["MeasurandReport"];
 export type OutcomeReport = Schemas["OutcomeReport"];
 export type DimensionReport = Schemas["DimensionReport"];
+export type UnitCatalogueReport = Schemas["UnitCatalogueReport"];
+export type DimensionalityUnits = Schemas["DimensionalityUnitsReport"];
+export type Unit = Schemas["UnitReport"];
+export type Uncertainty = Schemas["Uncertainty"];
 
 /** What came back: the answer, or the problems that stopped it. */
 export type Answer<TValue> =
@@ -50,11 +54,17 @@ export const calculate = (draft: SystemDraft) => post<CalculationReport>("calcul
 export const decompose = (draft: SystemDraft) => post<DecompositionReport>("decomposition", draft);
 export const build = (draft: SystemDraft) => post<unknown>("build", draft);
 
-export async function vocabulary(): Promise<VocabularyReport> {
-  const response = await fetch("/api/vocabulary");
-  if (!response.ok) throw new Error(`The vocabulary could not be read: ${response.status}`);
-  return (await response.json()) as VocabularyReport;
+async function get<TValue>(route: string, what: string): Promise<TValue> {
+  const response = await fetch(route);
+  if (!response.ok) throw new Error(`The ${what} could not be read: ${response.status}`);
+
+  return (await response.json()) as TValue;
 }
+
+export const vocabulary = () => get<VocabularyReport>("/api/vocabulary", "vocabulary");
+
+/** Fetched once and kept: it is large, and it changes only when the library does. */
+export const units = () => get<UnitCatalogueReport>("/api/units", "unit catalogue");
 
 /**
  * A served number as a number. The wire type admits a string because a double can be written as `NaN` or

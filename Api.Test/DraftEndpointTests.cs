@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Calcusystem.Api.Reports;
 using Calcusystem.Authoring.Drafts;
 using Calcusystem.Authoring.Enums;
@@ -18,14 +17,6 @@ namespace Calcusystem.Api.Test;
    as an object. */
 public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFixture<WebApplicationFactory<Program>>
 {
-    /* What the server itself is configured with: names for enums, no naming policy. A test that read the
-       response with STJ's defaults would pass while the browser got something else. */
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNamingPolicy = null,
-        Converters = { new JsonStringEnumConverter() },
-    };
-
     private HttpClient Client => host.CreateClient();
 
     private static Dtos.SystemDraft NewtonsSecondLaw(double? limit = null, double? acceleration = 3)
@@ -84,10 +75,10 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
     }
 
     private async Task<HttpResponseMessage> Post(string route, Dtos.SystemDraft draft) =>
-        await Client.PostAsJsonAsync($"/api/drafts/{route}", draft, Options);
+        await Client.PostAsJsonAsync($"/api/drafts/{route}", draft, Wire.Options);
 
     private static async Task<TReport> Read<TReport>(HttpResponseMessage response) =>
-        (await response.Content.ReadFromJsonAsync<TReport>(Options))!;
+        (await response.Content.ReadFromJsonAsync<TReport>(Wire.Options))!;
 
     [Fact]
     public async Task AnEmptyDraftIsAModelNobodyHasStartedRatherThanAnError()

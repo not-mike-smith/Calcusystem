@@ -69,6 +69,7 @@ public class OpenApiDocumentTests(WebApplicationFactory<Program> host)
             "/api/drafts/decomposition",
             "/api/drafts/calculation",
             "/api/vocabulary",
+            "/api/units",
         ]);
     }
 }

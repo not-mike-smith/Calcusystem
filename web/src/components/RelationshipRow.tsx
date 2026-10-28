@@ -2,8 +2,8 @@ import type {
   DraftProblem, ExpressionDraft, OutcomeReport, RelationshipDraft, VocabularyReport,
 } from "../api/client";
 import { labelFor } from "../model/draft";
+import { MeasurandView } from "../blocks/MeasurandView";
 import { NodeProblems } from "./ProblemList";
-import { Value } from "./Value";
 
 interface Props {
   relationship: RelationshipDraft;
@@ -112,9 +112,9 @@ export function RelationshipRow({
       {outcome && (
         <div className="row readout">
           <Verdict outcome={outcome} />
-          <Value value={outcome.Lhs} />
+          <MeasurandView value={outcome.Lhs} />
           <span className="symbol-glyph">{outcome.Symbol}</span>
-          <Value value={outcome.Rhs} />
+          <MeasurandView value={outcome.Rhs} />
         </div>
       )}
 

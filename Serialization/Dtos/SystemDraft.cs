@@ -50,6 +50,12 @@ public class ExpressionDraft
     /// <summary>The uncertainty on <see cref="KmsValue"/>, or null for none.</summary>
     public Uncertainty? Uncertainty { get; init; }
 
+    /// <summary>
+    /// The symbol of the unit the value was written in, or null for none chosen. A reading preference, and
+    /// nothing is computed from it.
+    /// </summary>
+    public string? ValueUnit { get; init; }
+
     public Provenance? Provenance { get; init; }
 
     /// <summary>How this node's operands correlate, or null for uncorrelated.</summary>

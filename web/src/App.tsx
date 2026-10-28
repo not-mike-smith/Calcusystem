@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  units as readUnits,
   vocabulary as readVocabulary,
   type DraftProblem,
   type MeasurandReport,
   type OutcomeReport,
   type SystemDraft,
+  type UnitCatalogueReport,
   type VocabularyReport,
 } from "./api/client";
+import { CatalogueProvider } from "./model/catalogue";
+import { Gallery } from "./patterns/Gallery";
 import { PosednessPanel } from "./components/PosednessPanel";
 import { DraftProblems } from "./components/ProblemList";
 import { ExpressionRow } from "./components/ExpressionRow";
@@ -17,14 +21,31 @@ import { useAnalysis } from "./model/useAnalysis";
 
 export function App() {
   const [draft, setDraft] = useState<SystemDraft>(Draft.load);
+  const [route, setRoute] = useState(() => window.location.hash);
   const [vocabulary, setVocabulary] = useState<VocabularyReport | null>(null);
+  const [units, setUnits] = useState<UnitCatalogueReport | null>(null);
   const [unreachable, setUnreachable] = useState(false);
 
+  // Both are fixed facts about the server, fetched once and kept for the session.
   useEffect(() => {
-    readVocabulary().then(setVocabulary, () => setUnreachable(true));
+    Promise.all([readVocabulary(), readUnits()]).then(
+      ([served, catalogue]) => {
+        setVocabulary(served);
+        setUnits(catalogue);
+      },
+      () => setUnreachable(true),
+    );
   }, []);
 
   useEffect(() => Draft.save(draft), [draft]);
+
+  // One other page, reached by `#patterns`. A router is not worth a dependency for two routes.
+  useEffect(() => {
+    const read = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", read);
+
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
 
   const analysis = useAnalysis(draft);
 
@@ -61,9 +82,18 @@ export function App() {
     );
   }
 
-  if (!vocabulary) return <main className="quiet">Connecting…</main>;
+  if (!vocabulary || !units) return <main className="quiet">Connecting…</main>;
+
+  if (route === "#patterns") {
+    return (
+      <CatalogueProvider vocabulary={vocabulary} units={units}>
+        <Gallery />
+      </CatalogueProvider>
+    );
+  }
 
   return (
+    <CatalogueProvider vocabulary={vocabulary} units={units}>
     <main>
       <header>
         <input
@@ -80,6 +110,7 @@ export function App() {
         />
         <button type="button" onClick={() => setDraft(Draft.emptyDraft())}>New model</button>
         <span className={analysis.pending ? "pulse" : "pulse quiet"}>●</span>
+        <a className="back" href="#patterns">patterns →</a>
       </header>
 
       <div className="columns">
@@ -94,7 +125,6 @@ export function App() {
               <VariableRow
                 key={variable.Id}
                 variable={variable}
-                dimensions={vocabulary.Dimensions ?? []}
                 problems={problemsBy.get(variable.Id ?? "") ?? []}
                 computed={valueOf.get(variable.Id ?? "") ?? null}
                 isUnknown={missing.has(variable.Id ?? "")}
@@ -174,6 +204,7 @@ export function App() {
         </aside>
       </div>
     </main>
+    </CatalogueProvider>
   );
 }
 
