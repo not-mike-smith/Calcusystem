@@ -37,6 +37,7 @@ export function ExpressionRow({
 
         <span className="over">over</span>
 
+        {/* An operand slot writes the model, so it is a slot in the vocabulary's sense too. */}
         {slots.map((operandId, index) => (
           <span key={index} className="slot">
             <select value={operandId ?? ""} onChange={(e) => onSlot(index, e.target.value || null)}>
@@ -47,7 +48,7 @@ export function ExpressionRow({
             </select>
             <button
               type="button"
-              className="ghost"
+              className="affix toggle"
               title="Remove this operand"
               onClick={() => onRemoveSlot(index)}
             >

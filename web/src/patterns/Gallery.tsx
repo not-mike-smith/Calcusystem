@@ -135,8 +135,17 @@ function Dimensionalities() {
         <dt>dimensionless</dt>
         <dd><DimensionalityView encoded="" /><span className="note">not the same answer as unchosen</span></dd>
 
-        <dt>being chosen</dt>
-        <dd><DimensionalityEditor encoded={encoded} onChange={setEncoded} /></dd>
+        <dt>a named combination</dt>
+        <dd>
+          <DimensionalityEditor encoded={encoded} onChange={setEncoded} />
+          <span className="note">the reading is a label — there is nothing to press</span>
+        </dd>
+
+        <dt>custom</dt>
+        <dd>
+          <DimensionalityEditor encoded="M1,L3,T-2" onChange={() => {}} />
+          <span className="note">the reading opens the exponents, and says so</span>
+        </dd>
 
         <dt>unchosen</dt>
         <dd><DimensionalityEditor encoded={null} onChange={() => {}} /><span className="note">? until the author answers</span></dd>

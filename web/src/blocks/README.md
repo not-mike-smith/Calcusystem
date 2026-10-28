@@ -8,7 +8,7 @@ draft, a node, or a request.
 | Component | Writes? | Affordances | Role |
 | --- | --- | --- | --- |
 | `DimensionalityView` | no | none | What a quantity measures: `M·L/T²`. |
-| `DimensionalityEditor` | yes | preset list, exponents | Choosing what a quantity measures. |
+| `DimensionalityEditor` | yes | preset list, exponents in custom mode | Choosing what a quantity measures. |
 | `MeasurandView` | no | **none** | A value, exactly as its props say to read it. |
 | `MeasurandReadout` | no | unit, band form | A fixed quantity, re-read. **Converts.** |
 | `MeasurandEditor` | yes | unit, band form, both numbers | A value being written. **Restates.** |
@@ -105,6 +105,11 @@ dimensionality, inline → M/(L·T²)
   Checked by executing `format/editing.ts` over plain and offset units in both directions.
 - **Not chosen is not dimensionless.** `DimensionalityEditor` answers `null` for the first and `""` for the
   second, because the domain refuses to guess between them and so does this.
+- **The exponents are reachable only in custom mode.** A named combination is already the answer, so offering
+  to edit it underneath would be offering to make it something else by accident. Picking *Custom* opens them
+  pre-filled, so starting from a preset and tweaking still works — it just has to be asked for.
+- **Custom is a mode, not a guess.** It is held, not inferred from whether the exponents happen to match a
+  preset, so tweaking a custom dimensionality into one that matches does not silently rename it.
 - **A dimensionality shows only what it measures**, in the order the server lists the dimensions, with negative
   exponents turned into a denominator rather than printed with a minus sign.
 

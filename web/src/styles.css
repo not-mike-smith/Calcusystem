@@ -109,19 +109,6 @@ button.ghost { border: none; background: none; color: var(--quiet); padding: 2px
 button.ghost:hover { color: var(--ink); }
 button.remove { margin-left: auto; }
 
-.tolerance { display: flex; align-items: center; gap: 3px; color: var(--quiet); }
-.over { color: var(--quiet); font-size: 12px; }
-.slot { display: inline-flex; align-items: center; }
-
-.dimensionality { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-
-.exponents { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; margin-top: 6px; }
-.exponents label { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--quiet); }
-.exponents input { width: 48px; }
-
-.value { font-variant-numeric: tabular-nums; }
-.value.none { color: var(--quiet); }
-.value i { color: var(--quiet); font-style: normal; margin-left: 5px; }
 .band { color: var(--quiet); }
 .unknown { color: var(--pending); font-size: 12px; }
 .symbol-glyph { color: var(--quiet); margin: 0 4px; }
@@ -211,6 +198,14 @@ button.remove { margin-left: auto; }
   text-align: center;
 }
 
+/* A leading affix meets the reading on its right, so that is where its straight edge goes. */
+.slot .affix.leading { border-left: none; border-right: 1px solid var(--line); }
+
+.slot .reading { padding: 0 6px; display: inline-flex; align-items: center; min-width: 2.5em; }
+
+/* A select that is the slot's content rather than its affix carries no chrome of its own. */
+.slot > select:not(.affix) { border: none; border-radius: 0; background: none; }
+
 .slot .affix:disabled { opacity: 0.5; }
 .slot .affix.toggle { cursor: pointer; }
 .slot .affix.toggle:hover:not(:disabled) { color: var(--ink); }
@@ -257,7 +252,20 @@ button.remove { margin-left: auto; }
 .dimensionality-view.stacked .denominator { border-top: 1px solid currentColor; padding-top: 1px; }
 
 .dimensionality-editor { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.dimensionality-editor .reading { min-width: 2.5em; text-align: left; }
+
+/* The exponents write the model too, so they carry the same fill as the slot that opens them. */
+.dimensionality-editor .exponents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--fill);
+  border-radius: 6px;
+}
+
+.dimensionality-editor .exponents label { display: flex; align-items: center; gap: 3px; font-size: 12px; }
+.dimensionality-editor .exponents input { width: 48px; }
 .dimensionality-editor .exponents label.unused .tells { color: var(--quiet); opacity: 0.55; }
 
 .measurand { white-space: nowrap; font-variant-numeric: tabular-nums; }

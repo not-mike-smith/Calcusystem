@@ -46,8 +46,16 @@ Filled at rest, bordered on hover, ringed on focus.
 
 A border is the heaviest inline mark there is, so it is spent on approach rather than worn all the time: forty
 bordered fields down a column is a grid of rectangles, and the fill alone still reads as *something goes
-here*. **Everything inside a slot writes the model** — the number, the unit, the band's form — so the slot is
-the unit of consequence and its contents inherit it.
+here*.
+
+**Every control inside a slot writes the model** — the number, the unit, the band's form, an operand, an
+exponent. The slot is the unit of consequence and its controls inherit it, so they carry no chrome of their
+own. A label inside one is still just a label: it may `.tells`, but it does not write.
+
+**A control that writes the model is a slot, whatever it looks like.** The dimensionality editor was built as a
+`.reveals` with a chevron, which said *this opens* when the thing a reader needed to know was *this edits*. It
+is a slot now. Reaching for a new mark — a raised surface, say — would have been answering the right complaint
+with the wrong fix: the mark was not missing, it was the wrong one.
 
 ### `.views` — changes this view, and nothing else
 
@@ -61,6 +69,9 @@ a convenience over a reading that is already correct.
 ### `.reveals` — shows or hides detail
 
 A chevron that rotates, shown **always**.
+
+Inside a slot it marks the way into the rest of that slot — the dimensionality's exponents, say — and the
+panel it opens carries the slot's fill, because it writes the model too.
 
 The exception to the rule above, and the reason for it: a disclosure's chevron reports whether the thing is
 *open* as well as that it can be opened. That is information at rest, so it is worth its ink. Not showing it is
@@ -93,6 +104,23 @@ in print, and for a reader who cannot tell two of them apart.
 is a glyph — not a solid underline where a dotted one means *clickable*, which is what it was.
 
 ---
+
+---
+
+## An affordance is offered only where it leads somewhere
+
+A mark that does nothing useful is worse than no mark, because a reader who follows it learns to distrust the
+next one.
+
+So the dimensionality's exponents are reachable **only in custom mode**. A named combination is already the
+answer; offering to edit it underneath is offering to make it something else by accident. Pick *Custom* and the
+exponents open, pre-filled with wherever the author was — so starting from a preset and tweaking it still
+works, it just has to be asked for.
+
+This needed real state rather than a derived label. While custom mode was inferred from *whether the exponents
+happen to match a named combination*, picking Custom while the value still equalled Pressure left the select
+reading "Pressure" with the exponents open, and tweaking a custom dimensionality into one that happened to
+match would silently rename it.
 
 ## Adding a pattern
 
