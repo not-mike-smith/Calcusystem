@@ -32,8 +32,12 @@ public abstract class ReflectiveUnitList<T> : UnitList where T : class
 
     private static Dictionary<string, UnitOfMeasure> ReflectiveGetAllUnitsByName(Type type)
     {
+        // Assignable to, not equal to. An exact match drops every field declared as its concrete subtype,
+        // which silently cost the lists °C, °F and all three gauge pressures - the units an engineer reaches
+        // for first - while leaving the lists looking complete.
         var uomFieldInfos = type.GetFields()
-            .Where(info => info.IsStatic && info.IsPublic && info.FieldType == typeof(UnitOfMeasure));
+            .Where(info => info.IsStatic && info.IsPublic
+                           && typeof(UnitOfMeasure).IsAssignableFrom(info.FieldType));
 
         return uomFieldInfos.ToDictionary(
             info => info.Name,

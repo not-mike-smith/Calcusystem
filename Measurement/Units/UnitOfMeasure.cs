@@ -21,7 +21,15 @@ public class UnitOfMeasure
 
     /// <summary>The unit's display symbol (e.g. "N", "lbf", "°C").</summary>
     public readonly string Symbol;
-    internal readonly double KmsConversionFactor;
+    /// <summary>
+    /// How many KMS base units one of this unit is. Positive, finite and non-zero.
+    /// </summary>
+    /// <remarks>
+    /// Multiply to reach KMS and divide to leave it — <see cref="ConvertToKmsValue"/> and
+    /// <see cref="ConvertFromKmsValue"/> are the two directions written out, and are what to prefer. This is
+    /// public for a layer that has to carry the conversion somewhere the objects cannot go, such as over a wire.
+    /// </remarks>
+    public readonly double KmsConversionFactor;
 
     /// <summary>
     /// Constructed via <c>UnitFactory</c>. Validates that <paramref name="kmsConversionFactor"/> is positive,

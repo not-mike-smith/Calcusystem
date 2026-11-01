@@ -58,6 +58,8 @@ What comes back is an `ExpressionSystem` like any other, so `Calcusystem.Analysi
 
 **Nothing throws for a modelling mistake.** Problems come back as data — a `DraftProblem` carrying a `Kind`, a `Message`, and the `NodeId` at fault, so an editor can highlight the node rather than show a stack trace. A `Kind` means the client branches without matching on message text.
 
+**How a value was written is kept beside what it is.** `ExpressionDraft.ValueUnit` holds the symbol of the unit a number was typed in. The quantity itself is the KMS `Value` and nothing is computed from the symbol — it is there so reopening a draft shows `8.0 MPa` rather than `8000000 Pa`, which is the same quantity and not the same thing to look at. It does not survive the build, because the built system normalizes to KMS and keeps no reading preference.
+
 **Ids exist before validity.** A node gets its id the moment it is created, before it is typed, let alone correct. A front-end has something to reference immediately.
 
 **That id carries through the build.** The built `Variable` has the id its draft had, so references held outside the draft survive. This is why `Build` emits snapshots and feeds them to `ExpressionFactory` — the snapshot path already preserves ids, because that is what deserialization needs.

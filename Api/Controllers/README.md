@@ -8,6 +8,7 @@ The routes. Each one reads a request, hands it to a workflow, and serves what co
 | --- | --- | --- |
 | `DraftsController` | sealed class | `POST /api/drafts/{validation,build,decomposition,calculation}` |
 | `VocabularyController` | sealed class | `GET /api/vocabulary` |
+| `UnitsController` | sealed class | `GET /api/units` |
 
 ## Start here
 

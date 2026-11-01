@@ -57,6 +57,24 @@ public sealed class ExpressionDraft
     /// </remarks>
     public Measurand? Value { get; set; }
 
+    /// <summary>
+    /// The symbol of the unit a value was written in, or null for none chosen. A record of how the author wrote
+    /// it, not of what it is.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Value"/> alone is the quantity, held in KMS like everywhere else, and nothing is computed
+    /// from this. It exists so an editor can reopen a draft showing the number someone typed rather than the
+    /// same quantity in base units.
+    /// </para>
+    /// <para>
+    /// Not carried into the built system, which normalizes to KMS and keeps no reading preference, and not
+    /// checked against anything — a symbol naming no unit is a reading an editor cannot honor, not a reason a
+    /// model is wrong.
+    /// </para>
+    /// </remarks>
+    public string? ValueUnit { get; set; }
+
     /// <summary>Optional record of where a variable's value came from. Ignored for every other kind.</summary>
     public IProvenance? Provenance { get; set; }
 
