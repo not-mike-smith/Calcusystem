@@ -12,22 +12,50 @@ Everything below follows from that.
 
 | | |
 | --- | --- |
-| [`web/src/patterns/language.ts`](src/patterns/language.ts) | the language itself, as typed records |
-| `#patterns` in the running app | every mark rendered, with its reasons and what it beat |
+| [`src/patterns/language.ts`](src/patterns/language.ts) | the language itself, as typed records |
+| [`src/patterns/examples.tsx`](src/patterns/examples.tsx) | each mark done right, and done wrong, with the code for both |
+| `#patterns` in the running app | the sheets, rendered |
 | this document | the prose, and the argument |
 
-The records are the single statement. The gallery renders from them, so it cannot describe a mark it does not
-show. This document is prose *about* them and can drift, so `npm run patterns-check` fails if it stops
-mentioning one — every id below appears here in backticks for that reason.
+### The sheets
 
-**To refine a pattern:** read its rule, look at the thing beside it on `#patterns`, then open *what it was
-chosen over*. The rejected alternatives are the argument; disagreeing with one of them is how a pattern
-changes.
+`#patterns` is laid out as **do-and-don't sheets**, after the installation sheets an engineer gets with a
+structural connector: the correct detail beside the ways it gets done wrong, each annotated with what the
+mistake costs. For every mark:
+
+- the rule, in one line;
+- **✓ Do** — the real component, live, with the code to write;
+- **✗ Don't** — one panel per alternative it was chosen over, each *rendered*, with what is wrong with it and
+  the CSS that produces it;
+- and, folded away, the reasons and the alternatives that can only be argued rather than shown.
+
+The specimens are the real components with real state, not pictures of them — so a mark that has drifted from
+what this document says shows up on that page, and a screenshot never would. There is a stylesheet box at the
+top of the page that is injected after the app's own, so a mark can be changed while it is being looked at.
+
+A rendered wrong example earns its place over a described one. *A permanent border becomes a grid of
+rectangles* is an assertion to be taken on trust; forty bordered fields in a column settle it at a glance.
+
+### Keeping the four in step
+
+The records are the single statement, and `npm run patterns-check` holds the rest against them:
+
+| | |
+| --- | --- |
+| this document mentions every id the language holds | every id below is written in backticks for it |
+| every mark has a correct example | a mark with nothing to show is not documented |
+| every alternative claiming it can be shown is shown, and nothing is shown that was never claimed | catches a renamed key in either direction |
+| no `nono-` class is used outside the sheets | a deliberate violation must not leak into the UI it argues against |
+
+Each of those has been wrong at least once, and each was confirmed to fail when broken.
+
+**To refine a pattern:** read its rule, look at the Do beside it, then look at the Don'ts. The rendered wrong
+examples are the argument; disagreeing with one of them is how a pattern changes.
 
 **To add one:** say which question it answers, use the channel that vocabulary already owns, put it in
-`language.ts` with its reasons and its alternatives — all fields are required, so a pattern cannot arrive
-half-argued — then look at it on `#patterns` next to the others. If two marks are hard to tell apart there, one
-of them is wrong.
+`language.ts` with its reasons and its alternatives — every field is required, so a pattern cannot arrive
+half-argued — give it a specimen in `examples.tsx`, and look at it on `#patterns` next to the others. If two
+marks are hard to tell apart there, one of them is wrong.
 
 ---
 

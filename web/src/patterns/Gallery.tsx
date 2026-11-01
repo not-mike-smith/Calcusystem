@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DimensionalityEditor } from "../blocks/DimensionalityEditor";
 import { DimensionalityView } from "../blocks/DimensionalityView";
 import { MeasurandReadout } from "../blocks/MeasurandReadout";
 import { MeasurandView } from "../blocks/MeasurandView";
-import { EXAMPLES, pressure, temperature } from "./examples";
+import { DO, WRONG, pressure, temperature, type Example } from "./examples";
 import {
   CHANNELS, DECISIONS, OPEN, PATTERNS, PRINCIPLES, type Pattern,
 } from "./language";
@@ -32,6 +32,7 @@ export function Gallery() {
         ))}
       </nav>
 
+      <Scratchpad />
       <Principles />
       <Marks id="affordance" title="Affordance — what happens if I touch this" vocabulary="affordance" />
       <Marks id="status" title="Status — what is true about this" vocabulary="status" />
@@ -72,7 +73,8 @@ function Marks({
 
 function Mark({ pattern }: { pattern: Pattern }) {
   const [why, setWhy] = useState(false);
-  const example = EXAMPLES[pattern.id];
+  const right = DO[pattern.id];
+  const wrong = pattern.rejected.filter((alternative) => alternative.id && WRONG[alternative.id]);
 
   return (
     <article className="mark-entry">
@@ -82,38 +84,146 @@ function Mark({ pattern }: { pattern: Pattern }) {
         <span className="note">{pattern.mark} · shown {pattern.shown}</span>
       </div>
 
-      <div className="mark-example">{example ? example() : <span className="quiet">no example</span>}</div>
-
       <p className="mark-rule">{pattern.rule}</p>
 
-      <button type="button" className="reveals" aria-expanded={why} onClick={() => setWhy(!why)}>
-        why this, and what it was chosen over
-        <span className="chevron" aria-hidden="true">▾</span>
-      </button>
+      <div className="sheet">
+        <Panel verdict="do" caption="as it should be" example={right} />
 
-      {why && (
-        <div className="mark-why">
-          {pattern.why.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        {wrong.map((alternative) => (
+          <Panel
+            key={alternative.id}
+            verdict="dont"
+            caption={alternative.what}
+            because={alternative.because}
+            example={WRONG[alternative.id!]}
+          />
+        ))}
+      </div>
 
-          <dl className="rejected">
-            {pattern.rejected.map((alternative) => (
-              <div key={alternative.what}>
-                <dt>{alternative.what}</dt>
-                <dd>{alternative.because}</dd>
-              </div>
-            ))}
-          </dl>
+      {(pattern.why.length > 0 || pattern.rejected.length > wrong.length) && (
+        <>
+          <button type="button" className="reveals" aria-expanded={why} onClick={() => setWhy(!why)}>
+            why this one
+            <span className="chevron" aria-hidden="true">▾</span>
+          </button>
 
-          {pattern.open && (
-            <ul className="unsettled">
-              {pattern.open.map((question) => <li key={question}>{question}</li>)}
-            </ul>
+          {why && (
+            <div className="mark-why">
+              {pattern.why.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+
+              {/* The ones that cannot be shown, only argued. */}
+              <dl className="rejected">
+                {pattern.rejected
+                  .filter((alternative) => !alternative.id || !WRONG[alternative.id])
+                  .map((alternative) => (
+                    <div key={alternative.what}>
+                      <dt>{alternative.what}</dt>
+                      <dd>{alternative.because}</dd>
+                    </div>
+                  ))}
+              </dl>
+
+              {pattern.open && (
+                <ul className="unsettled">
+                  {pattern.open.map((question) => <li key={question}>{question}</li>)}
+                </ul>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </article>
   );
 }
+
+/** One side of a sheet: the thing, what it is, and the code that makes it. */
+function Panel({
+  verdict, caption, because, example,
+}: {
+  verdict: "do" | "dont";
+  caption: string;
+  because?: string;
+  example: Example | undefined;
+}) {
+  if (!example) return null;
+
+  return (
+    <section className={`panel-${verdict}`}>
+      <h4>
+        <span className="verdict-mark" aria-hidden="true">{verdict === "do" ? "✓" : "✗"}</span>
+        {verdict === "do" ? "Do" : "Don't"}
+        <span className="caption">{caption}</span>
+      </h4>
+
+      <div className="specimen">{example.render()}</div>
+
+      {because && <p className="because">{because}</p>}
+
+      <pre><code>{example.code}</code></pre>
+    </section>
+  );
+}
+
+/**
+ * A stylesheet of your own, injected after the app's so it wins, and kept in this browser.
+ *
+ * The point of the page is to argue about marks. Arguing is faster when the mark can be changed where it is
+ * being looked at.
+ */
+function Scratchpad() {
+  const [css, setCss] = useState(() => {
+    try {
+      return localStorage.getItem("calcusystem.scratchpad") ?? SEED;
+    } catch {
+      return SEED;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("calcusystem.scratchpad", css);
+    } catch {
+      // A blocked store is not worth interrupting an experiment over.
+    }
+  }, [css]);
+
+  return (
+    <section className="panel scratchpad">
+      <style>{css}</style>
+
+      <details>
+        <summary>Try a different stylesheet</summary>
+        <p className="quiet">
+          Injected after the app's, so it wins, and kept in this browser. Everything on this page is the real
+          component, so a change here is a change to what you are looking at.
+        </p>
+        <textarea
+          spellCheck={false}
+          value={css}
+          onChange={(event) => setCss(event.target.value)}
+          aria-label="Your stylesheet"
+        />
+        <button type="button" onClick={() => setCss(SEED)}>Back to the seed</button>
+      </details>
+    </section>
+  );
+}
+
+const SEED = `/* The tokens most worth pushing on. Uncomment and change.
+
+:root {
+  --fill: #eceef1;      the mark that says a control writes the model
+  --line: #dfe3e8;      a slot's border, once approached
+  --accent: #2f6f4f;    holds
+  --warn: #a4442f;      broken
+  --pending: #b7791f;   unjudged
+}
+
+.slot { border-radius: 10px; }
+.views .chevron { opacity: 1; }
+.mark { font-size: 12px; }
+*/
+`;
 
 function Channels() {
   return (

@@ -12,6 +12,11 @@ export type Vocabulary = "affordance" | "status";
 export type Shown = "at rest" | "on approach" | "always";
 
 export interface Alternative {
+  /**
+   * Stable, and the key an example is registered under in `examples.tsx`. Present where the wrong thing can be
+   * shown rather than only described — which is most of them, and the ones worth arguing about.
+   */
+  id?: string;
   what: string;
   because: string;
 }
@@ -31,7 +36,9 @@ export interface Pattern {
   rule: string;
   /** Why it is this and not something else. */
   why: string[];
-  /** What was tried or considered, and why it lost. */
+  /**
+   * What was tried or considered, and why it lost. Rendered beside the correct one where it has an `id`.
+   */
   rejected: Alternative[];
   /** What is still unsettled about this one. */
   open?: string[];
@@ -148,18 +155,21 @@ export const PATTERNS: Pattern[] = [
     ],
     rejected: [
       {
+        id: "slot-bordered",
         what: "A permanent border",
         because:
           "Unmistakable, and a grid of rectangles once a model is large. It spends the heaviest mark on the " +
           "commonest thing.",
       },
       {
+        id: "slot-underlined",
         what: "An underline, like a blank on a paper form",
         because:
           "Lightest of the three, but it collides with the dotted underline that means explains, and an " +
           "empty slot with no enclosed area is nearly invisible.",
       },
       {
+        id: "slot-raised",
         what: "A raised, neumorphic surface",
         because:
           "A same-colour surface signalled by soft shadows lands near 1.1:1 where WCAG 1.4.11 wants 3:1 for " +
@@ -185,10 +195,12 @@ export const PATTERNS: Pattern[] = [
     ],
     rejected: [
       {
+        id: "views-always",
         what: "A permanently visible chevron",
         because: "`8.0 Pa▾ ± 0.3 Pa▾●` at rest is three pieces of furniture on one value.",
       },
       {
+        id: "views-dotted",
         what: "A dotted underline on the text",
         because:
           "What it was. It made the mark mean click here as well as hover for an explanation, on the same " +
@@ -217,6 +229,7 @@ export const PATTERNS: Pattern[] = [
     ],
     rejected: [
       {
+        id: "reveals-nothing",
         what: "Nothing at all, with the reading itself as the target",
         because: "What it was. Clicking opened it, clicking again shut it, and the page never said so.",
       },
@@ -236,6 +249,7 @@ export const PATTERNS: Pattern[] = [
     ],
     rejected: [
       {
+        id: "tells-shared",
         what: "Sharing the dotted underline with view controls",
         because:
           "What it was, and the collision that started all of this: one channel meant hover for an " +
@@ -257,6 +271,7 @@ export const PATTERNS: Pattern[] = [
     ],
     rejected: [
       {
+        id: "kept-underlined",
         what: "A solid underline where a dotted one meant clickable",
         because: "What it was. Status riding an affordance channel, which is the one thing forbidden here.",
       },
@@ -275,7 +290,7 @@ export const PATTERNS: Pattern[] = [
         "filled dot that means the opposite kind of certainty.",
     ],
     rejected: [
-      { what: "The word alone", because: "In a list of forty, the eye needs something to count." },
+      { id: "unknown-word-only", what: "The word alone", because: "In a list of forty, the eye needs something to count." },
     ],
   },
   {
@@ -291,8 +306,9 @@ export const PATTERNS: Pattern[] = [
         "projector, in print, and for a reader who cannot separate two of them.",
     ],
     rejected: [
-      { what: "Colour alone", because: "Unreadable in three of the places this will be looked at." },
+      { id: "verdict-colour-only", what: "Colour alone", because: "Unreadable in three of the places this will be looked at." },
       {
+        id: "verdict-two-glyphs",
         what: "A tick and a cross",
         because:
           "Two glyphs cannot carry three outcomes without a third that reads as a question about the " +
@@ -316,6 +332,7 @@ export const PATTERNS: Pattern[] = [
     ],
     rejected: [
       {
+        id: "at-fault-glyph",
         what: "A warning glyph in the row",
         because:
           "It competes with the status glyphs for value and band, which are about the value rather than " +

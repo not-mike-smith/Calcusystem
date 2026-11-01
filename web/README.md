@@ -61,11 +61,15 @@ expectation about one turns out to be false.
 
 [`PATTERNS.md`](PATTERNS.md) is the written reference: what each mark means, which channel carries it, why each
 was chosen over the alternatives it beat, and what is still unsettled. The language itself is typed records in
-[`src/patterns/language.ts`](src/patterns/language.ts) — every field required, so a pattern cannot arrive
-half-argued — and `#patterns` in the running app renders every one of them beside the component that wears it.
+[`src/patterns/language.ts`](src/patterns/language.ts), with every field required so a pattern cannot arrive
+half-argued.
+
+`#patterns` in the running app lays it out as **do-and-don't sheets**: for each mark, the real component beside
+the alternatives it was chosen over — rendered, not described — with the code for both, and a stylesheet box
+that is injected after the app's own so a mark can be changed while it is being looked at.
 
 ```bash
-npm run patterns-check    # fails if PATTERNS.md stops mentioning something the language holds
+npm run patterns-check    # the language, the sheets and the document must agree
 ```
 
 ## What it does
