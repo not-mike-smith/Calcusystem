@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { DimensionalityEditor } from "../blocks/DimensionalityEditor";
 import { DimensionalityView } from "../blocks/DimensionalityView";
 import { MeasurandReadout } from "../blocks/MeasurandReadout";
@@ -7,6 +7,7 @@ import { DO, WRONG, pressure, temperature, type Example } from "./examples";
 import {
   CHANNELS, DECISIONS, OPEN, PATTERNS, PRINCIPLES, type Pattern,
 } from "./language";
+import { sectionHref, sectionId } from "./route";
 
 /**
  * The pattern language, rendered.
@@ -17,6 +18,30 @@ import {
  *
  * To refine a pattern, read its rule here, look at the thing beside it, then read what it was chosen over.
  */
+/**
+ * One list, so the contents and the sections cannot disagree. Two lists is how every link at the top of this
+ * page came to point at an id that was not on it.
+ */
+export const SECTIONS: { id: string; nav: string; title: string; body: () => ReactNode }[] = [
+  { id: "principles", nav: "Principles", title: "Principles", body: () => <Principles /> },
+  {
+    id: "affordance",
+    nav: "Affordance",
+    title: "Affordance — what happens if I touch this",
+    body: () => <Marks vocabulary="affordance" />,
+  },
+  {
+    id: "status",
+    nav: "Status",
+    title: "Status — what is true about this",
+    body: () => <Marks vocabulary="status" />,
+  },
+  { id: "channels", nav: "Channels", title: "Channels — one vocabulary each", body: () => <Channels /> },
+  { id: "decisions", nav: "Decisions", title: "Decisions", body: () => <Decisions /> },
+  { id: "blocks", nav: "Blocks", title: "Blocks, in every state", body: () => <Blocks /> },
+  { id: "open", nav: "Open", title: "Not settled", body: () => <Open /> },
+];
+
 export function Gallery() {
   return (
     <main className="gallery">
@@ -27,47 +52,43 @@ export function Gallery() {
       </header>
 
       <nav className="contents">
-        {["Principles", "Affordance", "Status", "Channels", "Decisions", "Blocks", "Open"].map((to) => (
-          <a key={to} href={`#patterns-${to.toLowerCase()}`}>{to}</a>
+        {SECTIONS.map((section) => (
+          <a key={section.id} href={sectionHref(section.id)}>{section.nav}</a>
         ))}
       </nav>
 
       <Scratchpad />
-      <Principles />
-      <Marks id="affordance" title="Affordance — what happens if I touch this" vocabulary="affordance" />
-      <Marks id="status" title="Status — what is true about this" vocabulary="status" />
-      <Channels />
-      <Decisions />
-      <Blocks />
-      <Open />
+
+      {SECTIONS.map((section) => (
+        <section key={section.id} className="panel" id={sectionId(section.id)}>
+          <h2>{section.title}</h2>
+          {section.body()}
+        </section>
+      ))}
     </main>
   );
 }
 
 function Principles() {
   return (
-    <section className="panel" id="patterns-principles">
-      <h2>Principles</h2>
+    <>
       {PRINCIPLES.map((principle) => (
         <article key={principle.id} className="principle">
           <h3>{principle.title}</h3>
           <p>{principle.text}</p>
         </article>
       ))}
-    </section>
+    </>
   );
 }
 
-function Marks({
-  id, title, vocabulary,
-}: { id: string; title: string; vocabulary: Pattern["vocabulary"] }) {
+function Marks({ vocabulary }: { vocabulary: Pattern["vocabulary"] }) {
   return (
-    <section className="panel" id={`patterns-${id}`}>
-      <h2>{title}</h2>
+    <>
       {PATTERNS.filter((pattern) => pattern.vocabulary === vocabulary).map((pattern) => (
         <Mark key={pattern.id} pattern={pattern} />
       ))}
-    </section>
+    </>
   );
 }
 
@@ -227,8 +248,7 @@ const SEED = `/* The tokens most worth pushing on. Uncomment and change.
 
 function Channels() {
   return (
-    <section className="panel" id="patterns-channels">
-      <h2>Channels — one vocabulary each</h2>
+    <>
       <p className="quiet">
         The rule that matters. A channel carrying two meanings is the defect this language exists to prevent,
         and the one it was born from.
@@ -244,14 +264,13 @@ function Channels() {
           ))}
         </tbody>
       </table>
-    </section>
+    </>
   );
 }
 
 function Decisions() {
   return (
-    <section className="panel" id="patterns-decisions">
-      <h2>Decisions</h2>
+    <>
       {DECISIONS.map((decision) => (
         <article key={decision.id} className="principle">
           <h3>{decision.question}</h3>
@@ -267,7 +286,7 @@ function Decisions() {
           </dl>
         </article>
       ))}
-    </section>
+    </>
   );
 }
 
@@ -276,9 +295,7 @@ function Blocks() {
   const [encoded, setEncoded] = useState<string | null>("M1,L-1,T-2");
 
   return (
-    <section className="panel" id="patterns-blocks">
-      <h2>Blocks, in every state</h2>
-      <dl>
+    <dl>
         <dt>dimensionality, inline</dt>
         <dd><DimensionalityView encoded="M1,L-1,T-2" /><span className="note">rows stay level</span></dd>
 
@@ -336,17 +353,15 @@ function Blocks() {
           <span className="note">read it in °C — the band stays 0.5</span>
         </dd>
 
-        <dt>nothing at all</dt>
-        <dd><MeasurandView value={null} /></dd>
-      </dl>
-    </section>
+      <dt>nothing at all</dt>
+      <dd><MeasurandView value={null} /></dd>
+    </dl>
   );
 }
 
 function Open() {
   return (
-    <section className="panel" id="patterns-open">
-      <h2>Not settled</h2>
+    <>
       <p className="quiet">What the language does not answer yet. The place to start refining.</p>
       {OPEN.map((question) => (
         <article key={question.id} className="principle">
@@ -354,6 +369,6 @@ function Open() {
           <p>{question.note}</p>
         </article>
       ))}
-    </section>
+    </>
   );
 }

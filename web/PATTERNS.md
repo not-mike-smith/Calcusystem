@@ -46,8 +46,14 @@ The records are the single statement, and `npm run patterns-check` holds the res
 | every mark has a correct example | a mark with nothing to show is not documented |
 | every alternative claiming it can be shown is shown, and nothing is shown that was never claimed | catches a renamed key in either direction |
 | no `nono-` class is used outside the sheets | a deliberate violation must not leak into the UI it argues against |
+| the router accepts every section link, and every link on the page resolves | the contents were right and unreachable: an exact match on `#patterns` sent `#patterns-affordance` to the editor |
 
 Each of those has been wrong at least once, and each was confirmed to fail when broken.
+
+The page's sections come from one list, so the contents and the sections cannot disagree, and
+[`src/patterns/route.ts`](src/patterns/route.ts) is the only place that decides what counts as this route —
+spelling the links in the gallery and matching them in the router was two answers to one question, and it cost
+every link at the top of the page.
 
 **To refine a pattern:** read its rule, look at the Do beside it, then look at the Don'ts. The rendered wrong
 examples are the argument; disagreeing with one of them is how a pattern changes.

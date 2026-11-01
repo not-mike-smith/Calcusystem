@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "types": "node scripts/types.mjs",
     "render-check": "esbuild scripts/render-check.tsx --bundle --format=cjs --platform=node --jsx=automatic --outfile=node_modules/.cache/render-check.cjs --log-level=error && node node_modules/.cache/render-check.cjs",
-    "patterns-check": "esbuild scripts/patterns-check.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/patterns-check.mjs --log-level=error && node node_modules/.cache/patterns-check.mjs"
+    "patterns-check": "esbuild scripts/patterns-check.tsx --bundle --format=cjs --platform=node --jsx=automatic --outfile=node_modules/.cache/patterns-check.cjs --log-level=error && node node_modules/.cache/patterns-check.cjs"
   },
   "dependencies": {
     "react": "^19.2.0",

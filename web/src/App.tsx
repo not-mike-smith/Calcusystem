@@ -11,6 +11,7 @@ import {
 } from "./api/client";
 import { CatalogueProvider } from "./model/catalogue";
 import { Gallery } from "./patterns/Gallery";
+import { isPatterns, PATTERNS } from "./patterns/route";
 import { PosednessPanel } from "./components/PosednessPanel";
 import { DraftProblems } from "./components/ProblemList";
 import { ExpressionRow } from "./components/ExpressionRow";
@@ -84,7 +85,7 @@ export function App() {
 
   if (!vocabulary || !units) return <main className="quiet">Connecting…</main>;
 
-  if (route === "#patterns") {
+  if (isPatterns(route)) {
     return (
       <CatalogueProvider vocabulary={vocabulary} units={units}>
         <Gallery />
@@ -110,7 +111,7 @@ export function App() {
         />
         <button type="button" onClick={() => setDraft(Draft.emptyDraft())}>New model</button>
         <span className={analysis.pending ? "pulse" : "pulse quiet"}>●</span>
-        <a className="back" href="#patterns">patterns →</a>
+        <a className="back" href={PATTERNS}>patterns →</a>
       </header>
 
       <div className="columns">
