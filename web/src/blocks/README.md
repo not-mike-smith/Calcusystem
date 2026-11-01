@@ -67,10 +67,11 @@ through every component in between.
 
 ## The marks they use
 
-Which mark means what, and why each channel carries one meaning only, is
-[`web/PATTERNS.md`](../../PATTERNS.md) — and `#patterns` in the running app renders all of them. The short
-version: a filled slot states the model, a chevron changes the view, a rotating chevron reveals, a dotted
-underline explains, and status is always-visible colour and glyphs that never borrow any of those.
+Which mark means what, why each channel carries one meaning only, and what each was chosen over is
+[`web/PATTERNS.md`](../../PATTERNS.md), from the typed records in [`../patterns/language.ts`](../patterns/language.ts).
+`#patterns` in the running app renders all of them. The short version: a filled slot states the model, a
+chevron changes the view, a rotating chevron reveals, a dotted underline explains, and status is
+always-visible colour and glyphs that never borrow any of those.
 
 ## Looking at what they render
 

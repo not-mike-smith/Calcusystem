@@ -51,13 +51,22 @@ A readout and an editor look alike and do opposite things to the number, because
 readout holds a fixed quantity and a unit is a lens over it, so choosing one **converts**; an editor holds the
 pair its author typed — a number and the unit it is in — so choosing one **restates**, and the number stays
 put. An editor that converted would move a number its author had just entered, since the number goes in before
-the unit is picked. Chrome says which is which: an editor is a bordered field, a readout is text whose unit and
+the unit is picked. Chrome says which is which: an editor is a filled slot, a readout is text whose unit and
 band symbol are themselves the controls.
 
 See [`src/blocks/README.md`](src/blocks/README.md) for what each one guarantees and where a reasonable
-expectation about one turns out to be false, and [`PATTERNS.md`](PATTERNS.md) for the mark vocabulary they are
-built from — what each mark means, which channel carries it, and why affordance and status must never share
-one. `#patterns` in the running app renders every mark in every state.
+expectation about one turns out to be false.
+
+## The pattern language
+
+[`PATTERNS.md`](PATTERNS.md) is the written reference: what each mark means, which channel carries it, why each
+was chosen over the alternatives it beat, and what is still unsettled. The language itself is typed records in
+[`src/patterns/language.ts`](src/patterns/language.ts) — every field required, so a pattern cannot arrive
+half-argued — and `#patterns` in the running app renders every one of them beside the component that wears it.
+
+```bash
+npm run patterns-check    # fails if PATTERNS.md stops mentioning something the language holds
+```
 
 ## What it does
 
@@ -129,7 +138,7 @@ or 2, one otherwise, and the value rounded to the band's last place. With no ban
 | `src/blocks/` | The reusable pieces: one domain value each, nothing about a draft. |
 | `src/model/` | The draft as client state, the catalogue context, and the hook that asks the server. |
 | `src/components/` | The rows, which assemble blocks into a node of a model. |
-| `src/patterns/` | The gallery at `#patterns`: every mark and block, rendered. |
+| `src/patterns/` | The language as typed records, and the gallery at `#patterns` that renders it. |
 | `src/App.tsx` | The page, and the only place that holds the draft. |
 
 ---
@@ -147,4 +156,6 @@ or 2, one otherwise, and the value rounded to the band's last place. With no ban
   — and nothing here moves one yet.
 - **Tests.** The server's suites cover every answer this page renders; what is untested is the rendering.
   `npm run render-check` prints each building block as text, which is not a test but is enough to see what
-  they produce.
+  they produce, and `npm run patterns-check` holds the pattern document against the language.
+- **Density.** Nothing here has been seen at forty rows, on a projector, or in print. See *Not settled* in
+  `PATTERNS.md`.
