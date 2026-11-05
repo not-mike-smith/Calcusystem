@@ -96,6 +96,12 @@ The same rule decides how power is written in the electrical example. `P = V·I_
 same number; only the second states the uncertainty correctly, because `I_total` already contains the bus
 voltage and multiplying by it again presents one measurement as two.
 
+**This is the current shape, not the settled one.** Gathering the repeat into its own node works, and it means
+the shape of the tree carries a fact about the inputs — and `P = V·I_total` gives a wrong bar with nothing to
+warn the author. Making correlation a property of any *two* expressions, defaulted from a correlation graph
+and overridable, is in the hopper: see *Expression correlation as a pairwise property* in
+[`project-plan.md`](../project-plan.md).
+
 ### Uncertainty is not invariant under algebraic rearrangement
 
 The draining tank reaches its mean discharge two ways. Both reduce to `C_d·A₀·√(gh₀/2)`, and both report the
