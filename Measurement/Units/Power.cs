@@ -7,10 +7,12 @@ public class Power : ReflectiveUnitList<Power>
     public static readonly Power Units = new();
     private Power() { }
 
+    // A watt is a joule *per* second. Every other unit here is a scaled watt, and four other lists are built
+    // on this one, so the exponent below is the whole of what makes any of them power.
     public static readonly UnitOfMeasure Watt = UnitFactory.Create(
         "W",
         (Energy.Joule, 1),
-        (Time.Second, 1));
+        (Time.Second, -1));
 
     public static readonly UnitOfMeasure Milliwatt = Metric.m(Watt);
     public static readonly UnitOfMeasure Microwatt = Metric.micro(Watt);
