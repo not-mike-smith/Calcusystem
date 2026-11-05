@@ -10,7 +10,7 @@ The goal is calculations that can't silently go wrong: adding a length to a mass
 
 The code is organized so you rarely need to read implementation. **If a folder has a `README.md`, you should not have to read anything else in it to use that namespace.** You only need the implementation files to _modify_ them.
 
-Every folder is a namespace and every namespace is a folder — so a folder listing is a table of contents, and no assembly has loose `.cs` files at its root. The one exception is `Api/Program.cs`: top-level statements have no namespace to be a folder of, and putting the entry point in one would suggest otherwise.
+Every folder is a namespace and every namespace is a folder — so a folder listing is a table of contents, and no assembly has loose `.cs` files at its root. The exceptions are `Api/Program.cs` and `Examples/Program.cs`: top-level statements have no namespace to be a folder of, and putting an entry point in one would suggest otherwise.
 
 So, depending on your task:
 
@@ -34,6 +34,7 @@ Library assemblies stacked bottom-up, with the web app at the top, and a matchin
 | `Calcusystem.Analysis` | [`Analysis/`](Analysis/README.md) | `DimensionedExpression` | Asks whether a system is well-posed and what it computes to: flattens it to unknowns × equations, reports degrees of freedom, decomposes it into the parts that can be solved, and calculates it. Where the solver will live. |
 | `Calcusystem.Authoring` | [`Authoring/`](Authoring/README.md) | `DimensionedExpression` | Holds a system while someone is still building it — freely invalid, nothing thrown — and builds it into an `ExpressionSystem` once coherent. The seam an editing front-end works against. |
 | `Calcusystem.Api` | [`Api/`](Api/README.md) | `Authoring`, `Serialization`, `Analysis` | The HTTP surface. Serves a browser what it can ask about a draft it holds, and the only layer that knows HTTP exists. |
+| `Calcusystem.Examples` | [`Examples/`](Examples/README.md) | `Analysis`, `DimensionedExpression`, `Measurement` | Three engineering problems built as `ExpressionSystem`s and printed — a chemical, an electrical, and a mechanical one. Runnable, and depended on by nothing. |
 
 Above them sits [`web/`](web/README.md), the editor — React + TypeScript + Vite, talking to `Calcusystem.Api`. It is not a .NET project, so it is lower-case and absent from the solution. Its types are **generated** from the API's OpenAPI document rather than written, so the client's idea of the wire cannot drift from the server's.
 
@@ -121,6 +122,14 @@ cd web && npm install && npm run dev   # http://localhost:5173
 
 Build a model, watch the dimensional errors appear and clear as you type, supply values, and see what is computed, what is violated, and what is still missing.
 
+To see what all of this looks like on real problems — a draining tank, a DC bus, a gyroscope — run the worked examples:
+
+```bash
+dotnet run --project Examples
+```
+
+Each prints what it was given, how the model stands, what it computed with uncertainty carried through, and what each of its checks did. [`Examples/README.md`](Examples/README.md) covers what they were built to show.
+
 See each assembly's README for the full surface.
 
 ---
@@ -144,7 +153,7 @@ cd web && npm install && npm run build
 
 ## Status and roadmap
 
-The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. A model can be authored in the browser, posted over HTTP, and answered with what it computes and what is wrong with it. Solving is the current milestone. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
+The measurement, expression, serialization, and analysis layers are functional: a system can be flattened, decomposed into its solvable parts, calculated, and have its relationships judged. A model can be authored in the browser, posted over HTTP, and answered with what it computes and what is wrong with it. Solving is the current milestone — nothing yet inverts an equation toward an unknown, which is why every worked example computes forward from values that are all supplied. The full milestone plan, design decisions, and open questions live in [`project-plan.md`](project-plan.md).
 
 ---
 
