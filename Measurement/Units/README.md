@@ -53,7 +53,10 @@ discovers the classes.
 - **Discovery is lazy.** `All`, `ByName`, `BySymbol`, and `Dimensionality` are computed on first
   access, so declaring a family costs nothing until it is used.
 - **`Dimensionality` is read from the first unit in the family**, which is sound because a
-  family is by definition units of one dimensionality.
+  family is units of one dimensionality — and that is checked rather than assumed. A composite
+  definition with a wrong exponent is invisible from inside its own family, because every unit
+  scaled from it is wrong the same way; what shows it is a sibling that is right.
+  `ListCompletenessTests.EveryUnitOfOneKindMeasuresOneDimensionality` is that check.
 
 ## Surprises
 

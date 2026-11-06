@@ -61,4 +61,23 @@ public class ListCompletenessTests
         list.All.Select(unit => unit.Symbol).Should().OnlyHaveUniqueItems();
         foreach (var unit in list.All) list.BySymbol.Should().ContainKey(unit.Symbol);
     }
+
+    /* A unit list is what a picker offers when the modeler has a quantity of that kind in hand, so a unit in
+       it that measures something else is not merely mislabeled - it is unconvertible. `Energy.Joule` against
+       `Energy.KilowattHour` would throw `IncompatibleDimensionsException` from the same list.
+
+       This is what a wrong exponent in a composite definition looks like from outside: `Power.Watt` was
+       declared `(Joule, 1), (Second, 1)` rather than `-1`, giving every unit in `Power` the dimensionality of
+       energy times time, and carrying the same error into the four other lists built on a watt. */
+    [Theory]
+    [MemberData(nameof(EveryUnitList))]
+    public void EveryUnitOfOneKindMeasuresOneDimensionality(string name)
+    {
+        var list = Lists.UnitTypes.ByName[name];
+
+        list.All
+            .Select(unit => unit.Dimensionality.ToString())
+            .Distinct()
+            .Should().HaveCount(1);
+    }
 }
