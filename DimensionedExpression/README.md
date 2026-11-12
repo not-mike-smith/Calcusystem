@@ -226,6 +226,9 @@ could break that with nothing to refuse it.
 - not empty, and no whitespace at either end;
 - no format or control character (Unicode categories Cf and Cc). That rules out zero-width characters and the
   characters that change text direction, which would make two different names look the same;
+- no space but the ordinary one, and no line or paragraph separator;
+- no character from a fixed list of those that draw nothing, such as the Hangul fillers. Unicode has no
+  category for these, so the list is best effort;
 - valid Unicode text.
 
 Names are **case-sensitive**, and are **stored NFC-normalized**, so the same characters encoded differently are

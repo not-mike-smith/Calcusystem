@@ -79,6 +79,7 @@ Serialization writes `Type = x.GetType().Name`; deserialization switches on `nam
 
 - **Renaming a domain class breaks previously-serialized data** (the stored `Type` no longer matches any `nameof` case). The `NegatedVariable` → `NegatedExpression` rename is an example — old files carrying `"NegatedVariable"` will not deserialize.
 - **Adding a new expression or operator type requires touching both mappers**: a `Map(...)` overload in `SerializingMapper`, and a `nameof(...)` switch case plus a `MapX` method in `DeserializingMapper`. An unrecognized `Type` throws `NotImplementedException` with the offending name.
+- **A system document with a bad name is refused.** An empty, invalid or duplicate name throws from the domain (`InvalidNameException`, `DuplicateNameException`) while the system is rebuilt. Only a draft treats an empty name as none.
 - **Renaming a fundamental-dimension symbol likewise breaks stored data**, since a `Dimensionality` is encoded from its symbols. Migrating those payloads is this layer's job.
 
 ---

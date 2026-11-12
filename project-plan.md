@@ -199,6 +199,7 @@ Depends on: C1 needs A and B. C2 needs D and E. **C1 may move after D** while th
 - [ ] Correlations shown and overridable (E1).
 - [ ] The uncertainty budget (E2).
 - [ ] The confidence level a passing relationship reached (E2).
+- [ ] **Half-typed text should not be judged.** `useAnalysis` already waits 300 ms after the last change before posting the draft, but a pause mid-name ("flow " on the way to "flow rate") still posts a name ending in a space, which comes back as `NameInvalid` and blanks everything computed from that node until the next keystroke. Decide the fix when the C2 spec is written: a longer or per-field delay, holding back a field that still has focus, or judging the trimmed text. Found in Spec A slice 1's review; name fields trim on blur in the meantime.
 
 ---
 
