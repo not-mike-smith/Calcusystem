@@ -53,6 +53,8 @@ public class DeserializingMapper
                 x.Name,
                 x.Description,
                 x.Variables.Select(d => d.Id).ToList(),
+                x.Givens.Select(d => d.Id).ToList(),
+                x.Scalars.Select(d => d.Id).ToList(),
                 x.SingleDerivedVariables.Select(d => d.Id)
                     .Concat(x.ListDerivedVariables.Select(d => d.Id))
                     .Concat(x.PairDerivedVariables.Select(d => d.Id))
@@ -160,6 +162,8 @@ public class DeserializingMapper
         _ => throw new NotImplementedException(
             $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
     };
+
+    public IFixedExpression MapFixedValueByPattern(Dtos.FixedValue x) => throw new NotImplementedException();
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.SingleDerivedVariable x)
     {

@@ -16,6 +16,11 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// </remarks>
 public static class ExpressionFactory
 {
+    /// <summary>Rebuilds a fixed value. It names no other node, so it needs no resolver.</summary>
+    /// <exception cref="Exceptions.InvalidNameException">The snapshot's name is not one its kind accepts.</exception>
+    /// <exception cref="Exceptions.InvalidFixedValueException">The snapshot's value is not one its kind accepts.</exception>
+    public static IFixedExpression FromSnapshot(FixedExpressionSnapshot snapshot) => throw new NotImplementedException();
+
     /// <summary>Rebuilds a single-argument expression.</summary>
     public static IExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) => snapshot.Type switch
     {

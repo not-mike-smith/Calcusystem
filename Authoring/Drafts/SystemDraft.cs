@@ -96,6 +96,26 @@ public sealed class SystemDraft
         return draft;
     }
 
+    /// <summary>Adds a constant: a named value with no uncertainty.</summary>
+    /// <param name="name">What to call it.</param>
+    /// <param name="value">Its value, whose dimensionality the node declares.</param>
+    /// <param name="id">The id to use, or null for a fresh one.</param>
+    public ExpressionDraft AddConstant(string? name = null, Measurand? value = null, string? id = null) =>
+        throw new NotImplementedException();
+
+    /// <summary>Adds a reference value: a named value with uncertainty.</summary>
+    /// <param name="name">What to call it.</param>
+    /// <param name="value">Its value, whose dimensionality the node declares.</param>
+    /// <param name="id">The id to use, or null for a fresh one.</param>
+    public ExpressionDraft AddReferenceValue(string? name = null, Measurand? value = null, string? id = null) =>
+        throw new NotImplementedException();
+
+    /// <summary>Adds a scalar: an unnamed, dimensionless coefficient with no uncertainty.</summary>
+    /// <param name="value">The number, or null to leave it for later.</param>
+    /// <param name="id">The id to use, or null for a fresh one.</param>
+    public ExpressionDraft AddScalar(double? value = null, string? id = null) =>
+        throw new NotImplementedException();
+
     /// <summary>Adds a relationship, typed or not.</summary>
     /// <param name="type">Which operator to build, or null to leave the choice for later.</param>
     /// <param name="id">The id to use, or null for a fresh one.</param>

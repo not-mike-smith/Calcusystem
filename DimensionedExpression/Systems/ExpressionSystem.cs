@@ -46,6 +46,13 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// </remarks>
     public IReadOnlyList<Variable> Variables => _variables;
 
+    /// <summary>Every constant and reference value this system contains — the named values fixed when built.</summary>
+    /// <remarks>
+    /// Reached the way <see cref="Variables"/> are. A scalar is not here: it is part of a formula, not a
+    /// quantity of the model, and is found only through <see cref="GetAllExpressions"/>.
+    /// </remarks>
+    public IReadOnlyList<IFixedExpression> Givens => throw new NotImplementedException();
+
     /// <summary>Every computed node this system contains, including nodes nested inside others.</summary>
     public IReadOnlyList<IExpression> DerivedExpressions => _derivedExpressions;
 
@@ -213,6 +220,8 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         Name,
         Description,
         _variables.Select(x => x.Id).ToList(),
+        [],
+        [],
         _derivedExpressions.Select(x => x.Id).ToList(),
         _relationships.Select(x => x.Id).ToList());
 

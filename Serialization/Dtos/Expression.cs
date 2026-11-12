@@ -48,6 +48,23 @@ public class SingleVariable : ExpressionBase
     public Provenance? Provenance { get; init; }
 }
 
+/// <summary>A constant, a reference value or a scalar: a leaf whose value is fixed.</summary>
+public class FixedValue : ExpressionBase
+{
+    /// <summary>The node's name. Null for a scalar, and only for one.</summary>
+    public string? Name { get; init; }
+
+    /// <summary>The value's dimension, encoded as <see cref="SingleVariable.Dimensionality"/> is.</summary>
+    public required string Dimensionality { get; init; }
+
+    public required double KmsValue { get; init; }
+
+    /// <summary>The value's uncertainty. Exact for a constant and a scalar.</summary>
+    public required Uncertainty Uncertainty { get; init; }
+
+    public Provenance? Provenance { get; init; }
+}
+
 public class SingleDerivedVariable : ExpressionBase
 {
     public required string InnerId { get; init; }

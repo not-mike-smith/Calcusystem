@@ -62,6 +62,8 @@ public class SerializingMapper
         };
     }
 
+    public Dtos.FixedValue MapFixedValue(IFixedExpression fixedValue) => throw new NotImplementedException();
+
     /// <remarks>
     /// The type switch is only here to pick which snapshot to ask for — the kind discriminator inside that
     /// snapshot, not this switch, is what determines the wire name.
