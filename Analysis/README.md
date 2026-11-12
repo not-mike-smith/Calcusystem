@@ -4,7 +4,7 @@ Asks whether an `ExpressionSystem` is well-posed. Given a system, it reports how
 
 Depends on `DimensionedExpression` and `Measurement`. It reads the expression graph and never mutates it.
 
-This is where the evaluation walk (Milestone 3) and the solver abstraction (Milestone 4) will live. It exists as its own assembly because `DimensionedExpression` deliberately performs no orchestration — it supplies `ComputeFrom`, `IsFullyDescribed`, `Children`, and `UnsetVariables()`, and stops there.
+This is where the calculation walk lives, and where the solver (feature set D in `project-plan.md`) will. It exists as its own assembly because `DimensionedExpression` deliberately performs no orchestration — it supplies `ComputeFrom`, `IsFullyDescribed`, `Children`, and `UnsetVariables()`, and stops there.
 
 ---
 
@@ -137,7 +137,7 @@ var curve = trials
     .ToList();
 ```
 
-Nothing is mutated and nothing is shared but immutable reads, so this is safe today; a test runs 500 of them in parallel. That is the payoff for keeping the memo outside the graph rather than caching on nodes. If intra-system parallelism ever does become worth it, the block-triangular ordering from Milestone 4's structural analysis is what would identify the independent blocks — and it would be an internal change, not a signature one.
+Nothing is mutated and nothing is shared but immutable reads, so this is safe today; a test runs 500 of them in parallel. That is the payoff for keeping the memo outside the graph rather than caching on nodes. If intra-system parallelism ever does become worth it, the block-triangular ordering from the solver's structural analysis (feature set D) is what would identify the independent blocks — and it would be an internal change, not a signature one.
 
 ---
 
@@ -270,7 +270,7 @@ Equations incident on no unknown take no part, the same exclusion `DegreesOfFree
 
 ---
 
-## Composition (Milestone 5), and why the flat form exists
+## Composition (feature set G), and why the flat form exists
 
 Connecting sub-systems maps their variables onto one another. That is **aliasing**: two mapped variables become one unknown. An identity connection therefore merges two columns and adds no row, while a connection asserting a real relation (flows summing to zero at a junction) adds a row like any other equation.
 

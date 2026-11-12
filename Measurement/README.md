@@ -166,7 +166,7 @@ Each propagator method takes an `UncertaintyCorrelation`, defaulting to `Uncorre
 **`ConservativeGaussianPropagator`** is the only implementation today and covers the large majority of cases — this is what you get, and what you should assume, unless you have a specific reason to reach for something else:
 
 - When every operand is symmetric it returns a `SymmetricUncertainty`; if any operand is asymmetric it preserves the asymmetry, returning an `AsymmetricUncertainty` built from the directional upper and lower magnitudes. (Unary transforms — negation, reciprocal, exponentiation — likewise preserve asymmetry; they live on `IUncertainty` rather than the propagator.)
-- Full Monte Carlo propagation is still deferred to Milestone 4; the current propagator combines magnitudes by RSS or direct sum per the table above.
+- Monte Carlo propagation is not built (feature set E in `project-plan.md`); the current propagator combines magnitudes by RSS or direct sum per the table above.
 
 **Why `IUncertaintyPropagator` is an interface at all:** propagation strategy is a model-level decision, not a universal constant — a different context might call for Monte Carlo propagation, or a correlation model that knows two "independent" variables actually share a calibration source. `IUncertaintyPropagator` is the intended seam for that. As it stands, `Measurand.ResolveUncertaintyPropagator()` unconditionally returns `ConservativeGaussianPropagator.Instance` — there is no injection point wired up yet (no constructor parameter, no ambient/DI resolver). Treat the interface as reserved space for that future pluggability, not as something already configurable.
 
