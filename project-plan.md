@@ -387,6 +387,10 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
     - [ ] A document of a newer patch version, opened anyway (Spec B).
     - [ ] An unknown property in a draft document. It is a refusal until warnings exist (draft-document DF5).
     - [ ] A non-equality relationship stating a solving role other than `Requirement`. This is a problem today (F3, `RoleNotAllowed`); decide whether it moves to a warning once warnings exist.
+- [x] **Continuous integration** — `.github/workflows/ci.yml`, on every pull request and every push to `master`: build, run every test suite, build the editor, check that its generated API types are committed, and run the pattern-language check.
+  - [ ] Require the CI check to pass before merging, in `master`'s branch protection (a GitHub setting).
+  - [ ] Consider pinning the .NET SDK with `global.json`, so CI and local builds use the same one.
+  - [ ] Consider Dependabot for the workflow's actions, NuGet and npm.
 - [ ] **Test-project READMEs** — Add a `README.md` to `Measurement.Test/`, `DimensionedExpression.Test/`, and `Serialization.Test/`. These follow a different structure than the library READMEs (purpose, coverage, test helpers/patterns, how to run) — to be established when tackled.
 
 ---

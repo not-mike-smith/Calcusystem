@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same branch makes an older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Also writes Api/Api.json, the OpenAPI document the editor's types are generated from.
+      - name: Build
+        run: dotnet build
+
+      - name: Test
+        run: dotnet test --no-build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install editor dependencies
+        working-directory: web
+        run: npm ci
+
+      # Regenerates src/api/schema.d.ts from Api/Api.json, then type-checks and bundles the editor.
+      - name: Build editor
+        working-directory: web
+        run: npm run build
+
+      # The generated types are checked in, so a change to the API must commit them too.
+      - name: Generated API types are committed
+        run: git diff --exit-code -- web/src/api/schema.d.ts
+
+      - name: Pattern language agrees with its document
+        working-directory: web
+        run: npm run patterns-check
