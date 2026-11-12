@@ -269,4 +269,19 @@ public class SystemCalculationTests
 
         system.Calculate().ValueOf(f)!.KmsValue.Should().BeApproximately(12, 1e-9);
     }
+
+    /* Spec A acceptance 5: a node is found by name in a system, and its value read from a calculation. */
+    [Fact]
+    public void AValueIsReadFromACalculationByTheNodesName()
+    {
+        var m = new Variable("m", new Quantity(2, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0)));
+        var doubled = new SumExpression([m, m]) { Name = "2m" };
+        var system = ExpressionSystem.Create("by name");
+        system.Add(doubled);
+
+        var calculation = system.Calculate();
+
+        calculation.ValueOf(system.Find("2m")!)!.KmsValue.Should().Be(4);
+        calculation.ValueOf(system.Find("m")!)!.KmsValue.Should().Be(2);
+    }
 }

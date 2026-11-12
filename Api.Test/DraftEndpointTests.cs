@@ -244,4 +244,49 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
 
         (await response.Content.ReadAsStringAsync()).Should().Contain("\"Variables\"").And.NotContain("\"variables\"");
     }
+
+    /* Spec A slice 1, over the wire: a name problem reaches an editor as a kind it can branch on, by name. */
+    [Fact]
+    public async Task NameProblemsAreReportedByKind()
+    {
+        var draft = NewtonsSecondLaw();
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "var-m2", Type = ExpressionDraftType.Variable, Name = "m", Dimensionality = "M1",
+        });
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "var-unnamed", Type = ExpressionDraftType.Variable, Dimensionality = "M1",
+        });
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "var-padded", Type = ExpressionDraftType.Variable, Name = " padded", Dimensionality = "M1",
+        });
+
+        var response = await Post("validation", draft);
+        var body = await response.Content.ReadAsStringAsync();
+        var problems = await Read<List<DraftProblem>>(response);
+
+        problems.Select(p => (p.NodeId, p.Kind)).Should().BeEquivalentTo(
+        [
+            ("var-m", DraftProblemKind.DuplicateName),
+            ("var-m2", DraftProblemKind.DuplicateName),
+            ("var-unnamed", DraftProblemKind.NameMissing),
+            ("var-padded", DraftProblemKind.NameInvalid),
+        ]);
+        body.Should().Contain("\"DuplicateName\"");
+    }
+
+    [Fact]
+    public async Task AFormulasNameIsAcceptedAndTheDraftBuilds()
+    {
+        var draft = NewtonsSecondLaw();
+        draft.Expressions.Single(e => e.Id == "expr-f").OperandIds.Should().NotBeEmpty();
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "expr-named", Type = ExpressionDraftType.Negated, Name = "eq-1", OperandIds = ["var-m"],
+        });
+
+        (await Post("build", draft)).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 }

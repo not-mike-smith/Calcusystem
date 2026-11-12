@@ -268,4 +268,27 @@ public class DraftWireTests
         draft.Relationships.Should().BeEmpty();
         draft.Id.Should().NotBeNullOrEmpty();
     }
+
+    /* DD-13, as Spec A changes it: every kind of node carries a name, and an absent one stays absent. */
+    [Fact]
+    public void AComputedNodesNameSurvivesAndAnAbsentOneStaysAbsent()
+    {
+        var draft = Furnished();
+        draft.Expression("expr-f")!.Name = "F";
+        var unnamed = draft.AddExpression(ExpressionDraftType.Negated, "expr-neg");
+
+        var restored = ThroughJson(draft);
+
+        restored.Expression("expr-f")!.Name.Should().Be("F");
+        restored.ByName("F")!.Id.Should().Be("expr-f");
+        restored.Expression(unnamed.Id)!.Name.Should().BeNull();
+    }
+
+    [Fact]
+    public void TheWireCallsANodesNameName()
+    {
+        var json = JsonSerializer.Serialize(DraftMapper.ToWire(Furnished()), Options);
+
+        json.Should().Contain("\"Name\":\"m\"").And.NotContain("\"Symbol\"");
+    }
 }

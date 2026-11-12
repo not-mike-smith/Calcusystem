@@ -156,4 +156,28 @@ public class JsonRoundTripTests
 
         restored.Variables.Single().Dimensionality.Should().Be(Dimensionality.Dimensionless);
     }
+
+    /* Spec A slice 1: a name on any node is part of what a save keeps, and an unnamed node stays unnamed
+       rather than coming back with an empty name, which the domain refuses. */
+    [Fact]
+    public void NamesSurviveJsonOnEveryKindOfNode()
+    {
+        var m = new Variable("m", Dimensionality.Mass, "m");
+        var pure = new Variable("x", Dimensionality.Dimensionless, "x");
+        var system = ExpressionSystem.Create("json", "names");
+        system.Add(new SumExpression([m, m]) { Id = "sum", Name = "2m" });
+        system.Add(new QuotientExpression { Id = "quotient", Numerator = m, Denominator = m, Name = "ratio" });
+        system.Add(new SqrtExpression(pure, "sqrt") { Name = "root" });
+        system.Add(new NegatedExpression(m, "negated"));
+        system.Add(new DefinitelyLessThanOperator { Id = "rel", Lhs = m, Rhs = m, Name = "check" });
+
+        var restored = RoundTripThroughJson(system);
+
+        restored.Find("m")!.Id.Should().Be("m");
+        restored.Find("2m")!.Id.Should().Be("sum");
+        restored.Find("ratio")!.Id.Should().Be("quotient");
+        restored.Find("root")!.Id.Should().Be("sqrt");
+        restored.DerivedExpressions.Single(e => e.Id == "negated").Name.Should().BeNull();
+        restored.FindRelationship("check")!.Id.Should().Be("rel");
+    }
 }
