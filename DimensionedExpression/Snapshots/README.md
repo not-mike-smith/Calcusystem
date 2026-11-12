@@ -8,10 +8,10 @@ grouped by arity.
 | Type | Kind | Role |
 | --- | --- | --- |
 | `ExpressionSystemSnapshot` | readonly record struct | The system: its identity, metadata, and the ids it contains. |
-| `VariableSnapshot` | readonly record struct | A leaf: value, dimensionality, symbol, provenance. |
-| `UnaryExpressionSnapshot` | readonly record struct | One-argument node: type, id, inner id. |
-| `BinaryExpressionSnapshot` | readonly record struct | Two ordered children, plus the correlation assumption. |
-| `NaryExpressionSnapshot` | readonly record struct | Ordered child ids, plus the correlation assumption. |
+| `VariableSnapshot` | readonly record struct | A leaf: name, value, dimensionality, provenance. |
+| `UnaryExpressionSnapshot` | readonly record struct | One-argument node: type, id, inner id, optional name. |
+| `BinaryExpressionSnapshot` | readonly record struct | Two ordered children, the correlation assumption, optional name. |
+| `NaryExpressionSnapshot` | readonly record struct | Ordered child ids, the correlation assumption, optional name. |
 | `BinaryOperatorSnapshot` | readonly record struct | A relationship: both operand ids, role, and anything extra the kind carries. |
 | `ProvenanceSnapshot` | readonly record struct | The union of every provenance kind's metadata. |
 

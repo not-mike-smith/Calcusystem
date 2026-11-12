@@ -7,7 +7,7 @@ using Calcusystem.Measurement.Units;
 namespace Calcusystem.Examples.Problems;
 
 /// <summary>
-/// Builds the valued leaves of a problem — a symbol, a number in a unit, an uncertainty, and where it came
+/// Builds the valued leaves of a problem — a name, a number in a unit, an uncertainty, and where it came
 /// from.
 /// </summary>
 /// <remarks>
@@ -15,18 +15,18 @@ namespace Calcusystem.Examples.Problems;
 /// seeing those is the point; a leaf is the one thing repetitive enough to be worth a helper, and its body is
 /// the call it replaces.
 /// <br/><br/>
-/// The symbol doubles as the id, so a report and a test can name a node the way the problem statement does.
+/// The name doubles as the id, so a report and a test can name a node the way the problem statement does.
 /// </remarks>
 internal static class Inputs
 {
     /// <summary>A measured or specified value, uncertain by a fraction of itself.</summary>
     public static Variable Known(
-        string symbol,
+        string name,
         double value,
         UnitOfMeasure unit,
         RelativeUncertainty uncertainty,
         IProvenance provenance) =>
-        new(symbol, unit.Quantity(value).WithUncertainty(uncertainty), symbol) { Provenance = provenance };
+        new(name, unit.Quantity(value).WithUncertainty(uncertainty), name) { Provenance = provenance };
 
     /// <summary>A measured or specified value, uncertain by an amount rather than a fraction.</summary>
     /// <remarks>
@@ -34,12 +34,12 @@ internal static class Inputs
     /// unit the value itself was given in.
     /// </remarks>
     public static Variable Known(
-        string symbol,
+        string name,
         double value,
         UnitOfMeasure unit,
         Quantity uncertainty,
         IProvenance provenance) =>
-        new(symbol, unit.Quantity(value).WithUncertainty(uncertainty), symbol) { Provenance = provenance };
+        new(name, unit.Quantity(value).WithUncertainty(uncertainty), name) { Provenance = provenance };
 
     /// <summary>A value carrying no uncertainty: a defined constant, a pure number, or a stated limit.</summary>
     /// <remarks>
@@ -47,9 +47,9 @@ internal static class Inputs
     /// limited lives on that thing.
     /// </remarks>
     public static Variable Exact(
-        string symbol,
+        string name,
         double value,
         UnitOfMeasure unit,
         IProvenance? provenance = null) =>
-        new(symbol, unit.Quantity(value).WithoutUncertainty(), symbol) { Provenance = provenance };
+        new(name, unit.Quantity(value).WithoutUncertainty(), name) { Provenance = provenance };
 }

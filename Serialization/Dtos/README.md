@@ -7,10 +7,10 @@ The wire shape of a saved system and of a draft of one: flat, id-referenced, and
 | Type | Kind | Role |
 | --- | --- | --- |
 | `ExpressionSystem` | class | The document root. Holds all lists of expressions and relationships. |
-| `SingleVariable` | class | A leaf, with its value, dimensionality, and provenance. |
-| `SingleDerivedVariable` | class | A one-argument expression, by the id of its inner node. |
-| `PairDerivedVariable` | class | A two-argument expression, by two ids. |
-| `ListDerivedVariable` | class | An n-ary expression, by an ordered list of ids. |
+| `SingleVariable` | class | A leaf, with its name, value, dimensionality, and provenance. |
+| `SingleDerivedVariable` | class | A one-argument expression, by the id of its inner node, with an optional name. |
+| `PairDerivedVariable` | class | A two-argument expression, by two ids, with an optional name. |
+| `ListDerivedVariable` | class | An n-ary expression, by an ordered list of ids, with an optional name. |
 | `BinaryOperator` | class | A relationship, by the ids of its two operands. |
 | `Provenance` | class | The union of every provenance kind's metadata. |
 | `SystemDraft` | class | A draft's document root. Every field optional. |

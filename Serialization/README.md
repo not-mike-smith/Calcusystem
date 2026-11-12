@@ -34,10 +34,10 @@ DTOs are bucketed by **structural arity**, not by domain type — the concrete t
 
 | DTO (`Dtos/`) | Type | Domain types it carries |
 | --- | --- | --- |
-| `SingleVariable` | leaf: `Symbol`, `Dimensionality` (encoded string), `KmsValue?`, `Uncertainty?`, `Provenance?` | `Variable` |
-| `SingleDerivedVariable` | one child: `InnerId` | `ReciprocalExpression`, `NegatedExpression`, `SqrtExpression`, `ExponentialExpression`, `NaturalLogExpression` |
-| `PairDerivedVariable` | two children: `InnerId1`, `InnerId2`, plus `UncertaintyCorrelation` | `QuotientExpression` |
-| `ListDerivedVariable` | n children: `InnerIds`, plus `UncertaintyCorrelation` | `ProductExpression`, `SumExpression` |
+| `SingleVariable` | leaf: `Name`, `Dimensionality` (encoded string), `KmsValue?`, `Uncertainty?`, `Provenance?` | `Variable` |
+| `SingleDerivedVariable` | one child: `InnerId`, `Name?` | `ReciprocalExpression`, `NegatedExpression`, `SqrtExpression`, `ExponentialExpression`, `NaturalLogExpression` |
+| `PairDerivedVariable` | two children: `InnerId1`, `InnerId2`, `Name?`, plus `UncertaintyCorrelation` | `QuotientExpression` |
+| `ListDerivedVariable` | n children: `InnerIds`, `Name?`, plus `UncertaintyCorrelation` | `ProductExpression`, `SumExpression` |
 | `BinaryOperator` | `LhsId`, `RhsId`, `Name?`, `Description?`, `Provenance?` | all equality / tolerance / inequality operators |
 
 Uncertainty is a single flat `Dtos.Uncertainty` (`Dtos/Expression.cs`): a `Type` discriminator, an `IsStoredAsAbs` flag recording whether the magnitudes are relative fractions or absolute KMS values, and the union of both forms' nullable fields — `Magnitude` for the symmetric case, `UpperMagnitude`/`LowerMagnitude` for the asymmetric one. Fields the named form requires are validated on read rather than defaulted, since a missing magnitude would silently change the interval. `Mappers/UncertaintyCodec` is both directions of it, and `Mappers/ProvenanceCodec` the same for provenance — each read by both documents, so an uncertainty means the same thing in a draft as in a saved system.

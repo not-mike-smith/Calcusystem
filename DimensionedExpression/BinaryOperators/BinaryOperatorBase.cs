@@ -4,13 +4,25 @@ using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
+using Calcusystem.DimensionedExpression.Names;
 
 namespace Calcusystem.DimensionedExpression.BinaryOperators;
 
 public abstract class BinaryOperatorBase : IBinaryOperator
 {
     public required string Id { get; init; }
-    public string? Name { get; init; }
+
+    private readonly string? _name;
+
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>Stored normalized (see <see cref="NodeName"/>).</remarks>
+    /// <exception cref="Exceptions.InvalidNameException">The name given is not null and not a valid name.</exception>
+    public string? Name
+    {
+        get => _name;
+        init => _name = value is null ? null : NodeName.Checked(value);
+    }
+
     public string? Description { get; set; }
     public required IExpression Lhs { get; init; }
     public required IExpression Rhs { get; init; }

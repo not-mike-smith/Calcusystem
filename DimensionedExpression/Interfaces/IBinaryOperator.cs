@@ -15,7 +15,11 @@ namespace Calcusystem.DimensionedExpression.Interfaces;
 public interface IBinaryOperator : IIdentified
 {
 
-    /// <summary>Optional human-readable name for the relationship.</summary>
+    /// <summary>What the model calls this relationship, or null for one left unnamed.</summary>
+    /// <remarks>
+    /// Fixed once the relationship is built. Shares one namespace with expression names: within an
+    /// <c>ExpressionSystem</c>, no expression and no other relationship has the same one.
+    /// </remarks>
     public string? Name { get; init; }
 
     /// <summary>Optional human-readable description.</summary>

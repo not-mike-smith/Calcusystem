@@ -1,6 +1,7 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Names;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
@@ -21,6 +22,8 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
 {
     // ReSharper disable once InconsistentNaming
     protected Measurand? _value;
+    /// <summary>A variable with no value yet.</summary>
+    /// <exception cref="Exceptions.InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     public Variable(
         string name,
         Dimensionality dimensionality,
@@ -28,9 +31,11 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
         : base(id)
     {
         Dimensionality = dimensionality;
-        base.Name = name;
+        base.Name = NodeName.Checked(name);
     }
 
+    /// <summary>A variable with a value, whose dimensionality it takes.</summary>
+    /// <exception cref="Exceptions.InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     public Variable(
         string name,
         Measurand measurand,
@@ -39,7 +44,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     {
         Dimensionality = measurand.Dimensionality;
         _value = measurand;
-        base.Name = name;
+        base.Name = NodeName.Checked(name);
     }
 
     public override bool IsDirectlyMutable => true;
@@ -74,6 +79,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
         }
     }
 
+    /// <summary>What the model calls this variable. Never null, and fixed once the variable is built.</summary>
     public new string Name => base.Name!;
 
     /// <summary>

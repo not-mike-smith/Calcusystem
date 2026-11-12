@@ -2,7 +2,9 @@ using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
+using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Names;
 using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
 
@@ -31,6 +33,9 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     private readonly List<IExpression> _derivedExpressions = new();
     private readonly List<IBinaryOperator> _relationships = new();
     private readonly HashSet<IExpression> _absorbed = new();
+
+    // Expressions and relationships together: names share one namespace.
+    private readonly Dictionary<string, IIdentified> _named = new(StringComparer.Ordinal);
 
     /// <summary>Every <see cref="Variable"/> this system contains — the leaves values are supplied to.</summary>
     /// <remarks>
@@ -66,7 +71,11 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// different model than the one being evaluated. Absorbing eagerly is safe because an expression's operands
     /// are fixed at construction, so what is captured here cannot later drift from what the graph holds.
     /// </remarks>
-    public void Add(IExpression expression) => Absorb(expression);
+    /// <exception cref="DuplicateNameException">
+    /// A node being added has a name that another node, in the system or among those being added, already has.
+    /// Nothing is added.
+    /// </exception>
+    public void Add(IExpression expression) => Absorb(NotYetHeld([expression]), relationship: null);
 
     /// <summary>Adds <paramref name="relationship"/>, and both of its operands with everything beneath them.</summary>
     /// <remarks>
@@ -77,6 +86,9 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// undetermined verdict rather than a confident wrong one.
     /// </remarks>
     /// <exception cref="IncompatibleDimensionsException">The two operands carry different dimensions.</exception>
+    /// <exception cref="DuplicateNameException">
+    /// The relationship, or a node beneath it, has a name that another node already has. Nothing is added.
+    /// </exception>
     public void Add(IBinaryOperator relationship)
     {
         // Dimensionality is known for every expression, bound or not, so this needs no values and holds for a
@@ -88,26 +100,77 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
                 $"{relationship.Rhs.Dimensionality}.");
         }
 
-        Absorb(relationship.Lhs);
-        Absorb(relationship.Rhs);
-        _relationships.Add(relationship);
+        Absorb(NotYetHeld([relationship.Lhs, relationship.Rhs]), relationship);
     }
 
     /// <summary>The expression named <paramref name="name"/>, or null if the system has none.</summary>
-    public IExpression? Find(string name) => throw new NotImplementedException();
+    /// <remarks>
+    /// Compared after normalization, and case-sensitively. A relationship's name finds nothing here, though no
+    /// expression can share it; see <see cref="FindRelationship"/>.
+    /// </remarks>
+    public IExpression? Find(string name) => Named(name) as IExpression;
 
     /// <summary>The relationship named <paramref name="name"/>, or null if the system has none.</summary>
-    public IBinaryOperator? FindRelationship(string name) => throw new NotImplementedException();
+    /// <remarks>Compared as <see cref="Find"/> compares.</remarks>
+    public IBinaryOperator? FindRelationship(string name) => Named(name) as IBinaryOperator;
 
-    private void Absorb(IExpression expression)
+    private IIdentified? Named(string name)
     {
-        foreach (var node in expression.SelfAndDescendants())
+        ArgumentNullException.ThrowIfNull(name);
+        return _named.GetValueOrDefault(NodeName.Normalized(name));
+    }
+
+    /// <summary>The nodes beneath <paramref name="roots"/> that this system does not hold yet, each once.</summary>
+    private List<IExpression> NotYetHeld(IEnumerable<IExpression> roots)
+    {
+        var incoming = new List<IExpression>();
+        var seen = new HashSet<IExpression>();
+
+        foreach (var node in roots.SelectMany(root => root.SelfAndDescendants()))
         {
-            if (! _absorbed.Add(node)) continue;
+            if (! _absorbed.Contains(node) && seen.Add(node)) incoming.Add(node);
+        }
+
+        return incoming;
+    }
+
+    // Every name is checked before anything is taken in, so a refusal leaves the system as it was.
+    private void Absorb(List<IExpression> incoming, IBinaryOperator? relationship)
+    {
+        var claimed = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var node in incoming)
+        {
+            if (node.Name is not { } name) continue;
+            if (_named.ContainsKey(name) || ! claimed.Add(name)) throw new DuplicateNameException(name);
+        }
+
+        if (relationship?.Name is { } relationshipName)
+        {
+            // Adding a relationship the system already holds is not a second claim on its name.
+            var heldByItself = _named.GetValueOrDefault(relationshipName) is IBinaryOperator holder
+                               && holder.Id == relationship.Id;
+
+            if (! heldByItself && (_named.ContainsKey(relationshipName) || ! claimed.Add(relationshipName)))
+            {
+                throw new DuplicateNameException(relationshipName);
+            }
+        }
+
+        foreach (var node in incoming)
+        {
+            _absorbed.Add(node);
 
             if (node is Variable variable) _variables.Add(variable);
             else _derivedExpressions.Add(node);
+
+            if (node.Name is { } name) _named[name] = node;
         }
+
+        if (relationship is null) return;
+
+        _relationships.Add(relationship);
+        if (relationship.Name is { } added) _named[added] = relationship;
     }
 
     /// <summary>Relationships that define a quantity — <see cref="SolvingRole.Equation"/>.</summary>

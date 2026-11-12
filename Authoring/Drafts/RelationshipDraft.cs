@@ -1,6 +1,7 @@
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Names;
 
 namespace Calcusystem.Authoring.Drafts;
 
@@ -46,8 +47,18 @@ public sealed class RelationshipDraft
     /// </summary>
     public ComparisonRule? Rule { get; set; }
 
-    /// <summary>Optional label for this relationship.</summary>
-    public string? Name { get; set; }
+    private string? _name;
+
+    /// <summary>Optional name for this relationship.</summary>
+    /// <remarks>
+    /// Held normalized (see <see cref="NodeName"/>). Null or empty means no name. Names are shared with
+    /// expressions: one an expression has is reported as a duplicate when the draft is built.
+    /// </remarks>
+    public string? Name
+    {
+        get => _name;
+        set => _name = value is null ? null : NodeName.Normalized(value);
+    }
 
     /// <summary>Optional longer description.</summary>
     public string? Description { get; set; }

@@ -7,6 +7,7 @@ using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Names;
 using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.DimensionedExpression.Systems;
 using Calcusystem.Measurement.Primitives;
@@ -114,10 +115,24 @@ public sealed class SystemDraft
     public RelationshipDraft? Relationship(string id) => _relationships.FirstOrDefault(r => r.Id == id);
 
     /// <summary>The expression node with this name, or null if the draft holds none.</summary>
-    public ExpressionDraft? ByName(string name) => throw new NotImplementedException();
+    /// <remarks>
+    /// Compared after normalization, and case-sensitively. Where the name is reused, the first node added with
+    /// it. A relationship's name finds nothing here; see <see cref="RelationshipByName"/>.
+    /// </remarks>
+    public ExpressionDraft? ByName(string name) =>
+        Stated(name) is { } wanted
+            ? _expressions.FirstOrDefault(e => string.Equals(e.Name, wanted, StringComparison.Ordinal))
+            : null;
 
     /// <summary>The relationship with this name, or null if the draft holds none.</summary>
-    public RelationshipDraft? RelationshipByName(string name) => throw new NotImplementedException();
+    /// <remarks>Compared as <see cref="ByName"/> compares.</remarks>
+    public RelationshipDraft? RelationshipByName(string name) =>
+        Stated(name) is { } wanted
+            ? _relationships.FirstOrDefault(r => string.Equals(r.Name, wanted, StringComparison.Ordinal))
+            : null;
+
+    /// <summary>The name in the form drafts hold it, or null where it states no name at all.</summary>
+    private static string? Stated(string? name) => string.IsNullOrEmpty(name) ? null : NodeName.Normalized(name);
 
     /// <summary>Removes the expression or relationship with this id.</summary>
     /// <returns>Whether anything was removed.</returns>
@@ -150,7 +165,8 @@ public sealed class SystemDraft
     /// <remarks>
     /// <para>
     /// Two passes, because the domain cannot be asked about a node until the node can be constructed at all.
-    /// The first checks shape — a kind chosen, operand slots filled, references resolvable, no cycles. The
+    /// The first checks shape — a kind chosen, a usable name, operand slots filled, references resolvable, no
+    /// cycles. The
     /// second constructs each node in dependency order and <b>relays whatever the domain refuses</b>, rather
     /// than restating the domain's rules here where the two could drift apart.
     /// </para>
@@ -171,6 +187,7 @@ public sealed class SystemDraft
         var expressionIds = ExpressionIds();
 
         ReportDuplicateIds(found, unbuildable);
+        ReportDuplicateNames(found);
         var candidates = ShapedWellEnoughToTry(expressionIds, found, unbuildable);
         var built = BuildExpressions(candidates, found, unbuildable);
         var operators = BuildRelationships(expressionIds, built, found, unbuildable);
@@ -178,8 +195,8 @@ public sealed class SystemDraft
         if (found.Count > 0) return Stopped(found);
 
         var system = new ExpressionSystem(Id) { Name = Name, Description = Description };
-        foreach (var expression in built.Expressions) system.Add(expression);
-        foreach (var op in operators) TryAdd(system, op, found);
+        foreach (var expression in built.Expressions) TryAdd(() => system.Add(expression), expression.Id, found);
+        foreach (var op in operators) TryAdd(() => system.Add(op), op.Id, found);
 
         return found.Count > 0 ? Stopped(found) : system;
     }
@@ -198,18 +215,60 @@ public sealed class SystemDraft
                 : $"{problems.Count} problems stop this draft from building.",
             problems);
 
-    // `Add` is the last place a dimensional mismatch can surface, because it compares the two sides of a
-    // relationship rather than anything within one expression.
-    private static void TryAdd(ExpressionSystem system, IBinaryOperator op, List<DraftProblem> found)
+    // `Add` is the last place the domain can refuse: it compares the two sides of a relationship, and it holds
+    // names unique across the whole system, neither of which any one node can be asked.
+    private static void TryAdd(Action add, string nodeId, List<DraftProblem> found)
     {
         try
         {
-            system.Add(op);
+            add();
         }
         catch (Exception e)
         {
-            found.Add(new DraftProblem(DraftProblemKind.DomainRule, op.Id, e.Message));
+            found.Add(new DraftProblem(DraftProblemKind.DomainRule, nodeId, e.Message));
         }
+    }
+
+    /// <summary>Reports each node whose name another node also has.</summary>
+    /// <remarks>
+    /// Expressions and relationships share one namespace. Only valid names are compared; an invalid one is
+    /// reported as that instead. A node with a reused name is still built, because operands refer to ids and
+    /// stay unambiguous, so the nodes above it are still checked.
+    /// </remarks>
+    private void ReportDuplicateNames(List<DraftProblem> found)
+    {
+        var named = _expressions.Select(e => (e.Id, e.Name))
+            .Concat(_relationships.Select(r => (r.Id, r.Name)))
+            .Where(node => NodeName.Problem(node.Name) is null)
+            .GroupBy(node => node.Name!, StringComparer.Ordinal)
+            .Where(g => g.Count() > 1);
+
+        foreach (var sharing in named)
+        {
+            foreach (var (id, _) in sharing)
+            {
+                found.Add(new DraftProblem(
+                    DraftProblemKind.DuplicateName,
+                    id,
+                    $"{sharing.Count()} nodes are named '{sharing.Key}'."));
+            }
+        }
+    }
+
+    /// <summary>What is wrong with a node's name on its own, or null if nothing is.</summary>
+    /// <remarks>The rule is the domain's, asked through <see cref="NodeName"/> and not restated here.</remarks>
+    private static DraftProblem? NameProblem(string? name, bool required, string nodeId)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return required
+                ? new DraftProblem(DraftProblemKind.NameMissing, nodeId, "A variable needs a name.")
+                : null;
+        }
+
+        return NodeName.Problem(name) is { } why
+            ? new DraftProblem(DraftProblemKind.NameInvalid, nodeId, why)
+            : null;
     }
 
     /// <summary>Reports each id more than one node claims, once.</summary>
@@ -258,6 +317,13 @@ public sealed class SystemDraft
             {
                 found.Add(new DraftProblem(
                     DraftProblemKind.TypeNotChosen, draft.Id, "No kind of expression has been chosen."));
+                unbuildable.Add(draft.Id);
+                continue;
+            }
+
+            if (NameProblem(draft.Name, required: type is ExpressionDraftType.Variable, draft.Id) is { } badName)
+            {
+                found.Add(badName);
                 unbuildable.Add(draft.Id);
                 continue;
             }
@@ -449,7 +515,8 @@ public sealed class SystemDraft
                 draft.Id,
                 draft.OperandIds[0]!,
                 draft.OperandIds[1]!,
-                draft.UncertaintyCorrelation),
+                draft.UncertaintyCorrelation,
+                Stated(draft.Name)),
             resolve),
 
         ExpressionDraftType.Negated => Unary(draft, UnaryExpressionType.Negated, resolve),
@@ -463,16 +530,18 @@ public sealed class SystemDraft
     };
 
     private static NaryExpressionSnapshot Nary(ExpressionDraft draft, NaryExpressionType type) =>
-        new(type, draft.Id, [.. draft.OperandIds.Select(id => id!)], draft.UncertaintyCorrelation);
+        new(type, draft.Id, [.. draft.OperandIds.Select(id => id!)], draft.UncertaintyCorrelation, Stated(draft.Name));
 
     private static IExpression Unary(ExpressionDraft draft, UnaryExpressionType type, INodeResolver resolve) =>
-        ExpressionFactory.FromSnapshot(new UnaryExpressionSnapshot(type, draft.Id, draft.OperandIds[0]!), resolve);
+        ExpressionFactory.FromSnapshot(
+            new UnaryExpressionSnapshot(type, draft.Id, draft.OperandIds[0]!, Stated(draft.Name)),
+            resolve);
 
     // Built directly rather than through a snapshot: a variable's snapshot carries its value and provenance as
     // snapshots of their own, and the draft already holds both as the objects themselves.
     private static Variable BuildVariable(ExpressionDraft draft)
     {
-        var variable = new Variable(draft.Name ?? draft.Id, draft.Dimensionality!.Value, draft.Id)
+        var variable = new Variable(draft.Name!, draft.Dimensionality!.Value, draft.Id)
         {
             Provenance = draft.Provenance,
         };
@@ -497,6 +566,12 @@ public sealed class SystemDraft
             {
                 found.Add(new DraftProblem(
                     DraftProblemKind.TypeNotChosen, draft.Id, "No kind of relationship has been chosen."));
+                continue;
+            }
+
+            if (NameProblem(draft.Name, required: false, draft.Id) is { } badName)
+            {
+                found.Add(badName);
                 continue;
             }
 
@@ -556,7 +631,7 @@ public sealed class SystemDraft
                         role,
                         draft.Agreement,
                         draft.Rule,
-                        draft.Name,
+                        Stated(draft.Name),
                         draft.Description,
                         draft.Provenance?.GetSnapshot()),
                     built));

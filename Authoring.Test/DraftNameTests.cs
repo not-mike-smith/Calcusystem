@@ -104,7 +104,6 @@ public class DraftNameTests
     [InlineData(" m")]
     [InlineData("m ")]
     [InlineData("a​b")]
-    [InlineData("a\uD800b")]
     public void AnInvalidNameIsReportedOnWhicheverNodeHasIt(string name)
     {
         var draft = SystemDraft.Create("names");
@@ -121,6 +120,18 @@ public class DraftNameTests
             .Should().BeEquivalentTo([variable.Id, computed.Id, relationship.Id]);
         problems.Should().OnlyContain(
             p => p.Kind == DraftProblemKind.NameInvalid, "an invalid name is not also a duplicate");
+    }
+
+    /* Not a case of the theory above: an attribute argument is stored as UTF-8, which cannot carry a lone
+       surrogate, so the test would be handed replacement characters and a valid name. */
+    [Fact]
+    public void ANameThatIsNotValidUnicodeIsReportedAsInvalid()
+    {
+        var draft = SystemDraft.Create("names");
+        var m = draft.AddVariable("a\uD800b", Dimensionality.Mass);
+
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.NameInvalid, NodeId = m.Id });
     }
 
     /* AU-5: nothing is checked when it is set, and no member throws because a model is wrong. A lone surrogate

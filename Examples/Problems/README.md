@@ -11,7 +11,7 @@ formulas, checks, and the labels to print them under.
 | `ParallelDcLoads` | static class | Electrical: three resistive branches on a 24 V bus, against their protective devices. |
 | `GyroscopicPrecession` | static class | Mechanical: steady precession of a gimballed flywheel under a constant torque. |
 | `Catalogue` | static class | All of them. One list, so the runner and the tests cannot cover different sets. |
-| `Inputs` | static class (internal) | Builds a valued leaf: a symbol, a number in a unit, an uncertainty, a provenance. |
+| `Inputs` | static class (internal) | Builds a valued leaf: a name, a number in a unit, an uncertainty, a provenance. |
 
 ## Start here
 
@@ -24,7 +24,7 @@ calculation.Violations;                                            // none here
 ```
 
 Each class publishes the ids worth reaching for as constants — `DrainTimeId`, `SupplyCurrentId`,
-`PrecessionRateId`. Every other node is reachable by the symbol it carries in the problem statement:
+`PrecessionRateId`. Every other node is reachable by the name it carries in the problem statement:
 `example.Node("A_tank")`, `example.Leaf("V_bus")`.
 
 To see what a half-built model reports, take a value away:
@@ -49,9 +49,9 @@ example.Leaf(OrificeDrainTime.DischargeCoefficientId).Value = null;
 
 ## Surprises
 
-- **A symbol is also an id.** `Inputs` passes the symbol for both, so `example.Node("v_jet")` works and a
-  report can name a quantity the way the problem statement does. Two leaves sharing a symbol would therefore
-  collide; none here do.
+- **A leaf's name is also its id.** `Inputs` passes the name for both, so `example.Node("v_jet")` works and a
+  report can name a quantity the way the problem statement does. Computed nodes here have an id and no name.
+  Two leaves sharing a name are refused by `ExpressionSystem.Add`.
 - **A relationship's id is a sentence.** `"supply breaker holds"`, not a GUID. Ids are free-form, the report
   prints them, and a check that reads as a claim is easier to scan than one that reads as a formula.
 - **A limit is exact.** A breaker rating and a batch window are decisions rather than measurements, so they
