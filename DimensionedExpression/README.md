@@ -243,7 +243,7 @@ This is the same rule that made those three views rather than lists. *What the s
 
 Absorbing **eagerly** is safe only because an expression's operands are fixed at construction — see [Structure is immutable](#structure-is-immutable-values-are-not). Were the graph able to change afterwards, a set captured at `Add` time could drift from what the graph holds, and the collections would need re-deriving on every read.
 
-The scope of one `ExpressionSystem` is a single model (one equation of state, one heat exchanger); composing multiple systems into a flowsheet is a future (Milestone 5) concern.
+The scope of one `ExpressionSystem` is a single model (one equation of state, one heat exchanger); composing multiple systems into a flowsheet is a future concern (feature set G in `project-plan.md`).
 
 ---
 
@@ -275,7 +275,7 @@ There are **no DTOs and no mappers in this assembly** — those live in `Calcusy
 | `VariableSnapshot` | — | `Variable` |
 | `UnaryExpressionSnapshot` | `UnaryExpressionType` | `Reciprocal`, `Negated`, `Sqrt`, `Exponential`, `NaturalLog` |
 | `NaryExpressionSnapshot` | `NaryExpressionType` | `Product`, `Sum` |
-| `BinaryExpressionSnapshot` | `BinaryExpressionType` | `Quotient` (M5's `PowerExpression` joins by adding a kind) |
+| `BinaryExpressionSnapshot` | `BinaryExpressionType` | `Quotient` (a planned `PowerExpression` joins by adding a kind) |
 | `BinaryOperatorSnapshot` | `BinaryOperatorType` | all fourteen operators |
 | `ExpressionSystemSnapshot` | — | `ExpressionSystem` |
 | `ProvenanceSnapshot` | `ProvenanceType` | the four provenance kinds |
