@@ -9,7 +9,11 @@ disable-model-invocation: true
 
 Implement `$ARGUMENTS`: a spec in `specs/`, and optionally which of its slices. With no slice given, ask which one. **Work one slice at a time**, on its own branch and pull request; a spec's slices are written to merge separately.
 
-Commit points are marked **⟶ commit**. At each one: commit with a message in this repository's style, push, and create the pull request the first time. `master` is protected — never commit to it.
+Commit points are marked **⟶ commit**. At each one: commit with a message in this repository's style, and push. `master` is protected — never commit to it.
+
+**Never merge the pull request,** and never approve it. Merging is the user's decision, or a review agent's when the user delegates it. This skill ends with the pull request ready for review.
+
+**The pull request is a draft until the implementation is complete.** Create it as a draft at the first commit (`gh pr create --draft`), and mark it ready at the end of step 10 (`gh pr ready`). CI skips drafts, so it runs from that point on; to check a draft earlier, run it by hand with `gh workflow run ci.yml --ref <branch>`. If `gh pr create` or `gh pr ready` fails on a GitHub API error unrelated to the change, fall back to `gh api` (the REST `pulls` endpoint, or the GraphQL `markPullRequestReadyForReview` mutation).
 
 ---
 
@@ -65,7 +69,7 @@ Rework the contracts and return to step 5 until nothing is left. Update `draft/c
 
 **Stop for the user only when** a decision would change the strategy substantially and no option clearly wins. Otherwise decide, record it, and continue.
 
-**⟶ commit** — the contracts compile, and the pull request now exists. Its description summarizes the contracts.
+**⟶ commit** — the contracts compile, and the draft pull request now exists. Its description summarizes the contracts.
 
 ## 7. Tests
 
@@ -96,7 +100,7 @@ Then bring the documents up to date:
 - **Retroactive specs** whose rules this slice changed, including *Superseded by Spec …* rules that now apply, and Known Bugs it fixed.
 - **`project-plan.md`:** tick what this slice finished.
 
-**⟶ commit**
+**⟶ commit**, then **mark the pull request ready for review.** CI runs now. If it fails, fix it before going on.
 
 ## 11. Review for completeness and bugs
 
@@ -110,4 +114,4 @@ Run `/simplify` for code smells and idiomatic cleanups, and review performance y
 - **Fix** obvious issues with idiomatic solutions.
 - **Report** everything else to the user as concerns, each with the option to add it to `project-plan.md` as future work.
 
-**⟶ commit**, and mark the pull request ready for review. Its description ends with: the spec and slice, what was done, the decisions taken without the user, the issues found, and the concerns.
+**⟶ commit**, and check that CI passes. The pull request description ends with: the spec and slice, what was done, the decisions taken without the user, the issues found, and the concerns.

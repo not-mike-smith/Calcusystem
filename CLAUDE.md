@@ -20,6 +20,8 @@ cd web && npm run patterns-check               # PATTERNS.md, language.ts and th
 cd web && npm run render-check                 # prints each building block as text (not a test)
 ```
 
+CI (`.github/workflows/ci.yml`) runs the build, every test suite, the editor's build and `patterns-check`, and fails if `web/src/api/schema.d.ts` differs from what `dotnet build` generates. **A change to the API's DTOs must commit the regenerated types**, by running `npm run build` in `web/` after `dotnet build`.
+
 The build fails on broken doc comments: `Directory.Build.props` turns unresolved `cref`s and malformed XML doc (CS1570–CS1584, CS1734) into errors. Renaming a type means fixing every `<see cref>` to it.
 
 ## Architecture
