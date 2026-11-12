@@ -55,7 +55,7 @@ A dashed arrow means *design together*, not *finish first*. Decide how propagati
 | Feature set | Status | Spec |
 | --- | --- | --- |
 | A — Building a model in C# code | Not started | [Draft](specs/A-building-a-model.md) |
-| B — Saving and loading | Not started | Not written |
+| B — Saving and loading | Not started | [Draft](specs/B-saving-and-loading.md) |
 | C — The editor | C1 not started; an editor exists (see M4.5) | Not written; UX still settling |
 | D — The solver | Coarse decomposition done | Not written |
 | E — Uncertainty accuracy | Not started; correlation partly designed | Not written |
@@ -151,19 +151,22 @@ Depends on: the retroactive [draft-document spec](specs/retroactive/draft-docume
 - [x] Opening a file goes through an API route that migrates it and returns the current draft; the browser does not migrate.
 - [x] `localStorage` holds the same versioned document as a file.
 - [x] B owns saving and opening, with a minimal control in the editor; C1 owns the polish.
-- [ ] What counts as a major, minor and patch change to the document.
+- [x] Version levels by who does the work: patch needs none, minor is a migration in `Serialization`, major needs the owner or code outside `Serialization` (Spec B §4.2). A reader refuses any newer version.
+- [x] An envelope (`Kind`, `Version`, room for metadata) around the draft; the editor writes it, reading stays on the server.
+- [x] Once warnings exist, a newer patch opens with a warning.
+- [x] The command-line tool is a new `Cli/` project beside `Api/`.
+- [x] Migrations are tested with a test-only step and a corpus of saved Example documents.
+- [x] Saving after opening a newer patch writes the reader's own version and drops what it ignored; opening warns, and an explicit save asks once.
 - [ ] Whether and when a server-side store is needed. This revisits the 2026-10-11 decision that the server stays stateless.
 
 **Work:**
 
-- [ ] **`SystemDraft.FromSystem`** — open a built system for editing. Needed the moment a saved model can be reopened. *Less pressing now that a saved file holds the draft: needed only to edit a system that exists only in built form, such as one loaded for composition (G1).*
-  - [ ] Round-trip test: every Example through `FromSystem` and `Build` gives an equivalent system.
 - [ ] A version number on the saved format, for both the system DTOs and the draft DTOs, starting at 1.0.0.
 - [ ] Migration: an older version is upgraded on load; a newer one is refused with a clear problem.
 - [ ] Save and open as a JSON file download and upload.
 - [ ] An API route that takes a saved file, migrates it, and returns the current draft.
 - [ ] A command-line tool that opens, validates, migrates and prints a saved file without a browser. A candidate home for the major-version utility.
-- [ ] **Tolerant deserialization for model repair** *(from M5)* — An opt-in mode that loads a payload with dangling id references instead of throwing `ReferencedNodeNotFoundException`, yielding a partial graph plus a structured report of what could not be resolved, so a corrupted or hand-edited model can be repaired rather than rejected outright. **Strictly not the default:** the normal path should keep refusing an internally inconsistent payload, since silently loading a graph with holes in it is how a model quietly starts computing the wrong answer. The design tension is that "invalid state is unrepresentable" is the right rule for the domain types, but JSON intake is exactly the boundary where invalid state arrives — so the flexibility belongs in the loading mode, not in the types. Needs a home for unresolved references (placeholder nodes? a side table?) and a decision on whether a partially-loaded system is allowed to evaluate at all.
+- [ ] **Tolerant deserialization for model repair** *(from M5; absorbed by B, since a draft already holds dangling references — close when B ships)* — An opt-in mode that loads a payload with dangling id references instead of throwing `ReferencedNodeNotFoundException`, yielding a partial graph plus a structured report of what could not be resolved, so a corrupted or hand-edited model can be repaired rather than rejected outright. **Strictly not the default:** the normal path should keep refusing an internally inconsistent payload, since silently loading a graph with holes in it is how a model quietly starts computing the wrong answer. The design tension is that "invalid state is unrepresentable" is the right rule for the domain types, but JSON intake is exactly the boundary where invalid state arrives — so the flexibility belongs in the loading mode, not in the types. Needs a home for unresolved references (placeholder nodes? a side table?) and a decision on whether a partially-loaded system is allowed to evaluate at all.
 
 ---
 
@@ -300,6 +303,9 @@ Depends on: G1 needs B. G2 needs D and E. G3 needs D's numeric solving.
 
 **G1 — Combining systems:**
 
+- [ ] **`SystemDraft.FromSystem`** *(moved from B)* — open a built system for editing, such as one loaded only in built form for composition. If something needs it sooner, it will show up as a requirement.
+  - [ ] Round-trip test: every Example through `FromSystem` and `Build` gives an equivalent system.
+
 - [ ] **`ExpressionSystem` composition** — Named *ports* on each `ExpressionSystem` (the subset of its variables exposed as inputs/outputs), plus a `ComposedExpressionSystem` that connects sub-systems by mapping ports. Any sub-system exposing matching port names can be substituted — enabling e.g. swapping ideal-gas EOS for Peng-Robinson within a larger reactor model without touching the surrounding system. The M4 solver abstraction should be designed port-aware so it can traverse a composed system; composition itself is deferred until post-M4. Granularity rule: one `ExpressionSystem` per coherent model; a full process flowsheet is a `ComposedExpressionSystem`.
 
 **G2 — Reconciliation:**
@@ -354,7 +360,19 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
   - [ ] **The draft document — needed before B starts.** [Draft](specs/retroactive/draft-document.md). B must keep its behavior; its structure is not frozen. All findings decided; seven became Known Bugs.
   - [ ] Further areas as feature-set specs reveal them.
 - [ ] **Restructure the repository and rename the project** — move `Calcusystem.sln` and the .NET projects out of the repository root, and give the project a shorter name (candidates: *Modicum*, *ByThatMuch*). Done together, so every path and namespace changes once.
-  - [ ] Choose the name. Check it against existing NuGet and npm packages and GitHub repositories.
+  - **Pressure is building** (2026-11-11), though it is not a prerequisite for any feature set. Waiting on it: the saved file's extension and media type (B), and the command-line tool's command name (B).
+  - [ ] Choose the name. **Presumptive winner: *Folga*** (2026-11-11), Portuguese for mechanical clearance or play, as in *ajuste com folga*, a clearance fit. To be confirmed with native speakers. **Miss Congeniality: *ByThatMuch*.** Also shortlisted: *Cerca* (*cerca de*, "about", and *cerca*, "fence") and *Tolerable*.
+    - Availability, checked 2026-11-11:
+
+      | | Folga | Cerca | Tolerable | ByThatMuch |
+      | --- | --- | --- | --- | --- |
+      | npm, NuGet (id and `Name.*`), crates.io | free | free | free | free |
+      | PyPI | free | taken (dormant since 2017) | free | free |
+      | GitHub user or org | taken (0 repos) | taken (dormant) | taken (active) | free |
+      | Domains | `.io` looks free | all registered | all registered | `.dev`, `.io`, `.org` look free |
+
+    - Not checkable from outside: whether the npm scope is held (try `npm org create`), and NuGet prefix reservation (apply on the account).
+    - [ ] Create the npm organization, apply for the NuGet `Folga.*` prefix, and register a domain if wanted.
   - [ ] Choose the saved file's extension and media type, which carry the new name.
   - [ ] Choose the layout. For example: `dotnet/` beside `web/`, or `src/` and `tests/` with the solution in one of them. Consider moving to the `.slnx` solution format at the same time.
   - [ ] Rename the root namespace and assembly prefix. `Directory.Build.props` derives both, but every `namespace` declaration and `using` is spelled out in source.
@@ -366,6 +384,7 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
   - [ ] Decide the shape: how a successful `Either<ExpressionSystem>` carries warnings, whether warnings get their own kind enum, and how the API and the editor show them.
   - [ ] Candidate warnings:
     - [ ] A reference value with no provenance (Spec A).
+    - [ ] A document of a newer patch version, opened anyway (Spec B).
     - [ ] An unknown property in a draft document. It is a refusal until warnings exist (draft-document DF5).
     - [ ] A non-equality relationship stating a solving role other than `Requirement`. This is a problem today (F3, `RoleNotAllowed`); decide whether it moves to a warning once warnings exist.
 - [ ] **Test-project READMEs** — Add a `README.md` to `Measurement.Test/`, `DimensionedExpression.Test/`, and `Serialization.Test/`. These follow a different structure than the library READMEs (purpose, coverage, test helpers/patterns, how to run) — to be established when tackled.
