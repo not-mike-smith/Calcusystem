@@ -43,6 +43,23 @@ internal static class WireNames
             $"No deserialization method defined for SingleDerivedVariable object with saved type, {type}"),
     };
 
+    internal static string Of(FixedExpressionType kind) => kind switch
+    {
+        FixedExpressionType.Constant => nameof(Constant),
+        FixedExpressionType.ReferenceValue => nameof(ReferenceValue),
+        FixedExpressionType.Scalar => nameof(Scalar),
+        _ => throw new NotImplementedException($"No wire name for fixed value kind {kind}"),
+    };
+
+    internal static FixedExpressionType FixedType(string type) => type switch
+    {
+        nameof(Constant) => FixedExpressionType.Constant,
+        nameof(ReferenceValue) => FixedExpressionType.ReferenceValue,
+        nameof(Scalar) => FixedExpressionType.Scalar,
+        _ => throw new NotImplementedException(
+            $"No deserialization method defined for FixedValue object with saved type, {type}"),
+    };
+
     internal static string Of(NaryExpressionType kind) => kind switch
     {
         NaryExpressionType.Product => nameof(ProductExpression),

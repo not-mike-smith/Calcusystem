@@ -39,6 +39,11 @@ public class DeserializingMapper
             _context.AddLoadedNode(MapVariableByPattern(dto));
         }
 
+        foreach (var dto in x.Givens.Concat(x.Scalars))
+        {
+            _context.AddLoadedNode(MapFixedValueByPattern(dto));
+        }
+
         MapAllDerivedExpressions(x);
 
         foreach (var dto in x.Relationships)
@@ -133,6 +138,8 @@ public class DeserializingMapper
         Dtos.ExpressionSystem x)
     {
         var idsInPayload = x.Variables.Select(d => d.Id)
+            .Concat(x.Givens.Select(d => d.Id))
+            .Concat(x.Scalars.Select(d => d.Id))
             .Concat(x.SingleDerivedVariables.Select(d => d.Id))
             .Concat(x.ListDerivedVariables.Select(d => d.Id))
             .Concat(x.PairDerivedVariables.Select(d => d.Id))
@@ -163,7 +170,15 @@ public class DeserializingMapper
             $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
     };
 
-    public IFixedExpression MapFixedValueByPattern(Dtos.FixedValue x) => throw new NotImplementedException();
+    public IFixedExpression MapFixedValueByPattern(Dtos.FixedValue x) => ExpressionFactory.FromSnapshot(
+        new FixedExpressionSnapshot(
+            WireNames.FixedType(x.Type),
+            x.Id,
+            x.Name,
+            new MeasurandSnapshot(
+                new QuantitySnapshot(x.KmsValue, DimensionalityCodec.Decode(x.Dimensionality)),
+                UncertaintyCodec.FromWire(x.Uncertainty)),
+            ProvenanceCodec.FromWire(x.Provenance)));
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.SingleDerivedVariable x)
     {

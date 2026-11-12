@@ -1,4 +1,5 @@
 using Calcusystem.Core.Interfaces;
+using Calcusystem.DimensionedExpression.Enums;
 using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Snapshots;
@@ -18,17 +19,25 @@ public sealed class ReferenceValue : FixedExpressionBase, ISnapshotting<Referenc
     /// <exception cref="InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     /// <exception cref="InvalidFixedValueException"><paramref name="value"/> has no uncertainty.</exception>
     internal ReferenceValue(string name, Measurand value, IProvenance? provenance, string id)
-        : base(Enums.FixedExpressionType.ReferenceValue, value, id) => throw new NotImplementedException();
+        : base(FixedExpressionType.ReferenceValue, value, id)
+    {
+        base.Name = name ?? throw new InvalidNameException("A reference value needs a name.");
+        Provenance = provenance;
+    }
 
     /// <summary>What the model calls this reference value. Never null.</summary>
     public new string Name => base.Name!;
 
     /// <inheritdoc/>
-    public FixedExpressionSnapshot GetSnapshot() => throw new NotImplementedException();
+    public FixedExpressionSnapshot GetSnapshot() => Snapshot(FixedExpressionType.ReferenceValue);
 
     /// <summary><inheritdoc/></summary>
     /// <exception cref="ArgumentException">The snapshot is not a reference value's.</exception>
     /// <exception cref="InvalidNameException">The snapshot's name is missing or not a valid name.</exception>
     /// <exception cref="InvalidFixedValueException">The snapshot's value has no uncertainty.</exception>
-    public static ReferenceValue FromSnapshot(FixedExpressionSnapshot snapshot) => throw new NotImplementedException();
+    public static ReferenceValue FromSnapshot(FixedExpressionSnapshot snapshot)
+    {
+        var (value, provenance) = Read(snapshot, FixedExpressionType.ReferenceValue);
+        return new ReferenceValue(snapshot.Name!, value, provenance, snapshot.Id);
+    }
 }

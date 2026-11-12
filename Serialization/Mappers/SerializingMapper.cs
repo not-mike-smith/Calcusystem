@@ -31,6 +31,8 @@ public class SerializingMapper
         };
 
         value.Variables.AddRange(system.Variables.Select(MapVariable));
+        value.Givens.AddRange(system.Givens.Select(MapFixedValue));
+        value.Scalars.AddRange(system.GetAllExpressions().OfType<Scalar>().Select(MapFixedValue));
 
         foreach (var dto in system.DerivedExpressions.Select(MapDerivedExpression))
         {
@@ -62,7 +64,29 @@ public class SerializingMapper
         };
     }
 
-    public Dtos.FixedValue MapFixedValue(IFixedExpression fixedValue) => throw new NotImplementedException();
+    /// <remarks>The type switch only picks which node to ask for its snapshot, as for a derived expression.</remarks>
+    public Dtos.FixedValue MapFixedValue(IFixedExpression fixedValue)
+    {
+        var snapshot = fixedValue switch
+        {
+            Constant x => x.GetSnapshot(),
+            ReferenceValue x => x.GetSnapshot(),
+            Scalar x => x.GetSnapshot(),
+            _ => throw new NotImplementedException(
+                $"No mapping for fixed value of type {fixedValue.GetType().Name}"),
+        };
+
+        return new Dtos.FixedValue
+        {
+            Id = snapshot.Id,
+            Type = WireNames.Of(snapshot.Type),
+            Name = snapshot.Name,
+            Dimensionality = DimensionalityCodec.Encode(snapshot.Value.Quantity.Dimensionality),
+            KmsValue = snapshot.Value.Quantity.KmsValue,
+            Uncertainty = UncertaintyCodec.ToWire(snapshot.Value.Uncertainty),
+            Provenance = snapshot.Provenance is { } provenance ? ProvenanceCodec.ToWire(provenance) : null,
+        };
+    }
 
     /// <remarks>
     /// The type switch is only here to pick which snapshot to ask for — the kind discriminator inside that

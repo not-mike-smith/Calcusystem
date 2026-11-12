@@ -30,6 +30,8 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     public string Description { get; set; } = "";
 
     private readonly List<Variable> _variables = new();
+    private readonly List<IFixedExpression> _givens = new();
+    private readonly List<Scalar> _scalars = new();
     private readonly List<IExpression> _derivedExpressions = new();
     private readonly List<IBinaryOperator> _relationships = new();
     private readonly HashSet<IExpression> _absorbed = new();
@@ -51,7 +53,7 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     /// Reached the way <see cref="Variables"/> are. A scalar is not here: it is part of a formula, not a
     /// quantity of the model, and is found only through <see cref="GetAllExpressions"/>.
     /// </remarks>
-    public IReadOnlyList<IFixedExpression> Givens => throw new NotImplementedException();
+    public IReadOnlyList<IFixedExpression> Givens => _givens;
 
     /// <summary>Every computed node this system contains, including nodes nested inside others.</summary>
     public IReadOnlyList<IExpression> DerivedExpressions => _derivedExpressions;
@@ -167,8 +169,13 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         {
             _absorbed.Add(node);
 
-            if (node is Variable variable) _variables.Add(variable);
-            else _derivedExpressions.Add(node);
+            switch (node)
+            {
+                case Variable variable: _variables.Add(variable); break;
+                case Scalar scalar: _scalars.Add(scalar); break;
+                case IFixedExpression given: _givens.Add(given); break;
+                default: _derivedExpressions.Add(node); break;
+            }
 
             if (node.Name is { } name) _named[name] = node;
         }
@@ -194,12 +201,15 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
     public IEnumerable<IBinaryOperator> Requirements =>
         Relationships.Where(r => r.SolvingRole is SolvingRole.Requirement);
 
-    /// <summary>Every expression this system contains: its variables and its computed nodes.</summary>
+    /// <summary>
+    /// Every expression this system contains: its variables, its givens, its scalars and its computed nodes.
+    /// </summary>
     /// <remarks>
     /// Complete, because <see cref="Add(IExpression)"/> absorbs whole subgraphs. There is no wider set to ask
     /// for — what the system lists and what it reaches are the same thing by construction.
     /// </remarks>
-    public IEnumerable<IExpression> GetAllExpressions() => _variables.Concat<IExpression>(_derivedExpressions);
+    public IEnumerable<IExpression> GetAllExpressions() =>
+        _variables.Concat<IExpression>(_givens).Concat(_scalars).Concat(_derivedExpressions);
 
     /// <summary>
     /// Every node this system reaches, each once, children before parents — the order values can be computed in
@@ -220,14 +230,14 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         Name,
         Description,
         _variables.Select(x => x.Id).ToList(),
-        [],
-        [],
+        _givens.Select(x => x.Id).ToList(),
+        _scalars.Select(x => x.Id).ToList(),
         _derivedExpressions.Select(x => x.Id).ToList(),
         _relationships.Select(x => x.Id).ToList());
 
     /// <summary><inheritdoc/></summary>
     /// <remarks>
-    /// The system resolves two different node types — expressions in two of its lists, operators in the third.
+    /// The system resolves two different node types — expressions in most of its lists, operators in the last.
     /// That is why resolution is a per-reference query rather than one typed delegate.
     /// </remarks>
     public static ExpressionSystem FromSnapshot(ExpressionSystemSnapshot snapshot, INodeResolver resolve)
@@ -239,6 +249,8 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         };
 
         foreach (var id in snapshot.VariableIds) system.Add(resolve.Resolve<Variable>(id));
+        foreach (var id in snapshot.GivenIds) system.Add(resolve.Resolve<IFixedExpression>(id));
+        foreach (var id in snapshot.ScalarIds) system.Add(resolve.Resolve<Scalar>(id));
         foreach (var id in snapshot.DerivedExpressionIds) system.Add(resolve.Resolve<IExpression>(id));
         foreach (var id in snapshot.RelationshipIds) system.Add(resolve.Resolve<IBinaryOperator>(id));
         return system;

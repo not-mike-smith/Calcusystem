@@ -10,6 +10,15 @@ export const newId = (): string => crypto.randomUUID();
 export const expressionsOf = (draft: SystemDraft): ExpressionDraft[] => draft.Expressions ?? [];
 export const relationshipsOf = (draft: SystemDraft): RelationshipDraft[] => draft.Relationships ?? [];
 
+/**
+ * The kinds with no operands. The formula menu leaves them out: a variable has a row of its own, and the editor
+ * cannot yet edit a constant, a reference value or a scalar, though a draft may hold one.
+ */
+const LEAF_KINDS: ReadonlySet<string> = new Set(["Variable", "Constant", "ReferenceValue", "Scalar"]);
+
+/** Whether a kind served by the vocabulary is one a formula row can be. */
+export const isFormulaKind = (kind: string): boolean => !LEAF_KINDS.has(kind);
+
 export function emptyDraft(): SystemDraft {
   return { Id: newId(), Name: "Untitled model", Description: "", Expressions: [], Relationships: [] };
 }

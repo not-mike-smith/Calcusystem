@@ -101,20 +101,35 @@ public sealed class SystemDraft
     /// <param name="value">Its value, whose dimensionality the node declares.</param>
     /// <param name="id">The id to use, or null for a fresh one.</param>
     public ExpressionDraft AddConstant(string? name = null, Measurand? value = null, string? id = null) =>
-        throw new NotImplementedException();
+        AddGiven(ExpressionDraftType.Constant, name, value, id);
 
     /// <summary>Adds a reference value: a named value with uncertainty.</summary>
     /// <param name="name">What to call it.</param>
     /// <param name="value">Its value, whose dimensionality the node declares.</param>
     /// <param name="id">The id to use, or null for a fresh one.</param>
     public ExpressionDraft AddReferenceValue(string? name = null, Measurand? value = null, string? id = null) =>
-        throw new NotImplementedException();
+        AddGiven(ExpressionDraftType.ReferenceValue, name, value, id);
+
+    private ExpressionDraft AddGiven(ExpressionDraftType type, string? name, Measurand? value, string? id)
+    {
+        var draft = AddExpression(type, id);
+        draft.Name = name;
+        draft.Value = value;
+        draft.Dimensionality = value?.Dimensionality;
+        return draft;
+    }
 
     /// <summary>Adds a scalar: an unnamed, dimensionless coefficient with no uncertainty.</summary>
     /// <param name="value">The number, or null to leave it for later.</param>
     /// <param name="id">The id to use, or null for a fresh one.</param>
-    public ExpressionDraft AddScalar(double? value = null, string? id = null) =>
-        throw new NotImplementedException();
+    public ExpressionDraft AddScalar(double? value = null, string? id = null)
+    {
+        var draft = AddExpression(ExpressionDraftType.Scalar, id);
+        draft.Value = value is { } number
+            ? new Quantity(number, Dimensionality.Dimensionless).WithoutUncertainty()
+            : null;
+        return draft;
+    }
 
     /// <summary>Adds a relationship, typed or not.</summary>
     /// <param name="type">Which operator to build, or null to leave the choice for later.</param>
@@ -137,12 +152,17 @@ public sealed class SystemDraft
     /// <summary>The expression node with this name, or null if the draft holds none.</summary>
     /// <remarks>
     /// Compared after normalization, and case-sensitively. Where the name is reused, the first node added with
-    /// it. A relationship's name finds nothing here; see <see cref="RelationshipByName"/>.
+    /// it. A relationship's name finds nothing here; see <see cref="RelationshipByName"/>. Neither does a
+    /// scalar's, which is ignored.
     /// </remarks>
     public ExpressionDraft? ByName(string name) =>
         Stated(name) is { } wanted
-            ? _expressions.FirstOrDefault(e => string.Equals(e.Name, wanted, StringComparison.Ordinal))
+            ? _expressions.FirstOrDefault(e => string.Equals(NameRead(e), wanted, StringComparison.Ordinal))
             : null;
+
+    /// <summary>The name a node's kind reads: the draft's, or none for a scalar.</summary>
+    private static string? NameRead(ExpressionDraft draft) =>
+        draft.Type is ExpressionDraftType.Scalar ? null : draft.Name;
 
     /// <summary>The relationship with this name, or null if the draft holds none.</summary>
     /// <remarks>Compared as <see cref="ByName"/> compares.</remarks>
@@ -260,7 +280,7 @@ public sealed class SystemDraft
     /// </remarks>
     private void ReportDuplicateNames(List<DraftProblem> found)
     {
-        var named = _expressions.Select(e => (e.Id, e.Name))
+        var named = _expressions.Select(e => (e.Id, Name: NameRead(e)))
             .Concat(_relationships.Select(r => (r.Id, r.Name)))
             .Where(node => NodeName.Problem(node.Name) is null)
             .GroupBy(node => node.Name!, StringComparer.Ordinal)
@@ -275,12 +295,15 @@ public sealed class SystemDraft
 
     /// <summary>What is wrong with a node's name on its own, or null if nothing is.</summary>
     /// <remarks>The rule is the domain's, asked through <see cref="NodeName"/> and not restated here.</remarks>
-    private static DraftProblem? NameProblem(string? name, bool required, string nodeId)
+    /// <param name="name">The name to check.</param>
+    /// <param name="requiredOf">What to call the kind of node that must have a name, or null where it need not.</param>
+    /// <param name="nodeId">The node the name is on.</param>
+    private static DraftProblem? NameProblem(string? name, string? requiredOf, string nodeId)
     {
         if (string.IsNullOrEmpty(name))
         {
-            return required
-                ? new DraftProblem(DraftProblemKind.NameMissing, nodeId, "A variable needs a name.")
+            return requiredOf is not null
+                ? new DraftProblem(DraftProblemKind.NameMissing, nodeId, $"A {requiredOf} needs a name.")
                 : null;
         }
 
@@ -339,19 +362,18 @@ public sealed class SystemDraft
                 continue;
             }
 
-            if (NameProblem(draft.Name, required: type is ExpressionDraftType.Variable, draft.Id) is { } badName)
+            if (NameProblem(NameRead(draft), NounIfNamed(type), draft.Id) is { } badName)
             {
                 found.Add(badName);
                 unbuildable.Add(draft.Id);
                 continue;
             }
 
-            if (type is ExpressionDraftType.Variable)
+            if (IsLeaf(type))
             {
-                if (draft.Dimensionality is null)
+                if (LeafProblem(draft, type) is { } badLeaf)
                 {
-                    found.Add(new DraftProblem(
-                        DraftProblemKind.DimensionalityMissing, draft.Id, "A variable needs a dimensionality."));
+                    found.Add(badLeaf);
                     unbuildable.Add(draft.Id);
                     continue;
                 }
@@ -396,6 +418,62 @@ public sealed class SystemDraft
         }
 
         return candidates;
+    }
+
+    private static bool IsLeaf(ExpressionDraftType type) =>
+        type is ExpressionDraftType.Variable || FixedKind(type) is not null;
+
+    /// <summary>The domain's kind of fixed value for a draft kind, or null where the kind is not one.</summary>
+    private static FixedExpressionType? FixedKind(ExpressionDraftType type) => type switch
+    {
+        ExpressionDraftType.Constant => FixedExpressionType.Constant,
+        ExpressionDraftType.ReferenceValue => FixedExpressionType.ReferenceValue,
+        ExpressionDraftType.Scalar => FixedExpressionType.Scalar,
+        _ => null,
+    };
+
+    /// <summary>What to call a kind that must have a name and a dimensionality, or null for any other kind.</summary>
+    private static string? NounIfNamed(ExpressionDraftType type) => type switch
+    {
+        ExpressionDraftType.Variable => "variable",
+        ExpressionDraftType.Constant => "constant",
+        ExpressionDraftType.ReferenceValue => "reference value",
+        _ => null,
+    };
+
+    /// <summary>What is wrong with a leaf beyond its name, or null if nothing is. The first problem only.</summary>
+    /// <remarks>
+    /// Which value a fixed kind accepts is the domain's rule, asked through <see cref="FixedValueRule"/> and not
+    /// restated here.
+    /// </remarks>
+    private static DraftProblem? LeafProblem(ExpressionDraft draft, ExpressionDraftType type)
+    {
+        if (NounIfNamed(type) is { } noun && draft.Dimensionality is null)
+        {
+            return new DraftProblem(
+                DraftProblemKind.DimensionalityMissing, draft.Id, $"A {noun} needs a dimensionality.");
+        }
+
+        if (FixedKind(type) is not { } kind) return null;
+
+        if (draft.Value is not { } value)
+        {
+            return new DraftProblem(
+                DraftProblemKind.ValueMissing, draft.Id, "A fixed value needs a value. It cannot be left unset.");
+        }
+
+        if (draft.Dimensionality is { } declared && kind is not FixedExpressionType.Scalar
+            && value.Dimensionality != declared)
+        {
+            return new DraftProblem(
+                DraftProblemKind.FixedValueInvalid,
+                draft.Id,
+                $"The value's dimensionality is {value.Dimensionality}, and the one declared is {declared}.");
+        }
+
+        return FixedValueRule.Problem(kind, value) is { } why
+            ? new DraftProblem(DraftProblemKind.FixedValueInvalid, draft.Id, why)
+            : null;
     }
 
     private static bool CountSuitsType(ExpressionDraftType type, int count, out string expected)
@@ -446,7 +524,8 @@ public sealed class SystemDraft
             for (var i = remaining.Count - 1; i >= 0; i--)
             {
                 var draft = remaining[i];
-                if (! draft.OperandIds.All(id => resolved.Holds(id!))) continue;
+                // A leaf reads no operands, so ones left over from another kind do not hold it back.
+                if (! IsLeaf(draft.Type!.Value) && ! draft.OperandIds.All(id => resolved.Holds(id!))) continue;
 
                 remaining.RemoveAt(i);
                 progressed = true;
@@ -524,6 +603,10 @@ public sealed class SystemDraft
     {
         ExpressionDraftType.Variable => BuildVariable(draft),
 
+        ExpressionDraftType.Constant => Fixed(draft, FixedExpressionType.Constant),
+        ExpressionDraftType.ReferenceValue => Fixed(draft, FixedExpressionType.ReferenceValue),
+        ExpressionDraftType.Scalar => Fixed(draft, FixedExpressionType.Scalar),
+
         ExpressionDraftType.Sum => ExpressionFactory.FromSnapshot(Nary(draft, NaryExpressionType.Sum), resolve),
         ExpressionDraftType.Product => ExpressionFactory.FromSnapshot(Nary(draft, NaryExpressionType.Product), resolve),
 
@@ -546,6 +629,16 @@ public sealed class SystemDraft
         _ => throw new ArgumentOutOfRangeException(
             nameof(draft), draft.Type, "Unknown kind of expression draft."),
     };
+
+    // A scalar reads neither a name nor a provenance, so neither is passed on.
+    private static IExpression Fixed(ExpressionDraft draft, FixedExpressionType kind) =>
+        ExpressionFactory.FromSnapshot(
+            new FixedExpressionSnapshot(
+                kind,
+                draft.Id,
+                Stated(NameRead(draft)),
+                draft.Value!.GetSnapshot(),
+                kind is FixedExpressionType.Scalar ? null : draft.Provenance?.GetSnapshot()));
 
     private static NaryExpressionSnapshot Nary(ExpressionDraft draft, NaryExpressionType type) =>
         new(type, draft.Id, [.. draft.OperandIds.Select(id => id!)], draft.UncertaintyCorrelation, Stated(draft.Name));
@@ -587,7 +680,7 @@ public sealed class SystemDraft
                 continue;
             }
 
-            if (NameProblem(draft.Name, required: false, draft.Id) is { } badName)
+            if (NameProblem(draft.Name, requiredOf: null, draft.Id) is { } badName)
             {
                 found.Add(badName);
                 continue;

@@ -145,7 +145,7 @@ export function App() {
               <ExpressionRow
                 key={expression.Id}
                 expression={expression}
-                kinds={(vocabulary.ExpressionKinds ?? []).filter((kind) => kind !== "Variable")}
+                kinds={(vocabulary.ExpressionKinds ?? []).filter(Draft.isFormulaKind)}
                 operands={expressions.filter((e) => e.Id !== expression.Id)}
                 problems={problemsBy.get(expression.Id ?? "") ?? []}
                 computed={valueOf.get(expression.Id ?? "") ?? null}

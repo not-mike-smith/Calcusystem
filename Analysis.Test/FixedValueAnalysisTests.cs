@@ -91,6 +91,7 @@ public class FixedValueAnalysisTests
         calculation.ValueOf(g)!.KmsValue.Should().Be(9.80665);
         calculation.ValueOf(two)!.KmsValue.Should().Be(2);
         calculation.MissingValues.Should().Equal(h);
-        calculation.Unresolved.Should().ContainSingle().Which.Should().BeOfType<ProductExpression>();
+        calculation.Unresolved.Should().NotContain(g).And.NotContain(two);
+        calculation.Unresolved.Should().Contain(h).And.ContainSingle(e => e is ProductExpression);
     }
 }
