@@ -36,8 +36,10 @@ namespace Calcusystem.Authoring.Drafts;
 /// </remarks>
 public sealed class SystemDraft
 {
-    private readonly Dictionary<string, ExpressionDraft> _expressions = [];
-    private readonly Dictionary<string, RelationshipDraft> _relationships = [];
+    // Lists rather than maps keyed by id, so a reused id keeps both nodes and is reported instead of one node
+    // silently replacing the other.
+    private readonly List<ExpressionDraft> _expressions = [];
+    private readonly List<RelationshipDraft> _relationships = [];
 
     private SystemDraft(string id, string name, string description)
     {
@@ -63,10 +65,10 @@ public sealed class SystemDraft
     public string Description { get; set; }
 
     /// <summary>Every expression node in the draft, in no particular order.</summary>
-    public IReadOnlyCollection<ExpressionDraft> Expressions => _expressions.Values;
+    public IReadOnlyCollection<ExpressionDraft> Expressions => _expressions.AsReadOnly();
 
     /// <summary>Every relationship in the draft, in no particular order.</summary>
-    public IReadOnlyCollection<RelationshipDraft> Relationships => _relationships.Values;
+    public IReadOnlyCollection<RelationshipDraft> Relationships => _relationships.AsReadOnly();
 
     /// <summary>Adds an expression node of any kind, typed or not.</summary>
     /// <param name="type">Which kind to build, or null to leave the choice for later.</param>
@@ -74,7 +76,7 @@ public sealed class SystemDraft
     public ExpressionDraft AddExpression(ExpressionDraftType? type = null, string? id = null)
     {
         var draft = new ExpressionDraft(id ?? NewId()) { Type = type };
-        _expressions[draft.Id] = draft;
+        _expressions.Add(draft);
         return draft;
     }
 
@@ -99,15 +101,17 @@ public sealed class SystemDraft
     public RelationshipDraft AddRelationship(BinaryOperatorType? type = null, string? id = null)
     {
         var draft = new RelationshipDraft(id ?? NewId()) { Type = type };
-        _relationships[draft.Id] = draft;
+        _relationships.Add(draft);
         return draft;
     }
 
     /// <summary>The expression node with this id, or null if the draft holds none.</summary>
-    public ExpressionDraft? Expression(string id) => _expressions.GetValueOrDefault(id);
+    /// <remarks>Where the id is reused, the first node added with it.</remarks>
+    public ExpressionDraft? Expression(string id) => _expressions.FirstOrDefault(e => e.Id == id);
 
     /// <summary>The relationship with this id, or null if the draft holds none.</summary>
-    public RelationshipDraft? Relationship(string id) => _relationships.GetValueOrDefault(id);
+    /// <remarks>Where the id is reused, the first relationship added with it.</remarks>
+    public RelationshipDraft? Relationship(string id) => _relationships.FirstOrDefault(r => r.Id == id);
 
     /// <summary>Removes the expression or relationship with this id.</summary>
     /// <returns>Whether anything was removed.</returns>
@@ -116,7 +120,8 @@ public sealed class SystemDraft
     /// <see cref="DraftProblemKind.ReferenceNotFound"/>. Scrubbing them would silently discard structure the
     /// author built, and a dangling reference is the more useful thing to show them.
     /// </remarks>
-    public bool Remove(string id) => _expressions.Remove(id) | _relationships.Remove(id);
+    public bool Remove(string id) =>
+        _expressions.RemoveAll(e => e.Id == id) + _relationships.RemoveAll(r => r.Id == id) > 0;
 
     /// <summary>Everything standing between this draft and a built system. Empty means it builds.</summary>
     /// <remarks>
@@ -157,10 +162,12 @@ public sealed class SystemDraft
         var found = new List<DraftProblem>();
         var unbuildable = new HashSet<string>();
 
-        ReportDuplicateIds(found);
-        var candidates = ShapedWellEnoughToTry(found, unbuildable);
+        var expressionIds = ExpressionIds();
+
+        ReportDuplicateIds(found, unbuildable);
+        var candidates = ShapedWellEnoughToTry(expressionIds, found, unbuildable);
         var built = BuildExpressions(candidates, found, unbuildable);
-        var operators = BuildRelationships(built, found, unbuildable);
+        var operators = BuildRelationships(expressionIds, built, found, unbuildable);
 
         if (found.Count > 0) return Stopped(found);
 
@@ -199,28 +206,47 @@ public sealed class SystemDraft
         }
     }
 
-    private void ReportDuplicateIds(List<DraftProblem> found)
+    /// <summary>Reports each id more than one node claims, once.</summary>
+    /// <remarks>
+    /// An id two expressions share is also marked unbuildable: an operand naming it could mean either, so neither
+    /// is built and whatever refers to it stays silent. An id an expression shares only with a relationship is
+    /// unambiguous as an operand, so that expression is still built.
+    /// </remarks>
+    private void ReportDuplicateIds(List<DraftProblem> found, HashSet<string> unbuildable)
     {
-        foreach (var id in _expressions.Keys.Intersect(_relationships.Keys))
+        var claims = _expressions.Select(e => e.Id).Concat(_relationships.Select(r => r.Id))
+            .GroupBy(id => id, StringComparer.Ordinal)
+            .Where(g => g.Count() > 1);
+
+        foreach (var claim in claims)
         {
             found.Add(new DraftProblem(
                 DraftProblemKind.DuplicateId,
-                id,
-                "An expression and a relationship both claim this id."));
+                claim.Key,
+                $"{claim.Count()} nodes claim this id."));
+        }
+
+        foreach (var id in _expressions.GroupBy(e => e.Id, StringComparer.Ordinal).Where(g => g.Count() > 1))
+        {
+            unbuildable.Add(id.Key);
         }
     }
+
+    // Built once per build: the editor rebuilds on every edit, so a scan per operand would add up.
+    private HashSet<string> ExpressionIds() => _expressions.Select(e => e.Id).ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
     /// The expression drafts whose shape allows the domain to be asked about them at all. Anything rejected here
     /// is recorded as unbuildable, so nodes above it stay silent.
     /// </summary>
     private List<ExpressionDraft> ShapedWellEnoughToTry(
+        HashSet<string> expressionIds,
         List<DraftProblem> found,
         HashSet<string> unbuildable)
     {
         var candidates = new List<ExpressionDraft>();
 
-        foreach (var draft in _expressions.Values)
+        foreach (var draft in _expressions)
         {
             if (draft.Type is not { } type)
             {
@@ -240,7 +266,7 @@ public sealed class SystemDraft
                     continue;
                 }
 
-                candidates.Add(draft);
+                if (! unbuildable.Contains(draft.Id)) candidates.Add(draft);
                 continue;
             }
 
@@ -264,7 +290,7 @@ public sealed class SystemDraft
                 continue;
             }
 
-            var dangling = operands.Where(id => ! _expressions.ContainsKey(id!)).ToList();
+            var dangling = operands.Where(id => ! expressionIds.Contains(id!)).ToList();
             if (dangling.Count > 0)
             {
                 found.Add(new DraftProblem(
@@ -275,7 +301,8 @@ public sealed class SystemDraft
                 continue;
             }
 
-            candidates.Add(draft);
+            // Shape is checked even for a reused id, so its own problems are still reported; it is just never built.
+            if (! unbuildable.Contains(draft.Id)) candidates.Add(draft);
         }
 
         return candidates;
@@ -353,7 +380,8 @@ public sealed class SystemDraft
     }
 
     // Everything left when progress stopped is waiting on an operand that never arrived. If that operand failed,
-    // this node is a consequence rather than a cause and says nothing; otherwise the wait is circular.
+    // this node is a consequence rather than a cause and says nothing. Otherwise it is either on a cycle, which is
+    // reported, or only waiting on one, which is a consequence of the cycle and also says nothing.
     private static void ReportWhatCouldNotBeOrdered(
         List<ExpressionDraft> remaining,
         List<DraftProblem> found,
@@ -373,13 +401,33 @@ public sealed class SystemDraft
         }
         while (spread);
 
-        foreach (var draft in remaining.Where(d => ! unbuildable.Contains(d.Id)))
+        var waiting = remaining.Where(d => ! unbuildable.Contains(d.Id)).ToDictionary(d => d.Id);
+
+        foreach (var draft in waiting.Values.Where(d => ReachesItself(d, waiting)))
         {
             found.Add(new DraftProblem(
                 DraftProblemKind.CircularReference,
                 draft.Id,
                 "This node is reached from its own operands."));
         }
+    }
+
+    /// <summary>Whether <paramref name="start"/> is reached by following operands among <paramref name="waiting"/>.</summary>
+    private static bool ReachesItself(ExpressionDraft start, IReadOnlyDictionary<string, ExpressionDraft> waiting)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var next = new Stack<string>(start.OperandIds.Select(id => id!));
+
+        while (next.Count > 0)
+        {
+            var id = next.Pop();
+            if (id == start.Id) return true;
+            if (! seen.Add(id) || ! waiting.TryGetValue(id, out var node)) continue;
+
+            foreach (var operand in node.OperandIds) next.Push(operand!);
+        }
+
+        return false;
     }
 
     private static IExpression Construct(ExpressionDraft draft, INodeResolver resolve) => draft.Type switch
@@ -430,13 +478,14 @@ public sealed class SystemDraft
     }
 
     private List<IBinaryOperator> BuildRelationships(
+        HashSet<string> expressionIds,
         Resolved built,
         List<DraftProblem> found,
         HashSet<string> unbuildable)
     {
         var operators = new List<IBinaryOperator>();
 
-        foreach (var draft in _relationships.Values)
+        foreach (var draft in _relationships)
         {
             if (draft.Type is not { } type)
             {
@@ -445,8 +494,8 @@ public sealed class SystemDraft
                 continue;
             }
 
-            if (! SideIsReady(draft.LhsId, built, unbuildable, draft.Id, "left", found)) continue;
-            if (! SideIsReady(draft.RhsId, built, unbuildable, draft.Id, "right", found)) continue;
+            if (! SideIsReady(draft.LhsId, expressionIds, built, unbuildable, draft.Id, "left", found)) continue;
+            if (! SideIsReady(draft.RhsId, expressionIds, built, unbuildable, draft.Id, "right", found)) continue;
 
             if (type is BinaryOperatorType.Equality && draft.Agreement is null)
             {
@@ -466,8 +515,28 @@ public sealed class SystemDraft
                 continue;
             }
 
-            // Only an equality can carry a role of its own; the rest are requirements and have no way to say
-            // otherwise, so an unstated role is the one they would have had anyway.
+            // An equality can determine a value or not, and nothing about it says which, so the author must.
+            if (type is BinaryOperatorType.Equality && draft.SolvingRole is null)
+            {
+                found.Add(new DraftProblem(
+                    DraftProblemKind.RelationshipRuleMissing,
+                    draft.Id,
+                    "An equality needs a solving role saying what it does to the problem."));
+                continue;
+            }
+
+            // Every other kind is a requirement. Stating another role is refused rather than ignored, so the
+            // author learns it was not honored.
+            if (type is not BinaryOperatorType.Equality && draft.SolvingRole is { } stated
+                && stated is not SolvingRole.Requirement)
+            {
+                found.Add(new DraftProblem(
+                    DraftProblemKind.RoleNotAllowed,
+                    draft.Id,
+                    $"Only an equality can have the role {stated}; this relationship is a requirement."));
+                continue;
+            }
+
             var role = draft.SolvingRole ?? SolvingRole.Requirement;
 
             try
@@ -495,8 +564,9 @@ public sealed class SystemDraft
         return operators;
     }
 
-    private bool SideIsReady(
+    private static bool SideIsReady(
         string? operandId,
+        HashSet<string> expressionIds,
         Resolved built,
         HashSet<string> unbuildable,
         string relationshipId,
@@ -513,7 +583,7 @@ public sealed class SystemDraft
         if (built.Holds(operandId)) return true;
 
         // Silent where the operand is a node that already reported a problem of its own.
-        if (! unbuildable.Contains(operandId) && ! _expressions.ContainsKey(operandId))
+        if (! unbuildable.Contains(operandId) && ! expressionIds.Contains(operandId))
         {
             found.Add(new DraftProblem(
                 DraftProblemKind.ReferenceNotFound,

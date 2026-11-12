@@ -39,12 +39,20 @@ draft types have internal constructors, so a node cannot exist outside the draft
   had, so references held elsewhere stay good.
 - **A problem names its node.** `DraftProblem.NodeId` is null only for a problem about the draft as a whole.
 - **Building reads the draft and nothing else.** No ambient state, no connection to a previously built system.
-- **One cause gives one problem.** A node above a failed one is not reported as well.
+- **One cause gives one problem.** A node above a failed one is not reported as well, and neither is a node that
+  only depends on a cycle.
+- **A reused id keeps every node.** Adding a node with an id the draft already holds keeps both, and the build
+  reports `DuplicateId` once for that id. Nothing vanishes because something else was added.
+- **A relationship's solving role is never ignored.** An equality must state one; any other kind may state only
+  `Requirement`, and stating anything else is a `RoleNotAllowed` problem.
 
 ## Surprises
 
 - **`Remove` leaves references to the removed node in place**, and they come back as
-  `ReferenceNotFound`. Scrubbing them would silently discard structure the author built.
+  `ReferenceNotFound`. Scrubbing them would silently discard structure the author built. Where an id is reused,
+  `Remove` removes every node with it.
+- **Where an id is reused, `Expression(id)` and `Relationship(id)` return the first node added with it.** Two
+  expressions sharing an id are not built at all, because an operand naming that id could mean either.
 - **Changing a node's `Type` does not clear the fields that no longer apply.** A variable's `Symbol` survives
   being flipped to a product and back. Fields that do not apply to the current kind are ignored, not cleared.
 - **`OperandIds` accepts nulls**, which is how an opened-but-unfilled slot is represented. It is a plain

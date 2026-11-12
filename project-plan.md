@@ -395,14 +395,14 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
 
 - [x] **Uncertainty at and near zero — implementation.** Fixed: uncertainty now stores its error as *either* a relative fraction or an absolute KMS value, distinguished by a `bool IsStoredAsAbs` (a storage convention on what the `Magnitude` means; a genuinely different model like interval bounds would instead be a change at the `IUncertaintyPropagator` level). Absolute storage needs no divide-by-value, so a zero-valued result carries a meaningful error; `RelativeUncertainty(0)` returns `+∞` instead of throwing. Sums/differences propagate to an absolute-error result (no dividing by the summed value); products still compose relative errors. `ln(1)` and canceling sums no longer throw (regression tests in `Measurement.Test` and the updated `NaturalLogExpression` test). Serialization carries the storage flag.
 - [ ] **Uncertainty crossing zero for magnitudes** — tracked in [E2](#e--uncertainty-accuracy).
-- [ ] **A reused id replaces a draft node silently** — breaks [AU-3 and AU-23](specs/retroactive/authoring.md#7-findings) (F1). Keep both nodes and report `DuplicateId`; add the missing `DuplicateId` test (F9).
-- [ ] **An equality with no solving role builds as a requirement** — breaks [AU-21 and AU-29](specs/retroactive/authoring.md#7-findings) (F2). Report it as `RelationshipRuleMissing`.
-- [ ] **A solving role on a non-equality is ignored silently** — breaks [AU-21 and AU-40](specs/retroactive/authoring.md#7-findings) (F3). Report it as a new problem kind, `RoleNotAllowed`.
+- [x] **A reused id replaces a draft node silently** — breaks [AU-3 and AU-23](specs/retroactive/authoring.md#7-findings) (F1). Keep both nodes and report `DuplicateId`; add the missing `DuplicateId` test (F9).
+- [x] **An equality with no solving role builds as a requirement** — breaks [AU-21 and AU-29](specs/retroactive/authoring.md#7-findings) (F2). Report it as `RelationshipRuleMissing`.
+- [x] **A solving role on a non-equality is ignored silently** — breaks [AU-21 and AU-40](specs/retroactive/authoring.md#7-findings) (F3). Report it as a new problem kind, `RoleNotAllowed`.
 - [ ] **The draft document's JSON conventions live in `Api`, and a camelCase file reads as an empty draft** — breaks [DD-1](specs/retroactive/draft-document.md#9-findings) (DF6). Move the conventions into `Serialization`; match property names without regard to case.
 - [ ] **Reading a draft document throws, and stops at the first refusal** — breaks [DD-30 to DD-38](specs/retroactive/draft-document.md#9-findings) (DF2). Return an `Either` carrying every refusal with its kind and location.
 - [ ] **A draft document refuses two nodes with one id in one list** — breaks [DD-31](specs/retroactive/draft-document.md#9-findings) (DF1). Hold both and let the draft report `DuplicateId`. Do with Authoring F1.
 - [ ] **A draft document accepts what it should refuse** — breaks [DD-35 to DD-38](specs/retroactive/draft-document.md#9-findings): unknown properties (DF5), an uncertainty with no value (DF4), a partial comparison rule (DF7), a provenance missing a required field (DF3).
-- [ ] **A node above a cycle is reported as circular** — breaks [AU-31 and AU-35](specs/retroactive/authoring.md#7-findings) (F4). Report only the nodes in the cycle.
+- [x] **A node above a cycle is reported as circular** — breaks [AU-31 and AU-35](specs/retroactive/authoring.md#7-findings) (F4). Report only the nodes in the cycle.
 
 ---
 
