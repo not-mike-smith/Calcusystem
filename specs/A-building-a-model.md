@@ -296,7 +296,6 @@ Found while reviewing, and worth deciding before names copy their pattern:
 Each slice can merge on its own. The retroactive Authoring spec comes first (section 8).
 
 1. **Names.** `Variable.Symbol` becomes `Name` in the domain, snapshots, drafts, the wire, the API reports, the Examples' presentation and the editor. Computed nodes gain a name. Validity rules, uniqueness (`DuplicateName`, an atomic `Add`), and lookup by name.
-   - The editor's drafts saved in `localStorage` carry `Symbol`, so the editor reads the old field once or the rename discards them.
 2. **Fixed values.** The leaf interfaces; constant, reference value and scalar nodes; the `Givens` list; and snapshot, draft, wire and vocabulary forms.
 3. **Build through snapshots.** `SystemDraft.Build` builds every node through `FromSnapshot`; domain constructors become internal.
 4. **The model builder,** including handles and the power helper.
