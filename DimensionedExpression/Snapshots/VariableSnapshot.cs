@@ -6,8 +6,8 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// The complete snapshot of a <see cref="Expressions.Variable"/>.
 /// </summary>
 /// <remarks>
-/// A variable is the one expression that rebuilds from its own snapshot alone — it has no children to resolve — so
-/// it uses the self-contained seam rather than the node one. Its dimensionality is stored independently of its
+/// A variable rebuilds from its own snapshot alone — it has no children to resolve — so it uses the
+/// self-contained seam rather than the node one. Its dimensionality is stored independently of its
 /// value because a variable is dimensioned from the moment it is declared, whether or not it is yet bound.
 /// </remarks>
 /// <param name="Id">Stable identity.</param>

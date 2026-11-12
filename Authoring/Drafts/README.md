@@ -27,8 +27,19 @@ doubled.OperandIds.Add(m.Id);
 var built = draft.Build();   // Either<ExpressionSystem>
 ```
 
-Nodes are only ever created through `SystemDraft.AddExpression`, `AddVariable` and `AddRelationship` — the two
-draft types have internal constructors, so a node cannot exist outside the draft holding it.
+Fixed values have adders of their own, which set what each kind reads:
+
+```csharp
+var g = draft.AddConstant("g", Acceleration.MeterPerSecondSquared.Quantity(9.80665).WithoutUncertainty());
+var rho = draft.AddReferenceValue("ρ", Density.KgPerM3.Quantity(998).WithUncertainty(0.1.Percent()));
+var half = draft.AddScalar(0.5);
+
+var pressure = draft.AddExpression(ExpressionDraftType.Product);
+pressure.OperandIds.AddRange([half.Id, rho.Id, g.Id]);
+```
+
+Nodes are only ever created through `SystemDraft`'s `Add…` methods — the two draft types have internal
+constructors, so a node cannot exist outside the draft holding it.
 
 ## Guarantees
 
@@ -48,6 +59,13 @@ draft types have internal constructors, so a node cannot exist outside the draft
 - **Names are unique across expressions and relationships.** Each node whose name another node has is reported
   as `DuplicateName`. A variable with no name is `NameMissing`; a name the domain's rule refuses is
   `NameInvalid`.
+- **A fixed value builds into its own kind, never into a variable.** A `Constant` or `ReferenceValue` draft
+  becomes a node in the system's `Givens`; a `Scalar` draft becomes a `Scalar`. None is in `Variables`.
+- **A fixed value's kind is never switched.** A constant with uncertainty, a reference value without, and a
+  scalar with uncertainty or a dimension are each reported as `FixedValueInvalid`. One with no value is
+  `ValueMissing`.
+- **A leaf ignores `OperandIds`.** Operands left over from another kind, even an empty slot or a reference to
+  nothing, do not stop a variable or a fixed value building.
 - **A relationship's solving role is never ignored.** An equality must state one; any other kind may state only
   `Requirement`, and stating anything else is a `RoleNotAllowed` problem.
 
@@ -72,7 +90,12 @@ draft types have internal constructors, so a node cannot exist outside the draft
 - **An empty draft builds successfully**, into a system with nothing in it. Nothing is missing, so nothing is
   wrong.
 - **A variable with no dimensionality is a problem, not a default.** There is no dimensionless fallback, because
-  guessing one would silently build a different model than the one intended.
+  guessing one would silently build a different model than the one intended. The same holds for a constant
+  and a reference value, though their value has a dimensionality of its own: `AddConstant` and
+  `AddReferenceValue` declare the value's, and a node made with `AddExpression` must be given one.
+- **A scalar's name is ignored, not refused.** So are its `Dimensionality` and `Provenance`. The name is not
+  counted as a duplicate, is not checked, and `ByName` does not find the scalar by it.
+- **A variable may be left without a value; a fixed value may not.**
 - **`ValueUnit` records how a value was written, and decides nothing.** `Value` is the quantity, in KMS like
   everywhere else. The symbol exists so an editor can reopen a draft showing the number someone typed instead
   of the same quantity in base units; it is not carried into the built system, and a symbol naming no unit is

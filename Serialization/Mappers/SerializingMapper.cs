@@ -31,6 +31,8 @@ public class SerializingMapper
         };
 
         value.Variables.AddRange(system.Variables.Select(MapVariable));
+        value.Givens.AddRange(system.Givens.Select(MapFixedValue));
+        value.Scalars.AddRange(system.GetAllExpressions().OfType<Scalar>().Select(MapFixedValue));
 
         foreach (var dto in system.DerivedExpressions.Select(MapDerivedExpression))
         {
@@ -58,6 +60,22 @@ public class SerializingMapper
             Dimensionality = DimensionalityCodec.Encode(snapshot.Dimensionality),
             KmsValue = snapshot.Value?.Quantity.KmsValue,
             Uncertainty = snapshot.Value is { } value ? UncertaintyCodec.ToWire(value.Uncertainty) : null,
+            Provenance = snapshot.Provenance is { } provenance ? ProvenanceCodec.ToWire(provenance) : null,
+        };
+    }
+
+    public Dtos.FixedValue MapFixedValue(IFixedExpression fixedValue)
+    {
+        var snapshot = fixedValue.GetSnapshot();
+
+        return new Dtos.FixedValue
+        {
+            Id = snapshot.Id,
+            Type = WireNames.Of(snapshot.Type),
+            Name = snapshot.Name,
+            Dimensionality = DimensionalityCodec.Encode(snapshot.Value.Quantity.Dimensionality),
+            KmsValue = snapshot.Value.Quantity.KmsValue,
+            Uncertainty = UncertaintyCodec.ToWire(snapshot.Value.Uncertainty),
             Provenance = snapshot.Provenance is { } provenance ? ProvenanceCodec.ToWire(provenance) : null,
         };
     }

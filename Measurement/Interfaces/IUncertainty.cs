@@ -16,6 +16,13 @@ namespace Calcusystem.Measurement.Interfaces;
 /// </remarks>
 public interface IUncertainty
 {
+    /// <summary>Whether this is no uncertainty at all: zero above and below, whatever the nominal value.</summary>
+    /// <remarks>
+    /// Not the same as a zero absolute uncertainty at one value. A relative uncertainty on a value of zero has
+    /// absolute bounds of zero there and is not exact.
+    /// </remarks>
+    bool IsExact { get; }
+
     /// <summary>Absolute uncertainty above the nominal value in KMS units.</summary>
     double UpperAbsoluteUncertainty(double nominalKmsValue);
 

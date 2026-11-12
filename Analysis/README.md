@@ -37,6 +37,7 @@ flat.UnknownsWithNoEquation; // unknowns no equation touches (a constraint is no
 | --- | --- |
 | unbound `Variable` | an **unknown** (a column) |
 | bound `Variable` | nothing — it is already known |
+| constant, reference value or scalar | nothing — its value is fixed when it is built, so it is never an unknown |
 | computed node (`Product`, `Reciprocal`, …) | **nothing** — it is the *path* by which an equation reaches a leaf |
 | relationship where `IsDetermining`, with an unknown incident | an **equation** (a row) |
 | relationship where `IsDetermining`, with no unknown incident | a **redundancy check** — still an `Equation`, but not counted; see `RedundantEquations` |
@@ -44,7 +45,7 @@ flat.UnknownsWithNoEquation; // unknowns no equation touches (a constraint is no
 
 The third row is the one worth internalizing. Given `a`, `b = 1/a`, and the equation `b == c`, the flat system has columns `a` and `c` and one row; `b` appears only as incidence, putting a mark in column `a`. Admitting `b` as an unknown would add a column *and* force a compensating row (`b = 1/a`), leaving DoF unchanged while doubling the size of the problem. Only a `Variable` can be assigned, so only a `Variable` can be an unknown.
 
-A corollary worth relying on: **valuing a leaf and asserting an equation against a constant agree about DoF.** Setting `c.Value = 2 s` removes one column; writing `c == 2s` instead keeps that column but adds a row. The modeler's choice of style cannot corrupt the arithmetic.
+A corollary worth relying on: **valuing a variable and asserting an equation against a known value agree about DoF.** Setting `c.Value = 2 s` removes one column; writing `c == 2s` instead keeps that column but adds a row. The modeler's choice of style cannot corrupt the arithmetic.
 
 ---
 

@@ -6,8 +6,9 @@ The two closed sets authoring names: which kind of node to build, and why one ca
 
 | Type | Role |
 | --- | --- |
-| `ExpressionDraftType` | Which of the nine expression kinds a draft node is to become. |
+| `ExpressionDraftType` | Which kind of expression a draft node is to become. |
 | `DraftProblemKind` | Why a draft cannot be built, in a form a front-end can branch on. |
+| `ExpressionDraftTypeExtensions` | What a kind is: `IsLeaf()` (no operands), `IsQuantity()` (a variable, a constant or a reference value) and `ReadsOnlyItsValue()` (a scalar). |
 
 ## Guarantees
 
@@ -19,11 +20,12 @@ The two closed sets authoring names: which kind of node to build, and why one ca
 
 ## Surprises
 
-- **`ExpressionDraftType` is one flat set where the domain has three.** The snapshots group kinds by arity —
-  `UnaryExpressionType`, `NaryExpressionType`, `BinaryExpressionType` — because reconstruction dispatches on
-  arity. Nobody building a model thinks in arities, so authoring offers one list and converts.
-- **`Variable` is in it, and in none of the three.** A variable has a snapshot of its own rather than a kind
-  within a grouped one, being the only node rebuilt without resolving references.
+- **`ExpressionDraftType` is one flat set where the domain has several.** The snapshots group kinds by what
+  they store — `UnaryExpressionType`, `NaryExpressionType`, `BinaryExpressionType`, `FixedExpressionType` —
+  because reconstruction dispatches on it. Nobody building a model thinks in those groups, so authoring
+  offers one list and converts.
+- **`Variable` is in it, and in none of the domain's.** A variable has a snapshot of its own rather than a
+  kind within a grouped one.
 - **There is no draft enum for relationships.** `RelationshipDraft.Type` is `BinaryOperatorType` itself, which
   is already one flat set over all fourteen operators. Nothing to convert, so nothing to drift.
 - **`DraftProblemKind.DomainRule` is not a rule of this layer.** It means a domain constructor refused, and the
@@ -31,6 +33,11 @@ The two closed sets authoring names: which kind of node to build, and why one ca
   cannot be called until the shape is right.
 - **`NameInvalid` is checked here and decided by the domain.** The kind is this layer's; whether a name is
   valid, and the message, come from `DimensionedExpression`'s `NodeName.Problem`.
+- **`FixedValueInvalid` is checked here and decided by the domain**, as `NameInvalid` is. Which value a
+  constant, a reference value or a scalar accepts comes from `DimensionedExpression`'s
+  `FixedValueRule.Problem`. The kind also covers a value whose dimensionality is not the one the node declares,
+  which is this layer's own check.
+- **`NameMissing` and `DimensionalityMissing` apply to a constant and a reference value as to a variable.**
 - **`DuplicateName` is reported once for each node that has the name; `DuplicateId` once for the id.**
 
 ## What does not belong here

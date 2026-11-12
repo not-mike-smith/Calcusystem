@@ -289,4 +289,109 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
 
         (await Post("build", draft)).StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    // ── Spec A slice 2, over the wire: fixed values ──────────────────────────
+
+    /* F = 2·m·g, with g a constant and 2 a scalar: the draft document carries them as kinds of expression, in
+       the fields a variable uses. */
+    private static Dtos.SystemDraft WeightTwice(double? gravity = 9.80665) => new()
+    {
+        Id = "sys-2",
+        Name = "Twice the weight",
+        Expressions =
+        [
+            new Dtos.ExpressionDraft
+            {
+                Id = "var-m", Type = ExpressionDraftType.Variable, Name = "m", Dimensionality = "M1", KmsValue = 2,
+            },
+            new Dtos.ExpressionDraft
+            {
+                Id = "const-g", Type = ExpressionDraftType.Constant, Name = "g", Dimensionality = "L1,T-2",
+                KmsValue = gravity,
+            },
+            new Dtos.ExpressionDraft { Id = "scalar-2", Type = ExpressionDraftType.Scalar, KmsValue = 2 },
+            new Dtos.ExpressionDraft
+            {
+                Id = "expr-f", Type = ExpressionDraftType.Product, OperandIds = ["scalar-2", "var-m", "const-g"],
+            },
+        ],
+    };
+
+    [Fact]
+    public async Task ABuiltDraftListsItsGivensAndScalarsApartFromItsVariables()
+    {
+        var response = await Post("build", WeightTwice());
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var saved = await Read<Dtos.ExpressionSystem>(response);
+        saved.Variables.Select(v => v.Id).Should().Equal("var-m");
+        saved.Givens.Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Id = "const-g", Type = "Constant", Name = "g", KmsValue = 9.80665 });
+        saved.Scalars.Should().ContainSingle().Which.Id.Should().Be("scalar-2");
+    }
+
+    [Fact]
+    public async Task ACalculationUsesFixedValuesAndNeverCountsThemMissing()
+    {
+        var response = await Post("calculation", WeightTwice());
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var report = await Read<CalculationReport>(response);
+        report.IsComplete.Should().BeTrue();
+        report.MissingValueIds.Should().BeEmpty();
+        report.Values.Single(v => v.Id == "expr-f").Value.KmsValue.Should().BeApproximately(39.2266, 1e-9);
+        report.Values.Select(v => v.Id).Should().Contain(["const-g", "scalar-2"]);
+    }
+
+    [Fact]
+    public async Task AFixedValueIsNeverAnUnknown()
+    {
+        var response = await Post("decomposition", WeightTwice());
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var report = await Read<DecompositionReport>(response);
+        report.DegreesOfFreedom.Should().Be(0);
+        report.UnknownsWithNoEquationIds.Should().BeEmpty();
+    }
+
+    /* A fixed value's problems reach an editor as kinds it can branch on, by name. */
+    [Fact]
+    public async Task FixedValueProblemsAreReportedByKind()
+    {
+        var draft = WeightTwice(gravity: null);
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "scalar-kg", Type = ExpressionDraftType.Scalar, ValueDimensionality = "M1", KmsValue = 3,
+        });
+
+        var response = await Post("validation", draft);
+
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("\"ValueMissing\"").And.Contain("\"FixedValueInvalid\"");
+        var problems = JsonSerializer.Deserialize<List<DraftProblem>>(body, Wire.Options)!;
+        problems.Select(p => (p.NodeId, p.Kind)).Should().BeEquivalentTo(new[]
+        {
+            ((string?)"const-g", DraftProblemKind.ValueMissing),
+            ((string?)"scalar-kg", DraftProblemKind.FixedValueInvalid),
+        });
+    }
+
+    [Fact]
+    public async Task TheVocabularyOffersTheFixedKinds()
+    {
+        var vocabulary = await Read<VocabularyReport>(await Client.GetAsync("/api/vocabulary"));
+
+        vocabulary.ExpressionKinds.Should().Contain(["Constant", "ReferenceValue", "Scalar"]);
+    }
+
+    /* An editor's formula menu is every kind that is not a leaf. Which kinds those are is served, so the editor
+       holds no list of its own to fall out of step. */
+    [Fact]
+    public async Task TheVocabularySaysWhichKindsAreLeaves()
+    {
+        var vocabulary = await Read<VocabularyReport>(await Client.GetAsync("/api/vocabulary"));
+
+        vocabulary.LeafExpressionKinds.Should().BeEquivalentTo("Variable", "Constant", "ReferenceValue", "Scalar");
+        vocabulary.ExpressionKinds.Should().Contain(vocabulary.LeafExpressionKinds);
+    }
 }

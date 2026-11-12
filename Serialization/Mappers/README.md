@@ -14,6 +14,7 @@ assembly's behavior; everything else here is shape.
 | `DraftMapper` | static class | Draft ↔ DTOs. Both directions, no context, nothing ordered. |
 | `DimensionalityCodec` | static class | Encodes a dimensionality as `"M1,L1,T-2"`, and back. |
 | `UncertaintyCodec` | static class | The flat uncertainty DTO, both directions. |
+| `MeasurandCodec` | static class | Reads a value from its KMS number, encoded dimensionality and flat uncertainty. Internal. |
 | `ProvenanceCodec` | static class | The flat provenance DTO, both directions. |
 
 ## Start here
@@ -48,7 +49,9 @@ SystemDraft reopened = DraftMapper.FromWire(wire);
   diff, compare, or hash.
 - **A rebuild refuses rather than guesses.** An equality with no agreement rule, or a simple
   comparison with no rule, throws; a guessed reading is exactly the ambiguity that storing
-  them removed.
+  them removed. A constant written with an uncertainty throws too. It is not read as a
+  reference value. A scalar listed among the givens, or a given among the scalars, is a
+  `FormatException`.
 - **An unresolvable graph reports what was wrong with it.** `UnresolvableGraphException`
   carries the unbuilt, missing, and cyclic ids separately.
 - **A draft round trip changes nothing about the model.** An untyped node, an empty operand

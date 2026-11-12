@@ -35,6 +35,9 @@ public sealed class AsymmetricUncertainty : IUncertainty
     }
 
     /// <inheritdoc/>
+    public bool IsExact => UpperMagnitude == 0 && LowerMagnitude == 0;
+
+    /// <inheritdoc/>
     public double UpperAbsoluteUncertainty(double nominalKmsValue) => IsStoredAsAbs switch
     {
         true => UpperMagnitude,

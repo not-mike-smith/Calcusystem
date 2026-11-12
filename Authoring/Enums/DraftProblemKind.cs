@@ -28,7 +28,7 @@ public enum DraftProblemKind
     /// <summary>Two nodes in the draft claim the same id.</summary>
     DuplicateId,
 
-    /// <summary>A variable has no dimensionality, which it cannot be constructed without.</summary>
+    /// <summary>A variable, a constant or a reference value has no dimensionality declared.</summary>
     DimensionalityMissing,
 
     /// <summary>
@@ -50,7 +50,7 @@ public enum DraftProblemKind
     /// </summary>
     RoleNotAllowed,
 
-    /// <summary>A variable has no name.</summary>
+    /// <summary>A variable, a constant or a reference value has no name.</summary>
     NameMissing,
 
     /// <summary>A node's name breaks the rule for names. The message says how.</summary>
@@ -58,4 +58,13 @@ public enum DraftProblemKind
 
     /// <summary>Another node in the draft has the same name. Reported on each node that has it.</summary>
     DuplicateName,
+
+    /// <summary>A constant, a reference value or a scalar has no value. It cannot be left unset.</summary>
+    ValueMissing,
+
+    /// <summary>
+    /// A constant, a reference value or a scalar has a value its kind does not accept, or one whose
+    /// dimensionality is not the one declared. The message says how.
+    /// </summary>
+    FixedValueInvalid,
 }

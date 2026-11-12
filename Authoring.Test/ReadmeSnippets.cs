@@ -56,4 +56,22 @@ public class ReadmeSnippets
         system.Variables.Should().ContainSingle();
         system.DerivedExpressions.Should().ContainSingle();
     }
+
+    [Fact]
+    public void DraftsReadmeFixedValues()
+    {
+        var draft = SystemDraft.Create("a model", "");
+
+        var g = draft.AddConstant("g", Acceleration.MeterPerSecondSquared.Quantity(9.80665).WithoutUncertainty());
+        var rho = draft.AddReferenceValue("ρ", Density.KgPerM3.Quantity(998).WithUncertainty(0.1.Percent()));
+        var half = draft.AddScalar(0.5);
+
+        var pressure = draft.AddExpression(ExpressionDraftType.Product);
+        pressure.OperandIds.AddRange([half.Id, rho.Id, g.Id]);
+
+        var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
+
+        system.Givens.Should().HaveCount(2);
+        system.Variables.Should().BeEmpty();
+    }
 }

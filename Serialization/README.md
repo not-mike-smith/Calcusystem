@@ -35,6 +35,7 @@ DTOs are bucketed by **structural arity**, not by domain type — the concrete t
 | DTO (`Dtos/`) | Type | Domain types it carries |
 | --- | --- | --- |
 | `SingleVariable` | leaf: `Name`, `Dimensionality` (encoded string), `KmsValue?`, `Uncertainty?`, `Provenance?` | `Variable` |
+| `FixedValue` | leaf: `Name?`, `Dimensionality` (encoded string), `KmsValue`, `Uncertainty`, `Provenance?` | `Constant`, `ReferenceValue`, `Scalar` |
 | `SingleDerivedVariable` | one child: `InnerId`, `Name?` | `ReciprocalExpression`, `NegatedExpression`, `SqrtExpression`, `ExponentialExpression`, `NaturalLogExpression` |
 | `PairDerivedVariable` | two children: `InnerId1`, `InnerId2`, `Name?`, plus `UncertaintyCorrelation` | `QuotientExpression` |
 | `ListDerivedVariable` | n children: `InnerIds`, `Name?`, plus `UncertaintyCorrelation` | `ProductExpression`, `SumExpression` |
@@ -112,7 +113,7 @@ The most recent such break: `Dtos.BinaryOperator.IsDetermining` became `SolvingR
 
 The flattened lists arrive in arbitrary order, so a parent may be read before the children it references exist yet. `DeserializingMapper.MapAllDerivedExpressions` resolves this with a **worklist that retries**:
 
-1. Direct expressions (leaf `Variable`s) are mapped first — they have no dependencies — and registered in the `DeserializationContext` (an `Id → IExpression` dictionary).
+1. Leaves (`Variable`s and fixed values) are mapped first — they have no dependencies — and registered in the `DeserializationContext` (an `Id → IExpression` dictionary).
 2. Each derived-expression mapping is wrapped in a deferred function and queued. Running one either:
    - **succeeds** — all its child ids were already in the context — and the result is registered; or
    - **defers** — a child id isn't in the context yet, so the mapper returns `null` and the function is pushed to the back of the queue to try again later.

@@ -1,14 +1,15 @@
 # Calcusystem.DimensionedExpression.Snapshots
 
 What each node and relationship hands out so a graph can be rebuilt: flat, id-referenced, and
-grouped by arity.
+grouped by what must be stored.
 
 ## What's here
 
 | Type | Kind | Role |
 | --- | --- | --- |
 | `ExpressionSystemSnapshot` | readonly record struct | The system: its identity, metadata, and the ids it contains. |
-| `VariableSnapshot` | readonly record struct | A leaf: name, value, dimensionality, provenance. |
+| `VariableSnapshot` | readonly record struct | A variable: name, value, dimensionality, provenance. |
+| `FixedExpressionSnapshot` | readonly record struct | A constant, a reference value or a scalar: type, id, name, value, provenance. |
 | `UnaryExpressionSnapshot` | readonly record struct | One-argument node: type, id, inner id, optional name. |
 | `BinaryExpressionSnapshot` | readonly record struct | Two ordered children, the correlation assumption, optional name. |
 | `NaryExpressionSnapshot` | readonly record struct | Ordered child ids, the correlation assumption, optional name. |
@@ -22,8 +23,14 @@ var snapshot = variable.GetSnapshot();
 var restored = Variable.FromSnapshot(snapshot);
 ```
 
-`Variable` is the only one that rebuilds itself. Everything else names other nodes by id, so it
-goes through a factory with a resolver:
+A leaf names no other node, so it rebuilds from its snapshot alone. A fixed value goes through the factory,
+which picks the kind:
+
+```csharp
+ExpressionFactory.FromSnapshot(fixedSnapshot);
+```
+
+Everything else names other nodes by id, so it goes through a factory with a resolver:
 
 ```csharp
 ExpressionFactory.FromSnapshot(unarySnapshot, resolve);
@@ -37,6 +44,8 @@ ProvenanceFactory.FromSnapshot(provenanceSnapshot);
   shared nodes and could not express the sharing at all.
 - **Grouping is by arity, not by operation.** The five unary kinds differ in what they compute,
   not in what must be stored, so one record with a `Type` discriminator covers all of them.
+- **`ExpressionSystemSnapshot` lists every node once.** Variables, givens, scalars and computed nodes each
+  have an id list, so a scalar nothing refers to still survives.
 - **Reconstruction refuses rather than guesses.** An equality with no agreement rule, or a
   simple comparison with no rule, throws — a guessed reading is the ambiguity that storing them
   removed.
@@ -52,6 +61,8 @@ ProvenanceFactory.FromSnapshot(provenanceSnapshot);
 - **`BinaryOperatorSnapshot` carries two fields most operators never use.** `Agreement` is set
   only for an equality and `Rule` only for a `SimpleComparison`; both are null otherwise. The
   alternative was a record per operator kind, for two fields.
+- **`FixedExpressionSnapshot.Name` and `Provenance` are null for a scalar, and must be.** A scalar's snapshot
+  that carries either is refused. A constant's or a reference value's with no name is refused too.
 - **`ProvenanceSnapshot` is the union of all four kinds' fields**, discriminated by `Type`, and
   only the ones belonging to that kind are populated.
 - **Only `SolvingRole` survives for equalities.** Every other operator kind is a requirement by

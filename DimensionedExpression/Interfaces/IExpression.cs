@@ -7,7 +7,7 @@ using Calcusystem.Measurement.Primitives;
 namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
-/// A node in a dimensioned expression tree — a leaf variable or a computed combination of other nodes.
+/// A node in a dimensioned expression tree — a leaf, or a computed combination of other nodes.
 /// A node's <see cref="Dimensionality"/> is always known (structural), but its value is produced
 /// only once every leaf it depends on has been given a value.
 /// </summary>
@@ -21,8 +21,8 @@ public interface IExpression : IIdentified
     string? Name { get; }
 
     /// <summary>
-    /// Whether this node's value can be set directly. True for leaf variables (<see cref="IDirectExpression"/>);
-    /// false for computed nodes, whose value derives from their children.
+    /// Whether this node's value can be set directly. True for a variable (<see cref="IDirectExpression"/>);
+    /// false for a fixed value and for a computed node.
     /// </summary>
     bool IsDirectlyMutable { get; }
 
@@ -115,10 +115,36 @@ public interface IComputedExpression : IExpression
     UncertaintyCorrelation UncertaintyCorrelation { get; set; }
 }
 
+/// <summary>An <see cref="IExpression"/> with no children: its value is held, not computed.</summary>
+public interface ILeafExpression : IExpression
+{
+    /// <summary>The leaf's value, or null where it has none yet.</summary>
+    Measurand? Value { get; }
+}
+
+/// <summary>
+/// A leaf whose value is given when it is built and never changes: a constant, a reference value or a scalar.
+/// </summary>
+/// <remarks>
+/// Never an unknown and never unset. It cannot be overridden in a calculation; overrides are keyed by
+/// <see cref="Variable"/>.
+/// </remarks>
+public interface IFixedExpression : ILeafExpression
+{
+    /// <summary>The leaf's value. Never null.</summary>
+    new Measurand Value { get; }
+
+    /// <summary>Where the value came from, or null when untracked. Always null for a scalar.</summary>
+    IProvenance? Provenance { get; }
+
+    /// <summary>The complete snapshot defining this node, which names its kind.</summary>
+    Snapshots.FixedExpressionSnapshot GetSnapshot();
+}
+
 /// <summary>
 /// An <see cref="IExpression"/> whose value is set directly rather than computed — a mutable leaf.
 /// </summary>
-public interface IDirectExpression : IExpression
+public interface IDirectExpression : ILeafExpression
 {
     /// <summary>
     /// The leaf's stored value, settable. Assigning a <see cref="Measurand"/> whose dimensionality does not
@@ -130,5 +156,5 @@ public interface IDirectExpression : IExpression
     /// a leaf to walk, so reading it really is field access. The names differ to keep that cost difference
     /// visible.
     /// </remarks>
-    Measurand? Value { get; set; }
+    new Measurand? Value { get; set; }
 }

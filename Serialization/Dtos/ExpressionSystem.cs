@@ -13,6 +13,13 @@ public class ExpressionSystem : ISerializedObject
     // adding to the existing instance — so every list came back empty with no error raised. Covered by
     // JsonRoundTripTests.
     public List<SingleVariable> Variables { get; init; } = new();
+
+    /// <summary>The constants and reference values.</summary>
+    public List<FixedValue> Givens { get; init; } = new();
+
+    /// <summary>The scalars.</summary>
+    public List<FixedValue> Scalars { get; init; } = new();
+
     public List<SingleDerivedVariable> SingleDerivedVariables { get; init; } = new();
     public List<ListDerivedVariable> ListDerivedVariables { get; init; } = new();
     public List<PairDerivedVariable> PairDerivedVariables { get; init; } = new();

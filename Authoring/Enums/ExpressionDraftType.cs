@@ -4,8 +4,8 @@ namespace Calcusystem.Authoring.Enums;
 /// Which kind of expression a draft node is to become.
 /// </summary>
 /// <remarks>
-/// One flat set over all nine node kinds, where the snapshots group them by arity across three enums. An author
-/// picks from a single list — the arity grouping exists so reconstruction can dispatch on it, which is not a
+/// One flat set over every node kind, where the snapshots group them by what they store across several enums. An author
+/// picks from a single list — the grouping exists so reconstruction can dispatch on it, which is not a
 /// question anyone building a model asks. <c>DraftTypeCoverageTests</c> holds the two in step.
 /// </remarks>
 public enum ExpressionDraftType
@@ -36,4 +36,13 @@ public enum ExpressionDraftType
 
     /// <summary>Natural log of its one operand, which must be dimensionless and positive.</summary>
     NaturalLog,
+
+    /// <summary>A named value with no uncertainty, fixed when the model is built.</summary>
+    Constant,
+
+    /// <summary>A named value with uncertainty, fixed when the model is built.</summary>
+    ReferenceValue,
+
+    /// <summary>An unnamed, dimensionless coefficient with no uncertainty.</summary>
+    Scalar,
 }

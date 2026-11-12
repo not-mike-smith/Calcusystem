@@ -42,6 +42,9 @@ return Reporting.Report(flat, flat.Decompose());
 
 ## Surprises
 
+- **The vocabulary says which expression kinds are leaves.** `LeafExpressionKinds` is the kinds with no
+  operands, as `ExpressionDraftType.IsLeaf()` answers, so a client sorts its rows and fills its formula menu
+  without a list of its own.
 - **Values are KMS doubles, and no unit is named on one.** A dimensionality is encoded
   (`"M1,L1,T-2"`), and `UnitCatalogueReport` says how to convert — but which unit to show is the
   client's choice, and nothing on the wire remembers what an author typed.

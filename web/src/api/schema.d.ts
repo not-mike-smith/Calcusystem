@@ -446,7 +446,7 @@ export interface components {
          * @description Why a draft cannot be built, in a form a front-end can branch on without reading the message.
          * @enum {unknown}
          */
-        DraftProblemKind: "TypeNotChosen" | "OperandMissing" | "OperandCountWrong" | "ReferenceNotFound" | "CircularReference" | "DuplicateId" | "DimensionalityMissing" | "RelationshipRuleMissing" | "DomainRule" | "RoleNotAllowed" | "NameMissing" | "NameInvalid" | "DuplicateName";
+        DraftProblemKind: "TypeNotChosen" | "OperandMissing" | "OperandCountWrong" | "ReferenceNotFound" | "CircularReference" | "DuplicateId" | "DimensionalityMissing" | "RelationshipRuleMissing" | "DomainRule" | "RoleNotAllowed" | "NameMissing" | "NameInvalid" | "DuplicateName" | "ValueMissing" | "FixedValueInvalid";
         /** @description A determining relationship, and which unknowns it reaches. */
         EquationReport: {
             RelationshipId: string;
@@ -483,17 +483,35 @@ export interface components {
             UncertaintyCorrelation?: null | components["schemas"]["UncertaintyCorrelation"];
         };
         /** @enum {unknown} */
-        ExpressionDraftType: "Variable" | "Sum" | "Product" | "Quotient" | "Negated" | "Reciprocal" | "Sqrt" | "Exponential" | "NaturalLog" | null;
+        ExpressionDraftType: "Variable" | "Sum" | "Product" | "Quotient" | "Negated" | "Reciprocal" | "Sqrt" | "Exponential" | "NaturalLog" | "Constant" | "ReferenceValue" | "Scalar" | null;
         ExpressionSystem: {
             Id: string;
             Type: string;
             Name: string;
             Description: string;
             Variables?: components["schemas"]["SingleVariable"][];
+            /** @description The constants and reference values. */
+            Givens?: components["schemas"]["FixedValue"][];
+            /** @description The scalars. */
+            Scalars?: components["schemas"]["FixedValue"][];
             SingleDerivedVariables?: components["schemas"]["SingleDerivedVariable"][];
             ListDerivedVariables?: components["schemas"]["ListDerivedVariable"][];
             PairDerivedVariables?: components["schemas"]["PairDerivedVariable"][];
             Relationships?: components["schemas"]["BinaryOperator"][];
+        };
+        /** @description A constant, a reference value or a scalar: a leaf whose value is fixed. */
+        FixedValue: {
+            /** @description The node's name. Null for a scalar, and only for one. */
+            Name?: null | string;
+            /** @description The value's dimension, encoded as string SingleVariable.Dimensionality is. */
+            Dimensionality: string;
+            /** Format: double */
+            KmsValue: number | string;
+            /** @description The value's uncertainty. Exact for a constant and a scalar. */
+            Uncertainty: components["schemas"]["Uncertainty"];
+            Provenance?: null | components["schemas"]["Provenance"];
+            Type: string;
+            Id: string;
         };
         /** @enum {unknown} */
         Landmark: "LowerBound" | "Nominal" | "UpperBound" | null;
@@ -687,13 +705,26 @@ export interface components {
         };
         /** @description Every choice a client can offer an author, by the name the wire uses for it. */
         VocabularyReport: {
+            /** @description Every kind of expression. */
             ExpressionKinds: string[];
+            /**
+             * @description The kinds among ExpressionKinds that have no operands. Every other kind is computed from
+             *     its operands.
+             */
+            LeafExpressionKinds: string[];
+            /** @description Every kind of relationship. */
             RelationshipKinds: string[];
+            /** @description What a relationship can do to the problem. */
             SolvingRoles: string[];
+            /** @description How strictly an equality can read equal. */
             AgreementRules: string[];
+            /** @description The landmarks a comparison rule can name. */
             Landmarks: string[];
+            /** @description The comparisons a comparison rule can make. */
             Comparisons: string[];
+            /** @description How a computed node's operands can correlate. */
             UncertaintyCorrelations: string[];
+            /** @description The fundamental dimensions. */
             Dimensions: components["schemas"]["DimensionReport"][];
         };
     };

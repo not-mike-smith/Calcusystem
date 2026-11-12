@@ -54,7 +54,7 @@ A dashed arrow means *design together*, not *finish first*. Decide how propagati
 
 | Feature set | Status | Spec |
 | --- | --- | --- |
-| A — Building a model in C# code | In progress: slice 1 (names) done | [Draft](specs/A-building-a-model.md) |
+| A — Building a model in C# code | In progress: slices 1 (names) and 2 (fixed values) done | [Draft](specs/A-building-a-model.md) |
 | B — Saving and loading | Not started | [Draft](specs/B-saving-and-loading.md) |
 | C — The editor | C1 not started; an editor exists (see M4.5) | Not written; UX still settling |
 | D — The solver | Coarse decomposition done | Not written |
@@ -113,9 +113,9 @@ Depends on: the retroactive Authoring spec (see Chores), because every C# model 
 
 **Fixed values:**
 
-- [ ] Constant, reference value and scalar node kinds, under a shared `IFixedExpression`, none of them in `system.Variables`.
-  - [ ] Its snapshot, draft and wire forms, and a vocabulary entry.
-  - [ ] `Flatten` and `Calculate` treat it as valued.
+- [x] Constant, reference value and scalar node kinds, under a shared `IFixedExpression`, none of them in `system.Variables`.
+  - [x] Its snapshot, draft and wire forms, and a vocabulary entry.
+  - [x] `Flatten` and `Calculate` treat it as valued.
 
 **Model builder:**
 

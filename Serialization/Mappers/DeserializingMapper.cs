@@ -39,6 +39,16 @@ public class DeserializingMapper
             _context.AddLoadedNode(MapVariableByPattern(dto));
         }
 
+        foreach (var dto in x.Givens)
+        {
+            _context.AddLoadedNode(InItsOwnList(MapFixedValueByPattern(dto), isScalarList: false));
+        }
+
+        foreach (var dto in x.Scalars)
+        {
+            _context.AddLoadedNode(InItsOwnList(MapFixedValueByPattern(dto), isScalarList: true));
+        }
+
         MapAllDerivedExpressions(x);
 
         foreach (var dto in x.Relationships)
@@ -53,6 +63,8 @@ public class DeserializingMapper
                 x.Name,
                 x.Description,
                 x.Variables.Select(d => d.Id).ToList(),
+                x.Givens.Select(d => d.Id).ToList(),
+                x.Scalars.Select(d => d.Id).ToList(),
                 x.SingleDerivedVariables.Select(d => d.Id)
                     .Concat(x.ListDerivedVariables.Select(d => d.Id))
                     .Concat(x.PairDerivedVariables.Select(d => d.Id))
@@ -131,6 +143,8 @@ public class DeserializingMapper
         Dtos.ExpressionSystem x)
     {
         var idsInPayload = x.Variables.Select(d => d.Id)
+            .Concat(x.Givens.Select(d => d.Id))
+            .Concat(x.Scalars.Select(d => d.Id))
             .Concat(x.SingleDerivedVariables.Select(d => d.Id))
             .Concat(x.ListDerivedVariables.Select(d => d.Id))
             .Concat(x.PairDerivedVariables.Select(d => d.Id))
@@ -160,6 +174,23 @@ public class DeserializingMapper
         _ => throw new NotImplementedException(
             $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
     };
+
+    /// <summary>Refuses a scalar listed among the givens, and a given listed among the scalars.</summary>
+    /// <exception cref="FormatException">The node is in the list for the other kind.</exception>
+    private static IFixedExpression InItsOwnList(IFixedExpression node, bool isScalarList) =>
+        node is Scalar == isScalarList
+            ? node
+            : throw new FormatException(
+                $"The fixed value '{node.Id}' is a {node.GetType().Name}, which does not belong in " +
+                $"{(isScalarList ? nameof(Dtos.ExpressionSystem.Scalars) : nameof(Dtos.ExpressionSystem.Givens))}.");
+
+    public IFixedExpression MapFixedValueByPattern(Dtos.FixedValue x) => ExpressionFactory.FromSnapshot(
+        new FixedExpressionSnapshot(
+            WireNames.FixedType(x.Type),
+            x.Id,
+            x.Name,
+            MeasurandCodec.FromWire(x.KmsValue, x.Dimensionality, x.Uncertainty),
+            ProvenanceCodec.FromWire(x.Provenance)));
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.SingleDerivedVariable x)
     {
@@ -225,10 +256,6 @@ public class DeserializingMapper
             v.Id,
             v.Name,
             DimensionalityCodec.Decode(v.Dimensionality),
-            v.KmsValue is { } kms
-                ? new MeasurandSnapshot(
-                    new QuantitySnapshot(kms, DimensionalityCodec.Decode(v.Dimensionality)),
-                    UncertaintyCodec.FromWire(v.Uncertainty))
-                : null,
+            v.KmsValue is { } kms ? MeasurandCodec.FromWire(kms, v.Dimensionality, v.Uncertainty) : null,
             ProvenanceCodec.FromWire(v.Provenance)));
 }

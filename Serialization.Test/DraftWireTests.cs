@@ -208,6 +208,85 @@ public class DraftWireTests
             .Should().BeEquivalentTo(original.Match(s => s.Variables.Select(v => v.Id), _ => []));
     }
 
+    /* DD-11, as Spec A slice 2 widens it: the fixed kinds are names of `Type`, and they reuse the fields a
+       variable has. No new field. */
+    [Fact]
+    public void FixedValuesSurviveTheWireAndBuildTheSameSystem()
+    {
+        var draft = SystemDraft.Create("fixed values");
+        var g = draft.AddConstant(
+            "g", new Quantity(9.80665, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time)).WithoutUncertainty(), "const-g");
+        g.ValueUnit = "m/s²";
+        draft.AddReferenceValue("G", Mass.Kilogram.Quantity(3).WithUncertainty(1.0.Percent()), "ref-G");
+        draft.AddScalar(2, "scalar-2");
+        draft.AddScalar(id: "scalar-unset");
+
+        var restored = ThroughJson(draft);
+
+        restored.Expressions.Select(e => (e.Id, e.Type)).Should().BeEquivalentTo(new[]
+        {
+            ("const-g", (ExpressionDraftType?)ExpressionDraftType.Constant),
+            ("ref-G", (ExpressionDraftType?)ExpressionDraftType.ReferenceValue),
+            ("scalar-2", (ExpressionDraftType?)ExpressionDraftType.Scalar),
+            ("scalar-unset", (ExpressionDraftType?)ExpressionDraftType.Scalar),
+        });
+        restored.Expression("const-g")!.Value!.KmsValue.Should().Be(9.80665);
+        restored.Expression("const-g")!.ValueUnit.Should().Be("m/s²");
+        restored.Expression("ref-G")!.Value!.RelativeUncertainty.Should().BeApproximately(0.01, 1e-12);
+        restored.Expression("scalar-2")!.Value!.Dimensionality.Should().Be(Dimensionality.Dimensionless);
+        restored.Expression("scalar-unset")!.Value.Should().BeNull();
+        restored.Validate().Should().BeEquivalentTo(draft.Validate());
+
+        restored.Remove("scalar-unset");
+        restored.Build().Match(s => s.Givens.Select(given => given.Id), _ => [])
+            .Should().BeEquivalentTo("const-g", "ref-G");
+    }
+
+    /* AU-50 on the wire. A scalar ignores the dimensionality its node declares, so its value must not take one
+       from there: a row flipped to a scalar with its old dimensionality left in place reads as the in-memory
+       draft does, and builds. */
+    [Fact]
+    public void AScalarsValueDoesNotTakeTheNodesDeclaredDimensionality()
+    {
+        var wire = new Dtos.SystemDraft
+        {
+            Expressions = [new Dtos.ExpressionDraft { Id = "s", Type = ExpressionDraftType.Scalar, Dimensionality = "M1", KmsValue = 3 }],
+        };
+
+        var draft = DraftMapper.FromWire(wire);
+
+        draft.Expression("s")!.Value!.Dimensionality.Should().Be(Dimensionality.Dimensionless);
+        draft.Validate().Should().BeEmpty();
+    }
+
+    /* DD-27 for a scalar: a value that is wrongly dimensioned is still wrongly dimensioned after the trip,
+       whether or not the node declares the same dimensionality. */
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AScalarsDimensionedValueStillDisagreesAfterTheWire(bool declaresTheSame)
+    {
+        var draft = SystemDraft.Create("mistaken");
+        var scalar = draft.AddScalar(id: "s");
+        scalar.Value = Mass.Kilogram.Quantity(3).WithoutUncertainty();
+        if (declaresTheSame) scalar.Dimensionality = Dimensionality.Mass;
+
+        var restored = ThroughJson(draft);
+
+        restored.Expression("s")!.Value!.Dimensionality.Should().Be(Dimensionality.Mass);
+        restored.Expression("s")!.Dimensionality.Should().Be(scalar.Dimensionality);
+        restored.Validate().Should().ContainSingle().Which.Kind.Should().Be(DraftProblemKind.FixedValueInvalid);
+    }
+
+    [Fact]
+    public void TheWireNamesTheFixedKindsByName()
+    {
+        var draft = SystemDraft.Create("kinds");
+        draft.AddScalar(2);
+
+        JsonSerializer.Serialize(DraftMapper.ToWire(draft), Options).Should().Contain("\"Type\":\"Scalar\"");
+    }
+
     /* A draft keys its nodes by id, so a repeated one would displace the node already held and the draft would
        come back missing a node nobody deleted. */
     [Fact]

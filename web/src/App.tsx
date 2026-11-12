@@ -3,6 +3,7 @@ import {
   units as readUnits,
   vocabulary as readVocabulary,
   type DraftProblem,
+  type ExpressionDraft,
   type MeasurandReport,
   type OutcomeReport,
   type SystemDraft,
@@ -16,6 +17,7 @@ import { PosednessPanel } from "./components/PosednessPanel";
 import { DraftProblems } from "./components/ProblemList";
 import { ExpressionRow } from "./components/ExpressionRow";
 import { RelationshipRow } from "./components/RelationshipRow";
+import { FixedValueRow } from "./components/FixedValueRow";
 import { VariableRow } from "./components/VariableRow";
 import * as Draft from "./model/draft";
 import { useAnalysis } from "./model/useAnalysis";
@@ -51,8 +53,17 @@ export function App() {
   const analysis = useAnalysis(draft);
 
   const expressions = Draft.expressionsOf(draft);
+  // Which kinds have no operands is served. A variable has a row of its own; any other leaf is a fixed value.
+  const leafKinds = useMemo(() => new Set<string>(vocabulary?.LeafExpressionKinds ?? []), [vocabulary]);
+  const formulaKinds = useMemo(
+    () => (vocabulary?.ExpressionKinds ?? []).filter((kind) => !leafKinds.has(kind)),
+    [vocabulary, leafKinds],
+  );
+  const isLeaf = (e: ExpressionDraft) => e.Type != null && leafKinds.has(e.Type);
   const variables = expressions.filter((e) => e.Type === "Variable");
-  const derived = expressions.filter((e) => e.Type !== "Variable");
+  const others = expressions.filter((e) => e.Type !== "Variable");
+  const fixedValues = others.filter(isLeaf);
+  const derived = others.filter((e) => !isLeaf(e));
   const relationships = Draft.relationshipsOf(draft);
 
   const problemsBy = useMemo(() => byNode(analysis.problems), [analysis.problems]);
@@ -135,6 +146,22 @@ export function App() {
             ))}
           </section>
 
+          {/* Shown only where a draft holds one: the editor cannot add or edit a fixed value. */}
+          {fixedValues.length > 0 && (
+            <section className="panel">
+              <h2>Fixed values</h2>
+              {fixedValues.map((node) => (
+                <FixedValueRow
+                  key={node.Id}
+                  node={node}
+                  problems={problemsBy.get(node.Id ?? "") ?? []}
+                  computed={valueOf.get(node.Id ?? "") ?? null}
+                  onRemove={() => setDraft(Draft.removeNode(draft, node.Id!))}
+                />
+              ))}
+            </section>
+          )}
+
           <section className="panel">
             <h2>
               Formulas
@@ -145,7 +172,7 @@ export function App() {
               <ExpressionRow
                 key={expression.Id}
                 expression={expression}
-                kinds={(vocabulary.ExpressionKinds ?? []).filter((kind) => kind !== "Variable")}
+                kinds={formulaKinds}
                 operands={expressions.filter((e) => e.Id !== expression.Id)}
                 problems={problemsBy.get(expression.Id ?? "") ?? []}
                 computed={valueOf.get(expression.Id ?? "") ?? null}

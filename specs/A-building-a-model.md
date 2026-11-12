@@ -299,7 +299,7 @@ Found while reviewing, and worth deciding before names copy their pattern:
 Each slice can merge on its own. The retroactive Authoring spec comes first (section 8).
 
 1. **Names.** `Variable.Symbol` becomes `Name` in the domain, snapshots, drafts, the wire, the API reports, the Examples' presentation and the editor. Computed nodes gain a name. Validity rules, uniqueness (`DuplicateName`, an atomic `Add`), and lookup by name. **Done** (decisions S1-1 to S1-7).
-2. **Fixed values.** The leaf interfaces; constant, reference value and scalar nodes; the `Givens` list; and snapshot, draft, wire and vocabulary forms.
+2. **Fixed values.** The leaf interfaces; constant, reference value and scalar nodes; the `Givens` list; and snapshot, draft, wire and vocabulary forms. **Done** (decisions S2-1 to S2-11).
 3. **Build through snapshots.** `SystemDraft.Build` builds every node through `FromSnapshot`; domain constructors become internal.
 4. **The model builder,** including handles and the power helper.
 5. **The printer,** including correlation marks.
@@ -353,6 +353,17 @@ Each slice can merge on its own. The retroactive Authoring spec comes first (sec
 | S1-7 | Naming a computed node in the editor | The editor offers a name on each formula, prefilled with the first unused `eq-N`. Clearing it leaves the node unnamed. The default lives in the editor, not in the draft or the domain. |
 | S1-8 | Invisible characters outside Cf and Cc | Also invalid: any space but U+0020, line and paragraph separators, and a fixed, best-effort list of characters that render as nothing. Decided 2026-11-12, after slice 1's review. |
 | S1-9 | A system document with a bad name | Refused on load, with no empty-means-none mapping. A built system with a malformed name should not be read. |
+| S2-1 | Where scalars live in a system | In a list of their own that is not public, with its own id list in the system's snapshot. `GetAllExpressions` includes them; `Variables` and `Givens` do not. |
+| S2-2 | Constructors of the fixed-value nodes | Internal from the start, with a public `FromSnapshot`. Slice 3 does the same to every other node. |
+| S2-3 | What a draft reports for a fixed value | New draft problem kinds. A missing value is a shape the draft checks. Which values a kind accepts (a constant has no uncertainty, a reference value has some, a scalar is exact and dimensionless) is the domain's rule, asked of the domain and stated once, as S1-2 does for names. |
+| S2-4 | A scalar draft with a name | The name is ignored, as any field that does not apply to a node's kind is. |
+| S2-5 | Fixed values in the editor | The editor does not offer the fixed kinds in its formula menu. Editing them is C1's. Which kinds are leaves is served in the vocabulary, and a fixed value a draft already holds is shown read-only. |
+| S2-6 | Unset values, overrides and missing values | Stay typed to `Variable`. A fixed value is never unset and cannot be overridden. |
+| S2-7 | A fixed value's snapshot | One snapshot for every fixed kind, with a kind discriminator, as the unary kinds have. Decided during implementation. |
+| S2-8 | A refused value in a draft | One problem kind, `FixedValueInvalid`, carrying the domain's message, as `NameInvalid` does. A missing value is `ValueMissing`. Decided during implementation. |
+| S2-9 | A given's dimensionality in a draft | A constant and a reference value draft must declare a dimensionality, as a variable must, and the value must have it. A scalar draft declares none. Without this a value written with no dimensionality would build as a dimensionless constant silently. Decided during implementation. |
+| S2-10 | What "no uncertainty" means | The uncertainty is zero whatever the value. A relative uncertainty on a value of zero is still an uncertainty, so zero ± 5 % is a reference value. Decided during implementation. |
+| S2-11 | A scalar's value on the wire | A scalar draft's value never takes the node's declared dimensionality, which a scalar ignores. It is dimensionless unless the document's `ValueDimensionality` says otherwise. Decided during implementation. |
 | — | Reading text | Out of A. Moved to Spec H, after C1 and D. |
 | — | Printed text | Human-readable, and not required to parse. |
 

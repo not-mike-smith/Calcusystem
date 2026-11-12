@@ -1,6 +1,6 @@
 # Calcusystem.DimensionedExpression.Interfaces
 
-The three contracts this layer is written against: a node in an expression graph, a
+The contracts this layer is written against: a node in an expression graph, a
 relationship between two of them, and where a value came from.
 
 ## What's here
@@ -9,7 +9,9 @@ relationship between two of them, and where a value came from.
 | --- | --- | --- |
 | `IExpression` | interface | Any node: knows its dimensionality always, its value only when it can. |
 | `IComputedExpression` | interface | An `IExpression` that computes from children, so it carries a correlation assumption. |
-| `IDirectExpression` | interface | An `IExpression` whose value is set rather than computed — a mutable leaf. |
+| `ILeafExpression` | interface | An `IExpression` with no children. Its `Value` is held, and readable. |
+| `IFixedExpression` | interface | A leaf whose value is given when it is built and never changes. |
+| `IDirectExpression` | interface | A leaf whose value is set and can be unset — a mutable leaf. |
 | `IBinaryOperator` | interface | A relationship over two expressions, and what it asserts about them. |
 | `IProvenance` | interface | Where a value came from, with the audit metadata for its kind. |
 
@@ -34,6 +36,8 @@ rel.SolvingRole;                    // Requirement / Equation / Coherence
 - **Dimensionality is total; value is partial.** Ask for a dimensionality at any time. A null
   from `ComputeIfFullyDescribed()` *is* the "not yet" answer, so prefer checking the result
   over calling `IsFullyDescribed` first — the latter is itself a walk.
+- **`IFixedExpression.Value` is never null.** A fixed value is never unset and never an unknown.
+  `ILeafExpression.Value` may be null, because a variable is a leaf too.
 - **A verdict is three-valued.** `IsSatisfiedGiven` returns `bool?`, and `null` means the
   comparison had no answer — different dimensions, a `NaN`, same-signed infinities. It reaches
   a report as undetermined, never as a violation.
@@ -55,6 +59,11 @@ rel.SolvingRole;                    // Requirement / Equation / Coherence
 - **Only `IDirectExpression` has a settable `Value`.** Structure is fixed at construction —
   there is no way to add an operand or re-point a relationship's side — while what a leaf is
   *worth* stays mutable.
+- **A fixed value and a variable are siblings, not parent and child.** Code that wants any leaf's value asks
+  for `ILeafExpression`. `IFixedExpression` promises the value never changes, which a variable cannot.
+- **`IFixedExpression.Provenance` is always null for a scalar.**
+- **Every fixed value hands out one kind of snapshot.** `IFixedExpression.GetSnapshot()` returns a
+  `FixedExpressionSnapshot` that names its kind, so a caller need not know the concrete type.
 - **`IComputedExpression.UncertaintyCorrelation` is a statement about the model, not a method.**
   It says whether *these* operands' uncertainties move together; the numerical method is the
   `IUncertaintyPropagator` a calculation supplies, and both are passed on together.

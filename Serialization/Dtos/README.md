@@ -7,7 +7,8 @@ The wire shape of a saved system and of a draft of one: flat, id-referenced, and
 | Type | Kind | Role |
 | --- | --- | --- |
 | `ExpressionSystem` | class | The document root. Holds all lists of expressions and relationships. |
-| `SingleVariable` | class | A leaf, with its name, value, dimensionality, and provenance. |
+| `SingleVariable` | class | A variable, with its name, value, dimensionality, and provenance. |
+| `FixedValue` | class | A constant, a reference value or a scalar: a leaf whose value is fixed. |
 | `SingleDerivedVariable` | class | A one-argument expression, by the id of its inner node, with an optional name. |
 | `PairDerivedVariable` | class | A two-argument expression, by two ids, with an optional name. |
 | `ListDerivedVariable` | class | An n-ary expression, by an ordered list of ids, with an optional name. |
@@ -44,6 +45,8 @@ var json = JsonSerializer.Serialize(wire);
   parents is written once and the sharing survives a round trip.
 - **Grouping is by arity, not by operation.** One list per shape — single, pair, list — because
   the kinds differ in what they compute, not in what must be stored to rebuild them.
+- **Fixed values are in two lists of one shape.** `Givens` holds the constants and reference values, and
+  `Scalars` the scalars, both as `FixedValue`. `Type` says which kind a node is, and a node in the list for another kind is refused on load.
 - **Property names are the JSON field names.** There is no naming policy in between, so
   renaming a property here is a wire break.
 
@@ -56,6 +59,8 @@ var json = JsonSerializer.Serialize(wire);
 - **`Provenance` is the union of all four kinds' fields**, discriminated by `Type`, and only the
   fields belonging to that kind are populated. The kinds differ in metadata, not behavior, so
   a flat shape costs nothing and keeps the seam non-generic.
+- **A draft has no field for a fixed value.** A constant, a reference value and a scalar are names
+  of `ExpressionDraft.Type`, and they use the fields a variable uses.
 - **Not everything is `required`.** A field added after payloads were already written is
   deliberately optional, so that older documents still load with the default that matches what
   they meant.
@@ -64,6 +69,8 @@ var json = JsonSerializer.Serialize(wire);
 - **`ExpressionDraft` carries two dimensionalities.** `ValueDimensionality` is written only
   where the value disagrees with the node's declared one, which an editor can reach and the
   build reports. Reading it back without that field would mend the model in transit.
+- **A scalar draft's value does not take the node's `Dimensionality`.** A scalar ignores what it declares, so
+  its `KmsValue` is dimensionless unless `ValueDimensionality` says otherwise.
 - **`ExpressionDraft.OperandIds` holds nulls.** An opened-but-unfilled slot is a `null` entry,
   and the order is the operand order — a quotient divides the first by the second.
 
