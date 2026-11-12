@@ -188,6 +188,9 @@ Depends on: C1 needs A and B. C2 needs D and E. **C1 may move after D** while th
   - [ ] Reordering operands.
   - [ ] What deleting a node does to the references to it.
 - [ ] Show draft warnings beside the problems (see the *Draft warnings* chore).
+- [ ] **Half-typed text should not be judged.** `useAnalysis` already waits 300 ms after the last change before posting the draft, but a pause mid-name ("flow " on the way to "flow rate") still posts a name ending in a space, which comes back as `NameInvalid` and blanks everything computed from that node until the next keystroke. Found in Spec A slice 1's review; name fields trim on blur in the meantime.
+  - [ ] Decide the fix when the C1 spec is written: a longer or per-field delay, holding back a field that still has focus, or judging the trimmed text.
+  - [ ] Checking the debounce behavior is part of C1's checklist: a test that a half-typed field does not blank computed values, and that a finished edit is still judged promptly.
 - [ ] Undo and redo.
 - [ ] Front-end tests: a browser test that opens each Example and checks what it computes, and tests for the building blocks.
 - [ ] Density: the editor seen at forty rows, on a projector, and in print (see *Not settled* in `web/PATTERNS.md`).
@@ -199,7 +202,6 @@ Depends on: C1 needs A and B. C2 needs D and E. **C1 may move after D** while th
 - [ ] Correlations shown and overridable (E1).
 - [ ] The uncertainty budget (E2).
 - [ ] The confidence level a passing relationship reached (E2).
-- [ ] **Half-typed text should not be judged.** `useAnalysis` already waits 300 ms after the last change before posting the draft, but a pause mid-name ("flow " on the way to "flow rate") still posts a name ending in a space, which comes back as `NameInvalid` and blanks everything computed from that node until the next keystroke. Decide the fix when the C2 spec is written: a longer or per-field delay, holding back a field that still has focus, or judging the trimmed text. Found in Spec A slice 1's review; name fields trim on blur in the meantime.
 
 ---
 
