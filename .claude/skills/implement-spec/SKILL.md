@@ -11,6 +11,8 @@ Implement `$ARGUMENTS`: a spec in `specs/`, and optionally which of its slices. 
 
 Commit points are marked **⟶ commit**. At each one: commit with a message in this repository's style, and push. `master` is protected — never commit to it.
 
+**Never merge the pull request,** and never approve it. Merging is the user's decision, or a review agent's when the user delegates it. This skill ends with the pull request ready for review.
+
 **The pull request is a draft until the implementation is complete.** Create it as a draft at the first commit (`gh pr create --draft`), and mark it ready at the end of step 10 (`gh pr ready`). CI skips drafts, so it runs from that point on; to check a draft earlier, run it by hand with `gh workflow run ci.yml --ref <branch>`. If `gh pr create` or `gh pr ready` fails on a GitHub API error unrelated to the change, fall back to `gh api` (the REST `pulls` endpoint, or the GraphQL `markPullRequestReadyForReview` mutation).
 
 ---
