@@ -29,9 +29,6 @@ public sealed class Constant : FixedExpressionBase, ISnapshotting<Constant, Fixe
     /// <summary>What the model calls this constant. Never null.</summary>
     public new string Name => base.Name!;
 
-    /// <inheritdoc/>
-    public FixedExpressionSnapshot GetSnapshot() => Snapshot(FixedExpressionType.Constant);
-
     /// <summary><inheritdoc/></summary>
     /// <exception cref="ArgumentException">The snapshot is not a constant's.</exception>
     /// <exception cref="InvalidNameException">The snapshot's name is missing or not a valid name.</exception>

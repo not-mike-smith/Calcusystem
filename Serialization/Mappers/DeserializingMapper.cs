@@ -39,9 +39,14 @@ public class DeserializingMapper
             _context.AddLoadedNode(MapVariableByPattern(dto));
         }
 
-        foreach (var dto in x.Givens.Concat(x.Scalars))
+        foreach (var dto in x.Givens)
         {
-            _context.AddLoadedNode(MapFixedValueByPattern(dto));
+            _context.AddLoadedNode(InItsOwnList(MapFixedValueByPattern(dto), isScalarList: false));
+        }
+
+        foreach (var dto in x.Scalars)
+        {
+            _context.AddLoadedNode(InItsOwnList(MapFixedValueByPattern(dto), isScalarList: true));
         }
 
         MapAllDerivedExpressions(x);
@@ -169,6 +174,15 @@ public class DeserializingMapper
         _ => throw new NotImplementedException(
             $"No deserialization method defined for SingleVariable object with saved type, {x.Type}")
     };
+
+    /// <summary>Refuses a scalar listed among the givens, and a given listed among the scalars.</summary>
+    /// <exception cref="FormatException">The node is in the list for the other kind.</exception>
+    private static IFixedExpression InItsOwnList(IFixedExpression node, bool isScalarList) =>
+        node is Scalar == isScalarList
+            ? node
+            : throw new FormatException(
+                $"The fixed value '{node.Id}' is a {node.GetType().Name}, which does not belong in " +
+                $"{(isScalarList ? nameof(Dtos.ExpressionSystem.Scalars) : nameof(Dtos.ExpressionSystem.Givens))}.");
 
     public IFixedExpression MapFixedValueByPattern(Dtos.FixedValue x) => ExpressionFactory.FromSnapshot(
         new FixedExpressionSnapshot(

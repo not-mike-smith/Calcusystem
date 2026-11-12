@@ -46,7 +46,7 @@ var json = JsonSerializer.Serialize(wire);
 - **Grouping is by arity, not by operation.** One list per shape — single, pair, list — because
   the kinds differ in what they compute, not in what must be stored to rebuild them.
 - **Fixed values are in two lists of one shape.** `Givens` holds the constants and reference values, and
-  `Scalars` the scalars, both as `FixedValue`. `Type` says which of the three a node is.
+  `Scalars` the scalars, both as `FixedValue`. `Type` says which kind a node is, and a node in the list for another kind is refused on load.
 - **Property names are the JSON field names.** There is no naming policy in between, so
   renaming a property here is a wire break.
 
@@ -59,7 +59,7 @@ var json = JsonSerializer.Serialize(wire);
 - **`Provenance` is the union of all four kinds' fields**, discriminated by `Type`, and only the
   fields belonging to that kind are populated. The kinds differ in metadata, not behavior, so
   a flat shape costs nothing and keeps the seam non-generic.
-- **A draft has no field for a fixed value.** A constant, a reference value and a scalar are three more names
+- **A draft has no field for a fixed value.** A constant, a reference value and a scalar are names
   of `ExpressionDraft.Type`, and they use the fields a variable uses.
 - **Not everything is `required`.** A field added after payloads were already written is
   deliberately optional, so that older documents still load with the default that matches what
@@ -69,6 +69,8 @@ var json = JsonSerializer.Serialize(wire);
 - **`ExpressionDraft` carries two dimensionalities.** `ValueDimensionality` is written only
   where the value disagrees with the node's declared one, which an editor can reach and the
   build reports. Reading it back without that field would mend the model in transit.
+- **A scalar draft's value does not take the node's `Dimensionality`.** A scalar ignores what it declares, so
+  its `KmsValue` is dimensionless unless `ValueDimensionality` says otherwise.
 - **`ExpressionDraft.OperandIds` holds nulls.** An opened-but-unfilled slot is a `null` entry,
   and the order is the operand order — a quotient divides the first by the second.
 

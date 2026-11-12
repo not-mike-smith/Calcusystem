@@ -1,4 +1,5 @@
 using Calcusystem.Authoring.Drafts;
+using Calcusystem.Authoring.Enums;
 using Calcusystem.DimensionedExpression.BinaryOperators;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.Measurement.Enums;
@@ -126,7 +127,7 @@ public static class DraftMapper
     {
         if (wire.KmsValue is not { } kms) return null;
 
-        var dimensionality = DimensionalityCodec.Decode(wire.ValueDimensionality ?? wire.Dimensionality);
+        var dimensionality = DimensionalityCodec.Decode(wire.ValueDimensionality ?? DeclaredFor(wire.Type, wire.Dimensionality));
 
         return Measurand.FromSnapshot(
             new MeasurandSnapshot(
@@ -144,10 +145,18 @@ public static class DraftMapper
     {
         if (draft.Value is not { } value) return null;
 
-        var declared = draft.Dimensionality ?? Dimensionality.Dimensionless;
+        var declared = DeclaredFor(draft.Type, draft.Dimensionality) ?? Dimensionality.Dimensionless;
 
         return value.Dimensionality == declared ? null : Encode(value.Dimensionality);
     }
+
+    /// <summary>The dimensionality a node's kind reads from what it declares: none for a scalar.</summary>
+    /// <remarks>
+    /// A scalar ignores its declared dimensionality, so its value must not take one from there. A scalar's
+    /// value is dimensionless unless <c>ValueDimensionality</c> says otherwise.
+    /// </remarks>
+    private static T? DeclaredFor<T>(ExpressionDraftType? type, T? declared) =>
+        type is ExpressionDraftType.Scalar ? default : declared;
 
     private static string? Encode(Dimensionality? dimensionality) =>
         dimensionality is { } present ? DimensionalityCodec.Encode(present.GetSnapshot()) : null;

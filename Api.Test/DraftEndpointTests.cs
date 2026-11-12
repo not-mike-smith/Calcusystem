@@ -361,7 +361,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         var draft = WeightTwice(gravity: null);
         draft.Expressions.Add(new Dtos.ExpressionDraft
         {
-            Id = "scalar-kg", Type = ExpressionDraftType.Scalar, Dimensionality = "M1", KmsValue = 3,
+            Id = "scalar-kg", Type = ExpressionDraftType.Scalar, ValueDimensionality = "M1", KmsValue = 3,
         });
 
         var response = await Post("validation", draft);
@@ -382,5 +382,16 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         var vocabulary = await Read<VocabularyReport>(await Client.GetAsync("/api/vocabulary"));
 
         vocabulary.ExpressionKinds.Should().Contain(["Constant", "ReferenceValue", "Scalar"]);
+    }
+
+    /* An editor's formula menu is every kind that is not a leaf. Which kinds those are is served, so the editor
+       holds no list of its own to fall out of step. */
+    [Fact]
+    public async Task TheVocabularySaysWhichKindsAreLeaves()
+    {
+        var vocabulary = await Read<VocabularyReport>(await Client.GetAsync("/api/vocabulary"));
+
+        vocabulary.LeafExpressionKinds.Should().BeEquivalentTo("Variable", "Constant", "ReferenceValue", "Scalar");
+        vocabulary.ExpressionKinds.Should().Contain(vocabulary.LeafExpressionKinds);
     }
 }

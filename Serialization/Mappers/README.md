@@ -49,7 +49,8 @@ SystemDraft reopened = DraftMapper.FromWire(wire);
 - **A rebuild refuses rather than guesses.** An equality with no agreement rule, or a simple
   comparison with no rule, throws; a guessed reading is exactly the ambiguity that storing
   them removed. A constant written with an uncertainty throws too. It is not read as a
-  reference value.
+  reference value. A scalar listed among the givens, or a given among the scalars, is a
+  `FormatException`.
 - **An unresolvable graph reports what was wrong with it.** `UnresolvableGraphException`
   carries the unbuilt, missing, and cyclic ids separately.
 - **A draft round trip changes nothing about the model.** An untyped node, an empty operand

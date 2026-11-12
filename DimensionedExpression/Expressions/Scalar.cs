@@ -20,9 +20,6 @@ public sealed class Scalar : FixedExpressionBase, ISnapshotting<Scalar, FixedExp
     internal Scalar(Measurand value, string id)
         : base(FixedExpressionType.Scalar, value, id) { }
 
-    /// <inheritdoc/>
-    public FixedExpressionSnapshot GetSnapshot() => Snapshot(FixedExpressionType.Scalar);
-
     /// <summary><inheritdoc/></summary>
     /// <exception cref="ArgumentException">The snapshot is not a scalar's, or it has a name or a provenance.</exception>
     /// <exception cref="InvalidFixedValueException">The snapshot's value has uncertainty or a dimension.</exception>

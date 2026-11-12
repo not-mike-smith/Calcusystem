@@ -41,6 +41,7 @@ public static class Reporting
     /// </remarks>
     public static VocabularyReport Vocabulary() => new(
         Enum.GetNames<ExpressionDraftType>(),
+        Enum.GetValues<ExpressionDraftType>().Where(kind => kind.IsLeaf()).Select(kind => kind.ToString()).ToList(),
         Enum.GetNames<BinaryOperatorType>(),
         Enum.GetNames<SolvingRole>(),
         Enum.GetNames<AgreementRule>(),

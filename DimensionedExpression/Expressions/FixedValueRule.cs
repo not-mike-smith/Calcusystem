@@ -10,7 +10,8 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <item>A reference value has some.</item>
 /// <item>A scalar has no uncertainty and is dimensionless.</item>
 /// </list>
-/// A value has no uncertainty when both of its absolute bounds are zero.
+/// A value has no uncertainty when its uncertainty is zero whatever the value. A relative uncertainty on a
+/// value of zero is still an uncertainty, though its absolute bounds there are zero.
 /// </remarks>
 public static class FixedValueRule
 {
@@ -19,7 +20,10 @@ public static class FixedValueRule
     /// </summary>
     public static string? Problem(FixedExpressionType kind, Measurand value)
     {
-        var exact = value.KmsUpperAbsoluteUncertainty == 0 && value.KmsLowerAbsoluteUncertainty == 0;
+        // Asked at a nominal value of one, where a relative and an absolute magnitude both read as themselves.
+        // Asked at the value itself, a relative uncertainty on zero would read as none.
+        var exact = value.Uncertainty.UpperAbsoluteUncertainty(1) == 0
+                    && value.Uncertainty.LowerAbsoluteUncertainty(1) == 0;
 
         return kind switch
         {

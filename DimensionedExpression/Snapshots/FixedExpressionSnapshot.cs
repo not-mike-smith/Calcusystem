@@ -7,7 +7,7 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// The complete snapshot of a fixed value: a <see cref="Expressions.Constant"/>, a
 /// <see cref="Expressions.ReferenceValue"/> or a <see cref="Expressions.Scalar"/>.
 /// </summary>
-/// <param name="Type">Which of the three to rebuild.</param>
+/// <param name="Type">Which kind to rebuild.</param>
 /// <param name="Id">Stable identity.</param>
 /// <param name="Name">The name. Null for a scalar, and only for one.</param>
 /// <param name="Value">Its value and uncertainty. The dimensionality is the value's.</param>

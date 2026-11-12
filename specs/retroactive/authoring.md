@@ -39,7 +39,7 @@ Test names below are in `Authoring.Test/SystemDraftTests.cs` unless stated.
 | | • **Every kind but a scalar:** `Name`. | |
 | | • **Variable, Constant, ReferenceValue:** `Dimensionality`, `Value`, `Provenance`. | |
 | | • **Scalar:** `Value` only. Its `Name`, `Dimensionality` and `Provenance` are ignored (AU-50). | |
-| | • **Every leaf (those four kinds):** `OperandIds` is ignored (AU-52). | |
+| | • **Every leaf (the kinds above):** `OperandIds` is ignored (AU-52). `ExpressionDraftType.IsLeaf()` says which kinds those are. | |
 | | • **Sum, Product, Quotient:** `OperandIds`, `UncertaintyCorrelation`. | |
 | | • **Negated, Reciprocal, Sqrt, Exponential, NaturalLog:** `OperandIds` only. | |
 | AU-11 | `OperandIds` is ordered. A null or blank entry is an empty slot. Order matters where the kind cares: a quotient divides the first operand by the second. | `AnEmptyOperandSlotIsReported` |

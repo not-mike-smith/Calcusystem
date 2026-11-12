@@ -64,17 +64,11 @@ public class SerializingMapper
         };
     }
 
-    /// <remarks>The type switch only picks which node to ask for its snapshot, as for a derived expression.</remarks>
     public Dtos.FixedValue MapFixedValue(IFixedExpression fixedValue)
     {
-        var snapshot = fixedValue switch
-        {
-            Constant x => x.GetSnapshot(),
-            ReferenceValue x => x.GetSnapshot(),
-            Scalar x => x.GetSnapshot(),
-            _ => throw new NotImplementedException(
-                $"No mapping for fixed value of type {fixedValue.GetType().Name}"),
-        };
+        var snapshot = fixedValue is FixedExpressionBase known
+            ? known.GetSnapshot()
+            : throw new NotImplementedException($"No mapping for fixed value of type {fixedValue.GetType().Name}");
 
         return new Dtos.FixedValue
         {

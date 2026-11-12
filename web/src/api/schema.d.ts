@@ -705,13 +705,26 @@ export interface components {
         };
         /** @description Every choice a client can offer an author, by the name the wire uses for it. */
         VocabularyReport: {
+            /** @description Every kind of expression. */
             ExpressionKinds: string[];
+            /**
+             * @description The kinds among ExpressionKinds that have no operands. Every other kind is computed from
+             *     its operands.
+             */
+            LeafExpressionKinds: string[];
+            /** @description Every kind of relationship. */
             RelationshipKinds: string[];
+            /** @description What a relationship can do to the problem. */
             SolvingRoles: string[];
+            /** @description How strictly an equality can read equal. */
             AgreementRules: string[];
+            /** @description The landmarks a comparison rule can name. */
             Landmarks: string[];
+            /** @description The comparisons a comparison rule can make. */
             Comparisons: string[];
+            /** @description How a computed node's operands can correlate. */
             UncertaintyCorrelations: string[];
+            /** @description The fundamental dimensions. */
             Dimensions: components["schemas"]["DimensionReport"][];
         };
     };

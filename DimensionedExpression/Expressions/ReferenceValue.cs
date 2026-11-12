@@ -28,9 +28,6 @@ public sealed class ReferenceValue : FixedExpressionBase, ISnapshotting<Referenc
     /// <summary>What the model calls this reference value. Never null.</summary>
     public new string Name => base.Name!;
 
-    /// <inheritdoc/>
-    public FixedExpressionSnapshot GetSnapshot() => Snapshot(FixedExpressionType.ReferenceValue);
-
     /// <summary><inheritdoc/></summary>
     /// <exception cref="ArgumentException">The snapshot is not a reference value's.</exception>
     /// <exception cref="InvalidNameException">The snapshot's name is missing or not a valid name.</exception>

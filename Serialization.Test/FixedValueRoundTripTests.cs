@@ -127,6 +127,27 @@ public class FixedValueRoundTripTests
         act.Should().Throw<NotImplementedException>();
     }
 
+    /* Each list holds its own kinds. A scalar among the givens would load and then save under Scalars, so the
+       document would not come back as it went; a constant among the scalars would fail later, as a reference
+       to nothing. Both are refused where they are read. */
+    [Fact]
+    public void AFixedValueInTheOtherKindsListIsRefused()
+    {
+        var scalarAmongGivens = ThroughJson(new SerializingMapper().Map(Furnished()));
+        scalarAmongGivens.Givens.Add(scalarAmongGivens.Scalars[0]);
+        scalarAmongGivens.Scalars.Clear();
+
+        var givenAmongScalars = ThroughJson(new SerializingMapper().Map(Furnished()));
+        givenAmongScalars.Scalars.Add(givenAmongScalars.Givens[0]);
+        givenAmongScalars.Givens.RemoveAt(0);
+
+        var first = () => new DeserializingMapper(new DeserializationContext()).Map(scalarAmongGivens);
+        var second = () => new DeserializingMapper(new DeserializationContext()).Map(givenAmongScalars);
+
+        first.Should().Throw<FormatException>().WithMessage("*Givens*");
+        second.Should().Throw<FormatException>().WithMessage("*Scalars*");
+    }
+
     /* A system document is refused when it would not build, as S1-9 has it for names: a constant written with
        an uncertainty is not read as a reference value. */
     [Fact]

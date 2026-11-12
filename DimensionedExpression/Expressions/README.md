@@ -1,6 +1,6 @@
 # Calcusystem.DimensionedExpression.Expressions
 
-The nodes a formula is built from: a settable leaf, three fixed ones, and the ways to combine them.
+The nodes a formula is built from: a settable leaf, the fixed ones, and the ways to combine them.
 
 ## What's here
 
@@ -20,7 +20,7 @@ The nodes a formula is built from: a settable leaf, three fixed ones, and the wa
 | `NaturalLogExpression` | class | `ln x` — requires a dimensionless operand. |
 | `ExpressionBase` | abstract class | Identity, the derived walks, and cycle detection. |
 | `ComputedExpressionBase` | abstract class | Adds the correlation assumption; not directly mutable. |
-| `FixedExpressionBase` | abstract class | What the three fixed values share: a value that never changes. |
+| `FixedExpressionBase` | abstract class | What every fixed value shares: a value that never changes, and its snapshot. |
 | `FixedValueRule` | static class | Which value each kind of fixed value accepts. |
 | `ExpressionFactory` | static class | Rebuilds a node from its snapshot. |
 

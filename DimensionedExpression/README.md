@@ -77,12 +77,13 @@ is never an unknown, and a calculation cannot override it.
 **The wrong kind is refused, never switched.** A constant given a value with uncertainty throws
 `InvalidFixedValueException`; it does not become a reference value. The rule is stated once, in
 `FixedValueRule.Problem(kind, value)`, which the constructors throw and a draft reports. A value has no
-uncertainty when both of its absolute bounds are zero.
+uncertainty when its uncertainty is zero whatever the value, so zero ± 5 % is a reference value's value, not
+a constant's.
 
 A fixed value and a variable are sibling leaves. A variable's value can change, so it cannot be a kind of
 fixed value, whose interface promises that it never does.
 
-**None of the three has a public constructor.** A model builds them through a `SystemDraft`
+**No fixed value has a public constructor.** A model builds them through a `SystemDraft`
 (`Calcusystem.Authoring`); a persistence layer rebuilds them with `ExpressionFactory.FromSnapshot`.
 
 ### Expression node types (`Expressions/`)

@@ -19,8 +19,11 @@ public abstract class FixedExpressionBase : ExpressionBase, IFixedExpression
 
         if (FixedValueRule.Problem(kind, value) is { } problem) throw new InvalidFixedValueException(problem);
 
+        _kind = kind;
         Value = value;
     }
+
+    private readonly FixedExpressionType _kind;
 
     /// <inheritdoc/>
     public Measurand Value { get; }
@@ -51,8 +54,9 @@ public abstract class FixedExpressionBase : ExpressionBase, IFixedExpression
     /// <summary>The name, or the number for a scalar.</summary>
     public override string ToString() => Name ?? Value.KmsValue.ToString(CultureInfo.InvariantCulture);
 
-    private protected FixedExpressionSnapshot Snapshot(FixedExpressionType kind) =>
-        new(kind, Id, Name, Value.GetSnapshot(), Provenance?.GetSnapshot());
+    /// <summary>Returns the complete snapshot defining this instance.</summary>
+    public FixedExpressionSnapshot GetSnapshot() =>
+        new(_kind, Id, Name, Value.GetSnapshot(), Provenance?.GetSnapshot());
 
     /// <summary>The checked parts of a snapshot that names <paramref name="kind"/>.</summary>
     /// <exception cref="ArgumentException">The snapshot is of another kind.</exception>

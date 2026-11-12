@@ -191,6 +191,28 @@ public class DraftFixedValueTests
         });
     }
 
+    /* S2-10. Zero ± 5 % has absolute bounds of zero and is still a reference value, not a constant. */
+    [Fact]
+    public void AReferenceValueOfZeroWithARelativeUncertaintyBuilds()
+    {
+        var draft = SystemDraft.Create("zero");
+        draft.AddReferenceValue(
+            "offset", new Quantity(0, Dimensionality.Length).Measurand(SymmetricUncertainty.FromRelative(0.05)));
+
+        Built(draft).Givens.Single().Should().BeOfType<ReferenceValue>();
+    }
+
+    /* AU-39, for the question more than one layer asks: every kind either is a leaf or takes operands. */
+    [Fact]
+    public void TheLeafKindsAreTheVariableAndTheFixedValues()
+    {
+        Enum.GetValues<ExpressionDraftType>().Where(kind => kind.IsLeaf()).Should().BeEquivalentTo(new[]
+        {
+            ExpressionDraftType.Variable, ExpressionDraftType.Constant,
+            ExpressionDraftType.ReferenceValue, ExpressionDraftType.Scalar,
+        });
+    }
+
     /* AU-49 (S2-9): an editor can declare one dimensionality and leave a value of another, as with a variable. */
     [Fact]
     public void AGivenWhoseValueDisagreesWithItsDeclaredDimensionalityIsReported()

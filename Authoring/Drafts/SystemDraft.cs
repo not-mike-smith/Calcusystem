@@ -369,7 +369,7 @@ public sealed class SystemDraft
                 continue;
             }
 
-            if (IsLeaf(type))
+            if (type.IsLeaf())
             {
                 if (LeafProblem(draft, type) is { } badLeaf)
                 {
@@ -419,9 +419,6 @@ public sealed class SystemDraft
 
         return candidates;
     }
-
-    private static bool IsLeaf(ExpressionDraftType type) =>
-        type is ExpressionDraftType.Variable || FixedKind(type) is not null;
 
     /// <summary>The domain's kind of fixed value for a draft kind, or null where the kind is not one.</summary>
     private static FixedExpressionType? FixedKind(ExpressionDraftType type) => type switch
@@ -525,7 +522,7 @@ public sealed class SystemDraft
             {
                 var draft = remaining[i];
                 // A leaf reads no operands, so ones left over from another kind do not hold it back.
-                if (! IsLeaf(draft.Type!.Value) && ! draft.OperandIds.All(id => resolved.Holds(id!))) continue;
+                if (! draft.Type!.Value.IsLeaf() && ! draft.OperandIds.All(id => resolved.Holds(id!))) continue;
 
                 remaining.RemoveAt(i);
                 progressed = true;
@@ -603,9 +600,7 @@ public sealed class SystemDraft
     {
         ExpressionDraftType.Variable => BuildVariable(draft),
 
-        ExpressionDraftType.Constant => Fixed(draft, FixedExpressionType.Constant),
-        ExpressionDraftType.ReferenceValue => Fixed(draft, FixedExpressionType.ReferenceValue),
-        ExpressionDraftType.Scalar => Fixed(draft, FixedExpressionType.Scalar),
+        { } type when FixedKind(type) is { } kind => Fixed(draft, kind),
 
         ExpressionDraftType.Sum => ExpressionFactory.FromSnapshot(Nary(draft, NaryExpressionType.Sum), resolve),
         ExpressionDraftType.Product => ExpressionFactory.FromSnapshot(Nary(draft, NaryExpressionType.Product), resolve),

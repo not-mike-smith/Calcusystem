@@ -150,6 +150,30 @@ public class FixedValueTests
         FixedValueRule.Problem(FixedExpressionType.ReferenceValue, oneSided).Should().BeNull();
     }
 
+    /* A relative uncertainty on a value of zero has absolute bounds of zero there. It is still an uncertainty
+       the author supplied, so the value is a reference value's and not a constant's. */
+    [Fact]
+    public void ARelativeUncertaintyOnAValueOfZeroIsStillAnUncertainty()
+    {
+        var zeroButUncertain = new Quantity(0, Dimensionality.Mass).Measurand(SymmetricUncertainty.FromRelative(0.05));
+        var zeroAndExact = new Quantity(0, Dimensionality.Mass).WithoutUncertainty();
+
+        zeroButUncertain.KmsAbsoluteUncertainty.Should().Be(0);
+        FixedValueRule.Problem(FixedExpressionType.ReferenceValue, zeroButUncertain).Should().BeNull();
+        FixedValueRule.Problem(FixedExpressionType.Constant, zeroButUncertain).Should().NotBeNull();
+        FixedValueRule.Problem(FixedExpressionType.Constant, zeroAndExact).Should().BeNull();
+        FixedValueRule.Problem(FixedExpressionType.ReferenceValue, zeroAndExact).Should().NotBeNull();
+    }
+
+    /* An absolute uncertainty of zero is no uncertainty, however it is stored. */
+    [Fact]
+    public void AnAbsoluteUncertaintyOfZeroIsExact()
+    {
+        var value = new Quantity(5, Dimensionality.Mass).WithUncertainty(new Quantity(0, Dimensionality.Mass));
+
+        FixedValueRule.Problem(FixedExpressionType.Constant, value).Should().BeNull();
+    }
+
     /* §4.2 item 1: the wrong kind is refused, never switched silently. The message is the rule's. */
     [Fact]
     public void AConstantWithUncertaintyIsRefused()
