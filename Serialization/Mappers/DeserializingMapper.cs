@@ -167,7 +167,7 @@ public class DeserializingMapper
 
         _context.ReferencingDto = x;
         return ExpressionFactory.FromSnapshot(
-            new UnaryExpressionSnapshot(WireNames.UnaryType(x.Type), x.Id, x.InnerId),
+            new UnaryExpressionSnapshot(WireNames.UnaryType(x.Type), x.Id, x.InnerId, x.Name),
             _context);
     }
 
@@ -177,7 +177,7 @@ public class DeserializingMapper
 
         _context.ReferencingDto = x;
         return ExpressionFactory.FromSnapshot(
-            new NaryExpressionSnapshot(WireNames.NaryType(x.Type), x.Id, x.InnerIds, x.UncertaintyCorrelation),
+            new NaryExpressionSnapshot(WireNames.NaryType(x.Type), x.Id, x.InnerIds, x.UncertaintyCorrelation, x.Name),
             _context);
     }
 
@@ -188,7 +188,7 @@ public class DeserializingMapper
         _context.ReferencingDto = x;
         return ExpressionFactory.FromSnapshot(
             new BinaryExpressionSnapshot(
-                WireNames.BinaryType(x.Type), x.Id, x.InnerId1, x.InnerId2, x.UncertaintyCorrelation),
+                WireNames.BinaryType(x.Type), x.Id, x.InnerId1, x.InnerId2, x.UncertaintyCorrelation, x.Name),
             _context);
     }
 
@@ -223,7 +223,7 @@ public class DeserializingMapper
     public Variable MapVariable(Dtos.SingleVariable v) => Variable.FromSnapshot(
         new VariableSnapshot(
             v.Id,
-            v.Symbol,
+            v.Name,
             DimensionalityCodec.Decode(v.Dimensionality),
             v.KmsValue is { } kms
                 ? new MeasurandSnapshot(

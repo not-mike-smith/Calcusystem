@@ -105,7 +105,7 @@ input, select, button {
 
 input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-input.symbol { width: 110px; font-weight: 600; }
+input.name { width: 110px; font-weight: 600; }
 input.number { width: 92px; }
 input.title, input.subtitle { background: none; border: none; padding: 2px 0; }
 

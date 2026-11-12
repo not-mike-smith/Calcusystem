@@ -10,8 +10,10 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// <param name="Id">Stable identity.</param>
 /// <param name="InnerIds">Ids of the children, in order.</param>
 /// <param name="UncertaintyCorrelation">Whether the children's uncertainties are treated as correlated.</param>
+/// <param name="Name">The node's name, or null for an unnamed one.</param>
 public readonly record struct NaryExpressionSnapshot(
     NaryExpressionType Type,
     string Id,
     IReadOnlyList<string> InnerIds,
-    UncertaintyCorrelation UncertaintyCorrelation);
+    UncertaintyCorrelation UncertaintyCorrelation,
+    string? Name = null);

@@ -107,7 +107,7 @@ public class JsonRoundTripTests
         var restored = RoundTripThroughJson(system);
 
         var variable = restored.Variables.Single();
-        variable.Symbol.Should().Be("F");
+        variable.Name.Should().Be("F");
         variable.Dimensionality.Should().Be(force);
         variable.Dimensionality.Should().NotBe(Dimensionality.Dimensionless);
     }

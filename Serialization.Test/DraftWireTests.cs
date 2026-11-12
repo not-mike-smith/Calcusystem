@@ -84,7 +84,7 @@ public class DraftWireTests
         var restored = ThroughJson(Furnished()).Expression("var-m")!;
 
         restored.Type.Should().Be(ExpressionDraftType.Variable);
-        restored.Symbol.Should().Be("m");
+        restored.Name.Should().Be("m");
         restored.Dimensionality.Should().Be(Dimensionality.Mass);
         restored.Value!.KmsValue.Should().Be(original.Value!.KmsValue);
         restored.Value!.Dimensionality.Should().Be(Dimensionality.Mass);

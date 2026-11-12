@@ -446,7 +446,7 @@ export interface components {
          * @description Why a draft cannot be built, in a form a front-end can branch on without reading the message.
          * @enum {unknown}
          */
-        DraftProblemKind: "TypeNotChosen" | "OperandMissing" | "OperandCountWrong" | "ReferenceNotFound" | "CircularReference" | "DuplicateId" | "DimensionalityMissing" | "RelationshipRuleMissing" | "DomainRule" | "RoleNotAllowed";
+        DraftProblemKind: "TypeNotChosen" | "OperandMissing" | "OperandCountWrong" | "ReferenceNotFound" | "CircularReference" | "DuplicateId" | "DimensionalityMissing" | "RelationshipRuleMissing" | "DomainRule" | "RoleNotAllowed" | "NameMissing" | "NameInvalid" | "DuplicateName";
         /** @description A determining relationship, and which unknowns it reaches. */
         EquationReport: {
             RelationshipId: string;
@@ -459,7 +459,8 @@ export interface components {
             Type?: null | components["schemas"]["ExpressionDraftType"];
             /** @description The operands, in order, where a null entry is a slot opened but not filled. */
             OperandIds?: (null | string)[];
-            Symbol?: null | string;
+            /** @description What the node is called, or null for none. */
+            Name?: null | string;
             /** @description The declared dimensionality, encoded as by DimensionalityCodec. */
             Dimensionality?: null | string;
             /**
@@ -498,6 +499,8 @@ export interface components {
         Landmark: "LowerBound" | "Nominal" | "UpperBound" | null;
         ListDerivedVariable: {
             InnerIds: string[];
+            /** @description The node's name, or null for an unnamed one. */
+            Name?: null | string;
             UncertaintyCorrelation: components["schemas"]["UncertaintyCorrelation"];
             Type: string;
             Id: string;
@@ -541,6 +544,8 @@ export interface components {
         PairDerivedVariable: {
             InnerId1: string;
             InnerId2: string;
+            /** @description The node's name, or null for an unnamed one. */
+            Name?: null | string;
             /**
              * @description How child uncertainties are combined. Not `required`: payloads written before this field existed
              *     simply lack it, and UncertaintyCorrelation.Uncorrelated — the default both here and on the
@@ -595,11 +600,13 @@ export interface components {
         };
         SingleDerivedVariable: {
             InnerId: string;
+            /** @description The node's name, or null for an unnamed one. */
+            Name?: null | string;
             Type: string;
             Id: string;
         };
         SingleVariable: {
-            Symbol: string;
+            Name: string;
             /**
              * @description The variable's dimension in its canonical encoded form (e.g. `"M1,L1,T-2"`); empty for a
              *     dimensionless variable. See DimensionalitySnapshot.
@@ -670,7 +677,7 @@ export interface components {
         /** @description An unknown: a variable the system reaches and nobody has given a value. */
         UnknownReport: {
             Id: string;
-            Symbol: string;
+            Name: string;
             Dimensionality: string;
         };
         /** @description The value computed for one node. */

@@ -13,4 +13,9 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// <param name="Type">Which expression this snapshot rebuilds into.</param>
 /// <param name="Id">Stable identity.</param>
 /// <param name="InnerId">Id of the argument expression.</param>
-public readonly record struct UnaryExpressionSnapshot(UnaryExpressionType Type, string Id, string InnerId);
+/// <param name="Name">The node's name, or null for an unnamed one.</param>
+public readonly record struct UnaryExpressionSnapshot(
+    UnaryExpressionType Type,
+    string Id,
+    string InnerId,
+    string? Name = null);

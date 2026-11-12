@@ -31,37 +31,36 @@ public static class BinaryOperatorFactory
         {
             BinaryOperatorType.Equality =>
                 new EqualityOperator(AgreementOf(snapshot), snapshot.SolvingRole)
-                    { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                    { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.AnyToleranceOverlap =>
-                new AnyToleranceOverlapOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new AnyToleranceOverlapOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.MutuallyWithinTolerance =>
-                new MutuallyWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new MutuallyWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.WhollyWithinTolerance =>
-                new WhollyWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new WhollyWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.WithinBindingTolerance =>
-                new WithinBindingToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new WithinBindingToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.PointAndUpperBoundWithinTolerance =>
-                new PointAndUpperBoundWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new PointAndUpperBoundWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.PointAndLowerBoundWithinTolerance =>
-                new PointAndLowerBoundWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new PointAndLowerBoundWithinToleranceOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.DefinitelyLessThan =>
-                new DefinitelyLessThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new DefinitelyLessThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.UpperBoundsLessThan =>
-                new UpperBoundsLessThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new UpperBoundsLessThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.NominallyLessThan =>
-                new NominallyLessThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new NominallyLessThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.DefinitelyGreaterThan =>
-                new DefinitelyGreaterThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new DefinitelyGreaterThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.LowerBoundsGreaterThan =>
-                new LowerBoundsGreaterThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new LowerBoundsGreaterThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.NominallyGreaterThan =>
-                new NominallyGreaterThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new NominallyGreaterThanOperator { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             BinaryOperatorType.SimpleComparison =>
-                new SimpleComparison(RuleOf(snapshot)) { Id = snapshot.Id, Lhs = lhs, Rhs = rhs },
+                new SimpleComparison(RuleOf(snapshot)) { Id = snapshot.Id, Lhs = lhs, Rhs = rhs, Name = snapshot.Name },
             _ => throw new ArgumentOutOfRangeException(nameof(snapshot), snapshot.Type, "Unknown operator kind."),
         };
 
-        op.Name = snapshot.Name;
         op.Description = snapshot.Description;
         op.Provenance = snapshot.Provenance is { } p ? ProvenanceFactory.FromSnapshot(p) : null;
         return op;

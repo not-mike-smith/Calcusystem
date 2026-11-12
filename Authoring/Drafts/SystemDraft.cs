@@ -81,16 +81,16 @@ public sealed class SystemDraft
     }
 
     /// <summary>Adds a variable, the one kind with anything to supply up front.</summary>
-    /// <param name="symbol">What to call it.</param>
+    /// <param name="name">What to call it.</param>
     /// <param name="dimensionality">Its dimensionality, which it cannot be built without.</param>
     /// <param name="id">The id to use, or null for a fresh one.</param>
     public ExpressionDraft AddVariable(
-        string? symbol = null,
+        string? name = null,
         Dimensionality? dimensionality = null,
         string? id = null)
     {
         var draft = AddExpression(ExpressionDraftType.Variable, id);
-        draft.Symbol = symbol;
+        draft.Name = name;
         draft.Dimensionality = dimensionality;
         return draft;
     }
@@ -112,6 +112,12 @@ public sealed class SystemDraft
     /// <summary>The relationship with this id, or null if the draft holds none.</summary>
     /// <remarks>Where the id is reused, the first relationship added with it.</remarks>
     public RelationshipDraft? Relationship(string id) => _relationships.FirstOrDefault(r => r.Id == id);
+
+    /// <summary>The expression node with this name, or null if the draft holds none.</summary>
+    public ExpressionDraft? ByName(string name) => throw new NotImplementedException();
+
+    /// <summary>The relationship with this name, or null if the draft holds none.</summary>
+    public RelationshipDraft? RelationshipByName(string name) => throw new NotImplementedException();
 
     /// <summary>Removes the expression or relationship with this id.</summary>
     /// <returns>Whether anything was removed.</returns>
@@ -466,7 +472,7 @@ public sealed class SystemDraft
     // snapshots of their own, and the draft already holds both as the objects themselves.
     private static Variable BuildVariable(ExpressionDraft draft)
     {
-        var variable = new Variable(draft.Symbol ?? draft.Id, draft.Dimensionality!.Value, draft.Id)
+        var variable = new Variable(draft.Name ?? draft.Id, draft.Dimensionality!.Value, draft.Id)
         {
             Provenance = draft.Provenance,
         };

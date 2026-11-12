@@ -10,7 +10,7 @@ namespace Calcusystem.DimensionedExpression.BinaryOperators;
 public abstract class BinaryOperatorBase : IBinaryOperator
 {
     public required string Id { get; init; }
-    public string? Name { get; set; }
+    public string? Name { get; init; }
     public string? Description { get; set; }
     public required IExpression Lhs { get; init; }
     public required IExpression Rhs { get; init; }

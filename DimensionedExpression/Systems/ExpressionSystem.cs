@@ -93,6 +93,12 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         _relationships.Add(relationship);
     }
 
+    /// <summary>The expression named <paramref name="name"/>, or null if the system has none.</summary>
+    public IExpression? Find(string name) => throw new NotImplementedException();
+
+    /// <summary>The relationship named <paramref name="name"/>, or null if the system has none.</summary>
+    public IBinaryOperator? FindRelationship(string name) => throw new NotImplementedException();
+
     private void Absorb(IExpression expression)
     {
         foreach (var node in expression.SelfAndDescendants())

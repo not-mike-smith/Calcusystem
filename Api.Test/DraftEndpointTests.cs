@@ -31,7 +31,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
                 {
                     Id = "var-m",
                     Type = ExpressionDraftType.Variable,
-                    Symbol = "m",
+                    Name = "m",
                     Dimensionality = "M1",
                     KmsValue = 2,
                 },
@@ -39,7 +39,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
                 {
                     Id = "var-a",
                     Type = ExpressionDraftType.Variable,
-                    Symbol = "a",
+                    Name = "a",
                     Dimensionality = "L1,T-2",
                     KmsValue = acceleration,
                 },
@@ -58,7 +58,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         {
             Id = "var-limit",
             Type = ExpressionDraftType.Variable,
-            Symbol = "F-max",
+            Name = "F-max",
             Dimensionality = "M1,L1,T-2",
             KmsValue = limit,
         });
@@ -205,7 +205,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         report.DegreesOfFreedom.Should().Be(1);
         report.IsWellPosed.Should().BeFalse();
         report.Underdetermined.Unknowns.Should().ContainSingle()
-            .Which.Should().Match<UnknownReport>(u => u.Id == "var-a" && u.Symbol == "a");
+            .Which.Should().Match<UnknownReport>(u => u.Id == "var-a" && u.Name == "a");
         report.UnknownsWithNoEquationIds.Should().Equal(["var-a"]);
     }
 

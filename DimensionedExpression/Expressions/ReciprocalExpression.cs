@@ -43,9 +43,9 @@ public class ReciprocalExpression : ExpressionBase, IExpression, ISnapshottingNo
 
     /// <inheritdoc/>
     public UnaryExpressionSnapshot GetSnapshot() =>
-        new(UnaryExpressionType.Reciprocal, Id, Reciprocand.Id);
+        new(UnaryExpressionType.Reciprocal, Id, Reciprocand.Id, Name);
 
     /// <inheritdoc/>
     public static ReciprocalExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id) { Name = snapshot.Name };
 }

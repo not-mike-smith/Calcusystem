@@ -16,7 +16,7 @@ public interface IBinaryOperator : IIdentified
 {
 
     /// <summary>Optional human-readable name for the relationship.</summary>
-    public string? Name { get; set; }
+    public string? Name { get; init; }
 
     /// <summary>Optional human-readable description.</summary>
     public string? Description { get; set; }

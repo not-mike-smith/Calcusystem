@@ -53,13 +53,14 @@ public class ProductExpression : ComputedExpressionBase, IComputedExpression, IS
 
     /// <inheritdoc/>
     public NaryExpressionSnapshot GetSnapshot() =>
-        new(NaryExpressionType.Product, Id, Factors.Select(f => f.Id).ToList(), UncertaintyCorrelation);
+        new(NaryExpressionType.Product, Id, Factors.Select(f => f.Id).ToList(), UncertaintyCorrelation, Name);
 
     /// <inheritdoc/>
     public static ProductExpression FromSnapshot(NaryExpressionSnapshot snapshot, INodeResolver resolve) =>
         new(snapshot.InnerIds.Select(resolve.Resolve<IExpression>))
         {
             Id = snapshot.Id,
+            Name = snapshot.Name,
             UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
         };
 }

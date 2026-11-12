@@ -15,9 +15,11 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// <param name="InnerId1">Id of the first child (a quotient's numerator).</param>
 /// <param name="InnerId2">Id of the second child (a quotient's denominator).</param>
 /// <param name="UncertaintyCorrelation">Whether the children's uncertainties are treated as correlated.</param>
+/// <param name="Name">The node's name, or null for an unnamed one.</param>
 public readonly record struct BinaryExpressionSnapshot(
     BinaryExpressionType Type,
     string Id,
     string InnerId1,
     string InnerId2,
-    UncertaintyCorrelation UncertaintyCorrelation);
+    UncertaintyCorrelation UncertaintyCorrelation,
+    string? Name = null);

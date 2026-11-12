@@ -39,7 +39,7 @@ public class SystemDraftTests
         var system = draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>().Which.Value;
 
         system.Name.Should().Be("Newton's second law");
-        system.Variables.Select(v => v.Symbol).Should().BeEquivalentTo("m", "a");
+        system.Variables.Select(v => v.Name).Should().BeEquivalentTo("m", "a");
         system.DerivedExpressions.Should().HaveCount(1);
     }
 

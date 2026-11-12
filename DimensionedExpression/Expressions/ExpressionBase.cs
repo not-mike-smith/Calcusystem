@@ -18,6 +18,9 @@ public abstract class ExpressionBase : IdBase, IExpression
     protected ExpressionBase(string id = IdBase.CREATE_NEW_ID) : base(id) { }
 
     /// <inheritdoc/>
+    public string? Name { get; init; }
+
+    /// <inheritdoc/>
     public abstract bool IsDirectlyMutable { get; }
 
     /// <inheritdoc/>

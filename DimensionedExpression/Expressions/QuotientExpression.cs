@@ -45,13 +45,14 @@ public class QuotientExpression : ComputedExpressionBase, IComputedExpression, I
 
     /// <inheritdoc/>
     public BinaryExpressionSnapshot GetSnapshot() =>
-        new(BinaryExpressionType.Quotient, Id, Numerator.Id, Denominator.Id, UncertaintyCorrelation);
+        new(BinaryExpressionType.Quotient, Id, Numerator.Id, Denominator.Id, UncertaintyCorrelation, Name);
 
     /// <inheritdoc/>
     public static QuotientExpression FromSnapshot(BinaryExpressionSnapshot snapshot, INodeResolver resolve) =>
         new()
         {
             Id = snapshot.Id,
+            Name = snapshot.Name,
             Numerator = resolve.Resolve<IExpression>(snapshot.InnerId1),
             Denominator = resolve.Resolve<IExpression>(snapshot.InnerId2),
             UncertaintyCorrelation = snapshot.UncertaintyCorrelation,

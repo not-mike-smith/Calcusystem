@@ -21,29 +21,25 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
 {
     // ReSharper disable once InconsistentNaming
     protected Measurand? _value;
-    // ReSharper disable once InconsistentNaming
-    protected string _symbol;
-
     public Variable(
-        string symbol,
+        string name,
         Dimensionality dimensionality,
         string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
-        
         Dimensionality = dimensionality;
-        _symbol = symbol;
+        base.Name = name;
     }
 
     public Variable(
-        string symbol,
+        string name,
         Measurand measurand,
         string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
         Dimensionality = measurand.Dimensionality;
         _value = measurand;
-        _symbol = symbol;
+        base.Name = name;
     }
 
     public override bool IsDirectlyMutable => true;
@@ -78,11 +74,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
         }
     }
 
-    public string Symbol
-    {
-        get => _symbol;
-        set => _symbol = value;
-    }
+    public new string Name => base.Name!;
 
     /// <summary>
     /// Optional audit annotation describing where this variable's value came from. Null means provenance is not
@@ -92,13 +84,13 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
 
     public override string ToString()
     {
-        return Symbol;
+        return Name;
     }
 
     /// <inheritdoc/>
     public VariableSnapshot GetSnapshot() => new(
         Id,
-        Symbol,
+        Name,
         Dimensionality.GetSnapshot(),
         _value?.GetSnapshot(),
         Provenance?.GetSnapshot());
@@ -111,8 +103,8 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public static Variable FromSnapshot(VariableSnapshot snapshot)
     {
         var variable = snapshot.Value is { } value
-            ? new Variable(snapshot.Symbol, Measurand.FromSnapshot(value), snapshot.Id)
-            : new Variable(snapshot.Symbol, Dimensionality.FromSnapshot(snapshot.Dimensionality), snapshot.Id);
+            ? new Variable(snapshot.Name, Measurand.FromSnapshot(value), snapshot.Id)
+            : new Variable(snapshot.Name, Dimensionality.FromSnapshot(snapshot.Dimensionality), snapshot.Id);
 
         if (snapshot.Provenance is { } provenance)
         {

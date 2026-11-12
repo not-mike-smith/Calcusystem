@@ -88,7 +88,7 @@ public static class Reporting
 
     private static UnknownReport Report(Variable variable) => new(
         variable.Id,
-        variable.Symbol,
+        variable.Name,
         Encode(variable.Dimensionality));
 
     private static OutcomeReport Report(RelationshipOutcome outcome) => new(

@@ -43,9 +43,9 @@ public class NegatedExpression : ExpressionBase, IExpression, ISnapshottingNode<
 
     /// <inheritdoc/>
     public UnaryExpressionSnapshot GetSnapshot() =>
-        new(UnaryExpressionType.Negated, Id, Operand.Id);
+        new(UnaryExpressionType.Negated, Id, Operand.Id, Name);
 
     /// <inheritdoc/>
     public static NegatedExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id) { Name = snapshot.Name };
 }

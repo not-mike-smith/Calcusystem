@@ -36,7 +36,7 @@ public sealed record BlockReport(
     IReadOnlyList<EquationReport> Equations);
 
 /// <summary>An unknown: a variable the system reaches and nobody has given a value.</summary>
-public sealed record UnknownReport(string Id, string Symbol, string Dimensionality);
+public sealed record UnknownReport(string Id, string Name, string Dimensionality);
 
 /// <summary>A determining relationship, and which unknowns it reaches.</summary>
 public sealed record EquationReport(string RelationshipId, IReadOnlyList<string> UnknownIds);

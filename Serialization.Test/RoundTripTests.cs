@@ -44,7 +44,7 @@ public class RoundTripTests
         restored.Description.Should().Be("just direct variables");
 
         var m = (Variable)ById(restored, "m");
-        m.Symbol.Should().Be("m");
+        m.Name.Should().Be("m");
         m.Dimensionality.Should().Be(Dimensionality.Mass);
         m.Value!.KmsValue.Should().BeApproximately(2, 1E-9);
         m.Value!.RelativeUncertainty.Should().BeApproximately(0.01, 1E-9);

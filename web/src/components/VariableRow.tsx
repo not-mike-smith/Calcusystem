@@ -26,10 +26,10 @@ export function VariableRow({ variable, problems, computed, isUnknown, onChange,
     <div className={problems.length > 0 ? "node faulty" : "node"}>
       <div className="row">
         <input
-          className="symbol"
+          className="name"
           placeholder="name"
-          value={variable.Symbol ?? ""}
-          onChange={(event) => onChange({ Symbol: event.target.value })}
+          value={variable.Name ?? ""}
+          onChange={(event) => onChange({ Name: event.target.value })}
         />
 
         <DimensionalityEditor

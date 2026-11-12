@@ -71,9 +71,9 @@ public class NaturalLogExpression : ExpressionBase, IExpression, ISnapshottingNo
 
     /// <inheritdoc/>
     public UnaryExpressionSnapshot GetSnapshot() =>
-        new(UnaryExpressionType.NaturalLog, Id, Argument.Id);
+        new(UnaryExpressionType.NaturalLog, Id, Argument.Id, Name);
 
     /// <inheritdoc/>
     public static NaturalLogExpression FromSnapshot(UnaryExpressionSnapshot snapshot, INodeResolver resolve) =>
-        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id);
+        new(resolve.Resolve<IExpression>(snapshot.InnerId), snapshot.Id) { Name = snapshot.Name };
 }

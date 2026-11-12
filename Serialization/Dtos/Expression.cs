@@ -31,7 +31,7 @@ public class Uncertainty
 
 public class SingleVariable : ExpressionBase
 {
-    public required string Symbol { get; init; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// The variable's dimension in its canonical encoded form (e.g. <c>"M1,L1,T-2"</c>); empty for a
@@ -51,12 +51,18 @@ public class SingleVariable : ExpressionBase
 public class SingleDerivedVariable : ExpressionBase
 {
     public required string InnerId { get; init; }
+
+    /// <summary>The node's name, or null for an unnamed one.</summary>
+    public string? Name { get; init; }
 }
 
 public class PairDerivedVariable : ExpressionBase
 {
     public required string InnerId1 { get; init; }
     public required string InnerId2 { get; init; }
+
+    /// <summary>The node's name, or null for an unnamed one.</summary>
+    public string? Name { get; init; }
 
     /// <summary>
     /// How child uncertainties are combined. Not <c>required</c>: payloads written before this field existed
@@ -69,5 +75,8 @@ public class PairDerivedVariable : ExpressionBase
 public class ListDerivedVariable : ExpressionBase
 {
     public required List<string> InnerIds { get; init; }
+
+    /// <summary>The node's name, or null for an unnamed one.</summary>
+    public string? Name { get; init; }
     public required UncertaintyCorrelation UncertaintyCorrelation { get; init; }
 }

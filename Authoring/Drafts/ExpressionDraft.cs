@@ -41,8 +41,8 @@ public sealed class ExpressionDraft
     /// </remarks>
     public List<string?> OperandIds { get; } = [];
 
-    /// <summary>What to call a variable. Ignored for every other kind.</summary>
-    public string? Symbol { get; set; }
+    /// <summary>What to call the node. A variable must have one; for a computed node it is optional.</summary>
+    public string? Name { get; set; }
 
     /// <summary>
     /// A variable's dimensionality. Required to build one, and ignored for every other kind, which derive theirs
@@ -82,5 +82,5 @@ public sealed class ExpressionDraft
     public UncertaintyCorrelation UncertaintyCorrelation { get; set; } = UncertaintyCorrelation.Uncorrelated;
 
     public override string ToString() =>
-        $"{Type?.ToString() ?? "untyped"} {Symbol ?? Id}";
+        $"{Type?.ToString() ?? "untyped"} {Name ?? Id}";
 }
