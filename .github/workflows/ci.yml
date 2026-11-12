@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches: [master]
+  # ready_for_review fires when a draft is marked ready; the job below skips drafts otherwise.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  # Run by hand on any branch, draft or not, from the Actions tab or `gh workflow run ci.yml --ref <branch>`.
   workflow_dispatch:
 
 # A newer push to the same branch makes an older run pointless.
@@ -16,6 +19,8 @@ permissions:
 
 jobs:
   build-and-test:
+    # A draft pull request is work in progress; CI runs once it is marked ready, and on every push after that.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
