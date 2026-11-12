@@ -58,14 +58,41 @@ Two further consequences worth internalizing:
 | Interface | Extends | Adds |
 | --- | --- | --- |
 | `IExpression` | | `Id`, `Name`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Children`, `ComputeFrom(known)` |
-| `IDirectExpression` | `IExpression` | adds `Measurand? Value { get; set; }` — a mutable leaf's *stored* value. A genuine property: there is nothing beneath a leaf to walk. It no longer shadows anything, which is what kept the difference in cost between the two hidden. |
+| `ILeafExpression` | `IExpression` | `Measurand? Value { get; }` — a node with no children, whose value is held, not computed. |
+| `IFixedExpression` | `ILeafExpression` | `Measurand Value { get; }`, never null, and `IProvenance? Provenance { get; }` — a leaf whose value is given when it is built and never changes. |
+| `IDirectExpression` | `ILeafExpression` | adds `Measurand? Value { get; set; }` — a mutable leaf's *stored* value. A genuine property: there is nothing beneath a leaf to walk. It no longer shadows anything, which is what kept the difference in cost between the two hidden. |
 | `IComputedExpression` | `IExpression` | `UncertaintyCorrelation { get; set; }` — the `UncertaintyCorrelation` used when combining children |
+
+### Fixed values
+
+A **fixed value** is a leaf whose value is set when it is built and can never be set or unset afterward. It
+is never an unknown, and a calculation cannot override it.
+
+| Kind | Name | Uncertainty | Provenance | Dimension |
+| --- | --- | --- | --- | --- |
+| `Constant` | required | none | optional | any |
+| `ReferenceValue` | required | some | optional | any |
+| `Scalar` | never | none | never | dimensionless |
+
+**The wrong kind is refused, never switched.** A constant given a value with uncertainty throws
+`InvalidFixedValueException`; it does not become a reference value. The rule is stated once, in
+`FixedValueRule.Problem(kind, value)`, which the constructors throw and a draft reports. A value has no
+uncertainty when both of its absolute bounds are zero.
+
+A fixed value and a variable are sibling leaves. A variable's value can change, so it cannot be a kind of
+fixed value, whose interface promises that it never does.
+
+**None of the three has a public constructor.** A model builds them through a `SystemDraft`
+(`Calcusystem.Authoring`); a persistence layer rebuilds them with `ExpressionFactory.FromSnapshot`.
 
 ### Expression node types (`Expressions/`)
 
 | Class | Implements | Role |
 | --- | --- | --- |
 | `Variable` | `IDirectExpression` | Leaf. Has a `Name`, required and fixed at construction. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. A leaf: `Children` is empty, and it is the only node type that can be a free variable. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
+| `Constant` | `IFixedExpression` | Leaf. A named value with no uncertainty, such as standard gravity. Listed in `ExpressionSystem.Givens`. |
+| `ReferenceValue` | `IFixedExpression` | Leaf. A named value with uncertainty, such as the gravitational constant *G*. Listed in `ExpressionSystem.Givens`. |
+| `Scalar` | `IFixedExpression` | Leaf. An unnamed, dimensionless coefficient with no uncertainty: the `2` in `2·g·h`. In no public list of a system. |
 | `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`, supplied at construction. All addends must share a dimensionality, enforced there. |
 | `ProductExpression` | `IComputedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
@@ -259,10 +286,14 @@ system.Add(new DefinitelyLessThanOperator { … });            // a relationship
 | Member | Contents |
 | --- | --- |
 | `Variables` | every `Variable` the system contains |
+| `Givens` | every `Constant` and `ReferenceValue` it contains — the named values fixed when built |
 | `DerivedExpressions` | every computed node it contains, including nodes nested inside others |
 | `Relationships` | every asserted relationship — definitions and constraints alike |
 
-plus three read-only views over that third one, one per [`SolvingRole`](#solvingrole--what-a-relationship-does-to-the-problem):
+A `Scalar` is in none of these. It is part of the formula it appears in, not a quantity of the model, and is
+reached through `GetAllExpressions()`.
+
+The system also has three read-only views over `Relationships`, one per [`SolvingRole`](#solvingrole--what-a-relationship-does-to-the-problem):
 
 | View | Contents |
 | --- | --- |
@@ -339,7 +370,7 @@ Grouped by **arity, not by type** — the kinds within a group differ in what th
 
 ### Two seams, because a graph is not a value
 
-`Variable` rebuilds from its own snapshot alone, so it uses `ISnapshotting<Variable, VariableSnapshot>` (from `Calcusystem.Core`). Every other node references neighbors **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `ISnapshottingNode<TSelf, TSnapshot>`, whose `FromSnapshot` also takes an `INodeResolver` to turn those ids back into nodes:
+`Variable` rebuilds from its own snapshot alone, so it uses `ISnapshotting<Variable, VariableSnapshot>` (from `Calcusystem.Core`). So do `Constant`, `ReferenceValue` and `Scalar`, which share one `FixedExpressionSnapshot`. Every other node references neighbors **by id** — nesting them would duplicate shared sub-expressions and could not express the sharing at all — so they use `ISnapshottingNode<TSelf, TSnapshot>`, whose `FromSnapshot` also takes an `INodeResolver` to turn those ids back into nodes:
 
 ```csharp
 public static ProductExpression FromSnapshot(NaryExpressionSnapshot snapshot, INodeResolver resolve) =>

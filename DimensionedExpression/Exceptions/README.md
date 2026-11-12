@@ -9,6 +9,7 @@ What the expression layer throws when a model is put together wrongly.
 | `CyclicExpressionGraphException` | class | A walk found a node that is reached from its own operands. |
 | `InvalidNameException` | sealed class | A node was given a name that `Names.NodeName` refuses. |
 | `DuplicateNameException` | sealed class | A system was given a node whose name another of its nodes has. |
+| `InvalidFixedValueException` | sealed class | A fixed value was given a value its kind does not accept. |
 
 ## Start here
 
@@ -23,6 +24,8 @@ system.Add(new Variable("m", Dimensionality.Mass));   // DuplicateNameException,
 
 - **`InvalidNameException` is thrown where the node is built**, never later. Its message is what
   `NodeName.Problem` answers for that name.
+- **`InvalidFixedValueException` is thrown where the node is built.** Its message is what
+  `FixedValueRule.Problem` answers for that kind and value.
 - **`DuplicateNameException` leaves the system as it was.** `Name` is the name two nodes claim.
 
 ## Surprises
@@ -36,6 +39,7 @@ system.Add(new Variable("m", Dimensionality.Mass));   // DuplicateNameException,
 ## What does not belong here
 
 - The rule for a name → `Names/` (`NodeName`)
+- The rule for a fixed value's value → `Expressions/` (`FixedValueRule`)
 - What a draft reports for the same mistakes, without throwing → `Calcusystem.Authoring` (`DraftProblemKind`)
 
 ## Related

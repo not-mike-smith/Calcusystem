@@ -24,6 +24,8 @@ They are also exactly what an editor cannot honor between one keystroke and the 
 | a node with no kind chosen yet | unrepresentable — there is no such type |
 | a variable not yet named, or a name half typed | `Variable` throws `InvalidNameException` |
 | two nodes briefly given one name | `ExpressionSystem.Add` throws `DuplicateNameException` |
+| a constant whose value still has an uncertainty typed beside it | `Constant` throws `InvalidFixedValueException` |
+| a constant or a scalar with no value yet | unrepresentable — a fixed value is built with its value |
 
 So the flexibility goes in a separate model rather than into the domain types. **A `SystemDraft` is freely invalid; building is where the rules apply.** This is the same resolution `project-plan.md` records for tolerant deserialization — *"invalid state is unrepresentable is the right rule for the domain types, but intake is exactly the boundary where invalid state arrives, so the flexibility belongs in the mode, not in the types"* — applied to authoring instead of loading.
 
@@ -85,6 +87,8 @@ The domain cannot be asked about a node until the node can be constructed at all
 **The second pass deliberately does not restate the domain's rules.** A draft validator holding its own copy of "addends must agree" is two things answering one question, which is the shape of three bugs this codebase has already fixed. Here the domain stays the only place a rule is written, so a rule added to a constructor shows up in authoring for free.
 
 **Names are the one rule reported under this layer's own kinds and still not restated.** A missing, invalid or duplicate name is `NameMissing`, `NameInvalid` or `DuplicateName`, so an editor can branch on it. What makes a name valid is asked of the domain's `NodeName.Problem`, and the message is its answer.
+
+**Fixed values follow names.** A constant, a reference value or a scalar with no value is `ValueMissing`, a shape checked here. Which value each kind accepts is asked of the domain's `FixedValueRule.Problem` and reported as `FixedValueInvalid` with its message, so the rule that a constant has no uncertainty is written once. A constant and a reference value must also declare a dimensionality, as a variable must, and a value that disagrees with it is `FixedValueInvalid` too: on the wire a value with no dimensionality reads as dimensionless, and building that silently would be the guess a draft refuses to make.
 
 This leans on every expression type settling its dimensional rules **at construction**, which is the assembly-wide rule in `DimensionedExpression` — validation happens once, where the operand arrives. A type that deferred one to a later read would pass the second pass here and refuse afterwards, with no node named. `SqrtExpression` was the one exception when this assembly was written, and was fixed rather than worked around.
 

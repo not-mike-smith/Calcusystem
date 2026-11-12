@@ -4,7 +4,7 @@ using Calcusystem.DimensionedExpression.Snapshots;
 namespace Calcusystem.DimensionedExpression.Interfaces;
 
 /// <summary>
-/// Describes where a leaf variable's (or an operator's) value came from — an audit annotation, not a behavioral
+/// Describes where a leaf's (or an operator's) value came from — an audit annotation, not a behavioral
 /// trait. Provenance is attached by composition (see <c>Variable.Provenance</c> / <c>IBinaryOperator.Provenance</c>)
 /// and never changes how anything evaluates. Concrete kinds (measured reading, reference constant, design
 /// parameter, model parameter, …) are created exclusively through <c>ProvenanceFactory</c>.

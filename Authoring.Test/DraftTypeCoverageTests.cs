@@ -29,8 +29,7 @@ public class DraftTypeCoverageTests
     [Fact]
     public void EveryDraftableKindExistsInTheDomain()
     {
-        // Variable is the exception: it has a snapshot of its own rather than a kind within a grouped one,
-        // because it is the only node rebuilt without resolving references.
+        // Variable is the exception: it has a snapshot of its own rather than a kind within a grouped one.
         var expected = DomainExpressionKinds().Append(nameof(ExpressionDraftType.Variable));
 
         Enum.GetNames<ExpressionDraftType>().Should().BeSubsetOf(expected);

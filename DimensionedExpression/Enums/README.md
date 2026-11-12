@@ -28,6 +28,7 @@ where a comparison sits on a ladder, and which type a snapshot rebuilds into.
 | `UnaryExpressionType` | `Reciprocal`, `Negated`, `Sqrt`, `Exponential`, `NaturalLog`. |
 | `BinaryExpressionType` | `Quotient`. |
 | `NaryExpressionType` | `Product`, `Sum`. |
+| `FixedExpressionType` | `Constant`, `ReferenceValue`, `Scalar`. |
 | `ProvenanceType` | `Measured`, `Reference`, `Design`, `Model`. |
 
 ## Guarantees

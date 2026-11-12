@@ -200,7 +200,7 @@ public class FixedValueTests
         badlyNamed.Should().Throw<InvalidNameException>();
     }
 
-    /* D11: a scalar's snapshot with a name or a provenance is refused, not rebuilt with them dropped. */
+    /* A scalar's snapshot with a name or a provenance is refused, not rebuilt with them dropped. */
     [Fact]
     public void AScalarSnapshotWithANameOrAProvenanceIsRefused()
     {

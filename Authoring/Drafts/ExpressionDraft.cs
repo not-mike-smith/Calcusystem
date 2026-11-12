@@ -17,7 +17,7 @@ namespace Calcusystem.Authoring.Drafts;
 /// expression</b>, so references held outside the draft stay good across a build.
 /// </para>
 /// <para>
-/// One type covers all nine node kinds, with the variable-only and computed-only fields alongside each other.
+/// One type covers every node kind, with the leaf-only and computed-only fields alongside each other.
 /// Changing <see cref="Type"/> therefore leaves whichever fields no longer apply in place, ignored rather than
 /// cleared — so flipping a node to another kind and back loses nothing.
 /// </para>
@@ -38,13 +38,16 @@ public sealed class ExpressionDraft
     /// </summary>
     /// <remarks>
     /// Order matters where the kind cares: a <see cref="ExpressionDraftType.Quotient"/> divides the first by the
-    /// second. Ignored entirely for <see cref="ExpressionDraftType.Variable"/>.
+    /// second. Ignored entirely for a leaf: a variable, a constant, a reference value or a scalar.
     /// </remarks>
     public List<string?> OperandIds { get; } = [];
 
     private string? _name;
 
-    /// <summary>What to call the node. A variable must have one; for any other kind it is optional.</summary>
+    /// <summary>
+    /// What to call the node. A variable, a constant and a reference value must have one. A scalar's is
+    /// ignored. For any other kind it is optional.
+    /// </summary>
     /// <remarks>
     /// Held normalized (see <see cref="NodeName"/>) and otherwise as given. Null or empty means no name. An
     /// invalid name, or one another node has, is reported when the draft is built.
@@ -56,15 +59,16 @@ public sealed class ExpressionDraft
     }
 
     /// <summary>
-    /// A variable's dimensionality. Required to build one, and ignored for every other kind, which derive theirs
-    /// from their operands.
+    /// The dimensionality of a variable, a constant or a reference value. Required to build one. Ignored for a
+    /// scalar, which is dimensionless, and for a computed node, which derives its own from its operands.
     /// </summary>
     public Dimensionality? Dimensionality { get; set; }
 
-    /// <summary>A variable's value, or null for one left unset. Ignored for every other kind.</summary>
+    /// <summary>A leaf's value, or null for none. Ignored for a computed node.</summary>
     /// <remarks>
-    /// A value whose dimensionality disagrees with <see cref="Dimensionality"/> is reported when the draft is
-    /// built, not when it is set here.
+    /// A variable may be left unset. A constant, a reference value and a scalar must have a value, and one
+    /// their kind accepts. A value whose dimensionality disagrees with <see cref="Dimensionality"/> is reported
+    /// when the draft is built, not when it is set here.
     /// </remarks>
     public Measurand? Value { get; set; }
 
@@ -86,10 +90,13 @@ public sealed class ExpressionDraft
     /// </remarks>
     public string? ValueUnit { get; set; }
 
-    /// <summary>Optional record of where a variable's value came from. Ignored for every other kind.</summary>
+    /// <summary>
+    /// Optional record of where the value of a variable, a constant or a reference value came from. Ignored
+    /// for every other kind.
+    /// </summary>
     public IProvenance? Provenance { get; set; }
 
-    /// <summary>Whether a computed node's operands are correlated. Ignored for a variable.</summary>
+    /// <summary>Whether a computed node's operands are correlated. Ignored for a leaf.</summary>
     public UncertaintyCorrelation UncertaintyCorrelation { get; set; } = UncertaintyCorrelation.Uncorrelated;
 
     public override string ToString() =>

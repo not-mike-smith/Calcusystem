@@ -78,6 +78,8 @@ npm run patterns-check    # the language, the sheets and the document must agree
 - **Formulas** — an optional name, a kind and the nodes it is over. A new formula is offered the first unused
   `eq-N`; clearing the field leaves it unnamed. An empty operand slot is a normal state, not an error to
   apologise for.
+  The kind menu leaves out constants, reference values and scalars, which the editor cannot edit yet. The
+  server accepts them in a draft.
 - **Relationships** — two nodes and an operator, with the verdict beside it once the model runs.
 - **Can this be solved?** — degrees of freedom, and which unknowns are determinable, under-determined, or
   reached by nothing at all.

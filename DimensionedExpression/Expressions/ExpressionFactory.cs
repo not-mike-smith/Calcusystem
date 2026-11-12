@@ -9,7 +9,7 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// Rebuilds expressions from a captured snapshot. The counterpart to each expression's <c>GetSnapshot</c>.
 /// </summary>
 /// <remarks>
-/// Snapshots are grouped by arity and carry a kind discriminator, so reconstruction picks a concrete type by
+/// Snapshots are grouped by what they store and carry a kind discriminator, so reconstruction picks a concrete type by
 /// inspecting the snapshot — the same situation as uncertainty and provenance, and handled the same way: a static
 /// gateway over the closed set. Each overload delegates to the concrete type's own <c>FromSnapshot</c>, which is
 /// where the per-type construction actually lives.

@@ -1,12 +1,15 @@
 # Calcusystem.DimensionedExpression.Expressions
 
-The nodes a formula is built from: one mutable leaf and nine ways to combine.
+The nodes a formula is built from: a settable leaf, three fixed ones, and the ways to combine them.
 
 ## What's here
 
 | Type | Kind | Role |
 | --- | --- | --- |
-| `Variable` | class | The leaf. The only node whose value is set rather than computed. |
+| `Variable` | class | The settable leaf. The only node whose value can change. |
+| `Constant` | sealed class | A named value with no uncertainty, fixed when built. |
+| `ReferenceValue` | sealed class | A named value with uncertainty, fixed when built. |
+| `Scalar` | sealed class | An unnamed, dimensionless coefficient with no uncertainty. |
 | `SumExpression` | class | N-ary `+`. Addends must share a dimensionality. |
 | `ProductExpression` | class | N-ary `×`. Dimensions combine. |
 | `QuotientExpression` | class | `Numerator / Denominator`. |
@@ -17,6 +20,8 @@ The nodes a formula is built from: one mutable leaf and nine ways to combine.
 | `NaturalLogExpression` | class | `ln x` — requires a dimensionless operand. |
 | `ExpressionBase` | abstract class | Identity, the derived walks, and cycle detection. |
 | `ComputedExpressionBase` | abstract class | Adds the correlation assumption; not directly mutable. |
+| `FixedExpressionBase` | abstract class | What the three fixed values share: a value that never changes. |
+| `FixedValueRule` | static class | Which value each kind of fixed value accepts. |
 | `ExpressionFactory` | static class | Rebuilds a node from its snapshot. |
 
 ## Start here
@@ -48,6 +53,21 @@ initializer:
 var named = new ProductExpression([m, a]) { Name = "F" };
 ```
 
+A fixed value has no public constructor. Outside a draft it is rebuilt from a snapshot:
+
+```csharp
+var gravity = new Quantity(9.80665, Dimensionality.Length / (Dimensionality.Time * Dimensionality.Time))
+    .WithoutUncertainty();
+
+var g = ExpressionFactory.FromSnapshot(
+    new FixedExpressionSnapshot(FixedExpressionType.Constant, "const-g", "g", gravity.GetSnapshot(), null));
+
+g.Value;              // 9.80665 m/s², never null
+g.IsFullyDescribed;   // always true
+
+FixedValueRule.Problem(FixedExpressionType.Scalar, gravity);   // "A scalar is dimensionless, and …"
+```
+
 ## Guarantees
 
 - **Structure is fixed at construction.** There is no `AddFactor`, no operand setter, and no
@@ -59,6 +79,11 @@ var named = new ProductExpression([m, a]) { Name = "F" };
   dimensionlessness there and nowhere else.
 - **A name is fixed at construction and stored normalized.** A variable always has one. An invalid name
   throws `InvalidNameException` there. The rule is `Names.NodeName`.
+- **A fixed value's value never changes, and is never null.** `Constant`, `ReferenceValue` and `Scalar` are
+  never unset, so none is ever an unknown. `ComputeFrom` answers the node's own value whatever it is handed.
+- **A fixed value's kind and its value agree.** A constant has no uncertainty, a reference value has some, and
+  a scalar has none and is dimensionless. Anything else throws `InvalidFixedValueException` where the node is
+  built, with the message `FixedValueRule.Problem` answers.
 - **Dimensionality is derived, never stored.** A quotient reports
   `Numerator.Dimensionality / Denominator.Dimensionality`, so it cannot disagree with its
   children.
@@ -73,6 +98,9 @@ var named = new ProductExpression([m, a]) { Name = "F" };
 - **A name is supplied three ways, by the shape of each constructor.** A variable takes it as an argument; every
   other node takes it by object initializer. `Variable.Name` is a `string`, hiding the `string?` every other
   node has, so `new Variable(…) { Name = … }` does not compile.
+- **A constant with uncertainty is refused, not turned into a reference value**, and the reverse.
+- **A scalar has no name.** `Scalar.Name` is always null, and a scalar's snapshot that carries a name or a
+  provenance is refused.
 - **Nothing here stops two nodes having one name.** Uniqueness belongs to the system that holds them:
   `ExpressionSystem.Add` refuses the second.
 - **The graph is a DAG, not a tree.** One node can be a child of several parents, which is the

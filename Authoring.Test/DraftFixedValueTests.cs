@@ -121,7 +121,7 @@ public class DraftFixedValueTests
             .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.NameMissing, NodeId = node.Id });
     }
 
-    /* AU-26, widened (D6): no dimensionless default for a given, as there is none for a variable. */
+    /* AU-26, widened (S2-9): no dimensionless default for a given, as there is none for a variable. */
     [Fact]
     public void AGivenWithNoDimensionalityIsReported()
     {
@@ -191,7 +191,7 @@ public class DraftFixedValueTests
         });
     }
 
-    /* AU-49 (D6): an editor can declare one dimensionality and leave a value of another, as with a variable. */
+    /* AU-49 (S2-9): an editor can declare one dimensionality and leave a value of another, as with a variable. */
     [Fact]
     public void AGivenWhoseValueDisagreesWithItsDeclaredDimensionalityIsReported()
     {
@@ -285,7 +285,7 @@ public class DraftFixedValueTests
         built.Provenance.Should().BeNull();
     }
 
-    // ── Leaves ignore operands (AU-10) ───────────────────────────────────────
+    // ── Leaves ignore operands (AU-52) ───────────────────────────────────────
 
     /* A node flipped from a formula to a leaf keeps its operand list (AU-9). A leaf reads none of it, so a
        stale operand, even one naming nothing, is not a reason it cannot be built. */

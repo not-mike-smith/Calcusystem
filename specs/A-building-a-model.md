@@ -299,7 +299,7 @@ Found while reviewing, and worth deciding before names copy their pattern:
 Each slice can merge on its own. The retroactive Authoring spec comes first (section 8).
 
 1. **Names.** `Variable.Symbol` becomes `Name` in the domain, snapshots, drafts, the wire, the API reports, the Examples' presentation and the editor. Computed nodes gain a name. Validity rules, uniqueness (`DuplicateName`, an atomic `Add`), and lookup by name. **Done** (decisions S1-1 to S1-7).
-2. **Fixed values.** The leaf interfaces; constant, reference value and scalar nodes; the `Givens` list; and snapshot, draft, wire and vocabulary forms.
+2. **Fixed values.** The leaf interfaces; constant, reference value and scalar nodes; the `Givens` list; and snapshot, draft, wire and vocabulary forms. **Done** (decisions S2-1 to S2-10).
 3. **Build through snapshots.** `SystemDraft.Build` builds every node through `FromSnapshot`; domain constructors become internal.
 4. **The model builder,** including handles and the power helper.
 5. **The printer,** including correlation marks.
@@ -359,6 +359,10 @@ Each slice can merge on its own. The retroactive Authoring spec comes first (sec
 | S2-4 | A scalar draft with a name | The name is ignored, as any field that does not apply to a node's kind is. |
 | S2-5 | Fixed values in the editor | The editor does not offer the three kinds in its formula menu. Editing them is C1's. |
 | S2-6 | Unset values, overrides and missing values | Stay typed to `Variable`. A fixed value is never unset and cannot be overridden. |
+| S2-7 | A fixed value's snapshot | One snapshot for the three kinds, with a kind discriminator, as the unary kinds have. Decided during implementation. |
+| S2-8 | A refused value in a draft | One problem kind, `FixedValueInvalid`, carrying the domain's message, as `NameInvalid` does. A missing value is `ValueMissing`. Decided during implementation. |
+| S2-9 | A given's dimensionality in a draft | A constant and a reference value draft must declare a dimensionality, as a variable must, and the value must have it. A scalar draft declares none. Without this a value written with no dimensionality would build as a dimensionless constant silently. Decided during implementation. |
+| S2-10 | What "no uncertainty" means | Both absolute bounds of the value are zero. Decided during implementation. |
 | — | Reading text | Out of A. Moved to Spec H, after C1 and D. |
 | — | Printed text | Human-readable, and not required to parse. |
 
