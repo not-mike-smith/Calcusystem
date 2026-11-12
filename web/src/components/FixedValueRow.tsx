@@ -24,7 +24,7 @@ export function FixedValueRow({ node, problems, computed, onRemove }: Props) {
       </div>
 
       <div className="row readout">
-        {computed ? <MeasurandReadout value={computed} /> : <span className="measurand none">—</span>}
+        <MeasurandReadout value={computed} />
       </div>
 
       <NodeProblems problems={problems} />

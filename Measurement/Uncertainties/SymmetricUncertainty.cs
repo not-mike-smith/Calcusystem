@@ -32,6 +32,9 @@ public sealed class SymmetricUncertainty : ISymmetricUncertainty
     }
 
     /// <inheritdoc/>
+    public bool IsExact => Magnitude == 0;
+
+    /// <inheritdoc/>
     public double RelativeUncertainty(double nominalKmsValue) =>
         IsStoredAsAbs
             ? Magnitude.SafeDivide(Math.Abs(nominalKmsValue))

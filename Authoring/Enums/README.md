@@ -8,7 +8,7 @@ The two closed sets authoring names: which kind of node to build, and why one ca
 | --- | --- |
 | `ExpressionDraftType` | Which kind of expression a draft node is to become. |
 | `DraftProblemKind` | Why a draft cannot be built, in a form a front-end can branch on. |
-| `ExpressionDraftTypeExtensions` | `IsLeaf()`: whether a kind has no operands. |
+| `ExpressionDraftTypeExtensions` | What a kind is: `IsLeaf()` (no operands), `IsQuantity()` (a variable, a constant or a reference value) and `ReadsOnlyItsValue()` (a scalar). |
 
 ## Guarantees
 

@@ -28,6 +28,8 @@ u.RelativeUncertainty(nominalKmsValue);
 
 - **`ISymmetricUncertainty` supplies the directional members from the undirected ones**, as
   default interface implementations. A symmetric type declares two methods and gets six.
+- **`IsExact` does not depend on the value.** It is true only where there is no uncertainty at all. A relative
+  uncertainty on a value of zero has absolute bounds of zero there, and is not exact.
 - **Transforms return a new `IUncertainty`**, never mutate. `Reciprocal`, `Negated`, and
   `Exponentiated` each produce the interval that belongs to the transformed value.
 - **A propagator takes the correlation assumption as a parameter.** It does not decide whether

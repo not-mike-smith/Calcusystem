@@ -18,7 +18,7 @@ public sealed class Scalar : FixedExpressionBase, ISnapshotting<Scalar, FixedExp
 {
     /// <exception cref="InvalidFixedValueException"><paramref name="value"/> has uncertainty or a dimension.</exception>
     internal Scalar(Measurand value, string id)
-        : base(FixedExpressionType.Scalar, value, id) { }
+        : base(FixedExpressionType.Scalar, name: null, value, provenance: null, id) { }
 
     /// <summary><inheritdoc/></summary>
     /// <exception cref="ArgumentException">The snapshot is not a scalar's, or it has a name or a provenance.</exception>

@@ -12,8 +12,20 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 /// <summary>Base for the fixed values: a leaf whose value is given when it is built and never changes.</summary>
 public abstract class FixedExpressionBase : ExpressionBase, IFixedExpression
 {
+    /// <param name="kind">Which fixed value this is.</param>
+    /// <param name="name">The name. Required for every kind but a scalar, which has none.</param>
+    /// <param name="value">The value, which must be one <paramref name="kind"/> accepts.</param>
+    /// <param name="provenance">Where the value came from, or null. Not kept for a scalar.</param>
+    /// <param name="id">Stable identity.</param>
     /// <exception cref="InvalidFixedValueException"><paramref name="value"/> breaks the rule for <paramref name="kind"/>.</exception>
-    private protected FixedExpressionBase(FixedExpressionType kind, Measurand value, string id) : base(id)
+    /// <exception cref="InvalidNameException">A kind that must have a name was given none, or an invalid one.</exception>
+    private protected FixedExpressionBase(
+        FixedExpressionType kind,
+        string? name,
+        Measurand value,
+        IProvenance? provenance,
+        string id)
+        : base(id)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -21,6 +33,12 @@ public abstract class FixedExpressionBase : ExpressionBase, IFixedExpression
 
         _kind = kind;
         Value = value;
+
+        if (kind is FixedExpressionType.Scalar) return;
+
+        var noun = kind is FixedExpressionType.Constant ? "constant" : "reference value";
+        Name = name ?? throw new InvalidNameException($"A {noun} needs a name.");
+        Provenance = provenance;
     }
 
     private readonly FixedExpressionType _kind;
@@ -29,7 +47,7 @@ public abstract class FixedExpressionBase : ExpressionBase, IFixedExpression
     public Measurand Value { get; }
 
     /// <inheritdoc/>
-    public IProvenance? Provenance { get; private protected init; }
+    public IProvenance? Provenance { get; }
 
     /// <inheritdoc/>
     public override bool IsDirectlyMutable => false;
@@ -54,7 +72,7 @@ public abstract class FixedExpressionBase : ExpressionBase, IFixedExpression
     /// <summary>The name, or the number for a scalar.</summary>
     public override string ToString() => Name ?? Value.KmsValue.ToString(CultureInfo.InvariantCulture);
 
-    /// <summary>Returns the complete snapshot defining this instance.</summary>
+    /// <inheritdoc/>
     public FixedExpressionSnapshot GetSnapshot() =>
         new(_kind, Id, Name, Value.GetSnapshot(), Provenance?.GetSnapshot());
 

@@ -136,6 +136,9 @@ public interface IFixedExpression : ILeafExpression
 
     /// <summary>Where the value came from, or null when untracked. Always null for a scalar.</summary>
     IProvenance? Provenance { get; }
+
+    /// <summary>The complete snapshot defining this node, which names its kind.</summary>
+    Snapshots.FixedExpressionSnapshot GetSnapshot();
 }
 
 /// <summary>

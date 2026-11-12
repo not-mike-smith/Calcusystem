@@ -66,9 +66,7 @@ public class SerializingMapper
 
     public Dtos.FixedValue MapFixedValue(IFixedExpression fixedValue)
     {
-        var snapshot = fixedValue is FixedExpressionBase known
-            ? known.GetSnapshot()
-            : throw new NotImplementedException($"No mapping for fixed value of type {fixedValue.GetType().Name}");
+        var snapshot = fixedValue.GetSnapshot();
 
         return new Dtos.FixedValue
         {

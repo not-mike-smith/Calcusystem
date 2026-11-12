@@ -53,12 +53,17 @@ export function App() {
   const analysis = useAnalysis(draft);
 
   const expressions = Draft.expressionsOf(draft);
-  // Which kinds have no operands is served, so a kind added on the server is sorted here without a change.
+  // Which kinds have no operands is served. A variable has a row of its own; any other leaf is a fixed value.
   const leafKinds = useMemo(() => new Set<string>(vocabulary?.LeafExpressionKinds ?? []), [vocabulary]);
+  const formulaKinds = useMemo(
+    () => (vocabulary?.ExpressionKinds ?? []).filter((kind) => !leafKinds.has(kind)),
+    [vocabulary, leafKinds],
+  );
   const isLeaf = (e: ExpressionDraft) => e.Type != null && leafKinds.has(e.Type);
   const variables = expressions.filter((e) => e.Type === "Variable");
-  const fixedValues = expressions.filter((e) => e.Type !== "Variable" && isLeaf(e));
-  const derived = expressions.filter((e) => e.Type !== "Variable" && !isLeaf(e));
+  const others = expressions.filter((e) => e.Type !== "Variable");
+  const fixedValues = others.filter(isLeaf);
+  const derived = others.filter((e) => !isLeaf(e));
   const relationships = Draft.relationshipsOf(draft);
 
   const problemsBy = useMemo(() => byNode(analysis.problems), [analysis.problems]);
@@ -167,7 +172,7 @@ export function App() {
               <ExpressionRow
                 key={expression.Id}
                 expression={expression}
-                kinds={(vocabulary.ExpressionKinds ?? []).filter((kind) => !leafKinds.has(kind))}
+                kinds={formulaKinds}
                 operands={expressions.filter((e) => e.Id !== expression.Id)}
                 problems={problemsBy.get(expression.Id ?? "") ?? []}
                 computed={valueOf.get(expression.Id ?? "") ?? null}

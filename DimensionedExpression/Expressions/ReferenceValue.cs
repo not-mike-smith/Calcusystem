@@ -19,11 +19,7 @@ public sealed class ReferenceValue : FixedExpressionBase, ISnapshotting<Referenc
     /// <exception cref="InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     /// <exception cref="InvalidFixedValueException"><paramref name="value"/> has no uncertainty.</exception>
     internal ReferenceValue(string name, Measurand value, IProvenance? provenance, string id)
-        : base(FixedExpressionType.ReferenceValue, value, id)
-    {
-        base.Name = name ?? throw new InvalidNameException("A reference value needs a name.");
-        Provenance = provenance;
-    }
+        : base(FixedExpressionType.ReferenceValue, name, value, provenance, id) { }
 
     /// <summary>What the model calls this reference value. Never null.</summary>
     public new string Name => base.Name!;

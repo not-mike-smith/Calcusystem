@@ -162,7 +162,7 @@ public sealed class SystemDraft
 
     /// <summary>The name a node's kind reads: the draft's, or none for a scalar.</summary>
     private static string? NameRead(ExpressionDraft draft) =>
-        draft.Type is ExpressionDraftType.Scalar ? null : draft.Name;
+        draft.Type is { } type && type.ReadsOnlyItsValue() ? null : draft.Name;
 
     /// <summary>The relationship with this name, or null if the draft holds none.</summary>
     /// <remarks>Compared as <see cref="ByName"/> compares.</remarks>
@@ -362,7 +362,7 @@ public sealed class SystemDraft
                 continue;
             }
 
-            if (NameProblem(NameRead(draft), NounIfNamed(type), draft.Id) is { } badName)
+            if (NameProblem(NameRead(draft), type.IsQuantity() ? Noun(type) : null, draft.Id) is { } badName)
             {
                 found.Add(badName);
                 unbuildable.Add(draft.Id);
@@ -429,13 +429,14 @@ public sealed class SystemDraft
         _ => null,
     };
 
-    /// <summary>What to call a kind that must have a name and a dimensionality, or null for any other kind.</summary>
-    private static string? NounIfNamed(ExpressionDraftType type) => type switch
+    /// <summary>What a message calls a node of this kind.</summary>
+    private static string Noun(ExpressionDraftType type) => type switch
     {
         ExpressionDraftType.Variable => "variable",
         ExpressionDraftType.Constant => "constant",
         ExpressionDraftType.ReferenceValue => "reference value",
-        _ => null,
+        ExpressionDraftType.Scalar => "scalar",
+        _ => "node",
     };
 
     /// <summary>What is wrong with a leaf beyond its name, or null if nothing is. The first problem only.</summary>
@@ -445,10 +446,10 @@ public sealed class SystemDraft
     /// </remarks>
     private static DraftProblem? LeafProblem(ExpressionDraft draft, ExpressionDraftType type)
     {
-        if (NounIfNamed(type) is { } noun && draft.Dimensionality is null)
+        if (type.IsQuantity() && draft.Dimensionality is null)
         {
             return new DraftProblem(
-                DraftProblemKind.DimensionalityMissing, draft.Id, $"A {noun} needs a dimensionality.");
+                DraftProblemKind.DimensionalityMissing, draft.Id, $"A {Noun(type)} needs a dimensionality.");
         }
 
         if (FixedKind(type) is not { } kind) return null;
@@ -459,8 +460,7 @@ public sealed class SystemDraft
                 DraftProblemKind.ValueMissing, draft.Id, "A fixed value needs a value. It cannot be left unset.");
         }
 
-        if (draft.Dimensionality is { } declared && kind is not FixedExpressionType.Scalar
-            && value.Dimensionality != declared)
+        if (type.IsQuantity() && draft.Dimensionality is { } declared && value.Dimensionality != declared)
         {
             return new DraftProblem(
                 DraftProblemKind.FixedValueInvalid,
@@ -633,7 +633,7 @@ public sealed class SystemDraft
                 draft.Id,
                 Stated(NameRead(draft)),
                 draft.Value!.GetSnapshot(),
-                kind is FixedExpressionType.Scalar ? null : draft.Provenance?.GetSnapshot()));
+                draft.Type!.Value.ReadsOnlyItsValue() ? null : draft.Provenance?.GetSnapshot()));
 
     private static NaryExpressionSnapshot Nary(ExpressionDraft draft, NaryExpressionType type) =>
         new(type, draft.Id, [.. draft.OperandIds.Select(id => id!)], draft.UncertaintyCorrelation, Stated(draft.Name));

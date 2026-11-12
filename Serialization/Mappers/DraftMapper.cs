@@ -127,12 +127,9 @@ public static class DraftMapper
     {
         if (wire.KmsValue is not { } kms) return null;
 
-        var dimensionality = DimensionalityCodec.Decode(wire.ValueDimensionality ?? DeclaredFor(wire.Type, wire.Dimensionality));
+        var dimensionality = wire.ValueDimensionality ?? (ReadsDeclared(wire.Type) ? wire.Dimensionality : null);
 
-        return Measurand.FromSnapshot(
-            new MeasurandSnapshot(
-                new QuantitySnapshot(kms, dimensionality),
-                UncertaintyCodec.FromWire(wire.Uncertainty)));
+        return Measurand.FromSnapshot(MeasurandCodec.FromWire(kms, dimensionality, wire.Uncertainty));
     }
 
     /// <summary>The value's own dimensionality, where reading the node would not arrive at it anyway.</summary>
@@ -145,18 +142,17 @@ public static class DraftMapper
     {
         if (draft.Value is not { } value) return null;
 
-        var declared = DeclaredFor(draft.Type, draft.Dimensionality) ?? Dimensionality.Dimensionless;
+        var declared = (ReadsDeclared(draft.Type) ? draft.Dimensionality : null) ?? Dimensionality.Dimensionless;
 
         return value.Dimensionality == declared ? null : Encode(value.Dimensionality);
     }
 
-    /// <summary>The dimensionality a node's kind reads from what it declares: none for a scalar.</summary>
+    /// <summary>Whether a node of this kind reads the dimensionality it declares. A scalar does not.</summary>
     /// <remarks>
-    /// A scalar ignores its declared dimensionality, so its value must not take one from there. A scalar's
-    /// value is dimensionless unless <c>ValueDimensionality</c> says otherwise.
+    /// So a scalar's value must not take one from there: it is dimensionless unless <c>ValueDimensionality</c>
+    /// says otherwise.
     /// </remarks>
-    private static T? DeclaredFor<T>(ExpressionDraftType? type, T? declared) =>
-        type is ExpressionDraftType.Scalar ? default : declared;
+    private static bool ReadsDeclared(ExpressionDraftType? type) => type is not { } kind || ! kind.ReadsOnlyItsValue();
 
     private static string? Encode(Dimensionality? dimensionality) =>
         dimensionality is { } present ? DimensionalityCodec.Encode(present.GetSnapshot()) : null;

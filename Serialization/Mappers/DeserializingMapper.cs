@@ -189,9 +189,7 @@ public class DeserializingMapper
             WireNames.FixedType(x.Type),
             x.Id,
             x.Name,
-            new MeasurandSnapshot(
-                new QuantitySnapshot(x.KmsValue, DimensionalityCodec.Decode(x.Dimensionality)),
-                UncertaintyCodec.FromWire(x.Uncertainty)),
+            MeasurandCodec.FromWire(x.KmsValue, x.Dimensionality, x.Uncertainty),
             ProvenanceCodec.FromWire(x.Provenance)));
 
     public IExpression? MapDerivedExpressionByPattern(Dtos.SingleDerivedVariable x)
@@ -258,10 +256,6 @@ public class DeserializingMapper
             v.Id,
             v.Name,
             DimensionalityCodec.Decode(v.Dimensionality),
-            v.KmsValue is { } kms
-                ? new MeasurandSnapshot(
-                    new QuantitySnapshot(kms, DimensionalityCodec.Decode(v.Dimensionality)),
-                    UncertaintyCodec.FromWire(v.Uncertainty))
-                : null,
+            v.KmsValue is { } kms ? MeasurandCodec.FromWire(kms, v.Dimensionality, v.Uncertainty) : null,
             ProvenanceCodec.FromWire(v.Provenance)));
 }

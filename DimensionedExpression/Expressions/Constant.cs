@@ -20,11 +20,7 @@ public sealed class Constant : FixedExpressionBase, ISnapshotting<Constant, Fixe
     /// <exception cref="InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     /// <exception cref="InvalidFixedValueException"><paramref name="value"/> has uncertainty.</exception>
     internal Constant(string name, Measurand value, IProvenance? provenance, string id)
-        : base(FixedExpressionType.Constant, value, id)
-    {
-        base.Name = name ?? throw new InvalidNameException("A constant needs a name.");
-        Provenance = provenance;
-    }
+        : base(FixedExpressionType.Constant, name, value, provenance, id) { }
 
     /// <summary>What the model calls this constant. Never null.</summary>
     public new string Name => base.Name!;

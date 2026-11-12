@@ -99,4 +99,20 @@ public class MeasurandTests
         squared.UpperRelativeUncertainty.Should().BeApproximately(0.02, 1E-9);
         squared.LowerRelativeUncertainty.Should().BeApproximately(0.04, 1E-9);
     }
+
+    /* IsExact is about the uncertainty, not about its size at one value. Zero ± 5 % has absolute bounds of zero
+       and is still an uncertainty; an absolute uncertainty of zero is none, however it was supplied. */
+    [Fact]
+    public void AnUncertaintyIsExactOnlyWhereItIsZeroWhateverTheValue()
+    {
+        Uncertainty.Exact().IsExact.Should().BeTrue();
+        Meters(0, relativeUncertainty: 0.05).Uncertainty.IsExact.Should().BeFalse();
+        Meters(0, relativeUncertainty: 0.05).KmsAbsoluteUncertainty.Should().Be(0);
+        Length.Meter.Quantity(5).WithUncertainty(Length.Meter.Quantity(0)).Uncertainty.IsExact.Should().BeTrue();
+        Length.Meter.Quantity(5).WithUncertainty(Length.Meter.Quantity(0.1)).Uncertainty.IsExact.Should().BeFalse();
+
+        var oneSided = Length.Meter.Quantity(5).Measurand(
+            Uncertainty.Absolute(Length.Meter.Quantity(0.1), Length.Meter.Quantity(0)));
+        oneSided.Uncertainty.IsExact.Should().BeFalse();
+    }
 }

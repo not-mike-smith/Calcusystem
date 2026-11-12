@@ -62,6 +62,8 @@ rel.SolvingRole;                    // Requirement / Equation / Coherence
 - **A fixed value and a variable are siblings, not parent and child.** Code that wants any leaf's value asks
   for `ILeafExpression`. `IFixedExpression` promises the value never changes, which a variable cannot.
 - **`IFixedExpression.Provenance` is always null for a scalar.**
+- **Every fixed value hands out one kind of snapshot.** `IFixedExpression.GetSnapshot()` returns a
+  `FixedExpressionSnapshot` that names its kind, so a caller need not know the concrete type.
 - **`IComputedExpression.UncertaintyCorrelation` is a statement about the model, not a method.**
   It says whether *these* operands' uncertainties move together; the numerical method is the
   `IUncertaintyPropagator` a calculation supplies, and both are passed on together.

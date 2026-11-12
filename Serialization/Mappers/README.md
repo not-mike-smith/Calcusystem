@@ -14,6 +14,7 @@ assembly's behavior; everything else here is shape.
 | `DraftMapper` | static class | Draft ↔ DTOs. Both directions, no context, nothing ordered. |
 | `DimensionalityCodec` | static class | Encodes a dimensionality as `"M1,L1,T-2"`, and back. |
 | `UncertaintyCodec` | static class | The flat uncertainty DTO, both directions. |
+| `MeasurandCodec` | static class | Reads a value from its KMS number, encoded dimensionality and flat uncertainty. Internal. |
 | `ProvenanceCodec` | static class | The flat provenance DTO, both directions. |
 
 ## Start here
