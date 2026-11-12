@@ -1,7 +1,7 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
+using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
-using Calcusystem.DimensionedExpression.Names;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.Snapshots;
 using Calcusystem.Measurement.Exceptions;
@@ -31,7 +31,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
         : base(id)
     {
         Dimensionality = dimensionality;
-        base.Name = NodeName.Checked(name);
+        base.Name = name ?? throw new InvalidNameException("A variable needs a name.");
     }
 
     /// <summary>A variable with a value, whose dimensionality it takes.</summary>
@@ -44,7 +44,7 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     {
         Dimensionality = measurand.Dimensionality;
         _value = measurand;
-        base.Name = NodeName.Checked(name);
+        base.Name = name ?? throw new InvalidNameException("A variable needs a name.");
     }
 
     public override bool IsDirectlyMutable => true;

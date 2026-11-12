@@ -1,5 +1,8 @@
 using Calcusystem.Core.Interfaces;
 using Calcusystem.DimensionedExpression.BinaryOperators;
+using Calcusystem.DimensionedExpression.Enums;
+using Calcusystem.DimensionedExpression.Snapshots;
+using Calcusystem.Measurement.Enums;
 using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Expressions;
 using Calcusystem.DimensionedExpression.Interfaces;
@@ -111,6 +114,32 @@ public class NodeNameOnExpressionsTests
 
         new DefinitelyLessThanOperator { Id = "r", Lhs = m, Rhs = m }.Name.Should().BeNull();
         new DefinitelyLessThanOperator { Id = "r", Lhs = m, Rhs = m, Name = "é" }.Name.Should().Be("é");
+    }
+
+    /* Each operator kind sets its name in its own initializer, so a kind added without one would compile and
+       lose every name it was saved with. */
+    [Fact]
+    public void EveryKindOfRelationshipKeepsItsNameThroughTheFactory()
+    {
+        var m = M();
+        var nodes = new Nodes().With(m);
+
+        foreach (var type in Enum.GetValues<BinaryOperatorType>())
+        {
+            var snapshot = new BinaryOperatorSnapshot(
+                type,
+                "r",
+                m.Id,
+                m.Id,
+                SolvingRole.Requirement,
+                AgreementRule.Nominal,
+                new ComparisonRule(Landmark.Nominal, MustBe.LessThan, Landmark.Nominal),
+                "named",
+                null,
+                null);
+
+            BinaryOperatorFactory.FromSnapshot(snapshot, nodes).Name.Should().Be("named", type.ToString());
+        }
     }
 
     /* The snapshot seam, for every arity. A name left out of a snapshot would be lost by a save. */

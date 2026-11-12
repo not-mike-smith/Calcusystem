@@ -30,6 +30,7 @@ export function VariableRow({ variable, problems, computed, isUnknown, onChange,
           placeholder="name"
           value={variable.Name ?? ""}
           onChange={(event) => onChange({ Name: event.target.value })}
+          onBlur={(event) => onChange({ Name: event.target.value.trim() })}
         />
 
         <DimensionalityEditor

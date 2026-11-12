@@ -161,6 +161,24 @@ public class ExpressionSystemNameTests
         system.Relationships.Should().ContainSingle();
     }
 
+    /* A different relationship that reuses both the id and the name is still a second claim on the name. */
+    [Fact]
+    public void ADifferentRelationshipReusingAnIdAndANameIsRefused()
+    {
+        var m = Mass("m");
+        var limit = Mass("limit");
+        var system = ExpressionSystem.Create("names");
+        var first = new DefinitelyLessThanOperator { Id = "r", Lhs = m, Rhs = limit, Name = "check" };
+        system.Add(first);
+
+        var act = () => system.Add(
+            new DefinitelyGreaterThanOperator { Id = "r", Lhs = limit, Rhs = m, Name = "check" });
+
+        act.Should().Throw<DuplicateNameException>();
+        system.Relationships.Should().ContainSingle();
+        system.FindRelationship("check").Should().BeSameAs(first);
+    }
+
     /* A shared sub-expression reaches Add more than once, and that is membership, not a clash. */
     [Fact]
     public void AddingANodeTheSystemAlreadyHoldsIsNotADuplicate()

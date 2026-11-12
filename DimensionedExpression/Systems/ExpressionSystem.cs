@@ -148,8 +148,7 @@ public class ExpressionSystem : IdBase, ISnapshottingNode<ExpressionSystem, Expr
         if (relationship?.Name is { } relationshipName)
         {
             // Adding a relationship the system already holds is not a second claim on its name.
-            var heldByItself = _named.GetValueOrDefault(relationshipName) is IBinaryOperator holder
-                               && holder.Id == relationship.Id;
+            var heldByItself = ReferenceEquals(_named.GetValueOrDefault(relationshipName), relationship);
 
             if (! heldByItself && (_named.ContainsKey(relationshipName) || ! claimed.Add(relationshipName)))
             {

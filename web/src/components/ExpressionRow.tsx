@@ -31,6 +31,7 @@ export function ExpressionRow({
           placeholder="unnamed"
           value={expression.Name ?? ""}
           onChange={(event) => onChange({ Name: event.target.value || null })}
+          onBlur={(event) => onChange({ Name: event.target.value.trim() || null })}
         />
 
         <span className="over">=</span>

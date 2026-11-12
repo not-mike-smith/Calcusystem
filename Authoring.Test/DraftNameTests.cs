@@ -148,6 +148,20 @@ public class DraftNameTests
         draft.ByName("a\uD800b").Should().BeNull();
     }
 
+    /* A noncharacter cannot be normalized either, and a setter that let the runtime's exception out would
+       break AU-5 for anything an author pastes. */
+    [Fact]
+    public void ANoncharacterInANameIsHeldAndReportedNotThrown()
+    {
+        var draft = SystemDraft.Create("names");
+        var name = "a" + (char)0xFFFE + "b";
+        var m = draft.AddVariable(name, Dimensionality.Mass);
+
+        m.Name.Should().Be(name);
+        draft.ByName(name).Should().BeSameAs(m);
+        draft.Validate().Should().ContainSingle().Which.Kind.Should().Be(DraftProblemKind.NameInvalid);
+    }
+
     /* Spec A decision S1-4. */
     [Fact]
     public void ADraftHoldsANameNormalized()

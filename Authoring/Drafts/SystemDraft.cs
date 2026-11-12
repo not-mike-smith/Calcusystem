@@ -245,13 +245,8 @@ public sealed class SystemDraft
 
         foreach (var sharing in named)
         {
-            foreach (var (id, _) in sharing)
-            {
-                found.Add(new DraftProblem(
-                    DraftProblemKind.DuplicateName,
-                    id,
-                    $"{sharing.Count()} nodes are named '{sharing.Key}'."));
-            }
+            var message = $"{sharing.Count()} nodes are named '{sharing.Key}'.";
+            foreach (var (id, _) in sharing) found.Add(new DraftProblem(DraftProblemKind.DuplicateName, id, message));
         }
     }
 

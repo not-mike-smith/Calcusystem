@@ -59,6 +59,20 @@ public class NodeNameTests
         act.Should().Throw<InvalidNameException>();
     }
 
+    /* A noncharacter. The runtime refuses to normalize it, as it does a lone surrogate, so a name holding one
+       would throw where it is stored if it were let through as valid. */
+    [Fact]
+    public void ANoncharacterIsNotAndNothingThrowsAnythingElse()
+    {
+        var name = "a" + (char)0xFFFE + "b";
+
+        NodeName.Problem(name).Should().NotBeNull();
+        NodeName.Normalized(name).Should().Be(name);
+
+        var act = () => NodeName.Checked(name);
+        act.Should().Throw<InvalidNameException>();
+    }
+
     /* Latin a and Cyrillic а. Nothing guards against mixing scripts, so these are two valid, different names. */
     [Fact]
     public void LookAlikeCharactersAreAllowedAndStayDistinct()

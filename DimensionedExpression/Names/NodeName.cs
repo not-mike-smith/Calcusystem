@@ -22,7 +22,7 @@ public static class NodeName
     public static string? Problem(string? name)
     {
         if (string.IsNullOrEmpty(name)) return "A name cannot be empty.";
-        if (! IsValidUnicode(name)) return "The name is not valid Unicode text.";
+        if (! TryNormalize(name, out _)) return "The name is not valid Unicode text.";
         if (string.IsNullOrWhiteSpace(name)) return "A name cannot be only whitespace.";
 
         if (char.IsWhiteSpace(name[0]) || char.IsWhiteSpace(name[^1]))
@@ -48,8 +48,7 @@ public static class NodeName
     /// <remarks>
     /// Does not check the name. Text that is not valid Unicode cannot be normalized and is returned unchanged.
     /// </remarks>
-    public static string Normalized(string name) =>
-        IsValidUnicode(name) ? name.Normalize(NormalizationForm.FormC) : name;
+    public static string Normalized(string name) => TryNormalize(name, out var normalized) ? normalized : name;
 
     /// <summary>The stored form of <paramref name="name"/>, which must be a valid name.</summary>
     /// <exception cref="Exceptions.InvalidNameException">
@@ -60,22 +59,19 @@ public static class NodeName
             ? throw new Exceptions.InvalidNameException(problem)
             : Normalized(name!);
 
-    // A surrogate with no partner is the one thing a .NET string can hold that is not text.
-    private static bool IsValidUnicode(string text)
+    // What cannot be normalized is not text: a surrogate with no partner, or a noncharacter such as U+FFFE.
+    // The runtime is the judge, so this cannot disagree with it about which strings those are.
+    private static bool TryNormalize(string text, out string normalized)
     {
-        for (var i = 0; i < text.Length; i++)
+        try
         {
-            if (char.IsHighSurrogate(text[i]))
-            {
-                if (i + 1 >= text.Length || ! char.IsLowSurrogate(text[i + 1])) return false;
-                i++;
-            }
-            else if (char.IsLowSurrogate(text[i]))
-            {
-                return false;
-            }
+            normalized = text.Normalize(NormalizationForm.FormC);
+            return true;
         }
-
-        return true;
+        catch (ArgumentException)
+        {
+            normalized = text;
+            return false;
+        }
     }
 }
