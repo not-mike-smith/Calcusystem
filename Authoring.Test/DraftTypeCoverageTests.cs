@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Calcusystem.Authoring.Test;
 
-/* ExpressionDraftType is one flat set over the node kinds that the snapshots group by arity across three enums.
+/* ExpressionDraftType is one flat set over the node kinds that the snapshots group across several enums.
    Two lists of the same closed set drift, so these hold them in step: a node kind added to the domain and not
    here would be unauthorable, and one removed from the domain but left here would be offerable and unbuildable.
 
@@ -15,7 +15,8 @@ public class DraftTypeCoverageTests
     private static IEnumerable<string> DomainExpressionKinds() =>
         Enum.GetNames<UnaryExpressionType>()
             .Concat(Enum.GetNames<NaryExpressionType>())
-            .Concat(Enum.GetNames<BinaryExpressionType>());
+            .Concat(Enum.GetNames<BinaryExpressionType>())
+            .Concat(Enum.GetNames<FixedExpressionType>());
 
     [Fact]
     public void EveryDomainExpressionKindCanBeDrafted()
