@@ -261,7 +261,7 @@ Today a node carries one `UncertaintyCorrelation` for all of its operands.
 
 ## 8. Leans on unspecified behavior
 
-**This spec now leans heavily on `SystemDraft`,** because every C# model goes through it. By the plan's escalation rule, the retroactive Authoring spec comes before A starts. It should cover:
+**This spec now leans heavily on `SystemDraft`,** because every C# model goes through it. By the plan's escalation rule, the [retroactive Authoring spec](retroactive/authoring.md) comes before A starts. It covers:
 
 1. What problems `Validate` and `Build` report, in which pass, and that `Build` succeeds if and only if `Validate` returns nothing.
 2. That a node whose operand failed is not reported again, so one cause gives one problem.

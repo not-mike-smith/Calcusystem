@@ -177,7 +177,7 @@ Depends on: C1 needs A and B. C2 needs D and E. **C1 may move after D** while th
 - [ ] **Editing affordances not yet designed** *(from M4.5)* — reordering an operand list, and what should happen to references when a node is deleted (`Remove` currently leaves them dangling and reports them, which is a deliberate first answer rather than a settled one). Better learned from the editor than guessed at.
   - [ ] Reordering operands.
   - [ ] What deleting a node does to the references to it.
-- [ ] **Draft warnings:** findings that do not stop a build, reported beside the problems. The first: a reference value with no provenance (Spec A). Needs a warnings report in `Authoring`.
+- [ ] Show draft warnings beside the problems (see the *Draft warnings* chore).
 - [ ] Undo and redo.
 - [ ] Front-end tests: a browser test that opens each Example and checks what it computes, and tests for the building blocks.
 - [ ] Density: the editor seen at forty rows, on a projector, and in print (see *Not settled* in `web/PATTERNS.md`).
@@ -339,9 +339,9 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
 
 - [ ] **Retroactive specs** — write down the behavior that already exists, so a bug means *a deviation from specified behavior* and stays distinct from *behavior nobody specified*. A retroactive spec records what is true and intended today. It is not a redesign, and anything found to be wrong becomes a Known Bug against the spec.
   - **Escalation rule:** when drafting a feature-set spec means assuming existing behavior, or explaining too much context, the retroactive spec for that area is missing. Write it before that feature set starts. Each feature-set spec lists what it leans on in a *Leans on unspecified behavior* section.
-  - [ ] Decide the layout: one spec per assembly or per behavior area, and where they live under `specs/`.
-  - [ ] Decide how a retroactive spec relates to the READMEs. A README's *Guarantees* section already states specified behavior; a spec could cite it rather than repeat it.
-  - [ ] **Authoring — needed before A starts.** What `SystemDraft.Validate` and `Build` report and when, that ids carry through, how operand slots and `Remove` behave. Every C# model now goes through `SystemDraft`, so Spec A leans on it heavily (Spec A §8). The first application of the escalation rule.
+  - [ ] Decide the layout: one spec per assembly or per behavior area, and where they live under `specs/`. *Proposed by the first one: `specs/retroactive/<area>.md`, with numbered rules (`AU-n`) each naming its test.*
+  - [ ] Decide how a retroactive spec relates to the READMEs. A README's *Guarantees* section already states specified behavior; a spec could cite it rather than repeat it. *Proposed: the spec says what, the README says why, and the spec cites it.*
+  - [ ] **Authoring — needed before A starts.** [Draft](specs/retroactive/authoring.md). All findings decided; four became Known Bugs. What `SystemDraft.Validate` and `Build` report and when, that ids carry through, how operand slots and `Remove` behave. Every C# model now goes through `SystemDraft`, so Spec A leans on it heavily (Spec A §8). The first application of the escalation rule.
   - [ ] Analysis: what `Flatten` counts as an unknown and an equation, and what `Calculate` reports. Spec A and D lean on it.
   - [ ] DimensionedExpression and Authoring: what happens to a reused id. `ExpressionSystem.Add` silently skips a different node with an existing id, and `SystemDraft.AddExpression` silently replaces one. Found in the Spec A review.
   - [ ] Further areas as feature-set specs reveal them.
@@ -353,6 +353,11 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
   - [ ] Update READMEs, `CLAUDE.md`, `DOCUMENTATION.md`, this plan and the specs.
   - [ ] Rename the GitHub repository.
   - [ ] Timing: early, while few specs and branches exist to update. No serialized data names a type or namespace today, so saved files do not force the timing; keep it that way when B versions the format.
+- [ ] **Draft warnings** — let `Build` (and `Validate`) report **warnings**: findings that do not stop a build, returned beside the built system or beside the problems.
+  - [ ] Decide the shape: how a successful `Either<ExpressionSystem>` carries warnings, whether warnings get their own kind enum, and how the API and the editor show them.
+  - [ ] Candidate warnings:
+    - [ ] A reference value with no provenance (Spec A).
+    - [ ] A non-equality relationship stating a solving role other than `Requirement`. This is a problem today (F3, `RoleNotAllowed`); decide whether it moves to a warning once warnings exist.
 - [ ] **Test-project READMEs** — Add a `README.md` to `Measurement.Test/`, `DimensionedExpression.Test/`, and `Serialization.Test/`. These follow a different structure than the library READMEs (purpose, coverage, test helpers/patterns, how to run) — to be established when tackled.
 
 ---
@@ -361,6 +366,10 @@ Depends on: A. **Not before C1 and D**, so the editor's UX and the solver's need
 
 - [x] **Uncertainty at and near zero — implementation.** Fixed: uncertainty now stores its error as *either* a relative fraction or an absolute KMS value, distinguished by a `bool IsStoredAsAbs` (a storage convention on what the `Magnitude` means; a genuinely different model like interval bounds would instead be a change at the `IUncertaintyPropagator` level). Absolute storage needs no divide-by-value, so a zero-valued result carries a meaningful error; `RelativeUncertainty(0)` returns `+∞` instead of throwing. Sums/differences propagate to an absolute-error result (no dividing by the summed value); products still compose relative errors. `ln(1)` and canceling sums no longer throw (regression tests in `Measurement.Test` and the updated `NaturalLogExpression` test). Serialization carries the storage flag.
 - [ ] **Uncertainty crossing zero for magnitudes** — tracked in [E2](#e--uncertainty-accuracy).
+- [ ] **A reused id replaces a draft node silently** — breaks [AU-3 and AU-23](specs/retroactive/authoring.md#7-findings) (F1). Keep both nodes and report `DuplicateId`; add the missing `DuplicateId` test (F9).
+- [ ] **An equality with no solving role builds as a requirement** — breaks [AU-21 and AU-29](specs/retroactive/authoring.md#7-findings) (F2). Report it as `RelationshipRuleMissing`.
+- [ ] **A solving role on a non-equality is ignored silently** — breaks [AU-21 and AU-40](specs/retroactive/authoring.md#7-findings) (F3). Report it as a new problem kind, `RoleNotAllowed`.
+- [ ] **A node above a cycle is reported as circular** — breaks [AU-31 and AU-35](specs/retroactive/authoring.md#7-findings) (F4). Report only the nodes in the cycle.
 
 ---
 
