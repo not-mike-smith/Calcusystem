@@ -195,8 +195,11 @@ public sealed class SystemDraft
         if (found.Count > 0) return Stopped(found);
 
         var system = new ExpressionSystem(Id) { Name = Name, Description = Description };
-        foreach (var expression in built.Expressions) TryAdd(() => system.Add(expression), expression.Id, found);
-        foreach (var op in operators) TryAdd(() => system.Add(op), op.Id, found);
+
+        // Not guarded: an expression can be refused here only for a name another node has, and every such name
+        // was reported above, so this line is not reached with one. A throw would be a defect in this class.
+        foreach (var expression in built.Expressions) system.Add(expression);
+        foreach (var op in operators) TryAdd(system, op, found);
 
         return found.Count > 0 ? Stopped(found) : system;
     }
@@ -215,17 +218,17 @@ public sealed class SystemDraft
                 : $"{problems.Count} problems stop this draft from building.",
             problems);
 
-    // `Add` is the last place the domain can refuse: it compares the two sides of a relationship, and it holds
-    // names unique across the whole system, neither of which any one node can be asked.
-    private static void TryAdd(Action add, string nodeId, List<DraftProblem> found)
+    // `Add` is the last place a dimensional mismatch can surface, because it compares the two sides of a
+    // relationship rather than anything within one expression.
+    private static void TryAdd(ExpressionSystem system, IBinaryOperator op, List<DraftProblem> found)
     {
         try
         {
-            add();
+            system.Add(op);
         }
         catch (Exception e)
         {
-            found.Add(new DraftProblem(DraftProblemKind.DomainRule, nodeId, e.Message));
+            found.Add(new DraftProblem(DraftProblemKind.DomainRule, op.Id, e.Message));
         }
     }
 

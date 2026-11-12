@@ -11,6 +11,8 @@ namespace Calcusystem.DimensionedExpression.Names;
 /// <list type="bullet">
 /// <item>is not empty, and has no whitespace at either end;</item>
 /// <item>holds no format or control character (Unicode categories Cf and Cc), such as a zero-width joiner;</item>
+/// <item>holds no space but the ordinary one (U+0020), and no line or paragraph separator;</item>
+/// <item>holds no character that renders as nothing, such as the Hangul filler (a fixed list, not exhaustive);</item>
 /// <item>is valid Unicode text.</item>
 /// </list>
 /// Names are case-sensitive. Emoji and look-alike characters from different scripts are allowed.
@@ -32,9 +34,18 @@ public static class NodeName
 
         foreach (var rune in name.EnumerateRunes())
         {
-            if (Rune.GetUnicodeCategory(rune) is UnicodeCategory.Format or UnicodeCategory.Control)
+            var category = Rune.GetUnicodeCategory(rune);
+
+            if (category is UnicodeCategory.Format or UnicodeCategory.Control
+                    or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator
+                || RendersAsNothing.Contains(rune.Value))
             {
                 return $"The name holds an invisible character, U+{rune.Value:X4}.";
+            }
+
+            if (category is UnicodeCategory.SpaceSeparator && rune.Value != ' ')
+            {
+                return $"The name holds a space other than the ordinary one, U+{rune.Value:X4}.";
             }
         }
 
@@ -58,6 +69,20 @@ public static class NodeName
         Problem(name) is { } problem
             ? throw new Exceptions.InvalidNameException(problem)
             : Normalized(name!);
+
+    // Characters that are letters, marks or symbols by category and still draw nothing. Unicode has no category
+    // for them, so they are listed. Variation selectors are left out on purpose: emoji need them.
+    private static readonly HashSet<int> RendersAsNothing =
+    [
+        0x034F, // combining grapheme joiner
+        0x115F, // Hangul choseong filler
+        0x1160, // Hangul jungseong filler
+        0x17B4, // Khmer vowel inherent aq
+        0x17B5, // Khmer vowel inherent aa
+        0x2800, // Braille pattern blank
+        0x3164, // Hangul filler
+        0xFFA0, // halfwidth Hangul filler
+    ];
 
     // What cannot be normalized is not text: a surrogate with no partner, or a noncharacter such as U+FFFE.
     // The runtime is the judge, so this cannot disagree with it about which strings those are.

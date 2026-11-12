@@ -44,6 +44,27 @@ public class NodeNameTests
     public void ANameHoldingAnInvisibleCharacterIsNot(string name) =>
         NodeName.Problem(name).Should().NotBeNull();
 
+    /* Invisible without being Cf or Cc. Each would let two names look identical and be different nodes: a
+       second kind of space, a separator, or a letter that draws nothing. */
+    [Theory]
+    [InlineData("a\u00A0b")]   // no-break space
+    [InlineData("a\u2003b")]   // em space
+    [InlineData("a\u3000b")]   // ideographic space
+    [InlineData("a\u2028b")]   // line separator
+    [InlineData("a\u2029b")]   // paragraph separator
+    [InlineData("a\u3164b")]   // Hangul filler
+    [InlineData("a\u115Fb")]   // Hangul choseong filler
+    [InlineData("a\uFFA0b")]   // halfwidth Hangul filler
+    [InlineData("a\u2800b")]   // Braille blank
+    [InlineData("a\u034Fb")]   // combining grapheme joiner
+    public void ANameHoldingACharacterThatDrawsNothingOrAnOddSpaceIsNot(string name) =>
+        NodeName.Problem(name).Should().NotBeNull();
+
+    /* The variation selector that makes ❤ render as an emoji is invisible too, and must stay allowed. */
+    [Fact]
+    public void AnEmojiWithAVariationSelectorIsValid() =>
+        NodeName.Problem("\u2764\uFE0F").Should().BeNull();
+
     /* The family emoji is four emoji joined by zero-width joiners, and the joiner is a format character. */
     [Fact]
     public void AnEmojiJoinedByAZeroWidthJoinerIsNot() =>

@@ -61,6 +61,9 @@ In C# today it is a nested `SqrtExpression` around a `QuotientExpression` with r
 4. **A valid name:**
    - is not empty and not only whitespace, and has no leading or trailing whitespace;
    - contains no invisible formatting or control characters (Unicode categories Cf and Cc), which rules out zero-width characters and the characters that change text direction;
+   - contains no space other than the ordinary one (U+0020), and no line or paragraph separator (categories Zl and Zp);
+   - contains no character from a fixed list of those that render as nothing without being Cf or Cc, such as the Hangul fillers and the Braille blank. Unicode has no category for these, so the list is best effort and not exhaustive. Variation selectors are not on it, because emoji need them;
+   - is valid Unicode text;
    - is compared case-sensitively, after Unicode NFC normalization, so two names that are the same characters encoded differently compare equal.
    - Emoji are allowed. Emoji joined by a zero-width joiner (the family emoji, for example) are not, because the joiner is a format character.
    - Look-alike characters from different scripts (Latin `a`, Cyrillic `а`) are allowed. Nothing guards against mixing them.
@@ -348,6 +351,8 @@ Each slice can merge on its own. The retroactive Authoring spec comes first (sec
 | S1-5 | Constructor shape in slice 1 | Slice 1 adds a name the smallest way each constructor allows. One uniform way to supply an id and a name waits for slice 3, where the constructors become internal. |
 | S1-6 | A reused id in `ExpressionSystem.Add` | Left as it is in slice 1 (section 8). The name check does not copy its silence. |
 | S1-7 | Naming a computed node in the editor | The editor offers a name on each formula, prefilled with the first unused `eq-N`. Clearing it leaves the node unnamed. The default lives in the editor, not in the draft or the domain. |
+| S1-8 | Invisible characters outside Cf and Cc | Also invalid: any space but U+0020, line and paragraph separators, and a fixed, best-effort list of characters that render as nothing. Decided 2026-11-12, after slice 1's review. |
+| S1-9 | A system document with a bad name | Refused on load, with no empty-means-none mapping. A built system with a malformed name should not be read. |
 | — | Reading text | Out of A. Moved to Spec H, after C1 and D. |
 | — | Printed text | Human-readable, and not required to parse. |
 
