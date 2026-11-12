@@ -31,6 +31,10 @@ public sealed class RelationshipDraft
     /// What this relationship does to the problem. Only an equality can be anything but
     /// <see cref="SolvingRole.Requirement"/>, and an equality must say which it is.
     /// </summary>
+    /// <remarks>
+    /// Left unset on any other kind, it builds as a requirement. Set to anything else on one, the build reports
+    /// <c>RoleNotAllowed</c> rather than ignoring it.
+    /// </remarks>
     public SolvingRole? SolvingRole { get; set; }
 
     /// <summary>How strictly an equality reads "equal". Required for an equality, ignored otherwise.</summary>

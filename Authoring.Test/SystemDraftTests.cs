@@ -398,4 +398,158 @@ public class SystemDraftTests
         system.Variables.Should().BeEmpty();
         system.Relationships.Should().BeEmpty();
     }
+
+    // ── Reused ids (AU-3, AU-8, AU-23) ───────────────────────────────────────
+
+    /* A reused id used to replace the earlier node, so a node vanished without anyone deleting it. Both are
+       kept, and the reuse is reported. */
+    [Fact]
+    public void ReusingAnExpressionsIdKeepsBothNodesAndReportsIt()
+    {
+        var draft = SystemDraft.Create("reused expression id", "");
+        draft.AddVariable("x", Dimensionality.Mass, "dup");
+        draft.AddVariable("y", Dimensionality.Length, "dup");
+
+        draft.Expressions.Should().HaveCount(2);
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.DuplicateId, NodeId = "dup" });
+    }
+
+    [Fact]
+    public void ReusingARelationshipsIdKeepsBothAndReportsIt()
+    {
+        var draft = SystemDraft.Create("reused relationship id", "");
+        var m = draft.AddVariable("m", Dimensionality.Mass);
+        foreach (var _ in new[] { 1, 2 })
+        {
+            var check = draft.AddRelationship(BinaryOperatorType.DefinitelyLessThan, "dup");
+            check.LhsId = m.Id;
+            check.RhsId = m.Id;
+        }
+
+        draft.Relationships.Should().HaveCount(2);
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.DuplicateId, NodeId = "dup" });
+    }
+
+    [Fact]
+    public void AnIdSharedByAnExpressionAndARelationshipIsReported()
+    {
+        var draft = SystemDraft.Create("shared id", "");
+        var m = draft.AddVariable("m", Dimensionality.Mass, "shared");
+        var check = draft.AddRelationship(BinaryOperatorType.DefinitelyLessThan, "shared");
+        check.LhsId = m.Id;
+        check.RhsId = m.Id;
+
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.DuplicateId, NodeId = "shared" });
+    }
+
+    /* Which of two nodes an operand means cannot be known, so the reuse is the cause and whatever refers to it
+       stays silent (AU-35). */
+    [Fact]
+    public void NodesReferringToAReusedIdStaySilent()
+    {
+        var draft = SystemDraft.Create("ambiguous operand", "");
+        draft.AddVariable("x", Dimensionality.Mass, "dup");
+        draft.AddVariable("y", Dimensionality.Mass, "dup");
+        var negated = draft.AddExpression(ExpressionDraftType.Negated);
+        negated.OperandIds.Add("dup");
+
+        draft.Validate().Should().ContainSingle()
+            .Which.Kind.Should().Be(DraftProblemKind.DuplicateId);
+    }
+
+    [Fact]
+    public void RemovingAReusedIdRemovesEveryNodeWithIt()
+    {
+        var draft = SystemDraft.Create("remove reused id", "");
+        draft.AddVariable("x", Dimensionality.Mass, "dup");
+        draft.AddVariable("y", Dimensionality.Mass, "dup");
+        draft.AddRelationship(BinaryOperatorType.DefinitelyLessThan, "dup");
+
+        draft.Remove("dup").Should().BeTrue();
+
+        draft.Expressions.Should().BeEmpty();
+        draft.Relationships.Should().BeEmpty();
+    }
+
+    // ── Solving roles (AU-21, AU-29, AU-40) ──────────────────────────────────
+
+    [Fact]
+    public void AnEqualityWithNoSolvingRoleIsReported()
+    {
+        var draft = SystemDraft.Create("no role", "");
+        var equality = draft.AddRelationship(BinaryOperatorType.Equality);
+        equality.LhsId = draft.AddVariable("a", Dimensionality.Mass).Id;
+        equality.RhsId = draft.AddVariable("b", Dimensionality.Mass).Id;
+        equality.Agreement = AgreementRule.Nominal;
+
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(
+                new { Kind = DraftProblemKind.RelationshipRuleMissing, NodeId = equality.Id });
+    }
+
+    /* Every relationship but an equality is a requirement. Stating otherwise used to be ignored silently, so the
+       author never learned their role was not honored. */
+    [Theory]
+    [InlineData(SolvingRole.Equation)]
+    [InlineData(SolvingRole.Coherence)]
+    public void ARoleOtherThanRequirementOnANonEqualityIsReported(SolvingRole role)
+    {
+        var draft = SystemDraft.Create("role not allowed", "");
+        var check = draft.AddRelationship(BinaryOperatorType.DefinitelyLessThan);
+        check.LhsId = draft.AddVariable("m", Dimensionality.Mass).Id;
+        check.RhsId = draft.AddVariable("limit", Dimensionality.Mass).Id;
+        check.SolvingRole = role;
+
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.RoleNotAllowed, NodeId = check.Id });
+    }
+
+    [Fact]
+    public void ARequirementStatedOnANonEqualityBuilds()
+    {
+        var draft = SystemDraft.Create("requirement stated", "");
+        var check = draft.AddRelationship(BinaryOperatorType.DefinitelyLessThan);
+        check.LhsId = draft.AddVariable("m", Dimensionality.Mass).Id;
+        check.RhsId = draft.AddVariable("limit", Dimensionality.Mass).Id;
+        check.SolvingRole = SolvingRole.Requirement;
+
+        draft.Build().Should().BeOfType<Succeeded<ExpressionSystem>>()
+            .Which.Value.Requirements.Should().HaveCount(1);
+    }
+
+    // ── Cycles (AU-31, AU-35) ────────────────────────────────────────────────
+
+    /* A node that depends on a cycle is not reached from its own operands, so saying it is would be false. The
+       cycle is the cause; the node above it stays silent. */
+    [Fact]
+    public void ANodeAboveACycleStaysSilent()
+    {
+        var draft = SystemDraft.Create("above a cycle", "");
+        var first = draft.AddExpression(ExpressionDraftType.Negated);
+        var second = draft.AddExpression(ExpressionDraftType.Negated);
+        first.OperandIds.Add(second.Id);
+        second.OperandIds.Add(first.Id);
+        var above = draft.AddExpression(ExpressionDraftType.Negated);
+        above.OperandIds.Add(first.Id);
+
+        var problems = draft.Validate();
+
+        problems.Should().HaveCount(2);
+        problems.Should().OnlyContain(p => p.Kind == DraftProblemKind.CircularReference);
+        problems.Select(p => p.NodeId).Should().BeEquivalentTo([first.Id, second.Id]);
+    }
+
+    [Fact]
+    public void ANodeThatIsItsOwnOperandIsReported()
+    {
+        var draft = SystemDraft.Create("self reference", "");
+        var node = draft.AddExpression(ExpressionDraftType.Negated);
+        node.OperandIds.Add(node.Id);
+
+        draft.Validate().Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new { Kind = DraftProblemKind.CircularReference, NodeId = node.Id });
+    }
 }

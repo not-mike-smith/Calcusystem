@@ -31,7 +31,10 @@ public enum DraftProblemKind
     /// <summary>A variable has no dimensionality, which it cannot be constructed without.</summary>
     DimensionalityMissing,
 
-    /// <summary>A relationship kind needs data it was not given — an agreement rule, or a comparison rule.</summary>
+    /// <summary>
+    /// A relationship kind needs data it was not given — an equality's agreement rule or solving role, or a
+    /// simple comparison's rule.
+    /// </summary>
     RelationshipRuleMissing,
 
     /// <summary>
@@ -39,4 +42,11 @@ public enum DraftProblemKind
     /// stated wherever the domain states it rather than restated here.
     /// </summary>
     DomainRule,
+
+    /// <summary>
+    /// A relationship other than an equality states a solving role other than
+    /// <see cref="Calcusystem.DimensionedExpression.Enums.SolvingRole.Requirement"/>. Only an equality can determine
+    /// a value.
+    /// </summary>
+    RoleNotAllowed,
 }

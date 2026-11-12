@@ -446,7 +446,7 @@ export interface components {
          * @description Why a draft cannot be built, in a form a front-end can branch on without reading the message.
          * @enum {unknown}
          */
-        DraftProblemKind: "TypeNotChosen" | "OperandMissing" | "OperandCountWrong" | "ReferenceNotFound" | "CircularReference" | "DuplicateId" | "DimensionalityMissing" | "RelationshipRuleMissing" | "DomainRule";
+        DraftProblemKind: "TypeNotChosen" | "OperandMissing" | "OperandCountWrong" | "ReferenceNotFound" | "CircularReference" | "DuplicateId" | "DimensionalityMissing" | "RelationshipRuleMissing" | "DomainRule" | "RoleNotAllowed";
         /** @description A determining relationship, and which unknowns it reaches. */
         EquationReport: {
             RelationshipId: string;
