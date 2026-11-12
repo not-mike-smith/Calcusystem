@@ -22,6 +22,8 @@ They are also exactly what an editor cannot honor between one keystroke and the 
 | a comparison across two dimensionalities | `ExpressionSystem.Add` throws |
 | two nodes briefly pointing at each other | the graph walks refuse it |
 | a node with no kind chosen yet | unrepresentable — there is no such type |
+| a variable not yet named, or a name half typed | `Variable` throws `InvalidNameException` |
+| two nodes briefly given one name | `ExpressionSystem.Add` throws `DuplicateNameException` |
 
 So the flexibility goes in a separate model rather than into the domain types. **A `SystemDraft` is freely invalid; building is where the rules apply.** This is the same resolution `project-plan.md` records for tolerant deserialization — *"invalid state is unrepresentable is the right rule for the domain types, but intake is exactly the boundary where invalid state arrives, so the flexibility belongs in the mode, not in the types"* — applied to authoring instead of loading.
 
@@ -76,11 +78,13 @@ Its wire shape lives in `Calcusystem.Serialization` with every other format deci
 
 The domain cannot be asked about a node until the node can be constructed at all, so `Build` works in two stages.
 
-**Shape**, checked here: a kind chosen, operand slots filled, the right number of them, every reference resolvable, no cycles, no id claimed twice. These are the questions that must be answered before a constructor can even be called.
+**Shape**, checked here: a kind chosen, a name where one is needed, operand slots filled, the right number of them, every reference resolvable, no cycles, no id or name claimed twice. These are the questions that must be answered before a constructor can even be called.
 
 **Rules**, asked of the domain: each node is constructed in dependency order and whatever the domain refuses is relayed as a `DomainRule` problem carrying its exception message.
 
 **The second pass deliberately does not restate the domain's rules.** A draft validator holding its own copy of "addends must agree" is two things answering one question, which is the shape of three bugs this codebase has already fixed. Here the domain stays the only place a rule is written, so a rule added to a constructor shows up in authoring for free.
+
+**Names are the one rule reported under this layer's own kinds and still not restated.** A missing, invalid or duplicate name is `NameMissing`, `NameInvalid` or `DuplicateName`, so an editor can branch on it. What makes a name valid is asked of the domain's `NodeName.Problem`, and the message is its answer.
 
 This leans on every expression type settling its dimensional rules **at construction**, which is the assembly-wide rule in `DimensionedExpression` — validation happens once, where the operand arrives. A type that deferred one to a later read would pass the second pass here and refuse afterwards, with no node named. `SqrtExpression` was the one exception when this assembly was written, and was fixed rather than worked around.
 

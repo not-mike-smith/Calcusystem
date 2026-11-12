@@ -57,7 +57,7 @@ Two further consequences worth internalizing:
 
 | Interface | Extends | Adds |
 | --- | --- | --- |
-| `IExpression` | | `Id`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Children`, `ComputeFrom(known)` |
+| `IExpression` | | `Id`, `Name`, `IsDirectlyMutable`, `IsFullyDescribed`, `Dimensionality`, `Children`, `ComputeFrom(known)` |
 | `IDirectExpression` | `IExpression` | adds `Measurand? Value { get; set; }` — a mutable leaf's *stored* value. A genuine property: there is nothing beneath a leaf to walk. It no longer shadows anything, which is what kept the difference in cost between the two hidden. |
 | `IComputedExpression` | `IExpression` | `UncertaintyCorrelation { get; set; }` — the `UncertaintyCorrelation` used when combining children |
 
@@ -65,7 +65,7 @@ Two further consequences worth internalizing:
 
 | Class | Implements | Role |
 | --- | --- | --- |
-| `Variable` | `IDirectExpression` | Leaf. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. A leaf: `Children` is empty, and it is the only node type that can be a free variable. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
+| `Variable` | `IDirectExpression` | Leaf. Has a `Name`, required and fixed at construction. Holds a settable `Measurand? Value`; setting a value of the wrong dimensionality throws `IncompatibleDimensionsException`. A leaf: `Children` is empty, and it is the only node type that can be a free variable. Constructible with just a dimensionality (unbound) or with an initial `Measurand`. Carries an optional `IProvenance` (see [Provenance](#provenance-interfacesiprovenancecs-provenanceprovenancefactorycs)). |
 | `SumExpression` | `IComputedExpression` | n-ary `+` over `Addends`, supplied at construction. All addends must share a dimensionality, enforced there. |
 | `ProductExpression` | `IComputedExpression` | n-ary `×` over `Factors`. Dimensionality is the product of its factors'. |
 | `QuotientExpression` | `IComputedExpression` | `Numerator / Denominator` (both `required`). |
@@ -205,6 +205,38 @@ Every expression, operator, and system carries a string `Id` via `IdBase`. Passi
 
 ---
 
+## Names (`Names/NodeName.cs`)
+
+An id is for the system; a name is for the person reading the model. Every expression and relationship has an
+`Id`. A `Name` is what the model calls a node:
+
+| Node | Name |
+| --- | --- |
+| `Variable` | Required. The constructor's first argument. |
+| Computed node | Optional. Supplied by object initializer: `new ProductExpression([m, a]) { Name = "F" }`. |
+| Relationship | Optional. Supplied by object initializer, with `Id`, `Lhs` and `Rhs`. |
+
+**A name is fixed once the node is built.** There is no setter. A system holds names unique (see
+[`ExpressionSystem`](#expressionsystem-systemsexpressionsystemcs)), and a name that could change afterwards
+could break that with nothing to refuse it.
+
+**`NodeName` is the one statement of what a valid name is**, and a node refuses an invalid one with
+`InvalidNameException` where it is built:
+
+- not empty, and no whitespace at either end;
+- no format or control character (Unicode categories Cf and Cc). That rules out zero-width characters and the
+  characters that change text direction, which would make two different names look the same;
+- valid Unicode text.
+
+Names are **case-sensitive**, and are **stored NFC-normalized**, so the same characters encoded differently are
+one name. Emoji are allowed, except sequences joined by a zero-width joiner, which is a format character.
+Look-alike characters from different scripts (Latin `a`, Cyrillic `а`) are allowed and are different names.
+
+`Calcusystem.Authoring` asks the same rule through `NodeName.Problem`, so a draft and the domain cannot come
+to disagree about a name.
+
+---
+
 ## `ExpressionSystem` (`Systems/ExpressionSystem.cs`)
 
 The container for one coherent model. Create it via the factory (auto-generated id):
@@ -234,6 +266,26 @@ plus three read-only views over that third one, one per [`SolvingRole`](#solving
 | `Equations` | relationships that define a quantity — conservation laws, constitutive equations |
 | `CoherenceChecks` | relationships asserting that separately computed routes to one quantity agree |
 | `Requirements` | everything else — tolerance/ordering checks evaluated against values (pass / fail / unknown) |
+
+### Names are unique, and `Add` is atomic
+
+Within one system, no two nodes have the same name. Expressions and relationships share **one namespace**, so
+a relationship cannot take a variable's name.
+
+```csharp
+system.Find("F");                      // the expression named F, or null
+system.FindRelationship("F ≤ F_max");  // the relationship with that name, or null
+```
+
+`Add` throws `DuplicateNameException` for a node whose name another node already has, whether that other node
+is in the system or in the same subgraph being added. **A refused `Add` leaves the system exactly as it was:**
+every node it would absorb is checked before any is taken in. The dimensionality check on a relationship is
+made first, and is atomic in the same way.
+
+Adding a node the system already holds is not a duplicate. A node reached through two parents is one node.
+
+**A reused id is not treated this way.** Nodes are equal by id, so a *different* node carrying an id the system
+already holds is taken for the one it has and skipped, with nothing thrown, and its name is not looked at.
 
 ### Membership is reachability
 

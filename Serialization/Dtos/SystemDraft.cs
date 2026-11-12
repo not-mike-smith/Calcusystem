@@ -33,7 +33,8 @@ public class ExpressionDraft
     /// <summary>The operands, in order, where a null entry is a slot opened but not filled.</summary>
     public List<string?> OperandIds { get; init; } = [];
 
-    public string? Symbol { get; init; }
+    /// <summary>What the node is called, or null for none.</summary>
+    public string? Name { get; init; }
 
     /// <summary>The declared dimensionality, encoded as by <see cref="Mappers.DimensionalityCodec"/>.</summary>
     public string? Dimensionality { get; init; }

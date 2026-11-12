@@ -74,8 +74,9 @@ npm run patterns-check    # the language, the sheets and the document must agree
 
 ## What it does
 
-- **Variables** — a name, what it measures, and a value if anyone has supplied one.
-- **Formulas** — a kind and the nodes it is over. An empty operand slot is a normal state, not an error to
+- **Variables** — a name, what it measures, and a value if anyone has supplied one. The name is required.
+- **Formulas** — an optional name, a kind and the nodes it is over. A new formula is offered the first unused
+  `eq-N`; clearing the field leaves it unnamed. An empty operand slot is a normal state, not an error to
   apologise for.
 - **Relationships** — two nodes and an operator, with the verdict beside it once the model runs.
 - **Can this be solved?** — degrees of freedom, and which unknowns are determinable, under-determined, or

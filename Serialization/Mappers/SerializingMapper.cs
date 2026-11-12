@@ -54,7 +54,7 @@ public class SerializingMapper
         {
             Id = snapshot.Id,
             Type = nameof(Variable),
-            Symbol = snapshot.Symbol,
+            Name = snapshot.Name,
             Dimensionality = DimensionalityCodec.Encode(snapshot.Dimensionality),
             KmsValue = snapshot.Value?.Quantity.KmsValue,
             Uncertainty = snapshot.Value is { } value ? UncertaintyCodec.ToWire(value.Uncertainty) : null,
@@ -85,6 +85,7 @@ public class SerializingMapper
         Id = snapshot.Id,
         Type = WireNames.Of(snapshot.Type),
         InnerId = snapshot.InnerId,
+        Name = snapshot.Name,
     };
 
     private Dtos.ListDerivedVariable Map(NaryExpressionSnapshot snapshot) => new()
@@ -92,6 +93,7 @@ public class SerializingMapper
         Id = snapshot.Id,
         Type = WireNames.Of(snapshot.Type),
         InnerIds = snapshot.InnerIds.ToList(),
+        Name = snapshot.Name,
         UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
     };
 
@@ -101,6 +103,7 @@ public class SerializingMapper
         Type = WireNames.Of(snapshot.Type),
         InnerId1 = snapshot.InnerId1,
         InnerId2 = snapshot.InnerId2,
+        Name = snapshot.Name,
         UncertaintyCorrelation = snapshot.UncertaintyCorrelation,
     };
 

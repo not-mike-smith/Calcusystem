@@ -41,6 +41,13 @@ Operands are constructor arguments; the two-child types use required initializer
 var q = new QuotientExpression { Numerator = work, Denominator = time };
 ```
 
+A variable's name is its first constructor argument. A computed node's name is optional and goes in an object
+initializer:
+
+```csharp
+var named = new ProductExpression([m, a]) { Name = "F" };
+```
+
 ## Guarantees
 
 - **Structure is fixed at construction.** There is no `AddFactor`, no operand setter, and no
@@ -50,6 +57,8 @@ var q = new QuotientExpression { Numerator = work, Denominator = time };
 - **Validation happens once, where the operand arrives.** `SumExpression` checks that its
   addends share a dimensionality in its constructor and nowhere else; the unary types check
   dimensionlessness there and nowhere else.
+- **A name is fixed at construction and stored normalized.** A variable always has one. An invalid name
+  throws `InvalidNameException` there. The rule is `Names.NodeName`.
 - **Dimensionality is derived, never stored.** A quotient reports
   `Numerator.Dimensionality / Denominator.Dimensionality`, so it cannot disagree with its
   children.
@@ -61,6 +70,11 @@ var q = new QuotientExpression { Numerator = work, Denominator = time };
   deliberately — a node cannot learn that a leaf beneath it was reassigned, so a cached answer
   there could go stale. Use `Calcusystem.Analysis`'s `system.Calculate()` for anything beyond a
   one-off read.
+- **A name is supplied three ways, by the shape of each constructor.** A variable takes it as an argument; every
+  other node takes it by object initializer. `Variable.Name` is a `string`, hiding the `string?` every other
+  node has, so `new Variable(…) { Name = … }` does not compile.
+- **Nothing here stops two nodes having one name.** Uniqueness belongs to the system that holds them:
+  `ExpressionSystem.Add` refuses the second.
 - **The graph is a DAG, not a tree.** One node can be a child of several parents, which is the
   point of building formulas from shared pieces, and the reason `UnsetVariables()` returns a
   deduplicated set rather than a count.
@@ -79,6 +93,7 @@ var q = new QuotientExpression { Numerator = work, Denominator = time };
 
 ## Related
 
-`Interfaces/` · `BinaryOperators/` · `Systems/` · `Snapshots/` · `Provenance/`.
+`Interfaces/` · `BinaryOperators/` · `Systems/` · `Snapshots/` · `Provenance/` · `Names/` (`NodeName`, the rule
+for a name).
 See the [assembly README](../README.md) for the lazy, dimension-checked graph and why structure
 is immutable.

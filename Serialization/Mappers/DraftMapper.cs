@@ -58,7 +58,7 @@ public static class DraftMapper
         Id = draft.Id,
         Type = draft.Type,
         OperandIds = [.. draft.OperandIds],
-        Symbol = draft.Symbol,
+        Name = draft.Name,
         Dimensionality = Encode(draft.Dimensionality),
         KmsValue = draft.Value?.KmsValue,
         ValueDimensionality = DivergentValueDimensionality(draft),
@@ -88,7 +88,7 @@ public static class DraftMapper
     {
         var node = draft.AddExpression(wire.Type, wire.Id);
 
-        node.Symbol = wire.Symbol;
+        node.Name = wire.Name;
         node.Dimensionality = Decode(wire.Dimensionality);
         node.UncertaintyCorrelation = wire.UncertaintyCorrelation ?? UncertaintyCorrelation.Uncorrelated;
         node.Provenance = ProvenanceCodec.FromWire(wire.Provenance) is { } snapshot

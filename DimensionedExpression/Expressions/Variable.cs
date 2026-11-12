@@ -1,5 +1,6 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.Core.Interfaces;
+using Calcusystem.DimensionedExpression.Exceptions;
 using Calcusystem.DimensionedExpression.Interfaces;
 using Calcusystem.DimensionedExpression.Provenance;
 using Calcusystem.DimensionedExpression.Snapshots;
@@ -21,29 +22,29 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
 {
     // ReSharper disable once InconsistentNaming
     protected Measurand? _value;
-    // ReSharper disable once InconsistentNaming
-    protected string _symbol;
-
+    /// <summary>A variable with no value yet.</summary>
+    /// <exception cref="Exceptions.InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     public Variable(
-        string symbol,
+        string name,
         Dimensionality dimensionality,
         string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
-        
         Dimensionality = dimensionality;
-        _symbol = symbol;
+        base.Name = name ?? throw new InvalidNameException("A variable needs a name.");
     }
 
+    /// <summary>A variable with a value, whose dimensionality it takes.</summary>
+    /// <exception cref="Exceptions.InvalidNameException"><paramref name="name"/> is not a valid name.</exception>
     public Variable(
-        string symbol,
+        string name,
         Measurand measurand,
         string id = IdBase.CREATE_NEW_ID)
         : base(id)
     {
         Dimensionality = measurand.Dimensionality;
         _value = measurand;
-        _symbol = symbol;
+        base.Name = name ?? throw new InvalidNameException("A variable needs a name.");
     }
 
     public override bool IsDirectlyMutable => true;
@@ -78,11 +79,8 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
         }
     }
 
-    public string Symbol
-    {
-        get => _symbol;
-        set => _symbol = value;
-    }
+    /// <summary>What the model calls this variable. Never null, and fixed once the variable is built.</summary>
+    public new string Name => base.Name!;
 
     /// <summary>
     /// Optional audit annotation describing where this variable's value came from. Null means provenance is not
@@ -92,13 +90,13 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
 
     public override string ToString()
     {
-        return Symbol;
+        return Name;
     }
 
     /// <inheritdoc/>
     public VariableSnapshot GetSnapshot() => new(
         Id,
-        Symbol,
+        Name,
         Dimensionality.GetSnapshot(),
         _value?.GetSnapshot(),
         Provenance?.GetSnapshot());
@@ -111,8 +109,8 @@ public class Variable : ExpressionBase, IDirectExpression, ISnapshotting<Variabl
     public static Variable FromSnapshot(VariableSnapshot snapshot)
     {
         var variable = snapshot.Value is { } value
-            ? new Variable(snapshot.Symbol, Measurand.FromSnapshot(value), snapshot.Id)
-            : new Variable(snapshot.Symbol, Dimensionality.FromSnapshot(snapshot.Dimensionality), snapshot.Id);
+            ? new Variable(snapshot.Name, Measurand.FromSnapshot(value), snapshot.Id)
+            : new Variable(snapshot.Name, Dimensionality.FromSnapshot(snapshot.Dimensionality), snapshot.Id);
 
         if (snapshot.Provenance is { } provenance)
         {

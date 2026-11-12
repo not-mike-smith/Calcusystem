@@ -1,5 +1,6 @@
 using Calcusystem.Core.Identity;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Names;
 using Calcusystem.Measurement.Interfaces;
 using Calcusystem.Measurement.Primitives;
 
@@ -16,6 +17,17 @@ namespace Calcusystem.DimensionedExpression.Expressions;
 public abstract class ExpressionBase : IdBase, IExpression
 {
     protected ExpressionBase(string id = IdBase.CREATE_NEW_ID) : base(id) { }
+
+    private readonly string? _name;
+
+    /// <summary><inheritdoc/></summary>
+    /// <remarks>Fixed once the node is built, and stored normalized (see <see cref="NodeName"/>).</remarks>
+    /// <exception cref="Exceptions.InvalidNameException">The name given is not null and not a valid name.</exception>
+    public string? Name
+    {
+        get => _name;
+        init => _name = value is null ? null : NodeName.Checked(value);
+    }
 
     /// <inheritdoc/>
     public abstract bool IsDirectlyMutable { get; }

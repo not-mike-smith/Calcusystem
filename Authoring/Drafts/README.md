@@ -43,6 +43,11 @@ draft types have internal constructors, so a node cannot exist outside the draft
   only depends on a cycle.
 - **A reused id keeps every node.** Adding a node with an id the draft already holds keeps both, and the build
   reports `DuplicateId` once for that id. Nothing vanishes because something else was added.
+- **A name is held normalized, and found by `ByName` and `RelationshipByName`.** Lookup compares after
+  normalization and case-sensitively.
+- **Names are unique across expressions and relationships.** Each node whose name another node has is reported
+  as `DuplicateName`. A variable with no name is `NameMissing`; a name the domain's rule refuses is
+  `NameInvalid`.
 - **A relationship's solving role is never ignored.** An equality must state one; any other kind may state only
   `Requirement`, and stating anything else is a `RoleNotAllowed` problem.
 
@@ -53,8 +58,13 @@ draft types have internal constructors, so a node cannot exist outside the draft
   `Remove` removes every node with it.
 - **Where an id is reused, `Expression(id)` and `Relationship(id)` return the first node added with it.** Two
   expressions sharing an id are not built at all, because an operand naming that id could mean either.
-- **Changing a node's `Type` does not clear the fields that no longer apply.** A variable's `Symbol` survives
-  being flipped to a product and back. Fields that do not apply to the current kind are ignored, not cleared.
+- **Null and the empty string both mean no name.** An emptied input field is not an invalid name. A name of
+  only whitespace is one.
+- **A node with a duplicate name is still built**, unlike one with a duplicate id. Operands refer to ids, so
+  the nodes above it are still checked and report their own problems in the same build.
+- **Where a name is reused, `ByName` returns the first node added with it**, as `Expression(id)` does.
+- **Changing a node's `Type` does not clear the fields that no longer apply.** A variable's `Dimensionality`
+  survives being flipped to a product and back. Fields that do not apply to the current kind are ignored, not cleared.
 - **`OperandIds` accepts nulls**, which is how an opened-but-unfilled slot is represented. It is a plain
   `List<string?>` and order matters where the kind cares — a quotient divides the first by the second.
 - **A `DomainRule` problem's message comes from the domain's exception**, not from this assembly. The wording

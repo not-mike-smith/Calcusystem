@@ -13,6 +13,13 @@ namespace Calcusystem.DimensionedExpression.Interfaces;
 /// </summary>
 public interface IExpression : IIdentified
 {
+    /// <summary>What the model calls this node, or null for a computed node left unnamed.</summary>
+    /// <remarks>
+    /// Fixed once the node is built. Unique within an <c>ExpressionSystem</c>, across its expressions and
+    /// relationships, so <c>system.Find(name)</c> has one answer.
+    /// </remarks>
+    string? Name { get; }
+
     /// <summary>
     /// Whether this node's value can be set directly. True for leaf variables (<see cref="IDirectExpression"/>);
     /// false for computed nodes, whose value derives from their children.

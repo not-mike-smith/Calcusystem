@@ -61,7 +61,7 @@ public class SnapshotSeamTests
         var restored = Variable.FromSnapshot(original.GetSnapshot());
 
         restored.Id.Should().Be("m");
-        restored.Symbol.Should().Be("m");
+        restored.Name.Should().Be("m");
         restored.Value!.KmsValue.Should().Be(2);
         restored.Provenance!.Summary().Should().Be(original.Provenance.Summary());
     }

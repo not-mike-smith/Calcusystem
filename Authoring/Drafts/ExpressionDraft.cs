@@ -1,5 +1,6 @@
 using Calcusystem.Authoring.Enums;
 using Calcusystem.DimensionedExpression.Interfaces;
+using Calcusystem.DimensionedExpression.Names;
 using Calcusystem.Measurement.Enums;
 using Calcusystem.Measurement.Primitives;
 
@@ -41,8 +42,18 @@ public sealed class ExpressionDraft
     /// </remarks>
     public List<string?> OperandIds { get; } = [];
 
-    /// <summary>What to call a variable. Ignored for every other kind.</summary>
-    public string? Symbol { get; set; }
+    private string? _name;
+
+    /// <summary>What to call the node. A variable must have one; for any other kind it is optional.</summary>
+    /// <remarks>
+    /// Held normalized (see <see cref="NodeName"/>) and otherwise as given. Null or empty means no name. An
+    /// invalid name, or one another node has, is reported when the draft is built.
+    /// </remarks>
+    public string? Name
+    {
+        get => _name;
+        set => _name = value is null ? null : NodeName.Normalized(value);
+    }
 
     /// <summary>
     /// A variable's dimensionality. Required to build one, and ignored for every other kind, which derive theirs
@@ -82,5 +93,5 @@ public sealed class ExpressionDraft
     public UncertaintyCorrelation UncertaintyCorrelation { get; set; } = UncertaintyCorrelation.Uncorrelated;
 
     public override string ToString() =>
-        $"{Type?.ToString() ?? "untyped"} {Symbol ?? Id}";
+        $"{Type?.ToString() ?? "untyped"} {Name ?? Id}";
 }

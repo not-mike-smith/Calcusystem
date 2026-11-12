@@ -31,7 +31,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
                 {
                     Id = "var-m",
                     Type = ExpressionDraftType.Variable,
-                    Symbol = "m",
+                    Name = "m",
                     Dimensionality = "M1",
                     KmsValue = 2,
                 },
@@ -39,7 +39,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
                 {
                     Id = "var-a",
                     Type = ExpressionDraftType.Variable,
-                    Symbol = "a",
+                    Name = "a",
                     Dimensionality = "L1,T-2",
                     KmsValue = acceleration,
                 },
@@ -58,7 +58,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         {
             Id = "var-limit",
             Type = ExpressionDraftType.Variable,
-            Symbol = "F-max",
+            Name = "F-max",
             Dimensionality = "M1,L1,T-2",
             KmsValue = limit,
         });
@@ -205,7 +205,7 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         report.DegreesOfFreedom.Should().Be(1);
         report.IsWellPosed.Should().BeFalse();
         report.Underdetermined.Unknowns.Should().ContainSingle()
-            .Which.Should().Match<UnknownReport>(u => u.Id == "var-a" && u.Symbol == "a");
+            .Which.Should().Match<UnknownReport>(u => u.Id == "var-a" && u.Name == "a");
         report.UnknownsWithNoEquationIds.Should().Equal(["var-a"]);
     }
 
@@ -243,5 +243,50 @@ public class DraftEndpointTests(WebApplicationFactory<Program> host) : IClassFix
         var response = await Post("build", NewtonsSecondLaw());
 
         (await response.Content.ReadAsStringAsync()).Should().Contain("\"Variables\"").And.NotContain("\"variables\"");
+    }
+
+    /* Spec A slice 1, over the wire: a name problem reaches an editor as a kind it can branch on, by name. */
+    [Fact]
+    public async Task NameProblemsAreReportedByKind()
+    {
+        var draft = NewtonsSecondLaw();
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "var-m2", Type = ExpressionDraftType.Variable, Name = "m", Dimensionality = "M1",
+        });
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "var-unnamed", Type = ExpressionDraftType.Variable, Dimensionality = "M1",
+        });
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "var-padded", Type = ExpressionDraftType.Variable, Name = " padded", Dimensionality = "M1",
+        });
+
+        var response = await Post("validation", draft);
+        var body = await response.Content.ReadAsStringAsync();
+        var problems = await Read<List<DraftProblem>>(response);
+
+        problems.Select(p => (p.NodeId, p.Kind)).Should().BeEquivalentTo(
+        [
+            ("var-m", DraftProblemKind.DuplicateName),
+            ("var-m2", DraftProblemKind.DuplicateName),
+            ("var-unnamed", DraftProblemKind.NameMissing),
+            ("var-padded", DraftProblemKind.NameInvalid),
+        ]);
+        body.Should().Contain("\"DuplicateName\"");
+    }
+
+    [Fact]
+    public async Task AFormulasNameIsAcceptedAndTheDraftBuilds()
+    {
+        var draft = NewtonsSecondLaw();
+        draft.Expressions.Single(e => e.Id == "expr-f").OperandIds.Should().NotBeEmpty();
+        draft.Expressions.Add(new Dtos.ExpressionDraft
+        {
+            Id = "expr-named", Type = ExpressionDraftType.Negated, Name = "eq-1", OperandIds = ["var-m"],
+        });
+
+        (await Post("build", draft)).StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

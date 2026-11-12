@@ -12,7 +12,7 @@ What an analysis outcome looks like once it is JSON. Records holding ids, number
 | `OutcomeReport` | sealed record | One relationship's verdict, with both operands' values. |
 | `DecompositionReport` | sealed record | The count, and the three parts of a decomposition. |
 | `BlockReport` | sealed record | One part: its own count, its unknowns and its equations. |
-| `UnknownReport` | sealed record | An unknown, with its symbol and dimensionality. |
+| `UnknownReport` | sealed record | An unknown, with its name and dimensionality. |
 | `EquationReport` | sealed record | A determining relationship and the unknowns it reaches. |
 | `MeasurandReport` | sealed record | A value: KMS magnitude, dimensionality, and both uncertainty bounds. |
 | `VocabularyReport` | sealed record | Every kind, role, rule and dimension a client can offer. |

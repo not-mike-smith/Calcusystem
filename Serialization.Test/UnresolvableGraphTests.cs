@@ -31,7 +31,7 @@ public class UnresolvableGraphTests
     {
         Id = id,
         Type = nameof(Variable),
-        Symbol = id,
+        Name = id,
         Dimensionality = "",
         KmsValue = 1,
         Uncertainty = null,

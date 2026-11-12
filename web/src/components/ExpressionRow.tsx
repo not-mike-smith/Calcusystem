@@ -16,7 +16,7 @@ interface Props {
   onRemove: () => void;
 }
 
-/** One derived expression: a kind, and the nodes it is over. */
+/** One derived expression: an optional name, a kind, and the nodes it is over. */
 export function ExpressionRow({
   expression, kinds, operands, problems, computed, onChange, onSlot, onAddSlot, onRemoveSlot, onRemove,
 }: Props) {
@@ -25,6 +25,17 @@ export function ExpressionRow({
   return (
     <div className={problems.length > 0 ? "node faulty" : "node"}>
       <div className="row">
+        {/* Optional: an emptied name is sent as none, and the formula is then shown by its kind. */}
+        <input
+          className="name"
+          placeholder="unnamed"
+          value={expression.Name ?? ""}
+          onChange={(event) => onChange({ Name: event.target.value || null })}
+          onBlur={(event) => onChange({ Name: event.target.value.trim() || null })}
+        />
+
+        <span className="over">=</span>
+
         <select
           value={expression.Type ?? ""}
           onChange={(e) => onChange({ Type: (e.target.value || null) as ExpressionDraft["Type"] })}

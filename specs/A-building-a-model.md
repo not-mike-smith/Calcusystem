@@ -295,7 +295,7 @@ Found while reviewing, and worth deciding before names copy their pattern:
 
 Each slice can merge on its own. The retroactive Authoring spec comes first (section 8).
 
-1. **Names.** `Variable.Symbol` becomes `Name` in the domain, snapshots, drafts, the wire, the API reports, the Examples' presentation and the editor. Computed nodes gain a name. Validity rules, uniqueness (`DuplicateName`, an atomic `Add`), and lookup by name.
+1. **Names.** `Variable.Symbol` becomes `Name` in the domain, snapshots, drafts, the wire, the API reports, the Examples' presentation and the editor. Computed nodes gain a name. Validity rules, uniqueness (`DuplicateName`, an atomic `Add`), and lookup by name. **Done** (decisions S1-1 to S1-7).
 2. **Fixed values.** The leaf interfaces; constant, reference value and scalar nodes; the `Givens` list; and snapshot, draft, wire and vocabulary forms.
 3. **Build through snapshots.** `SystemDraft.Build` builds every node through `FromSnapshot`; domain constructors become internal.
 4. **The model builder,** including handles and the power helper.
@@ -341,6 +341,13 @@ Each slice can merge on its own. The retroactive Authoring spec comes first (sec
 | Q8 (rest) | Provenance on fixed values | Optional on constants and on reference values. A reference value without provenance becomes a warning once drafts report warnings. |
 | Q12 | Marking correlation in printed text | Brackets with a tag, such as `⟦V·I_total⟧ᶜ`; a correlated power prints as `x^n`. |
 | — | Relationship symbols in printed text | The operator's own `Symbol`, verbatim. |
+| S1-1 | A relationship's name | `IBinaryOperator.Name` is `{ get; init; }`, fixed once built like an expression's. |
+| S1-2 | A missing or invalid name in a draft | New draft problem kinds, not a relayed `DomainRule`. The draft asks the domain's own name rule, so the rule is stated once. |
+| S1-3 | What `Find` returns | `system.Find(name)` returns an expression. A relationship is found with a separate lookup. Names still share one namespace. |
+| S1-4 | Normalization | A built node stores its name NFC-normalized, and so does a draft. |
+| S1-5 | Constructor shape in slice 1 | Slice 1 adds a name the smallest way each constructor allows. One uniform way to supply an id and a name waits for slice 3, where the constructors become internal. |
+| S1-6 | A reused id in `ExpressionSystem.Add` | Left as it is in slice 1 (section 8). The name check does not copy its silence. |
+| S1-7 | Naming a computed node in the editor | The editor offers a name on each formula, prefilled with the first unused `eq-N`. Clearing it leaves the node unnamed. The default lives in the editor, not in the draft or the domain. |
 | — | Reading text | Out of A. Moved to Spec H, after C1 and D. |
 | — | Printed text | Human-readable, and not required to parse. |
 

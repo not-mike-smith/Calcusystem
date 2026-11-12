@@ -11,13 +11,13 @@ namespace Calcusystem.DimensionedExpression.Snapshots;
 /// value because a variable is dimensioned from the moment it is declared, whether or not it is yet bound.
 /// </remarks>
 /// <param name="Id">Stable identity.</param>
-/// <param name="Symbol">The variable's display symbol.</param>
+/// <param name="Name">The variable's name.</param>
 /// <param name="Dimensionality">Its physical dimension, known even while unset.</param>
 /// <param name="Value">Its value and uncertainty, or null while unset.</param>
 /// <param name="Provenance">Where the value came from, or null when untracked.</param>
 public readonly record struct VariableSnapshot(
     string Id,
-    string Symbol,
+    string Name,
     DimensionalitySnapshot Dimensionality,
     MeasurandSnapshot? Value,
     ProvenanceSnapshot? Provenance);

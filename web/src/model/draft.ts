@@ -21,7 +21,7 @@ export function addVariable(draft: SystemDraft): SystemDraft {
   const variable: ExpressionDraft = {
     Id: newId(),
     Type: "Variable",
-    Symbol: "",
+    Name: "",
     Dimensionality: null,
     OperandIds: [],
   };
@@ -32,9 +32,29 @@ export function addVariable(draft: SystemDraft): SystemDraft {
 export function addExpression(draft: SystemDraft): SystemDraft {
   // Two empty slots, because every kind takes at least one and the common ones take two. A null slot is a
   // legitimate state, so an unfinished node is nothing to apologise for.
-  const expression: ExpressionDraft = { Id: newId(), Type: "Product", OperandIds: [null, null] };
+  const expression: ExpressionDraft = {
+    Id: newId(),
+    Type: "Product",
+    Name: nextFormulaName(draft),
+    OperandIds: [null, null],
+  };
 
   return { ...draft, Expressions: [...expressionsOf(draft), expression] };
+}
+
+/**
+ * The first `eq-N` no node in the draft is called. A suggestion only: the author can change it, or clear it to
+ * leave the formula unnamed. Names are unique across expressions and relationships, so both are looked at.
+ */
+export function nextFormulaName(draft: SystemDraft): string {
+  const taken = new Set(
+    [...expressionsOf(draft), ...relationshipsOf(draft)].map((node) => node.Name?.trim().normalize("NFC")),
+  );
+
+  let n = 1;
+  while (taken.has(`eq-${n}`)) n++;
+
+  return `eq-${n}`;
 }
 
 export function addRelationship(draft: SystemDraft): SystemDraft {
@@ -103,7 +123,7 @@ export function removeSlot(draft: SystemDraft, id: string, index: number): Syste
 
 /** What to call a node in a list of choices. */
 export function labelFor(node: ExpressionDraft): string {
-  const name = node.Symbol?.trim();
+  const name = node.Name?.trim();
   if (name) return name;
 
   return node.Type ? `${node.Type} (${node.Id?.slice(0, 4)})` : `untyped (${node.Id?.slice(0, 4)})`;

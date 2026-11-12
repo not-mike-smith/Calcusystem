@@ -56,8 +56,8 @@ curl -X POST http://localhost:5080/api/drafts/calculation \
   -d '{
     "Name": "Newton'"'"'s second law",
     "Expressions": [
-      { "Id": "m", "Type": "Variable", "Symbol": "m", "Dimensionality": "M1", "KmsValue": 2 },
-      { "Id": "a", "Type": "Variable", "Symbol": "a", "Dimensionality": "L1,T-2", "KmsValue": 3 },
+      { "Id": "m", "Type": "Variable", "Name": "m", "Dimensionality": "M1", "KmsValue": 2 },
+      { "Id": "a", "Type": "Variable", "Name": "a", "Dimensionality": "L1,T-2", "KmsValue": 3 },
       { "Id": "f", "Type": "Product", "OperandIds": ["m", "a"] }
     ]
   }'

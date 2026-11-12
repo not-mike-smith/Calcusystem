@@ -29,6 +29,9 @@ The two closed sets authoring names: which kind of node to build, and why one ca
 - **`DraftProblemKind.DomainRule` is not a rule of this layer.** It means a domain constructor refused, and the
   message is that exception's. Every other member is a shape this layer checks itself, because the domain
   cannot be called until the shape is right.
+- **`NameInvalid` is checked here and decided by the domain.** The kind is this layer's; whether a name is
+  valid, and the message, come from `DimensionedExpression`'s `NodeName.Problem`.
+- **`DuplicateName` is reported once for each node that has the name; `DuplicateId` once for the id.**
 
 ## What does not belong here
 

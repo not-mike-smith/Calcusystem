@@ -49,4 +49,13 @@ public enum DraftProblemKind
     /// a value.
     /// </summary>
     RoleNotAllowed,
+
+    /// <summary>A variable has no name.</summary>
+    NameMissing,
+
+    /// <summary>A node's name breaks the rule for names. The message says how.</summary>
+    NameInvalid,
+
+    /// <summary>Another node in the draft has the same name. Reported on each node that has it.</summary>
+    DuplicateName,
 }
